@@ -36,9 +36,23 @@ async def _auction_ticker() -> None:
         await asyncio.sleep(2)
 
 
+def _run_migrations() -> None:
+    from alembic.config import Config
+
+    from alembic import command
+    from app.config import BASE_DIR
+
+    cfg = Config(str(BASE_DIR / "alembic.ini"))
+    cfg.set_main_option("script_location", str(BASE_DIR / "alembic"))
+    command.upgrade(cfg, "head")
+    log.info("migrations applied")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
+    if settings.run_migrations:
+        await asyncio.to_thread(_run_migrations)
     async with session_scope() as db:
         await ensure_initial_admin(db, settings.admin_login, settings.admin_password)
     tasks = [asyncio.create_task(_auction_ticker())]
