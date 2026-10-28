@@ -146,3 +146,7 @@ Telegram initData imzosi; i18n kalitlari uch tilda bir xilligi.
 - Ombor kirim/chiqim harakatlari jurnali — admin qoldiqni to'g'ridan-to'g'ri tahrirlaydi, bron/jo'natish avtomatik.
 - Videolar — faqat rasmlar (WebP, thumbnail, galereya).
 - Onlayn to'lov integratsiyasi — to'lovlar qo'lda, moliya xodimi tasdiqlaydi.
+
+## Ikonkalar
+
+Mini App ikonkalari — [Phosphor Icons](https://phosphoricons.com) (MIT litsenziya), `app/templates/miniapp/partials/icons.html` makrosida inline SVG sifatida.
