@@ -108,7 +108,7 @@
   document.addEventListener('htmx:configRequest', (e) => { e.detail.headers['X-Lang'] = root.lang || ''; });
   document.addEventListener('htmx:beforeRequest', (e) => { if (e.detail.boosted || e.detail.elt.hasAttribute('hx-get')) progressStart(); });
   document.addEventListener('htmx:afterRequest', progressDone);
-  document.addEventListener('htmx:afterSettle', () => { syncBackButton(); lazyImages(); applyTheme(); });
+  document.addEventListener('htmx:afterSettle', () => { syncBackButton(); lazyImages(); applyTheme(); positionLens(false); bindTopbar(); });
   document.addEventListener('htmx:responseError', () => toast(root.dataset.errorText || 'Error', 'bad'));
   document.addEventListener('htmx:sendError', () => toast(root.dataset.offlineText || 'Offline', 'bad'));
   // server-driven toasts: HX-Trigger: {"toast": {"msg": "...", "type": "ok"}}
@@ -133,12 +133,43 @@
   }
   lazyImages();
 
+  // ---------- bottom bar: sliding glass lens ----------
+  function positionLens(animate) {
+    const nav = document.querySelector('.bottom-nav');
+    if (!nav) return;
+    let lens = nav.querySelector('.nav-lens');
+    if (!lens) { lens = document.createElement('span'); lens.className = 'nav-lens'; nav.prepend(lens); }
+    const active = nav.querySelector('a.active') || nav.querySelector('a');
+    if (!active) return;
+    const navRect = nav.getBoundingClientRect(); const r = active.getBoundingClientRect();
+    if (!r.width) return;
+    if (animate === false) lens.style.transition = 'none';
+    lens.style.width = r.width + 'px';
+    lens.style.setProperty('--lens-x', (r.left - navRect.left) + 'px');
+    if (animate === false) { void lens.offsetWidth; lens.style.transition = ''; }
+    nav.classList.add('lens-ready');
+  }
+  positionLens(false);
+  window.addEventListener('resize', () => positionLens(false), { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => positionLens(false));
+  // when a nav item is tapped, slide the lens immediately so navigation feels instant
+  document.addEventListener('pointerdown', (e) => {
+    const a = e.target.closest('.bottom-nav a');
+    if (!a || a.classList.contains('active')) return;
+    const nav = a.closest('.bottom-nav');
+    nav.querySelectorAll('a').forEach((x) => x.classList.toggle('active', x === a));
+    positionLens(true);
+  }, { passive: true });
+
   // ---------- top bar shadow on scroll ----------
-  const topbar = document.querySelector('.topbar');
-  if (topbar) {
+  function bindTopbar() {
+    const topbar = document.querySelector('.topbar');
+    if (!topbar || topbar.dataset.bound) return;
+    topbar.dataset.bound = '1';
     const onScroll = () => topbar.classList.toggle('scrolled', window.scrollY > 4);
     window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
   }
+  bindTopbar();
 
   // ---------- tap haptics ----------
   document.addEventListener('pointerdown', (e) => {

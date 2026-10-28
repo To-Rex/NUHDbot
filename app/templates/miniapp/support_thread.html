@@ -2,7 +2,7 @@
 {% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
 {% block topbar_actions %}{% endblock %}
 {% block content %}
-<div class="page" style="padding-bottom:90px">
+<div class="page" style="padding-bottom:calc(var(--nav-h) + var(--nav-gap) + 90px)">
   <p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>
   <div class="chat" id="chat" hx-get="/app/support/{{ th.id }}/messages" hx-trigger="every 5s" hx-vals='js:{"after": lastMsgId()}' hx-swap="beforeend">
     {% include "miniapp/partials/messages.html" %}

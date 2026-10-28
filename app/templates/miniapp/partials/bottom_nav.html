@@ -1,9 +1,10 @@
 {% set active = 'home' if path in ('/app/home','/app','/app/') else ('catalog' if path.startswith('/app/catalog') or path.startswith('/app/products') or path.startswith('/app/new') else ('auction' if path.startswith('/app/auctions') else ('orders' if path.startswith('/app/orders') or path.startswith('/app/cart') or path.startswith('/app/checkout') else ('profile' if path.startswith('/app/profile') or path.startswith('/app/support') or path.startswith('/app/info') or path.startswith('/app/register') else '')))) %}
-<nav class="bottom-nav" aria-label="{{ t('nav.menu') }}">
-  <a href="/app/home" class="{{ 'active' if active=='home' }}">{{ icon('home', 24, 'ic-off') }}{{ icon('home-fill', 24, 'ic-on') }}<span>{{ t('nav.home') }}</span></a>
-  <a href="/app/catalog" class="{{ 'active' if active=='catalog' }}">{{ icon('grid', 24, 'ic-off') }}{{ icon('grid-fill', 24, 'ic-on') }}<span>{{ t('nav.catalog') }}</span></a>
-  <a href="/app/auctions" class="{{ 'active' if active=='auction' }}">{{ icon('gavel', 24, 'ic-off') }}{{ icon('gavel-fill', 24, 'ic-on') }}<span>{{ t('nav.auction') }}</span></a>
-  <a href="/app/orders" class="{{ 'active' if active=='orders' }}">{{ icon('package', 24, 'ic-off') }}{{ icon('package-fill', 24, 'ic-on') }}<span>{{ t('nav.orders') }}</span>
+<nav class="bottom-nav glass-strong" aria-label="{{ t('nav.menu') }}">
+  <span class="nav-lens" aria-hidden="true"></span>
+  <a href="/app/home" class="{{ 'active' if active=='home' }}">{{ icon('home', 26, 'ic-off') }}{{ icon('home-fill', 26, 'ic-on') }}<span>{{ t('nav.home') }}</span></a>
+  <a href="/app/catalog" class="{{ 'active' if active=='catalog' }}">{{ icon('grid', 26, 'ic-off') }}{{ icon('grid-fill', 26, 'ic-on') }}<span>{{ t('nav.catalog') }}</span></a>
+  <a href="/app/auctions" class="{{ 'active' if active=='auction' }}">{{ icon('gavel', 26, 'ic-off') }}{{ icon('gavel-fill', 26, 'ic-on') }}<span>{{ t('nav.auction') }}</span></a>
+  <a href="/app/orders" class="{{ 'active' if active=='orders' }}">{{ icon('package', 26, 'ic-off') }}{{ icon('package-fill', 26, 'ic-on') }}<span>{{ t('nav.orders') }}</span>
     <span class="nav-badge" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
-  <a href="/app/profile" class="{{ 'active' if active=='profile' }}">{{ icon('user', 24, 'ic-off') }}{{ icon('user-fill', 24, 'ic-on') }}<span>{{ t('nav.profile') }}</span></a>
+  <a href="/app/profile" class="{{ 'active' if active=='profile' }}">{{ icon('user', 26, 'ic-off') }}{{ icon('user-fill', 26, 'ic-on') }}<span>{{ t('nav.profile') }}</span></a>
 </nav>

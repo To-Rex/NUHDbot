@@ -1,5 +1,5 @@
 /* New & Used Hard Drives — design tokens
-   Concept: a precise hardware catalogue. Calm neutrals, one accent, hairlines instead of shadows, flat colour only. */
+   Concept: a precise hardware catalogue. Calm neutrals, one accent, hairlines, flat colour only; Apple-style liquid glass via blur + translucency only. */
 :root {
   --font-display: "Manrope", "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-body: "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -37,11 +37,25 @@
   --shadow: 0 1px 2px rgba(16,20,28,.06);
   --shadow-float: 0 8px 24px rgba(16,20,28,.12), 0 1px 2px rgba(16,20,28,.06);
   --ring: 0 0 0 3px var(--accent-soft);
-  --scrim: rgba(14,17,22,.5);
+  --scrim: rgba(14,17,22,.35);
 
-  --r-card: 12px; --r-ctl: 10px; --r-chip: 6px; --r-sm: 8px;
+
+  /* liquid glass (light) */
+  --glass-bg: rgba(255,255,255,.58);
+  --glass-bg-strong: rgba(255,255,255,.78);
+  --glass-border: rgba(255,255,255,.65);
+  --glass-border-outer: rgba(16,20,28,.08);
+  --glass-highlight: rgba(255,255,255,.75);
+  --glass-shadow: 0 10px 30px rgba(16,20,28,.14);
+  --glass-blur: 24px;
+  --glass-tint-accent: rgba(30,79,214,.14);
+  --glass-dark-bg: rgba(255,255,255,.08);          /* glass placed on the ink panel */
+  --glass-dark-border: rgba(255,255,255,.14);
+  --glass-dark-highlight: rgba(255,255,255,.18);
+  --toast-glass: rgba(20,24,32,.72);
+  --nav-h: 66px; --nav-gap: 14px;
+  --r-card: 16px; --r-ctl: 14px; --r-chip: 6px; --r-sm: 10px; --r-pill: 999px;
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
-  --nav-h: 60px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
 
@@ -67,6 +81,12 @@
     --new-bg: #10311F; --new-fg: #86EFAC; --used-bg: #10234A; --used-fg: #93C5FD; --refresh-bg: #3A2F08; --refresh-fg: #FDE68A;
     --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-float: 0 8px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
     --scrim: rgba(0,0,0,.6);
+    --glass-bg: rgba(24,28,36,.55); --glass-bg-strong: rgba(24,28,36,.78);
+    --glass-border: rgba(255,255,255,.10); --glass-border-outer: rgba(0,0,0,.45);
+    --glass-highlight: rgba(255,255,255,.12); --glass-shadow: 0 10px 30px rgba(0,0,0,.5);
+    --glass-tint-accent: rgba(91,140,255,.18);
+    --glass-dark-bg: rgba(255,255,255,.06); --glass-dark-border: rgba(255,255,255,.10); --glass-dark-highlight: rgba(255,255,255,.12);
+    --toast-glass: rgba(20,24,32,.78);
     color-scheme: dark;
   }
 }
@@ -80,6 +100,12 @@
   --new-bg: #10311F; --new-fg: #86EFAC; --used-bg: #10234A; --used-fg: #93C5FD; --refresh-bg: #3A2F08; --refresh-fg: #FDE68A;
   --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-float: 0 8px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
   --scrim: rgba(0,0,0,.6);
+  --glass-bg: rgba(24,28,36,.55); --glass-bg-strong: rgba(24,28,36,.78);
+  --glass-border: rgba(255,255,255,.10); --glass-border-outer: rgba(0,0,0,.45);
+  --glass-highlight: rgba(255,255,255,.12); --glass-shadow: 0 10px 30px rgba(0,0,0,.5);
+  --glass-tint-accent: rgba(91,140,255,.18);
+  --glass-dark-bg: rgba(255,255,255,.06); --glass-dark-border: rgba(255,255,255,.10); --glass-dark-highlight: rgba(255,255,255,.12);
+  --toast-glass: rgba(20,24,32,.78);
   color-scheme: dark;
 }
 :root[data-theme="light"] { color-scheme: light; }

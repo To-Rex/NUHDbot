@@ -2,7 +2,7 @@
 {% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
 {% block topbar_actions %}{% if a.status.value=='live' %}<span class="chip chip-live chip-lg">{{ t('auction.live') }}</span>{% endif %}{% endblock %}
 {% block content %}
-<div class="page stack" style="padding-bottom:{{ '130px' if a.status.value=='live' else '24px' }}">
+<div class="page stack" style="padding-bottom:{{ '150px' if a.status.value=='live' else '24px' }}">
   <div class="gallery" style="aspect-ratio:16/10">
     {% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" style="width:100%;height:100%;object-fit:contain;padding:16px" data-lightbox="{{ a.cover_url }}">{% else %}<div style="display:grid;place-items:center;height:100%;color:var(--ink-3)">{{ icon('drive', 48) }}</div>{% endif %}
     <div class="gallery-tag">{% with cond=a.condition, lg=True %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
@@ -48,7 +48,7 @@
   {% else %}
   <form hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" class="row flex-1" style="gap:8px" id="bid-form">
     <button class="btn btn-primary btn-lg flex-1" type="submit"><span class="label">{{ t('auction.bid_now') }} · <span id="btn-next" class="mono">{{ a.next_bid_total|money(a.currency) }}</span></span><span class="spinner"></span></button>
-    <button class="icon-btn" type="button" style="width:52px;height:52px" data-open-sheet="custom-bid" aria-label="{{ t('auction.bid_custom') }}">{{ icon('edit', 20) }}</button>
+    <button class="icon-btn glass" type="button" style="width:52px;height:52px" data-open-sheet="custom-bid" aria-label="{{ t('auction.bid_custom') }}">{{ icon('edit', 20) }}</button>
   </form>
   <div id="custom-bid" hidden><div class="sheet-backdrop" data-close-sheet="custom-bid"></div>
     <form class="sheet stack" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" onsubmit="closeSheet('custom-bid')"><div class="grab"></div><h2>{{ t('auction.bid_custom') }}</h2>

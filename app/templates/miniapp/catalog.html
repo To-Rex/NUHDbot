@@ -1,16 +1,16 @@
 {% extends "miniapp/base.html" %}
 {% block title %}{{ t('catalog.title') }} · {{ app_name }}{% endblock %}
 {% block topbar %}
-<header class="topbar" style="gap:8px">
+<header class="topbar glass" style="gap:8px">
   <form class="search flex-1" role="search" hx-get="/app/catalog" hx-trigger="input changed delay:350ms from:#q, submit" hx-target="#grid-wrap" hx-select="#grid-wrap" hx-swap="outerHTML" hx-push-url="true" hx-include="#filters-form" onsubmit="return false">
     {{ icon('search', 18) }}
     <input id="q" class="input" type="search" name="q" value="{{ f.q }}" placeholder="{{ t('catalog.search_ph') }}" autocomplete="off" enterkeyhint="search">
   </form>
-  <button class="icon-btn" type="button" data-open-sheet="filters" aria-label="{{ t('catalog.filters') }}">
+  <button class="icon-btn glass filter-btn" type="button" data-open-sheet="filters" aria-label="{{ t('catalog.filters') }}">
     {{ icon('sliders', 20) }}
     {% if f.active_count %}<span class="badge-count">{{ f.active_count }}</span>{% endif %}
   </button>
-  <a class="icon-btn" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
+  <a class="icon-btn glass" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
 </header>
 {% endblock %}
 {% block content %}

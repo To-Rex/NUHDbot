@@ -2,7 +2,7 @@
 {% set pk = p %}{% set p = p_ %}
 {% block title %}{{ p.title }} · {{ app_name }}{% endblock %}
 {% block content %}
-<div class="page" style="padding-top:8px;padding-bottom:calc(var(--nav-h) + 96px)">
+<div class="page" style="padding-top:8px;padding-bottom:calc(var(--nav-h) + var(--nav-gap) + 100px)">
   <div class="gallery">
     <div class="gallery-track">
       {% if p.images %}
@@ -34,7 +34,7 @@
     </div>
   </div>
 
-  <div class="card mt-4">
+  <div class="card price-card mt-4">
     <div class="price-row">
       <div>
         {% if p.price is not none %}<div class="price-big">{{ p.price|money(p.currency) }} <span class="small muted" style="font-family:var(--font-body);font-weight:500;letter-spacing:0">/ {{ t('common.per_unit') }}</span></div>{% else %}<div class="price-big muted" style="font-size:20px">{{ t('common.price_on_request') }}</div>{% endif %}
@@ -124,7 +124,7 @@
         <span class="spinner"></span>
       </button>
     </form>
-    <a class="icon-btn" style="width:52px;height:52px" href="/app/support/new?product_id={{ p.id }}" aria-label="{{ t('product.contact_admin') }}">{{ icon('message', 20) }}</a>
+    <a class="icon-btn glass" style="width:52px;height:52px" href="/app/support/new?product_id={{ p.id }}" aria-label="{{ t('product.contact_admin') }}">{{ icon('message', 20) }}</a>
     {% else %}
     <a class="btn btn-primary btn-lg btn-block" href="/app/support/new?product_id={{ p.id }}">{{ icon('message', 18) }}{{ t('product.ask_price') if p.price is none else t('product.contact_admin') }}</a>
     {% endif %}

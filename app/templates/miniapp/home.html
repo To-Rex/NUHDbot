@@ -1,15 +1,15 @@
 {% extends "miniapp/base.html" %}
 {% block title %}{{ app_name }}{% endblock %}
 {% block topbar %}
-<header class="topbar">
-  <img src="/static/img/logo.svg" alt="" width="32" height="32" style="border-radius:8px">
+<header class="topbar glass">
+  <img src="/static/img/logo.svg" alt="" width="30" height="30">
   <div class="flex-1">
     <div class="eyebrow">{{ t('home.greeting') }}</div>
     <h1 style="font-size:16px;margin-top:1px">{% if user and user.first_name %}{{ t('home.greeting_name', name=user.first_name) }}{% else %}{{ app_name }}{% endif %}</h1>
   </div>
-  <button type="button" class="icon-btn" data-theme-cycle aria-label="{{ t('misc.toggle_theme') }}" title="{{ t('misc.toggle_theme') }}"><span class="ic-sun">{{ icon('sun', 20) }}</span><span class="ic-moon">{{ icon('moon', 20) }}</span></button>
-  <button type="button" class="icon-btn" data-open-sheet="lang-sheet" aria-label="{{ t('lang.change') }}" title="{{ t('lang.change') }}"><span class="mono lang-short">{{ lang_meta[lang].short }}</span></button>
-  <a class="icon-btn" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
+  <button type="button" class="icon-btn glass" data-theme-cycle aria-label="{{ t('misc.toggle_theme') }}" title="{{ t('misc.toggle_theme') }}"><span class="ic-sun">{{ icon('sun', 20) }}</span><span class="ic-moon">{{ icon('moon', 20) }}</span></button>
+  <button type="button" class="icon-btn glass" data-open-sheet="lang-sheet" aria-label="{{ t('lang.change') }}" title="{{ t('lang.change') }}"><span class="mono lang-short">{{ lang_meta[lang].short }}</span></button>
+  <a class="icon-btn glass" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
 </header>
 {% endblock %}
 {% block content %}
@@ -20,7 +20,7 @@
     </svg>
     <h2>{{ t('home.hero_title') }}</h2>
     <p>{{ t('home.hero_text') }}</p>
-    <div class="facts">
+    <div class="facts glass-dark">
       <div><b>{{ in_stock_models }}</b><span>{{ t('home.fact_models') }}</span></div>
       <div><b>{{ live_auctions }}</b><span>{{ t('home.fact_auctions') }}</span></div>
       <div><b>≈20 {{ t('home.fact_days_unit') }}</b><span>{{ t('home.fact_delivery') }}</span></div>
@@ -29,10 +29,10 @@
   </section>
 
   <section class="quick">
-    <a href="/app/catalog" style="--i:0"><span class="q-icon">{{ icon('grid') }}</span>{{ t('home.quick_catalog') }}</a>
-    <a href="/app/new" style="--i:1"><span class="q-icon">{{ icon('sparkle') }}</span>{{ t('home.quick_new') }}</a>
-    <a href="/app/auctions" style="--i:2"><span class="q-icon">{{ icon('gavel') }}</span>{{ t('home.quick_auction') }}</a>
-    <a href="/app/info" style="--i:3"><span class="q-icon">{{ icon('book') }}</span>{{ t('home.quick_info') }}</a>
+    <a class="glass" href="/app/catalog" style="--i:0"><span class="q-icon">{{ icon('grid') }}</span>{{ t('home.quick_catalog') }}</a>
+    <a class="glass" href="/app/new" style="--i:1"><span class="q-icon">{{ icon('sparkle') }}</span>{{ t('home.quick_new') }}</a>
+    <a class="glass" href="/app/auctions" style="--i:2"><span class="q-icon">{{ icon('gavel') }}</span>{{ t('home.quick_auction') }}</a>
+    <a class="glass" href="/app/info" style="--i:3"><span class="q-icon">{{ icon('book') }}</span>{{ t('home.quick_info') }}</a>
   </section>
 
   {% if lots %}

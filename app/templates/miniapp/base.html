@@ -10,7 +10,7 @@
 <link rel="icon" href="/static/img/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
-<link rel="stylesheet" href="/static/css/app.css?v=3">
+<link rel="stylesheet" href="/static/css/app.css?v=4">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="/static/js/htmx.min.js" defer></script>
 {% block head %}{% endblock %}
@@ -18,11 +18,11 @@
 <body class="{% if hide_nav %}no-nav{% endif %}" hx-boost="true" hx-target="body" hx-swap="innerHTML show:window:top" hx-indicator="#page-progress" {% if back_url %}data-back="{{ back_url }}"{% endif %}>
 {% block topbar %}
 {% if page_title %}
-<header class="topbar">
-  {% if back_url %}<a class="icon-btn" href="{{ back_url }}" aria-label="{{ t('nav.back') }}">{{ icon('chevron-left', 20) }}</a>{% endif %}
+<header class="topbar glass">
+  {% if back_url %}<a class="icon-btn glass" href="{{ back_url }}" aria-label="{{ t('nav.back') }}">{{ icon('chevron-left', 20) }}</a>{% endif %}
   <h1>{{ page_title }}</h1>
   {% block topbar_actions %}
-  <a class="icon-btn" href="/app/cart" aria-label="{{ t('nav.cart') }}">
+  <a class="icon-btn glass" href="/app/cart" aria-label="{{ t('nav.cart') }}">
     {{ icon('cart', 20) }}
     <span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span>
   </a>
@@ -40,7 +40,7 @@
 {% endif %}
 {% include "miniapp/partials/lang_sheet.html" %}
 <div class="toasts"></div>
-<script src="/static/js/app.js?v=3" defer></script>
+<script src="/static/js/app.js?v=4" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
