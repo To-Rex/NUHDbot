@@ -43,7 +43,7 @@
       {% if errors.city %}<div class="error-text">{{ errors.city }}</div>{% endif %}
     </div>
     <div class="field"><label>{{ t('register.language') }}</label>
-      <div class="segmented">{% for code in ('uz','ru','en') %}<label style="flex:1"><input type="radio" name="ui_lang" value="{{ code }}" class="sr-only" {{ 'checked' if (form.ui_lang or lang) == code }}><span class="seg {{ 'active' if (form.ui_lang or lang) == code }}">{{ t('lang.' ~ code) }}</span></label>{% endfor %}</div>
+      <div class="lang-grid lang-grid-radio">{% for code in langs %}<label class="lang-opt {{ 'active' if (form.ui_lang or lang) == code }}"><input type="radio" name="ui_lang" value="{{ code }}" class="sr-only" {{ 'checked' if (form.ui_lang or lang) == code }}><span class="lang-badge">{{ lang_meta[code].short }}{% if lang_meta[code].suffix %}<small>{{ lang_meta[code].suffix }}</small>{% endif %}</span><span class="lang-name">{{ t('lang.' ~ code) }}</span>{{ icon('check', 16, 'lang-check') }}</label>{% endfor %}</div>
     </div>
     <div class="field"><label>{{ t('register.bought_before') }}</label>
       <div class="radio-cards" style="grid-template-columns:1fr 1fr">
@@ -72,6 +72,6 @@
     NUHD.requestContact(function(ok){ btn.classList.remove('htmx-request'); if (!ok) { NUHD.toast({{ t('register.or_manual')|tojson }}, ''); document.querySelector('input[name=phone]') && document.querySelector('input[name=phone]').focus(); } });
   });
 })();
-document.addEventListener('change', function(e){ if (e.target.name === 'ui_lang') document.querySelectorAll('.seg').forEach(function(s){ s.classList.toggle('active', s.previousElementSibling.checked); }); });
+document.addEventListener('change', function(e){ if (e.target.name === 'ui_lang') document.querySelectorAll('.lang-grid-radio .lang-opt').forEach(function(l){ l.classList.toggle('active', l.querySelector('input').checked); }); });
 </script>
 {% endblock %}

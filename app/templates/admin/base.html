@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="{{ lang }}">
+<html lang="{{ html_lang }}" data-theme-mode="{{ theme_mode }}"{% if theme_attr %} data-theme="{{ theme_attr }}" class="{{ 'tg-dark' if theme_attr == 'dark' }}"{% endif %}>
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="{{ theme_attr or 'light dark' }}">
 <meta name="csrf" content="{{ csrf }}">
 <title>{% block title %}{{ page_title or t('admin.title') }}{% endblock %} · {{ app_name }}</title>
 <link rel="icon" href="/static/img/logo.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="/static/css/admin.css?v=1">
+<link rel="stylesheet" href="/static/css/admin.css?v=2">
 <script src="/static/js/htmx.min.js" defer></script>
 {% block head %}{% endblock %}
 </head>
@@ -31,6 +31,12 @@
       <button class="menu-btn btn btn-secondary btn-sm" aria-label="menu">☰</button>
       <h1>{% block heading %}{{ page_title or t('admin.title') }}{% endblock %}</h1>
       {% block topbar_actions %}{% endblock %}
+      <label class="topbar-lang" title="{{ t('admin.language') }}"><span class="sr-only">{{ t('admin.language') }}</span>
+        <select class="select select-sm" onchange="location.href='/admin/lang/'+this.value+'?next='+encodeURIComponent(location.pathname+location.search)">
+          {% for code in langs %}<option value="{{ code }}" {{ 'selected' if code == lang }}>{{ lang_meta[code].short }}{% if lang_meta[code].suffix %} {{ lang_meta[code].suffix }}{% endif %} · {{ t('lang.' ~ code) }}</option>{% endfor %}
+        </select>
+      </label>
+      <button type="button" class="btn btn-secondary btn-sm theme-btn" data-theme-cycle title="{{ t('admin.theme') }}" aria-label="{{ t('admin.theme') }}"><span class="ic-sun">{{ icon('sun', 16) }}</span><span class="ic-moon">{{ icon('moon', 16) }}</span></button>
       <a class="btn btn-ghost btn-sm" href="/app" target="_blank" rel="noopener">Mini App ↗</a>
     </header>
     <div class="content">
@@ -39,7 +45,7 @@
   </div>
 </div>
 <div class="toasts"></div>
-<script src="/static/js/admin.js?v=1" defer></script>
+<script src="/static/js/admin.js?v=2" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

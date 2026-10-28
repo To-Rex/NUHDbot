@@ -26,9 +26,26 @@
   </div>
   {% endif %}
 
-  <div class="card" style="padding:12px 16px">
-    <div class="row-between"><span class="semibold row" style="gap:8px">{{ icon('globe', 18) }}{{ t('profile.language') }}</span>
-      <div class="segmented" style="padding:2px">{% for code in ('uz','ru','en') %}<a class="{{ 'active' if lang==code }}" href="/app/lang/{{ code }}?next=/app/profile" hx-boost="false" style="padding:0 10px;height:28px;font-size:12px">{{ t('lang.' ~ code) }}</a>{% endfor %}</div>
+  <div class="card pref-card">
+    <div class="pref-head">{{ icon('contrast', 18) }}<span class="semibold">{{ t('profile.appearance') }}</span></div>
+    <div class="segmented theme-seg" role="radiogroup" aria-label="{{ t('profile.appearance') }}">
+      {% for mode, ic in (('auto','contrast'),('light','sun'),('dark','moon')) %}
+      <button type="button" role="radio" data-theme-opt="{{ mode }}" aria-checked="{{ 'true' if theme_mode == mode else 'false' }}" class="{{ 'active' if theme_mode == mode }}" onclick="NUHD.setTheme('{{ mode }}')">{{ icon(ic, 16) }}<span>{{ t('profile.theme_' ~ mode) }}</span></button>
+      {% endfor %}
+    </div>
+    <p class="hint">{{ t('profile.theme_hint') }}</p>
+  </div>
+
+  <div class="card pref-card">
+    <div class="pref-head">{{ icon('globe', 18) }}<span class="semibold">{{ t('profile.language') }}</span></div>
+    <div class="lang-grid">
+      {% for code in langs %}
+      <a class="lang-opt {{ 'active' if lang == code }}" href="/app/lang/{{ code }}?next=/app/profile" hx-boost="false" {% if lang == code %}aria-current="true"{% endif %}>
+        <span class="lang-badge">{{ lang_meta[code].short }}{% if lang_meta[code].suffix %}<small>{{ lang_meta[code].suffix }}</small>{% endif %}</span>
+        <span class="lang-name">{{ t('lang.' ~ code) }}</span>
+        {% if lang == code %}{{ icon('check', 16, 'lang-check') }}{% endif %}
+      </a>
+      {% endfor %}
     </div>
   </div>
 

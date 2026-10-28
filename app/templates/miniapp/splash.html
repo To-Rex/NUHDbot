@@ -6,7 +6,7 @@
     <h1>{{ app_name }}</h1>
     <p>{{ t('app.tagline') }}</p>
     <div class="langs">
-      {% for code in ('uz','ru','en') %}<a class="fchip {{ 'active' if code==lang }}" href="/app/lang/{{ code }}?next=/app?force=1" hx-boost="false">{{ t('lang.' ~ code) }}</a>{% endfor %}
+      {% for code in langs %}<a class="fchip {{ 'active' if code==lang }}" href="/app/lang/{{ code }}?next=/app?force=1" hx-boost="false"><span class="lang-badge">{{ lang_meta[code].short }}{% if lang_meta[code].suffix %}<small>{{ lang_meta[code].suffix }}</small>{% endif %}</span>{{ t('lang.' ~ code) }}</a>{% endfor %}
     </div>
     <div class="status" id="status"><span class="spinner"></span><span>{{ t('common.loading') }}</span></div>
     <div class="err" id="err" hidden>

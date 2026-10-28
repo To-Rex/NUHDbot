@@ -3,25 +3,58 @@
   const tg = window.Telegram && window.Telegram.WebApp;
   const root = document.documentElement;
 
-  // ---------- Telegram integration ----------
+  // ---------- Theme: auto (Telegram / OS) | light | dark ----------
+  const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function themeMode() { return root.dataset.themeMode || 'auto'; }
+  function resolvedTheme() {
+    const mode = themeMode();
+    if (mode === 'light' || mode === 'dark') return mode;
+    if (tg && tg.colorScheme) return tg.colorScheme === 'dark' ? 'dark' : 'light';
+    return mq && mq.matches ? 'dark' : 'light';
+  }
   function applyTheme() {
-    if (!tg) return;
-    const dark = tg.colorScheme === 'dark';
+    const dark = resolvedTheme() === 'dark';
     root.classList.toggle('tg-dark', dark);
-    root.setAttribute('data-theme', dark ? 'dark' : 'light');
-    try {
-      const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-      tg.setHeaderColor && tg.setHeaderColor(bg || (dark ? '#0b1020' : '#f4f6fb'));
-      tg.setBackgroundColor && tg.setBackgroundColor(bg || (dark ? '#0b1020' : '#f4f6fb'));
-    } catch (e) {}
+    // explicit modes pin data-theme; in auto inside Telegram we pin it to Telegram's scheme (the webview may ignore prefers-color-scheme)
+    if (themeMode() === 'auto' && !tg) root.removeAttribute('data-theme'); else root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    if (meta) meta.setAttribute('content', themeMode() === 'auto' ? 'light dark' : themeMode());
+    if (tg) {
+      try {
+        const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+        tg.setHeaderColor && tg.setHeaderColor(bg || (dark ? '#0E1116' : '#F5F6F8'));
+        tg.setBackgroundColor && tg.setBackgroundColor(bg || (dark ? '#0E1116' : '#F5F6F8'));
+        tg.setBottomBarColor && tg.setBottomBarColor(bg || (dark ? '#0E1116' : '#F5F6F8'));
+      } catch (e) {}
+    }
+    document.querySelectorAll('[data-theme-opt]').forEach((b) => {
+      const on = b.dataset.themeOpt === themeMode();
+      b.classList.toggle('active', on); b.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+  }
+  function setTheme(mode) {
+    if (!['auto', 'light', 'dark'].includes(mode)) mode = 'auto';
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduce) { root.classList.add('theme-transition'); setTimeout(() => root.classList.remove('theme-transition'), 260); }
+    root.dataset.themeMode = mode;
+    applyTheme();
+    try { haptic.select(); } catch (e) {}
+    try { fetch('/app/theme/' + mode, { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
   }
   if (tg) {
     try { tg.ready(); tg.expand(); } catch (e) {}
     try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}
     try { tg.enableClosingConfirmation && document.body.dataset.confirmClose === '1' && tg.enableClosingConfirmation(); } catch (e) {}
-    applyTheme();
-    tg.onEvent && tg.onEvent('themeChanged', applyTheme);
+    tg.onEvent && tg.onEvent('themeChanged', () => { if (themeMode() === 'auto') applyTheme(); });
   }
+  if (mq && mq.addEventListener) mq.addEventListener('change', () => { if (themeMode() === 'auto') applyTheme(); });
+  applyTheme();
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-theme-cycle]');
+    if (!b) return;
+    b.classList.remove('spin'); void b.offsetWidth; b.classList.add('spin');
+    setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark');
+  });
 
   const haptic = {
     light() { try { tg && tg.HapticFeedback.impactOccurred('light'); } catch (e) {} },
@@ -75,7 +108,7 @@
   document.addEventListener('htmx:configRequest', (e) => { e.detail.headers['X-Lang'] = root.lang || ''; });
   document.addEventListener('htmx:beforeRequest', (e) => { if (e.detail.boosted || e.detail.elt.hasAttribute('hx-get')) progressStart(); });
   document.addEventListener('htmx:afterRequest', progressDone);
-  document.addEventListener('htmx:afterSettle', () => { syncBackButton(); lazyImages(); });
+  document.addEventListener('htmx:afterSettle', () => { syncBackButton(); lazyImages(); applyTheme(); });
   document.addEventListener('htmx:responseError', () => toast(root.dataset.errorText || 'Error', 'bad'));
   document.addEventListener('htmx:sendError', () => toast(root.dataset.offlineText || 'Offline', 'bad'));
   // server-driven toasts: HX-Trigger: {"toast": {"msg": "...", "type": "ok"}}
@@ -204,7 +237,7 @@
   };
 
   // ---------- Telegram helpers for templates ----------
-  window.NUHD = { tg, haptic, toast, confetti, progressStart, progressDone,
+  window.NUHD = { tg, haptic, toast, confetti, progressStart, progressDone, setTheme, resolvedTheme,
     requestContact(cb) {
       if (tg && tg.requestContact) { tg.requestContact((ok) => cb(!!ok)); } else cb(false);
     },

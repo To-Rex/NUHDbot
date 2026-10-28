@@ -108,10 +108,32 @@ def _icon(name: str, size: int = 20, cls: str = "") -> Markup:
 env.globals["icon"] = _icon
 
 
+LANG_META = {
+    "uz": {"native": "Ўзбекча", "short": "UZ", "suffix": "Кир", "bcp47": "uz-Cyrl"},
+    "uzl": {"native": "O'zbekcha", "short": "UZ", "suffix": "Lot", "bcp47": "uz-Latn"},
+    "ru": {"native": "Русский", "short": "RU", "suffix": "", "bcp47": "ru"},
+    "en": {"native": "English", "short": "EN", "suffix": "", "bcp47": "en"},
+    "zh": {"native": "中文", "short": "ZH", "suffix": "", "bcp47": "zh-Hans"},
+}
+
+
+def html_lang(code: str | None) -> str:
+    return LANG_META.get(code or "", {}).get("bcp47", code or settings.default_lang)
+
+
+env.globals.update(langs=settings.langs, lang_meta=LANG_META, bcp47=html_lang)
+
+
 def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | None = None, status_code: int = 200, headers: dict | None = None):
+    from app.deps import resolve_theme
+
     ctx = dict(ctx or {})
     user = getattr(request.state, "user", None)
     lang = lang or ctx.get("lang") or (user.lang if user else settings.default_lang)
+    theme_mode = ctx.get("theme_mode") or resolve_theme(request, user if user is not None else getattr(request.state, "staff", None))
+    ctx["theme_mode"] = theme_mode
+    ctx["theme_attr"] = theme_mode if theme_mode in ("light", "dark") else ""
+    ctx["html_lang"] = html_lang(lang)
     session = getattr(request.state, "session", {}) or {}
     cart = get_cart(session)
     ctx.setdefault("user", user)

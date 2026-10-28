@@ -12,6 +12,7 @@ from app.admin.common import (
     staff_dep,
 )
 from app.admin.router import router
+from app.config import settings
 from app.enums import Role
 from app.i18n import normalize_lang, t
 from app.models import Auction, AuctionDeposit, Bid, Order, Subscription, SupportThread, User
@@ -53,7 +54,7 @@ async def customer_detail(uid: int, request: Request, db: DB, staff: User = Depe
     deposits = (await db.execute(select(AuctionDeposit).where(AuctionDeposit.user_id == uid).order_by(AuctionDeposit.id.desc()))).scalars().all()
     subs = (await db.execute(select(Subscription).where(Subscription.user_id == uid))).scalars().all()
     threads = (await db.execute(select(SupportThread).where(SupportThread.user_id == uid).order_by(SupportThread.id.desc()))).scalars().unique().all()
-    return render(request, staff, "admin/customers/detail.html", {"page_title": u.full_name, "u": u, "orders": orders, "bids": bids, "deposits": deposits, "subs": subs, "threads": threads, "all_roles": list(Role), "langs": ("uz", "ru", "en")})
+    return render(request, staff, "admin/customers/detail.html", {"page_title": u.full_name, "u": u, "orders": orders, "bids": bids, "deposits": deposits, "subs": subs, "threads": threads, "all_roles": list(Role), "langs": settings.langs})
 
 
 @router.post("/customers/{uid}/update")

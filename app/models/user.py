@@ -19,7 +19,8 @@ class User(Base, TimestampMixin):
     phone_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     country: Mapped[str | None] = mapped_column(String(2))
     city: Mapped[str | None] = mapped_column(String(100))
-    lang: Mapped[str] = mapped_column(String(2), default="uz")
+    lang: Mapped[str] = mapped_column(String(8), default="uz")
+    theme: Mapped[str] = mapped_column(String(8), default="auto")  # auto | light | dark
     bought_from_china_before: Mapped[bool | None] = mapped_column(Boolean)
     ads_opt_in: Mapped[bool] = mapped_column(Boolean, default=False)
     registered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

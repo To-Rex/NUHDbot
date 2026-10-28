@@ -338,7 +338,12 @@
     "reply_time": "Жавоб муддати",
     "orders_count": "Буюртмалар",
     "member_since": "Аъзо",
-    "edit_title": "Маълумотларни таҳрирлаш"
+    "edit_title": "Маълумотларни таҳрирлаш",
+    "appearance": "Кўриниш",
+    "theme_auto": "Авто",
+    "theme_light": "Кун",
+    "theme_dark": "Тун",
+    "theme_hint": "«Авто» режимида Telegram мавзусига мослашади"
   },
   "support": {
     "title": "Админ билан боғланиш",
@@ -372,6 +377,8 @@
     "error_generic": "Хатолик. Қайта уриниб кўринг.",
     "login_required": "Telegram орқали киринг",
     "today": "Бугун",
-    "yesterday": "Кеча"
+    "yesterday": "Кеча",
+    "toggle_theme": "Мавзуни алмаштириш",
+    "choose_language": "Тилни танланг"
   }
 }

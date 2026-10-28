@@ -28,13 +28,10 @@ def app_button(text: str, path: str) -> InlineKeyboardButton:
 
 
 def lang_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[
-            InlineKeyboardButton(text="🇺🇿 Ўзбекча", callback_data="lang:uz"),
-            InlineKeyboardButton(text="🇷🇺 Русский", callback_data="lang:ru"),
-            InlineKeyboardButton(text="🇬🇧 English", callback_data="lang:en"),
-        ]]
-    )
+    """Five languages, each labelled in its own language (lang.<code> is the native name in every locale)."""
+    buttons = [InlineKeyboardButton(text=t(code, f"lang.{code}"), callback_data=f"lang:{code}") for code in settings.langs]
+    rows = [buttons[:2], buttons[2:]] if len(buttons) > 3 else [buttons]
+    return InlineKeyboardMarkup(inline_keyboard=[r for r in rows if r])
 
 
 def main_menu(lang: str) -> InlineKeyboardMarkup:

@@ -1,4 +1,12 @@
 @import url("tokens.css");
+/* aliases for names this stylesheet uses that tokens.css no longer defines */
+:root{--brand-400:var(--accent);--brand-600:var(--accent-press);--brand-700:var(--accent-press);--bg-glass:var(--surface);--r-lg:12px;--shadow-1:var(--shadow);--shadow-2:var(--shadow-float);--shadow-3:var(--shadow-float);--spring:var(--ease-out)}
+.theme-transition,.theme-transition *{transition:background-color 200ms var(--ease),color 200ms var(--ease),border-color 200ms var(--ease)!important}
+.theme-btn{width:34px;padding:0;display:inline-grid;place-items:center}
+.theme-btn .ic-moon{display:none}.tg-dark .theme-btn .ic-sun,:root[data-theme="dark"] .theme-btn .ic-sun{display:none}.tg-dark .theme-btn .ic-moon,:root[data-theme="dark"] .theme-btn .ic-moon{display:inline-flex}
+.topbar-lang .select-sm{height:34px;padding:0 30px 0 10px;font-size:12.5px;border-radius:10px;min-width:150px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.lang-tabs button{display:inline-flex;align-items:center;gap:4px}.lang-tabs button small{font-size:9.5px;font-weight:600;color:var(--fg-3)}.lang-tabs button .dot{width:5px;height:5px;border-radius:50%;background:var(--ok);display:inline-block}
 *,*::before,*::after{box-sizing:border-box}
 html{font-size:14px}
 body{margin:0;font-family:var(--font);background:var(--bg);color:var(--fg);line-height:1.45;-webkit-font-smoothing:antialiased}

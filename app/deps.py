@@ -15,6 +15,26 @@ from app.services.cart import read_session
 from app.services.users import get_or_create_tg_user
 
 ADMIN_COOKIE = "nuhd_admin"
+THEME_COOKIE = "nuhd_theme"
+ADMIN_LANG_COOKIE = "nuhd_admin_lang"
+THEMES = ("auto", "light", "dark")
+PREF_MAX_AGE = 60 * 60 * 24 * 365
+
+
+def set_pref_cookie(response: Response, name: str, value: str, *, path: str = "/") -> None:
+    """Long-lived, non-sensitive preference cookie (theme / language)."""
+    response.set_cookie(name, value, max_age=PREF_MAX_AGE, samesite="none" if is_secure() else "lax", secure=is_secure(), path=path)
+
+
+def resolve_theme(request: Request, user: User | None) -> str:
+    """auto | light | dark. Query (one-shot) > account preference > cookie > auto."""
+    q = request.query_params.get("theme")
+    if q in THEMES:
+        return q
+    if user is not None and getattr(user, "theme", "auto") in ("light", "dark"):
+        return user.theme
+    c = request.cookies.get(THEME_COOKIE)
+    return c if c in THEMES else "auto"
 DB = Annotated[AsyncSession, Depends(get_db)]
 
 
@@ -67,7 +87,7 @@ def get_lang(request: Request, user: CurrentUser) -> str:
     if cookie:
         return normalize_lang(cookie)
     accept = request.headers.get("accept-language", "")
-    return normalize_lang(accept[:2]) if accept else settings.default_lang
+    return normalize_lang(accept) if accept else settings.default_lang
 
 
 Lang = Annotated[str, Depends(get_lang)]

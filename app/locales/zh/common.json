@@ -1,0 +1,163 @@
+{
+  "app": {
+    "name": "New & Used Hard Drives",
+    "tagline": "广州直供 · 硬盘批发"
+  },
+  "lang": {
+    "uz": "Ўзбекча (кирилл)",
+    "ru": "Русский",
+    "en": "English",
+    "choose": "请选择语言",
+    "change": "切换语言",
+    "uzl": "O'zbekcha (lotin)",
+    "zh": "中文"
+  },
+  "nav": {
+    "home": "首页",
+    "catalog": "商品",
+    "new": "新品",
+    "auction": "拍卖",
+    "orders": "订单",
+    "info": "资讯",
+    "support": "客服",
+    "profile": "我的",
+    "cart": "购物车",
+    "back": "返回",
+    "menu": "菜单"
+  },
+  "condition": {
+    "new": "New",
+    "used": "Used",
+    "refresh": "Refresh",
+    "new_desc": "全新未使用的硬盘",
+    "used_desc": "二手、已检测的硬盘",
+    "refresh_desc": "更换过出厂标签的硬盘。标签型号可能与实际型号不同，商品页会同时标明两者。"
+  },
+  "test": {
+    "untested": "未检测",
+    "testing": "检测中",
+    "tested": "已检测"
+  },
+  "interface": {
+    "SATA": "SATA",
+    "SAS": "SAS"
+  },
+  "form": {
+    "2.5": "2.5\"",
+    "3.5": "3.5\""
+  },
+  "purpose": {
+    "pc": "台式机",
+    "cctv": "监控",
+    "nas": "NAS",
+    "server": "服务器",
+    "storage": "数据存储"
+  },
+  "common": {
+    "price": "价格",
+    "per_unit": "个",
+    "stock": "库存",
+    "pcs": "个",
+    "in_stock": "有货",
+    "out_of_stock": "缺货",
+    "min_order": "起订量",
+    "box_qty": "每箱",
+    "warranty": "质保",
+    "seller_warranty": "卖家质保",
+    "factory_warranty": "原厂质保",
+    "months": "个月",
+    "no_warranty": "无质保（0 个月）",
+    "hours": "通电时间",
+    "health": "健康度",
+    "yes": "是",
+    "no": "否",
+    "save": "保存",
+    "cancel": "取消",
+    "continue": "继续",
+    "confirm": "确认",
+    "close": "关闭",
+    "search": "搜索",
+    "filters": "筛选",
+    "reset": "重置",
+    "apply": "应用",
+    "all": "全部",
+    "loading": "加载中…",
+    "empty": "暂无内容",
+    "error": "出错了",
+    "retry": "重试",
+    "total": "合计",
+    "qty": "数量",
+    "currency": "货币",
+    "date": "日期",
+    "status": "状态",
+    "details": "详情",
+    "price_on_request": "价格面议",
+    "unconfirmed": "未确认",
+    "sample": "示例图",
+    "real_photo": "实物图",
+    "sold_out": "已售罄",
+    "new_arrival": "新到货",
+    "label_model": "标签型号",
+    "real_model": "实际型号",
+    "edit": "编辑",
+    "delete": "删除",
+    "add": "添加",
+    "send": "发送",
+    "copy": "复制",
+    "copied": "已复制"
+  },
+  "country": {
+    "UZ": "乌兹别克斯坦",
+    "KG": "吉尔吉斯斯坦",
+    "TJ": "塔吉克斯坦",
+    "KZ": "哈萨克斯坦",
+    "TM": "土库曼斯坦",
+    "RU": "俄罗斯",
+    "CN": "中国",
+    "OT": "其他"
+  },
+  "order_status": {
+    "new": "新订单",
+    "awaiting_admin": "等待管理员确认",
+    "awaiting_advance": "等待预付款",
+    "advance_confirmed": "预付款已确认",
+    "testing": "硬盘检测中",
+    "test_ready": "检测结果已出",
+    "awaiting_customer": "等待您确认",
+    "awaiting_balance": "等待尾款",
+    "paid": "已全额付款",
+    "packing": "打包中",
+    "shipped": "已发货",
+    "delivered": "已送达",
+    "completed": "已完成",
+    "cancelled": "已取消",
+    "returned": "已退货",
+    "disputed": "争议中"
+  },
+  "payment": {
+    "advance": "预付款（30%）",
+    "balance": "尾款（70%）",
+    "deposit": "保证金",
+    "refund": "退款",
+    "pending": "审核中",
+    "confirmed": "已确认",
+    "rejected": "已驳回"
+  },
+  "auction_status": {
+    "draft": "草稿",
+    "scheduled": "待开始",
+    "live": "进行中",
+    "ended": "已结束",
+    "cancelled": "已取消"
+  },
+  "roles": {
+    "customer": "客户",
+    "admin": "超级管理员",
+    "catalog": "商品管理员",
+    "warehouse": "仓库人员",
+    "tester": "检测人员",
+    "orders": "订单经理",
+    "finance": "财务",
+    "marketing": "市场推广"
+  }
+}

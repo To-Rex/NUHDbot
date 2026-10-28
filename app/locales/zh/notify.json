@@ -1,0 +1,19 @@
+{
+  "notify": {
+    "order_status": "📦 订单 <b>{number}</b>\n新状态：<b>{status}</b>",
+    "order_awaiting_advance": "订单已确认。应付预付款：<b>{advance}</b>。付款信息见订单页面。",
+    "order_awaiting_customer": "检测结果已出。请在订单页面确认检测结果和收货信息。",
+    "order_awaiting_balance": "应付尾款：<b>{balance}</b>。全额付款确认后即安排发货。",
+    "order_shipped": "已发货。运单号：<b>{tracking}</b>",
+    "open_order": "查看订单",
+    "open_auction": "查看拍卖",
+    "open_chat": "打开对话",
+    "outbid": "🔨 您的出价已被超过：<b>{title}</b>\n当前价格：<b>{amount}</b>",
+    "auction_won": "🏆 恭喜！您赢得了 <b>{title}</b> 的拍卖。成交价：<b>{amount}</b>。管理员将与您联系。",
+    "auction_lost": "拍卖 <b>{title}</b> 已结束。这次未能中标，请关注后续拍品。",
+    "support_reply": "💬 管理员回复：\n{preview}",
+    "new_order_staff": "🆕 新订单 <b>{number}</b> — {customer}，{qty} 个，{total}",
+    "new_support_staff": "💬 新客服消息：{customer}\n{preview}",
+    "new_payment_staff": "💵 付款申报：订单 <b>{number}</b>，{kind} {amount}"
+  }
+}

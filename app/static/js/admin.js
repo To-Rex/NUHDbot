@@ -8,6 +8,12 @@
   document.addEventListener('htmx:responseError', e => { toast((e.detail.xhr && e.detail.xhr.responseText && e.detail.xhr.responseText.length<200 ? e.detail.xhr.responseText : 'Error '+e.detail.xhr.status), 'bad'); });
   const params = new URLSearchParams(location.search);
   if (params.get('flash')) { toast(params.get('flash'), params.get('flash_kind')||'ok'); params.delete('flash'); params.delete('flash_kind'); const qs = params.toString(); history.replaceState({}, '', location.pathname + (qs ? '?' + qs : '') + location.hash); }
+  // theme: auto | light | dark (cookie + account); the topbar button cycles light/dark
+  const root = document.documentElement;
+  function resolvedTheme(){ const m = root.dataset.themeMode || 'auto'; if (m === 'light' || m === 'dark') return m; return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+  function applyTheme(){ const m = root.dataset.themeMode || 'auto'; const dark = resolvedTheme() === 'dark'; root.classList.toggle('tg-dark', dark); if (m === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', m); const meta = document.querySelector('meta[name="color-scheme"]'); if (meta) meta.setAttribute('content', m === 'auto' ? 'light dark' : m); }
+  window.setTheme = function(mode){ root.classList.add('theme-transition'); setTimeout(()=>root.classList.remove('theme-transition'), 260); root.dataset.themeMode = mode; applyTheme(); fetch('/admin/theme/' + mode, { method: 'POST', headers: { 'X-CSRF': csrf }, credentials: 'same-origin' }).catch(()=>{}); };
+  document.addEventListener('click', e => { const b = e.target.closest('[data-theme-cycle]'); if (b) window.setTheme(resolvedTheme() === 'dark' ? 'light' : 'dark'); });
   // confirm dialogs
   document.addEventListener('submit', e => { const f=e.target; if (f.dataset.confirm && !confirm(f.dataset.confirm)) e.preventDefault(); });
   document.addEventListener('htmx:confirm', e => { const el=e.detail.elt; if (el.dataset.confirm) { e.preventDefault(); if (confirm(el.dataset.confirm)) e.detail.issueRequest(); } });

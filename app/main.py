@@ -106,6 +106,11 @@ async def session_and_security(request: Request, call_next):
         sess = read_session(request)
         sess["uid"] = uid
         write_session(response, sess, secure=is_secure(), max_age=settings.session_max_age)
+    q_theme = request.query_params.get("theme")
+    if q_theme in ("auto", "light", "dark"):
+        from app.deps import THEME_COOKIE, set_pref_cookie
+
+        set_pref_cookie(response, THEME_COOKIE, q_theme)
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     if request.url.path.startswith("/admin"):

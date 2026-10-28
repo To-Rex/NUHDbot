@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     timezone: str = "Asia/Shanghai"
     session_max_age: int = 60 * 60 * 24 * 30
     default_lang: str = "uz"
-    langs: tuple[str, ...] = ("uz", "ru", "en")
+    langs: tuple[str, ...] = ("uz", "uzl", "ru", "en", "zh")  # uz = Cyrillic, uzl = Latin
 
     auction_extension_seconds: int = 120
     auction_extension_window_seconds: int = 120

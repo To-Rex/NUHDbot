@@ -338,7 +338,12 @@
     "reply_time": "Время ответа",
     "orders_count": "Заказов",
     "member_since": "С нами с",
-    "edit_title": "Редактирование данных"
+    "edit_title": "Редактирование данных",
+    "appearance": "Оформление",
+    "theme_auto": "Авто",
+    "theme_light": "День",
+    "theme_dark": "Ночь",
+    "theme_hint": "В режиме «Авто» следует теме Telegram"
   },
   "support": {
     "title": "Связь с админом",
@@ -372,6 +377,8 @@
     "error_generic": "Ошибка. Попробуйте ещё раз.",
     "login_required": "Войдите через Telegram",
     "today": "Сегодня",
-    "yesterday": "Вчера"
+    "yesterday": "Вчера",
+    "toggle_theme": "Сменить тему",
+    "choose_language": "Выберите язык"
   }
 }

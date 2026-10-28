@@ -38,7 +38,8 @@ def get_dispatcher() -> Dispatcher:
 
 
 async def configure_bot(bot: Bot) -> None:
-    for lang in settings.langs:
+    # Telegram accepts only two-letter language codes here: default (no code) = Uzbek Cyrillic; uzl shares it.
+    for lang in [code for code in settings.langs if len(code) == 2]:
         cmds = [BotCommand(command=c, description=t(lang, f"bot.cmd_{c}")[:256]) for c in ("start", "catalog", "orders", "auction", "help", "language")]
         try:
             await bot.set_my_commands(cmds, scope=BotCommandScopeDefault(), language_code=None if lang == settings.default_lang else lang)

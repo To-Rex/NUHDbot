@@ -51,11 +51,11 @@ async def cmd_support(message: Message, user: User, db: AsyncSession, state: FSM
 
 
 def _is_exit(text: str | None) -> bool:
-    return bool(text) and text in {t(code, "bot.btn_exit_chat") for code in ("uz", "ru", "en")}
+    return bool(text) and text in {t(code, "bot.btn_exit_chat") for code in settings.langs}
 
 
 def _is_attach(text: str | None) -> bool:
-    return bool(text) and text in {t(code, "bot.btn_attach_order") for code in ("uz", "ru", "en")}
+    return bool(text) and text in {t(code, "bot.btn_attach_order") for code in settings.langs}
 
 
 @router.message(SupportState.chatting, F.text.func(_is_exit))

@@ -1,0 +1,17 @@
+{# Language picker bottom sheet — opened with data-open-sheet="lang-sheet" #}
+<div id="lang-sheet" hidden>
+  <div class="sheet-backdrop" data-close-sheet="lang-sheet"></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="{{ t('misc.choose_language') }}">
+    <div class="grab"></div>
+    <div class="row-between mb-3"><h3 style="font-size:17px">{{ t('misc.choose_language') }}</h3><button type="button" class="icon-btn" data-close-sheet="lang-sheet" aria-label="{{ t('common.close') }}">{{ icon('x', 18) }}</button></div>
+    <div class="lang-grid">
+      {% for code in langs %}
+      <a class="lang-opt {{ 'active' if lang == code }}" href="/app/lang/{{ code }}?next={{ path }}" hx-boost="false">
+        <span class="lang-badge">{{ lang_meta[code].short }}{% if lang_meta[code].suffix %}<small>{{ lang_meta[code].suffix }}</small>{% endif %}</span>
+        <span class="lang-name">{{ t('lang.' ~ code) }}</span>
+        {% if lang == code %}{{ icon('check', 16, 'lang-check') }}{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>

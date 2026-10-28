@@ -1,11 +1,11 @@
-{# name, value(dict), kind: input|textarea|code, label #}
+{# name, value(dict), kind: input|textarea|code, label — one pane per configured language #}
 <div class="field" data-i18n>
   <label>{{ label }}</label>
-  <div class="lang-tabs">{% for l in ('uz','ru','en') %}<button type="button" data-lang="{{ l }}" class="{{ 'active' if loop.first }}">{{ l|upper }}</button>{% endfor %}</div>
-  {% for l in ('uz','ru','en') %}
+  <div class="lang-tabs">{% for l in langs %}<button type="button" data-lang="{{ l }}" class="{{ 'active' if loop.first }}" title="{{ t('lang.' ~ l) }}">{{ lang_meta[l].short }}{% if lang_meta[l].suffix %}<small>{{ lang_meta[l].suffix }}</small>{% endif %}{% if (value or {}).get(l) %}<i class="dot" aria-hidden="true"></i>{% endif %}</button>{% endfor %}</div>
+  {% for l in langs %}
   <div class="pane" data-lang="{{ l }}" {% if not loop.first %}hidden{% endif %}>
-    {% if kind == 'input' %}<input class="input" name="{{ name }}_{{ l }}" value="{{ (value or {}).get(l, '') }}">
-    {% else %}<textarea class="textarea {{ 'code' if kind == 'code' }}" name="{{ name }}_{{ l }}" rows="{{ rows or 4 }}">{{ (value or {}).get(l, '') }}</textarea>{% endif %}
+    {% if kind == 'input' %}<input class="input" name="{{ name }}_{{ l }}" value="{{ (value or {}).get(l, '') }}" lang="{{ bcp47(l) }}">
+    {% else %}<textarea class="textarea {{ 'code' if kind == 'code' }}" name="{{ name }}_{{ l }}" rows="{{ rows or 4 }}" lang="{{ bcp47(l) }}">{{ (value or {}).get(l, '') }}</textarea>{% endif %}
   </div>
   {% endfor %}
 </div>

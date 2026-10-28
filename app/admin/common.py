@@ -11,8 +11,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.deps import DB, require_staff
+from app.deps import ADMIN_LANG_COOKIE, DB, require_staff
 from app.enums import Role
+from app.i18n import normalize_lang
 from app.models import User
 from app.security import load_session, sign_session
 from app.templating import render as _render
@@ -87,7 +88,9 @@ def render(request: Request, staff: User, name: str, ctx: dict | None = None, **
     ctx.setdefault("can_finance", can(staff, FINANCE_VIEW))
     ctx.setdefault("can", lambda roles: can(staff, roles))
     ctx.setdefault("roles", {k: v for k, v in globals().items() if k.endswith("_ROLES") or k in ("ADMIN", "FINANCE_VIEW")})
-    return _render(request, name, ctx, lang=kw.pop("lang", None) or staff.lang or "uz", **kw)
+    request.state.staff = staff  # lets templating resolve the staff theme preference
+    lang = kw.pop("lang", None) or request.cookies.get(ADMIN_LANG_COOKIE) or staff.lang or "uz"
+    return _render(request, name, ctx, lang=normalize_lang(lang), **kw)
 
 
 def toast(msg: str, kind: str = "ok", extra: dict | None = None) -> dict:

@@ -31,8 +31,19 @@ def _load(lang: str) -> dict[str, Any]:
 
 
 def normalize_lang(lang: str | None) -> str:
-    lang = (lang or "").lower()[:2]
-    return lang if lang in settings.langs else settings.default_lang
+    """Map any language tag to one of settings.langs: uz (Cyrillic), uzl (Latin), ru, en, zh."""
+    raw = (lang or "").strip().lower().replace("_", "-")
+    if not raw:
+        return settings.default_lang
+    first = raw.split(",")[0].split(";")[0].strip()
+    if first in settings.langs:
+        return first
+    if first.startswith("uz"):
+        return "uzl" if "latn" in first or first in ("uz-latn", "uzl") else "uz"
+    if first.startswith("zh"):
+        return "zh"
+    short = first[:2]
+    return short if short in settings.langs else settings.default_lang
 
 
 def t(lang: str, key: str, **kwargs: Any) -> str:
@@ -61,7 +72,11 @@ def pick(value: dict | str | None, lang: str) -> str:
     if isinstance(value, str):
         return value
     lang = normalize_lang(lang)
-    return value.get(lang) or value.get(settings.default_lang) or value.get("en") or next(iter(value.values()), "")
+    order = {"uzl": ("uzl", "uz", "en"), "zh": ("zh", "en", "ru", "uz")}.get(lang, (lang, settings.default_lang, "en"))
+    for code in order:
+        if value.get(code):
+            return value[code]
+    return next((v for v in value.values() if v), "")
 
 
 def reload_locales() -> None:

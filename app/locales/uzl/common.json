@@ -1,0 +1,163 @@
+{
+  "app": {
+    "name": "New & Used Hard Drives",
+    "tagline": "Guangzhoudan to'g'ridan-to'g'ri HDD ulgurji savdosi"
+  },
+  "lang": {
+    "uz": "Ўзбекча (кирилл)",
+    "ru": "Русский",
+    "en": "English",
+    "choose": "Tilni tanlang",
+    "change": "Tilni almashtirish",
+    "uzl": "O'zbekcha (lotin)",
+    "zh": "中文"
+  },
+  "nav": {
+    "home": "Asosiy",
+    "catalog": "Katalog",
+    "new": "Yangilar",
+    "auction": "Auksion",
+    "orders": "Buyurtmalar",
+    "info": "Ma'lumot",
+    "support": "Admin",
+    "profile": "Kabinet",
+    "cart": "Savat",
+    "back": "Ortga",
+    "menu": "Menyu"
+  },
+  "condition": {
+    "new": "New",
+    "used": "Used",
+    "refresh": "Refresh",
+    "new_desc": "Yangi, ishlatilmagan disk",
+    "used_desc": "Avval ishlatilgan, tekshirilgan disk",
+    "refresh_desc": "Zavod yorlig'i (nakleykasi) almashtirilgan disk. Yorliqdagi model haqiqiy modeldan farq qilishi mumkin — ikkalasi ham kartochkada ko'rsatiladi."
+  },
+  "test": {
+    "untested": "Tekshirilmagan",
+    "testing": "Tekshiruvda",
+    "tested": "Tekshirilgan"
+  },
+  "interface": {
+    "SATA": "SATA",
+    "SAS": "SAS"
+  },
+  "form": {
+    "2.5": "2.5\"",
+    "3.5": "3.5\""
+  },
+  "purpose": {
+    "pc": "Kompyuter",
+    "cctv": "Videokuzatuv",
+    "nas": "NAS",
+    "server": "Server",
+    "storage": "Ma'lumot saqlash"
+  },
+  "common": {
+    "price": "Narx",
+    "per_unit": "dona",
+    "stock": "Omborda",
+    "pcs": "dona",
+    "in_stock": "Mavjud",
+    "out_of_stock": "Tugagan",
+    "min_order": "Minimal buyurtma",
+    "box_qty": "Qutida",
+    "warranty": "Kafolat",
+    "seller_warranty": "Sotuvchi kafolati",
+    "factory_warranty": "Zavod kafolati",
+    "months": "oy",
+    "no_warranty": "Kafolat yo'q (0 oy)",
+    "hours": "Ishlagan soati",
+    "health": "Health",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "continue": "Davom etish",
+    "confirm": "Tasdiqlash",
+    "close": "Yopish",
+    "search": "Qidirish",
+    "filters": "Filtrlar",
+    "reset": "Tozalash",
+    "apply": "Qo'llash",
+    "all": "Barchasi",
+    "loading": "Yuklanmoqda…",
+    "empty": "Hozircha bo'sh",
+    "error": "Xatolik yuz berdi",
+    "retry": "Qayta urinish",
+    "total": "Jami",
+    "qty": "Miqdor",
+    "currency": "Valyuta",
+    "date": "Sana",
+    "status": "Holat",
+    "details": "Batafsil",
+    "price_on_request": "Narx so'rov bo'yicha",
+    "unconfirmed": "Tasdiqlanmagan",
+    "sample": "Namuna",
+    "real_photo": "Real foto",
+    "sold_out": "Sotilgan",
+    "new_arrival": "Yangi keldi",
+    "label_model": "Yorliqdagi model",
+    "real_model": "Haqiqiy model",
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "add": "Qo'shish",
+    "send": "Yuborish",
+    "copy": "Nusxa olish",
+    "copied": "Nusxa olindi"
+  },
+  "country": {
+    "UZ": "O'zbekiston",
+    "KG": "Qirg'iziston",
+    "TJ": "Tojikiston",
+    "KZ": "Qozog'iston",
+    "TM": "Turkmaniston",
+    "RU": "Rossiya",
+    "CN": "Xitoy",
+    "OT": "Boshqa"
+  },
+  "order_status": {
+    "new": "Yangi buyurtma",
+    "awaiting_admin": "Admin tasdig'ini kutmoqda",
+    "awaiting_advance": "Avans kutilmoqda",
+    "advance_confirmed": "Avans tasdiqlandi",
+    "testing": "Disklar tekshiruvda",
+    "test_ready": "Test natijalari tayyor",
+    "awaiting_customer": "Sizning tasdig'ingiz kutilmoqda",
+    "awaiting_balance": "Qoldiq to'lov kutilmoqda",
+    "paid": "To'liq to'langan",
+    "packing": "Qadoqlanmoqda",
+    "shipped": "Jo'natildi",
+    "delivered": "Yetkazildi",
+    "completed": "Yakunlandi",
+    "cancelled": "Bekor qilingan",
+    "returned": "Qaytarilgan",
+    "disputed": "Nizoli"
+  },
+  "payment": {
+    "advance": "Avans (30%)",
+    "balance": "Qoldiq (70%)",
+    "deposit": "Depozit",
+    "refund": "Qaytarish",
+    "pending": "Tekshirilmoqda",
+    "confirmed": "Tasdiqlangan",
+    "rejected": "Rad etilgan"
+  },
+  "auction_status": {
+    "draft": "Qoralama",
+    "scheduled": "Rejalashtirilgan",
+    "live": "Jonli",
+    "ended": "Yakunlangan",
+    "cancelled": "Bekor qilingan"
+  },
+  "roles": {
+    "customer": "Mijoz",
+    "admin": "Asosiy admin",
+    "catalog": "Katalog mas'uli",
+    "warehouse": "Ombor xodimi",
+    "tester": "Test xodimi",
+    "orders": "Buyurtma menejeri",
+    "finance": "Moliya mas'uli",
+    "marketing": "Reklama mas'uli"
+  }
+}

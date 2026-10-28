@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, Request
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.admin.common import DB, nav_badges, render, staff_dep
 from app.admin.router import router
@@ -20,7 +21,7 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
     days = days if days in (7, 30, 90, 365) else 30
     data = await reports.dashboard(db, days)
     awaiting = (await db.execute(select(Order).where(Order.status == OrderStatus.AWAITING_ADMIN).order_by(Order.id.desc()).limit(8))).scalars().unique().all()
-    pending = (await db.execute(select(Payment).where(Payment.status == PaymentStatus.PENDING).order_by(Payment.id.desc()).limit(8))).scalars().unique().all()
+    pending = (await db.execute(select(Payment).options(selectinload(Payment.order)).where(Payment.status == PaymentStatus.PENDING).order_by(Payment.id.desc()).limit(8))).scalars().unique().all()
     threads = (
         await db.execute(
             select(SupportThread).where(SupportThread.status == ThreadStatus.OPEN, SupportThread.unread_for_staff > 0).order_by(SupportThread.last_message_at.desc()).limit(8)

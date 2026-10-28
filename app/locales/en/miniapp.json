@@ -338,7 +338,12 @@
     "reply_time": "Reply time",
     "orders_count": "Orders",
     "member_since": "Member since",
-    "edit_title": "Edit details"
+    "edit_title": "Edit details",
+    "appearance": "Appearance",
+    "theme_auto": "Auto",
+    "theme_light": "Day",
+    "theme_dark": "Night",
+    "theme_hint": "Auto follows your Telegram theme"
   },
   "support": {
     "title": "Contact admin",
@@ -372,6 +377,8 @@
     "error_generic": "Error. Please try again.",
     "login_required": "Sign in via Telegram",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "toggle_theme": "Toggle theme",
+    "choose_language": "Choose language"
   }
 }
