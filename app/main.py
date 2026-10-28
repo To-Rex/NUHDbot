@@ -56,6 +56,12 @@ async def lifespan(app: FastAPI):
         await asyncio.to_thread(_run_migrations)
     async with session_scope() as db:
         await ensure_initial_admin(db, settings.admin_login, settings.admin_password)
+    try:
+        from scripts.seed import seed_reference  # countries, cities, articles, default settings (idempotent)
+
+        await seed_reference()
+    except Exception:  # noqa: BLE001
+        log.exception("reference seed failed")
     tasks = [asyncio.create_task(_auction_ticker())]
     bot_task = None
     if settings.bot_token and settings.bot_mode != "off":

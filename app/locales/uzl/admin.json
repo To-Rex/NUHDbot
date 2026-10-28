@@ -178,7 +178,12 @@
       "make_cover": "Muqova qilish",
       "toggle_kind": "Namuna/Real",
       "remove": "O'chirish",
-      "price_per_pc": "dona narxi"
+      "price_per_pc": "dona narxi",
+      "empty_title": "Hali mahsulot yo'q",
+      "empty_text": "Birinchi mahsulotni qo'lda qo'shing yoki namuna katalogni yuklang. Namuna mahsulotlar va rasmlar «SAMPLE» deb belgilanadi, ularni keyin o'chirish yoki tahrirlash mumkin.",
+      "load_samples": "Namuna katalogni yuklash",
+      "samples_loaded": "Namuna katalog yuklandi — 14 ta mahsulot qo'shildi",
+      "samples_exist": "Katalog bo'sh emas, namuna yuklanmadi"
     },
     "ord": {
       "title": "Buyurtmalar",

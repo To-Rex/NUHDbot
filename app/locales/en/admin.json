@@ -178,7 +178,12 @@
       "make_cover": "Make cover",
       "toggle_kind": "Sample/Real",
       "remove": "Remove",
-      "price_per_pc": "price per pc"
+      "price_per_pc": "price per pc",
+      "empty_title": "No products yet",
+      "empty_text": "Add the first product by hand or load the sample catalogue. Sample products and images are marked “SAMPLE” and can be deleted or edited later.",
+      "load_samples": "Load sample catalogue",
+      "samples_loaded": "Sample catalogue loaded — 14 products added",
+      "samples_exist": "Catalogue is not empty, samples were not loaded"
     },
     "ord": {
       "title": "Orders",

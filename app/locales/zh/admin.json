@@ -178,7 +178,12 @@
       "make_cover": "设为封面",
       "toggle_kind": "样品/实拍",
       "remove": "删除",
-      "price_per_pc": "单价"
+      "price_per_pc": "单价",
+      "empty_title": "暂无商品",
+      "empty_text": "请手动添加第一件商品，或加载示例目录。示例商品及图片均标注为“SAMPLE”，之后可删除或编辑。",
+      "load_samples": "加载示例目录",
+      "samples_loaded": "示例目录已加载，新增 14 件商品",
+      "samples_exist": "目录不为空，未加载示例"
     },
     "ord": {
       "title": "订单",

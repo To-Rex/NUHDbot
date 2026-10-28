@@ -277,3 +277,21 @@ async def product_images_reorder(pid: int, request: Request, db: DB, staff: User
             i.sort = order.index(i.id)
     await db.commit()
     return Response(status_code=204)
+
+
+@router.post("/products-samples")
+async def product_load_samples(request: Request, db: DB, staff: User = Depends(staff_dep(Role.ADMIN))):
+    """Load the SAMPLE catalogue (clearly marked images) so a fresh deployment has something to look at."""
+    from scripts.seed import seed_demo
+
+    existing = (await db.execute(select(Product.id).limit(1))).scalar_one_or_none()
+    if existing is not None:
+        return back(request, "/admin/products", t(_lang(request), "admin.prod.samples_exist"), "warn")
+    await seed_demo()
+    await audit.log(db, staff.id, "product.load_samples", "product", None, None, {"by": staff.login})
+    await db.commit()
+    return back(request, "/admin/products", t(_lang(request), "admin.prod.samples_loaded"))
+
+
+def _lang(request: Request) -> str:
+    return getattr(request.state, "admin_lang", None) or request.cookies.get("nuhd_admin_lang") or "uz"
