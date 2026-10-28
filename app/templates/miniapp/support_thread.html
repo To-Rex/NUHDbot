@@ -9,9 +9,9 @@
   </div>
 </div>
 <form class="chat-bar" id="chat-form" hx-post="/app/support/{{ th.id }}/send" hx-target="#chat" hx-swap="beforeend" hx-encoding="multipart/form-data">
-  <label class="icon-btn" style="width:44px;height:44px;flex:0 0 auto;cursor:pointer" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only" onchange="this.form.requestSubmit()">📎</label>
+  <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only" onchange="this.form.requestSubmit()">{{ icon('paperclip', 20) }}</label>
   <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
-  <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button>
+  <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}">{{ icon('send', 18) }}</button>
 </form>
 {% endblock %}
 {% block scripts %}

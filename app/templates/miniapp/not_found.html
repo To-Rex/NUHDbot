@@ -1,6 +1,6 @@
 {% extends "miniapp/base.html" %}
 {% block content %}
 <div class="page">
-  {% with emoji='🔍', title=t(message_key), cta_url=back_url or '/app/home', cta_text=t('nav.back') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% with glyph='search', title=t(message_key), cta_url=back_url or '/app/home', cta_text=t('nav.back') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
 </div>
 {% endblock %}

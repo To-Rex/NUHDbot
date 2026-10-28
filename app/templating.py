@@ -99,6 +99,15 @@ env.globals.update(
 )
 
 
+def _icon(name: str, size: int = 20, cls: str = "") -> Markup:
+    """Inline SVG icon from the miniapp icon macro file (one source of truth for both pages and partials)."""
+    module = env.get_template("miniapp/partials/icons.html").module
+    return Markup(module.icon(name, size, cls))
+
+
+env.globals["icon"] = _icon
+
+
 def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | None = None, status_code: int = 200, headers: dict | None = None):
     ctx = dict(ctx or {})
     user = getattr(request.state, "user", None)

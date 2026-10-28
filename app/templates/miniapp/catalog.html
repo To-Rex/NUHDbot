@@ -1,47 +1,42 @@
 {% extends "miniapp/base.html" %}
 {% block title %}{{ t('catalog.title') }} · {{ app_name }}{% endblock %}
 {% block topbar %}
-<header class="topbar" style="flex-wrap:wrap;gap:10px">
+<header class="topbar" style="gap:8px">
   <form class="search flex-1" role="search" hx-get="/app/catalog" hx-trigger="input changed delay:350ms from:#q, submit" hx-target="#grid-wrap" hx-select="#grid-wrap" hx-swap="outerHTML" hx-push-url="true" hx-include="#filters-form" onsubmit="return false">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    {{ icon('search', 18) }}
     <input id="q" class="input" type="search" name="q" value="{{ f.q }}" placeholder="{{ t('catalog.search_ph') }}" autocomplete="off" enterkeyhint="search">
   </form>
   <button class="icon-btn" type="button" data-open-sheet="filters" aria-label="{{ t('catalog.filters') }}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+    {{ icon('sliders', 20) }}
     {% if f.active_count %}<span class="badge-count">{{ f.active_count }}</span>{% endif %}
   </button>
-  <a class="icon-btn" href="/app/cart" aria-label="{{ t('nav.cart') }}">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6L5 3H2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg>
-    <span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span>
-  </a>
+  <a class="icon-btn" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
 </header>
 {% endblock %}
 {% block content %}
 <div class="page" style="padding-top:8px">
-  {# quick chips #}
   <div class="scroller mb-3">
-    {% set base = f.to_query() %}
     {% for c in conditions %}
     {% set on = c.value in f.conditions %}
     <a class="fchip {{ 'active' if on }}" href="/app/catalog?{{ f.to_query(cond=(f.conditions|reject('equalto', c.value)|list) if on else f.conditions + [c.value])|qs }}">
-      <span class="chip {{ CONDITION_CLASS[c] }}" style="height:16px;padding:0 5px">&nbsp;</span>{{ t('condition.' ~ c.value) }}{% if on %}<span class="x">✕</span>{% endif %}
+      <span class="swatch {{ CONDITION_CLASS[c] }}" style="background:var(--{{ c.value }}-fg)"></span>{{ t('condition.' ~ c.value) }}{% if on %}<span class="x">{{ icon('x', 12) }}</span>{% endif %}
     </a>
     {% endfor %}
     {% for g in capacity_presets %}
     {% set on = g in f.capacities %}
-    <a class="fchip {{ 'active' if on }}" href="/app/catalog?{{ f.to_query(gb=(f.capacities|reject('equalto', g)|list) if on else f.capacities + [g])|qs }}">{{ g|capacity }}{% if on %}<span class="x">✕</span>{% endif %}</a>
+    <a class="fchip {{ 'active' if on }}" href="/app/catalog?{{ f.to_query(gb=(f.capacities|reject('equalto', g)|list) if on else f.capacities + [g])|qs }}">{{ g|capacity }}{% if on %}<span class="x">{{ icon('x', 12) }}</span>{% endif %}</a>
     {% endfor %}
     {% for b, n in facets.brands %}
     {% set on = b in f.brands %}
-    <a class="fchip {{ 'active' if on }}" href="/app/catalog?{{ f.to_query(brand=(f.brands|reject('equalto', b)|list) if on else f.brands + [b])|qs }}">{{ b }}{% if on %}<span class="x">✕</span>{% endif %}</a>
+    <a class="fchip {{ 'active' if on }}" href="/app/catalog?{{ f.to_query(brand=(f.brands|reject('equalto', b)|list) if on else f.brands + [b])|qs }}">{{ b }}{% if on %}<span class="x">{{ icon('x', 12) }}</span>{% endif %}</a>
     {% endfor %}
   </div>
 
-  <div class="row-between mb-3">
+  <div class="sort-row mb-3">
     <div id="result-count" class="small muted num">{{ t('catalog.found', n=total) }}</div>
-    <div class="segmented" style="padding:3px">
+    <div class="segmented" style="padding:2px">
       {% for s, key in [('default','sort_default'),('price_asc','sort_price_asc'),('price_desc','sort_price_desc'),('newest','sort_newest')] %}
-      <a class="{{ 'active' if f.sort==s }}" href="/app/catalog?{{ f.to_query(sort=s if s!='default' else None)|qs }}" style="padding:0 10px;height:30px;font-size:12px">{{ t('catalog.' ~ key) }}</a>
+      <a class="{{ 'active' if f.sort==s }}" href="/app/catalog?{{ f.to_query(sort=s if s!='default' else None)|qs }}" style="padding:0 10px;height:28px;font-size:12px">{{ t('catalog.' ~ key) }}</a>
       {% endfor %}
     </div>
   </div>
@@ -51,51 +46,42 @@
   </div>
 </div>
 
-{# ---------- Filters bottom sheet ---------- #}
 <div id="filters" hidden>
   <div class="sheet-backdrop" data-close-sheet="filters"></div>
   <form class="sheet" id="filters-form" method="get" action="/app/catalog" hx-boost="true" hx-target="body">
     <div class="grab"></div>
-    <div class="row-between mb-3"><h2 style="font-size:18px">{{ t('catalog.filters') }}</h2><a class="small semibold" style="color:var(--brand-500)" href="/app/catalog">{{ t('common.reset') }}</a></div>
+    <div class="row-between mb-2"><h2>{{ t('catalog.filters') }}</h2><a class="link small" href="/app/catalog">{{ t('common.reset') }}</a></div>
     {% if f.q %}<input type="hidden" name="q" value="{{ f.q }}">{% endif %}
     {% if f.sort != 'default' %}<input type="hidden" name="sort" value="{{ f.sort }}">{% endif %}
 
-    <div class="filter-group"><div class="filter-label">{{ t('catalog.condition') }}</div><div class="chips-wrap">
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.condition') }}</span><div class="chips-wrap">
       {% for c in conditions %}<label class="check-chip"><input type="checkbox" name="cond" value="{{ c.value }}" {{ 'checked' if c.value in f.conditions }}><span class="chip chip-lg {{ CONDITION_CLASS[c] }}">{{ t('condition.' ~ c.value) }}</span></label>{% endfor %}
     </div></div>
-
-    <div class="filter-group"><div class="filter-label">{{ t('catalog.brand') }}</div><div class="chips-wrap">
-      {% for b, n in facets.brands %}<label class="check-chip"><input type="checkbox" name="brand" value="{{ b }}" {{ 'checked' if b in f.brands }}><span class="chip chip-lg chip-outline">{{ b }} <small class="faint">{{ n }}</small></span></label>{% endfor %}
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.brand') }}</span><div class="chips-wrap">
+      {% for b, n in facets.brands %}<label class="check-chip"><input type="checkbox" name="brand" value="{{ b }}" {{ 'checked' if b in f.brands }}><span class="chip chip-lg chip-outline">{{ b }} <span class="faint mono" style="font-size:11px">{{ n }}</span></span></label>{% endfor %}
     </div></div>
-
-    <div class="filter-group"><div class="filter-label">{{ t('catalog.capacity') }}</div><div class="chips-wrap">
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.capacity') }}</span><div class="chips-wrap">
       {% for g, n in facets.capacities %}<label class="check-chip"><input type="checkbox" name="gb" value="{{ g }}" {{ 'checked' if g in f.capacities }}><span class="chip chip-lg chip-outline">{{ g|capacity }}</span></label>{% endfor %}
     </div></div>
-
-    <div class="filter-group"><div class="filter-label">{{ t('catalog.purpose') }}</div><div class="chips-wrap">
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.purpose') }}</span><div class="chips-wrap">
       {% for u in purposes %}<label class="check-chip"><input type="checkbox" name="use" value="{{ u.value }}" {{ 'checked' if u.value in f.purposes }}><span class="chip chip-lg chip-outline">{{ t('purpose.' ~ u.value) }}</span></label>{% endfor %}
     </div></div>
-
     <div class="grid-2">
-      <div class="filter-group"><div class="filter-label">{{ t('catalog.interface') }}</div><div class="chips-wrap">
+      <div class="filter-group"><span class="filter-label">{{ t('catalog.interface') }}</span><div class="chips-wrap">
         {% for i in interfaces %}<label class="check-chip"><input type="checkbox" name="iface" value="{{ i.value }}" {{ 'checked' if i.value in f.interfaces }}><span class="chip chip-lg chip-outline">{{ i.value }}</span></label>{% endfor %}
       </div></div>
-      <div class="filter-group"><div class="filter-label">{{ t('catalog.form_factor') }}</div><div class="chips-wrap">
-        {% for ff in form_factors %}<label class="check-chip"><input type="checkbox" name="ff" value="{{ ff.value }}" {{ 'checked' if ff.value in f.form_factors }}><span class="chip chip-lg chip-outline">{{ ff.value }}"</span></label>{% endfor %}
+      <div class="filter-group"><span class="filter-label">{{ t('catalog.form_factor') }}</span><div class="chips-wrap">
+        {% for ff in form_factors %}<label class="check-chip"><input type="checkbox" name="ff" value="{{ ff.value }}" {{ 'checked' if ff.value in f.form_factors }}><span class="chip chip-lg chip-outline">{{ ff.value }}″</span></label>{% endfor %}
       </div></div>
     </div>
-
-    <div class="filter-group"><div class="filter-label">{{ t('catalog.test_status') }}</div><div class="chips-wrap">
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.test_status') }}</span><div class="chips-wrap">
       {% for s in tests %}<label class="check-chip"><input type="checkbox" name="test" value="{{ s.value }}" {{ 'checked' if s.value in f.tests }}><span class="chip chip-lg {{ TEST_CLASS[s] }}">{{ t('test.' ~ s.value) }}</span></label>{% endfor %}
     </div></div>
-
-    <div class="filter-group"><div class="filter-label">{{ t('catalog.price_range') }} <span class="faint xs">(${{ facets.price_min|int }} – ${{ facets.price_max|int }})</span></div>
-      <div class="grid-2"><input class="input" type="number" inputmode="decimal" name="price_min" placeholder="{{ t('catalog.price_from') }}" value="{{ f.price_min|int if f.price_min is not none }}" min="0"><input class="input" type="number" inputmode="decimal" name="price_max" placeholder="{{ t('catalog.price_to') }}" value="{{ f.price_max|int if f.price_max is not none }}" min="0"></div>
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.price_range') }} <span class="mono" style="text-transform:none;letter-spacing:0">${{ facets.price_min|int }}–${{ facets.price_max|int }}</span></span>
+      <div class="grid-2"><input class="input mono" type="number" inputmode="decimal" name="price_min" placeholder="{{ t('catalog.price_from') }}" value="{{ f.price_min|int if f.price_min is not none }}" min="0"><input class="input mono" type="number" inputmode="decimal" name="price_max" placeholder="{{ t('catalog.price_to') }}" value="{{ f.price_max|int if f.price_max is not none }}" min="0"></div>
     </div>
-
-    <label class="row-between" style="padding:12px 0"><span class="semibold">{{ t('catalog.in_stock_only') }}</span><input type="checkbox" name="in_stock" value="1" class="sr-only" {{ 'checked' if f.in_stock }}><span class="toggle"></span></label>
+    <label class="row-between" style="padding:12px 0;border-bottom:1px solid var(--hairline)"><span class="semibold">{{ t('catalog.in_stock_only') }}</span><input type="checkbox" name="in_stock" value="1" class="sr-only" {{ 'checked' if f.in_stock }}><span class="toggle"></span></label>
     <label class="row-between" style="padding:12px 0"><span class="semibold">{{ t('catalog.with_warranty') }}</span><input type="checkbox" name="warranty" value="1" class="sr-only" {{ 'checked' if f.warranty }}><span class="toggle"></span></label>
-
     <button class="btn btn-primary btn-block btn-lg mt-3" type="submit">{{ t('catalog.show_results') }}</button>
   </form>
 </div>

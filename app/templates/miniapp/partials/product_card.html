@@ -1,31 +1,20 @@
 {# expects: p (Product), i (index for stagger) #}
 <a class="pcard" href="/app/products/{{ p.id }}" style="--i:{{ i or 0 }}" aria-label="{{ p.title }}">
   <div class="pcard-media">
-    {% if p.cover %}
-    <img class="lazy" src="{{ p.cover.thumb_url }}" alt="{{ p.title }}" loading="lazy" decoding="async" width="480" height="480">
-    {% else %}
-    <img class="lazy" src="/static/img/placeholder.svg" alt="" loading="lazy" width="480" height="480">
-    {% endif %}
+    <img class="lazy" src="{{ p.cover.thumb_url if p.cover else '/static/img/placeholder.svg' }}" alt="{{ p.title }}" loading="lazy" decoding="async" width="480" height="480">
     <div class="pcard-tags">
       {% with cond=p.condition %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}
-      {% if p.arrived_at and (now() - p.arrived_at).days < 14 %}<span class="chip chip-accent">{{ t('common.new_arrival') }}</span>{% endif %}
+      {% if p.available > 0 and p.available <= 5 %}<span class="chip chip-warn">{{ t('catalog.left', n=p.available) }}</span>{% endif %}
     </div>
-    {% if p.available <= 0 %}<div class="pcard-sold"><span class="chip chip-lg chip-soft">{{ t('common.out_of_stock') }}</span></div>{% endif %}
+    {% if p.available <= 0 %}<div class="pcard-sold"><span class="chip chip-lg chip-ink">{{ t('common.sold_out') }}</span></div>{% endif %}
   </div>
   <div class="pcard-body">
     <div class="pcard-brand">{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</div>
     <div class="pcard-title">{{ p.model }}</div>
-    <div class="pcard-meta">
-      <span class="chip chip-soft">{{ p.capacity_gb|capacity }}</span>
-      <span class="chip chip-soft">{{ p.interface.value }}</span>
-      <span class="chip chip-soft">{{ p.form_factor.value }}"</span>
-      <span class="chip {{ TEST_CLASS[p.test_status] }}">{{ t('test.' ~ p.test_status.value) }}</span>
-    </div>
+    <div class="pcard-spec"><span>{{ p.capacity_gb|capacity }} · {{ p.interface.value }} · {{ p.form_factor.value }}″</span><span class="chip {{ TEST_CLASS[p.test_status] }}" style="height:18px;padding:0 5px;font-size:10px">{{ t('test.' ~ p.test_status.value) }}</span></div>
     <div class="pcard-price">
-      {% if p.price is not none %}<strong>{{ p.price|money(p.currency) }}</strong><span class="per">/ {{ t('common.per_unit') }}</span>{% else %}<strong class="muted small">{{ t('common.price_on_request') }}</strong>{% endif %}
+      {% if p.price is not none %}<strong>{{ p.price|money(p.currency) }}</strong><span class="per">/ {{ t('common.per_unit') }}</span>{% else %}<strong class="muted" style="font-size:13px;font-weight:600">{{ t('common.price_on_request') }}</strong>{% endif %}
     </div>
-    <div class="pcard-stock {{ 'faint' if p.available<=0 else ('muted' if p.available < 10 else '') }}">
-      {% if p.available > 0 %}{{ t('common.stock') }}: {{ p.available }} {{ t('common.pcs') }}{% if p.min_order > 1 %} · min {{ p.min_order }}{% endif %}{% else %}&nbsp;{% endif %}
-    </div>
+    <div class="pcard-min">{% if p.available > 0 %}{{ t('common.stock') }} {{ p.available }}{% if p.min_order > 1 %} · min {{ p.min_order }}{% endif %}{% else %}&nbsp;{% endif %}</div>
   </div>
 </a>

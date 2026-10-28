@@ -1,5 +1,5 @@
-<div id="phone-box" class="notice notice-ok" style="animation:pop var(--t-med) var(--spring)">
-  <span>✅</span>
+<div id="phone-box" class="notice notice-ok">
+  {{ icon('check-circle', 18) }}
   <div><b class="mono">{{ phone }}</b><div class="xs">{{ t('register.phone_verified') if verified else t('register.phone') }}</div></div>
   <input type="hidden" name="phone" value="{{ phone }}" form="reg-form">
 </div>

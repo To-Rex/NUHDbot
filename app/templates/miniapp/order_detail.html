@@ -1,41 +1,39 @@
 {% extends "miniapp/base.html" %}
 {% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
-{% block topbar_actions %}<a class="icon-btn" href="/app/support/new?order_id={{ order.id }}" aria-label="{{ t('orders.ask_about') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"/></svg></a>{% endblock %}
+{% block topbar_actions %}<a class="icon-btn" href="/app/support/new?order_id={{ order.id }}" aria-label="{{ t('orders.ask_about') }}">{{ icon('message', 20) }}</a>{% endblock %}
 {% block content %}
 <div class="page stack">
-  {# ---- status header ---- #}
   <div class="card">
-    <div class="row-between"><span class="xs faint semibold" style="text-transform:uppercase;letter-spacing:.05em">{{ t('common.status') }}</span><span class="xs faint">{{ order.created_at|dt }}</span></div>
-    <h2 class="mt-1" style="font-size:19px;color:{{ 'var(--bad)' if order.status.value in ('cancelled','disputed','returned') else 'var(--brand-500)' }}">{{ t('order_status.' ~ order.status.value) }}</h2>
-    {% if step %}<div class="progress mt-3"><span style="width:{{ (step / total_steps * 100)|round }}%"></span></div><div class="xs faint mt-1 num">{{ step }} / {{ total_steps }}</div>{% endif %}
-    {% if hint %}<div class="notice notice-info mt-3"><span>💡</span><span>{{ hint }}</span></div>{% endif %}
-    {% if order.status.value == 'awaiting_admin' %}<div class="notice notice-info mt-3"><span>⏳</span><span>{{ t('orders.waiting_admin') }}</span></div>{% endif %}
+    <div class="row-between"><span class="eyebrow">{{ t('common.status') }}</span><span class="xs faint mono">{{ order.created_at|dt }}</span></div>
+    <h2 class="mt-1" style="color:{{ 'var(--bad)' if order.status.value in ('cancelled','disputed','returned') else 'var(--accent)' }}">{{ t('order_status.' ~ order.status.value) }}</h2>
+    {% if step %}<div class="steps-dots mt-3">{% for i in range(total_steps) %}<i class="{{ 'on' if i < step }}"></i>{% endfor %}</div><div class="xs faint mt-1 mono">{{ step }} / {{ total_steps }}</div>{% endif %}
+    {% if hint %}<div class="notice notice-info mt-3">{{ icon('info', 18) }}<span>{{ hint }}</span></div>{% endif %}
+    {% if order.status.value == 'awaiting_admin' %}<div class="notice notice-plain mt-3">{{ icon('clock', 18) }}<span>{{ t('orders.waiting_admin') }}</span></div>{% endif %}
   </div>
 
-  {# ---- actions ---- #}
   {% if order.status.value == 'awaiting_admin' and order.confirmed_at %}
-  <form hx-post="/app/orders/{{ order.id }}/accept" hx-target="body"><button class="btn btn-primary btn-lg btn-block"><span class="label">✅ {{ t('orders.accept_offer') }}</span><span class="spinner"></span></button><p class="hint center mt-2">{{ t('orders.accept_offer_hint') }}</p></form>
+  <form hx-post="/app/orders/{{ order.id }}/accept" hx-target="body"><button class="btn btn-primary btn-lg btn-block"><span class="label">{{ t('orders.accept_offer') }}</span><span class="spinner"></span></button><p class="hint center mt-2">{{ t('orders.accept_offer_hint') }}</p></form>
   {% endif %}
 
   {% if pay_kind %}
   <div class="card">
-    <div class="row-between"><h3 style="font-size:16px">{{ t('payment.' ~ pay_kind.value) }}</h3><span class="price-big" style="font-size:22px">{{ pay_amount|money(order.currency) }}</span></div>
+    <div class="row-between"><h3>{{ t('payment.' ~ pay_kind.value) }}</h3><span class="price-big" style="font-size:22px">{{ pay_amount|money(order.currency) }}</span></div>
     {% if methods %}
-    <div class="filter-label mt-3">{{ t('orders.pay_details') }}</div>
-    <div class="stack" style="gap:6px">{% for m in methods %}<div class="sunken row-between"><span class="semibold small">{{ m.name }}</span>{% if m.details %}<span class="copyable" data-copy="{{ m.details }}" data-copied-text="{{ t('common.copied') }}">{{ m.details }} ⧉</span>{% endif %}</div>{% endfor %}</div>
+    <span class="filter-label mt-3">{{ t('orders.pay_details') }}</span>
+    <div class="stack" style="gap:6px">{% for m in methods %}<div class="sunken row-between"><span class="semibold small">{{ m.name }}</span>{% if m.details %}<span class="copyable" data-copy="{{ m.details }}" data-copied-text="{{ t('common.copied') }}"><span>{{ m.details }}</span>{{ icon('copy', 14) }}</span>{% endif %}</div>{% endfor %}</div>
     {% endif %}
     {% if pending_payment %}
-    <div class="notice notice-warn mt-3"><span>⏳</span><span>{{ t('orders.pay_pending') }} — {{ pending_payment.amount|money(pending_payment.currency) }}</span></div>
+    <div class="notice notice-warn mt-3">{{ icon('clock', 18) }}<span>{{ t('orders.pay_pending') }} — <span class="mono">{{ pending_payment.amount|money(pending_payment.currency) }}</span></span></div>
     {% else %}
-    <button class="btn btn-accent btn-block mt-3" type="button" data-open-sheet="pay-sheet">💵 {{ t('orders.i_paid') }}</button>
+    <button class="btn btn-primary btn-block mt-3" type="button" data-open-sheet="pay-sheet">{{ icon('wallet', 18) }}{{ t('orders.i_paid') }}</button>
     {% endif %}
-    <p class="xs faint mt-2">⚠️ {{ t('orders.pay_warning') }}</p>
+    <p class="xs faint mt-2">{{ t('orders.pay_warning') }}</p>
   </div>
   {% endif %}
 
   {% if order.status.value == 'awaiting_customer' %}
   <div class="card">
-    <h3 style="font-size:16px">{{ t('orders.test_results') }}</h3>
+    <h3>{{ t('orders.test_results') }}</h3>
     {% for it in order.items %}
     <div class="sunken mt-2"><div class="semibold small">{{ it.brand }} {{ it.model }} · {{ it.capacity_gb|capacity }} × {{ it.qty }}</div>
       {% if it.test_note %}<div class="small muted mt-1">{{ it.test_note|nl2br }}</div>{% endif %}
@@ -44,62 +42,58 @@
     </div>
     {% endfor %}
     <p class="hint mt-3">{{ t('orders.confirm_tests_hint') }}</p>
-    <dl class="kv mt-2"><dt>{{ t('orders.receiver') }}</dt><dd>{{ order.receiver_name }} · {{ order.receiver_phone }}</dd><dt>{{ t('orders.address') }}</dt><dd style="text-align:left">{{ order.address }}</dd><dt>{{ t('orders.cargo') }}</dt><dd class="mono">{{ order.cargo_company or '—' }} / {{ order.cargo_code or '—' }}</dd></dl>
-    <form hx-post="/app/orders/{{ order.id }}/confirm-tests" hx-target="body" class="mt-3"><button class="btn btn-primary btn-lg btn-block"><span class="label">✅ {{ t('orders.confirm_tests') }}</span><span class="spinner"></span></button></form>
-    <a class="btn btn-ghost btn-block mt-1" href="/app/support/new?order_id={{ order.id }}">💬 {{ t('orders.ask_about') }}</a>
+    <dl class="kv mt-2"><dt>{{ t('orders.receiver') }}</dt><dd>{{ order.receiver_name }} · <span class="mono">{{ order.receiver_phone }}</span></dd><dt>{{ t('orders.address') }}</dt><dd style="text-align:left">{{ order.address }}</dd><dt>{{ t('orders.cargo') }}</dt><dd class="mono">{{ order.cargo_company or '—' }} / {{ order.cargo_code or '—' }}</dd></dl>
+    <form hx-post="/app/orders/{{ order.id }}/confirm-tests" hx-target="body" class="mt-3"><button class="btn btn-primary btn-lg btn-block"><span class="label">{{ t('orders.confirm_tests') }}</span><span class="spinner"></span></button></form>
+    <a class="btn btn-ghost btn-block mt-1" href="/app/support/new?order_id={{ order.id }}">{{ icon('message', 16) }}{{ t('orders.ask_about') }}</a>
   </div>
   {% endif %}
 
   {% if order.tracking_number %}
-  <div class="card row-between"><div><div class="xs faint semibold">{{ t('orders.tracking') }}</div><div class="mono bold">{{ order.tracking_number }}</div></div><button class="btn btn-sm btn-soft" data-copy="{{ order.tracking_number }}" data-copied-text="{{ t('common.copied') }}">⧉ {{ t('orders.copy_tracking') }}</button></div>
+  <div class="card row-between"><div><div class="eyebrow">{{ t('orders.tracking') }}</div><div class="mono semibold mt-1">{{ order.tracking_number }}</div></div><button class="btn btn-sm btn-soft" data-copy="{{ order.tracking_number }}" data-copied-text="{{ t('common.copied') }}">{{ icon('copy', 16) }}{{ t('orders.copy_tracking') }}</button></div>
   {% endif %}
 
-  {# ---- items ---- #}
   <div class="card">
-    <div class="filter-label">{{ t('orders.composition') }}</div>
+    <span class="filter-label">{{ t('orders.composition') }}</span>
     {% for it in order.items %}
-    <div class="row-between small" style="padding:8px 0;border-bottom:1px dashed var(--line)">
+    <div class="row-between small hr-dashed" style="padding:8px 0">
       <div class="flex-1"><b>{{ it.brand }} {{ it.model }}</b> <span class="muted">{{ it.capacity_gb|capacity }}</span> {% with cond=it.condition %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}{% if it.serials and order.status.value in ('shipped','delivered','completed') %}<div class="xs faint mono mt-1" style="word-break:break-all">SN: {{ it.serials|join(', ') }}</div>{% endif %}</div>
-      <div class="right num" style="white-space:nowrap"><div>{{ it.qty }} × {{ it.unit_price|money(order.currency) }}</div><b>{{ it.line_total|money(order.currency) }}</b></div>
+      <div class="right mono" style="white-space:nowrap"><div class="muted">{{ it.qty }} × {{ it.unit_price|money(order.currency) }}</div><b>{{ it.line_total|money(order.currency) }}</b></div>
     </div>
     {% endfor %}
     <dl class="kv mt-3">
-      <dt>{{ t('orders.subtotal') }}</dt><dd>{{ order.subtotal|money(order.currency) }}</dd>
-      <dt>{{ t('orders.total') }}</dt><dd style="font-size:17px">{{ order.total|money(order.currency) }}</dd>
-      <dt>{{ t('orders.advance') }}</dt><dd>{{ order.advance_amount|money(order.currency) }}</dd>
-      <dt>{{ t('orders.balance') }}</dt><dd>{{ order.balance_amount|money(order.currency) }}</dd>
-      <dt>{{ t('orders.paid') }}</dt><dd style="color:var(--ok)">{{ order.paid_amount|money(order.currency) }}</dd>
+      <dt>{{ t('orders.subtotal') }}</dt><dd class="mono">{{ order.subtotal|money(order.currency) }}</dd>
+      <dt>{{ t('orders.total') }}</dt><dd class="mono" style="font-size:17px;font-weight:600">{{ order.total|money(order.currency) }}</dd>
+      <dt>{{ t('orders.advance') }}</dt><dd class="mono">{{ order.advance_amount|money(order.currency) }}</dd>
+      <dt>{{ t('orders.balance') }}</dt><dd class="mono">{{ order.balance_amount|money(order.currency) }}</dd>
+      <dt>{{ t('orders.paid') }}</dt><dd class="mono" style="color:var(--ok)">{{ order.paid_amount|money(order.currency) }}</dd>
     </dl>
   </div>
 
-  {# ---- delivery ---- #}
   <div class="card">
-    <div class="filter-label">{{ t('orders.delivery') }}</div>
+    <span class="filter-label">{{ t('orders.delivery') }}</span>
     <dl class="kv">
       <dt>{{ t('orders.receiver') }}</dt><dd>{{ order.receiver_name }}<br><span class="mono small">{{ order.receiver_phone }}</span></dd>
       <dt>{{ t('orders.address') }}</dt><dd style="text-align:left;font-weight:500">{% if order.country %}{{ t('country.' ~ order.country) }}{% if order.city %}, {{ order.city }}{% endif %}<br>{% endif %}{{ order.address }}</dd>
       <dt>{{ t('orders.cargo') }}</dt><dd>{{ order.cargo_company or '—' }}<br><span class="mono">{{ order.cargo_code or '—' }}</span></dd>
     </dl>
     {% if order.delivery_terms %}<p class="small muted mt-2">{{ order.delivery_terms|nl2br }}</p>{% endif %}
-    {% if order.admin_note %}<div class="notice notice-info mt-2"><span>📝</span><span class="small">{{ order.admin_note|nl2br }}</span></div>{% endif %}
+    {% if order.admin_note %}<div class="notice notice-plain mt-2">{{ icon('edit', 18) }}<span class="small">{{ order.admin_note|nl2br }}</span></div>{% endif %}
   </div>
 
-  {# ---- payments ---- #}
   <div class="card">
-    <div class="filter-label">{{ t('orders.payments') }}</div>
+    <span class="filter-label">{{ t('orders.payments') }}</span>
     {% if order.payments %}
     {% for pay in order.payments %}
-    <div class="row-between small" style="padding:8px 0;border-bottom:1px dashed var(--line)">
-      <div><b>{{ t('payment.' ~ pay.kind.value) }}</b><div class="xs faint">{{ pay.created_at|dt }}{% if pay.method %} · {{ pay.method }}{% endif %}</div></div>
-      <div class="right"><div class="num bold">{{ pay.amount|money(pay.currency) }}</div><span class="chip {{ 'chip-ok' if pay.status.value=='confirmed' else ('chip-bad' if pay.status.value=='rejected' else 'chip-warn') }}">{{ t('payment.' ~ pay.status.value) }}</span></div>
+    <div class="row-between small hr-dashed" style="padding:8px 0">
+      <div><b>{{ t('payment.' ~ pay.kind.value) }}</b><div class="xs faint mono">{{ pay.created_at|dt }}{% if pay.method %} · {{ pay.method }}{% endif %}</div></div>
+      <div class="right"><div class="mono semibold">{{ pay.amount|money(pay.currency) }}</div><span class="chip {{ 'chip-ok' if pay.status.value=='confirmed' else ('chip-bad' if pay.status.value=='rejected' else 'chip-warn') }}">{{ t('payment.' ~ pay.status.value) }}</span></div>
     </div>
     {% endfor %}
     {% else %}<div class="small muted">{{ t('orders.no_payments') }}</div>{% endif %}
   </div>
 
-  {# ---- timeline ---- #}
   <div class="card">
-    <div class="filter-label">{{ t('orders.timeline') }}</div>
+    <span class="filter-label">{{ t('orders.timeline') }}</span>
     <div class="timeline">
       {% for h in order.history|reverse %}
       <div class="tl-item {{ 'current' if loop.first else 'done' }}"><div class="tl-title">{{ t('order_status.' ~ h.to_status) }}</div><div class="tl-sub">{{ h.created_at|dt }}{% if h.note and h.by_user_id == user.id %} · {{ t('support.you') }}{% endif %}</div></div>
@@ -117,13 +111,13 @@
   <div class="sheet-backdrop" data-close-sheet="pay-sheet"></div>
   <form class="sheet stack" method="post" action="/app/orders/{{ order.id }}/pay" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data">
     <div class="grab"></div>
-    <h2 style="font-size:18px">{{ t('orders.pay_title') }}</h2>
+    <h2>{{ t('orders.pay_title') }}</h2>
     <input type="hidden" name="kind" value="{{ pay_kind.value }}">
     <div class="field"><label>{{ t('orders.pay_amount') }} ({{ order.currency }})</label><input class="input mono" name="amount" inputmode="decimal" value="{{ pay_amount }}" required></div>
     <div class="field"><label>{{ t('orders.pay_method') }}</label><select class="select" name="method">{% for m in methods %}<option value="{{ m.name }}">{{ m.name }}</option>{% endfor %}<option value="other">…</option></select></div>
-    <div class="field"><label>{{ t('orders.pay_proof') }}</label><input class="input" type="file" name="proof" accept="image/*,.pdf" style="padding-top:11px"></div>
+    <div class="field"><label>{{ t('orders.pay_proof') }}</label><input class="input" type="file" name="proof" accept="image/*,.pdf"></div>
     <div class="field"><label>{{ t('orders.pay_note') }}</label><input class="input" name="note"></div>
-    <p class="xs faint">⚠️ {{ t('orders.pay_warning') }}</p>
+    <p class="xs faint">{{ t('orders.pay_warning') }}</p>
     <button class="btn btn-primary btn-lg btn-block" type="submit"><span class="label">{{ t('common.send') }}</span><span class="spinner"></span></button>
   </form>
 </div>

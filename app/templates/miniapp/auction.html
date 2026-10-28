@@ -4,25 +4,25 @@
 {% block content %}
 <div class="page stack" style="padding-bottom:{{ '130px' if a.status.value=='live' else '24px' }}">
   <div class="gallery" style="aspect-ratio:16/10">
-    {% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" style="width:100%;height:100%;object-fit:cover" data-lightbox="{{ a.cover_url }}">{% else %}<div style="display:grid;place-items:center;height:100%;font-size:64px">💽</div>{% endif %}
+    {% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" style="width:100%;height:100%;object-fit:contain;padding:16px" data-lightbox="{{ a.cover_url }}">{% else %}<div style="display:grid;place-items:center;height:100%;color:var(--ink-3)">{{ icon('drive', 48) }}</div>{% endif %}
     <div class="gallery-tag">{% with cond=a.condition, lg=True %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
   </div>
   <div>
-    <div class="pcard-brand">{{ t('auction.lot') }} #{{ a.id }} · {{ a.brand }}</div>
-    <h2 style="font-size:21px">{{ a.model }} <span class="muted" style="font-weight:600">{{ a.capacity_gb|capacity }}</span></h2>
-    <div class="pcard-meta mt-2"><span class="chip chip-soft">{{ t('auction.qty', n=a.qty) }}</span><span class="chip {{ TEST_CLASS[a.test_status] }}">{{ t('test.' ~ a.test_status.value) }}</span><span class="chip chip-soft">{{ t('common.seller_warranty') }}: {{ a.seller_warranty_months }} {{ t('common.months') }}</span><span class="chip chip-soft">{{ t('common.factory_warranty') }}: {{ a.factory_warranty_months }} {{ t('common.months') }}</span></div>
+    <div class="pcard-brand">{{ t('auction.lot') }} <span class="mono">#{{ a.id }}</span> · {{ a.brand }}</div>
+    <h1 style="font-size:22px;margin-top:4px">{{ a.model }} <span class="muted" style="font-weight:600">{{ a.capacity_gb|capacity }}</span></h1>
+    <div class="row mt-2" style="flex-wrap:wrap;gap:6px"><span class="chip chip-soft">{{ t('auction.qty', n=a.qty) }}</span><span class="chip {{ TEST_CLASS[a.test_status] }}">{{ t('test.' ~ a.test_status.value) }}</span><span class="chip chip-soft">{{ t('common.seller_warranty') }}: {{ a.seller_warranty_months }} {{ t('common.months') }}</span><span class="chip chip-soft">{{ t('common.factory_warranty') }}: {{ a.factory_warranty_months }} {{ t('common.months') }}</span></div>
   </div>
 
   {% include "miniapp/partials/auction_price.html" %}
 
   {% if needs_deposit %}
   <div class="card">
-    <div class="row-between"><h3 style="font-size:15px">{{ t('auction.deposit') }}</h3><b class="num">{{ a.deposit_amount|money(a.currency) }}</b></div>
+    <div class="row-between"><h3>{{ t('auction.deposit') }}</h3><b class="mono">{{ a.deposit_amount|money(a.currency) }}</b></div>
     <p class="small muted mt-1">{{ t('auction.deposit_note') }}</p>
     {% if deposit %}<span class="chip chip-lg {{ 'chip-ok' if deposit.status.value in ('confirmed','applied') else ('chip-warn' if deposit.status.value=='pending' else 'chip-soft') }} mt-2">{{ t('auction.deposit_' ~ deposit.status.value) }}</span>
     {% elif user and user.is_registered and a.status.value in ('live','scheduled') %}
     <form class="stack mt-3" method="post" action="/app/auctions/{{ a.id }}/deposit" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data" style="gap:8px">
-      <input class="input" type="file" name="proof" accept="image/*,.pdf" style="padding-top:11px"><input class="input" name="note" placeholder="{{ t('orders.pay_note') }}">
+      <input class="input" type="file" name="proof" accept="image/*,.pdf"><input class="input" name="note" placeholder="{{ t('orders.pay_note') }}">
       <button class="btn btn-secondary btn-block">{{ t('auction.deposit_claim') }}</button>
     </form>
     {% endif %}
@@ -30,13 +30,13 @@
   {% endif %}
 
   <div class="card">
-    <div class="row-between"><h3 style="font-size:15px">{{ t('auction.bids') }}</h3><span class="chip chip-soft" id="bids-badge">{{ a.bids_count }}</span></div>
-    <div id="bids-wrap" hx-get="/app/auctions/{{ a.id }}/bids" hx-trigger="refreshBids from:body" hx-swap="innerHTML">{% include "miniapp/partials/auction_bids.html" %}</div>
+    <div class="row-between"><h3>{{ t('auction.bids') }}</h3><span class="chip chip-soft mono" id="bids-badge">{{ a.bids_count }}</span></div>
+    <div id="bids-wrap" class="mt-2" hx-get="/app/auctions/{{ a.id }}/bids" hx-trigger="refreshBids from:body" hx-swap="innerHTML">{% include "miniapp/partials/auction_bids.html" %}</div>
   </div>
 
   {% if pk is not defined %}{% set pk = p %}{% endif %}
-  <div class="card"><h3 style="font-size:15px">{{ t('auction.rules') }}</h3><p class="small muted mt-1">{{ pk(a.rules) or t('auction.rules_default') }}</p>{% if pk(a.description) %}<div class="divider"></div><p class="small">{{ pk(a.description)|nl2br }}</p>{% endif %}
-    <div class="xs faint mt-2">{{ a.starts_at|dt }} → {{ a.ends_at|dt }} ({{ a.timezone }})</div></div>
+  <div class="card"><h3>{{ t('auction.rules') }}</h3><p class="small muted mt-1">{{ pk(a.rules) or t('auction.rules_default') }}</p>{% if pk(a.description) %}<div class="divider"></div><p class="small">{{ pk(a.description)|nl2br }}</p>{% endif %}
+    <div class="xs faint mono mt-3">{{ a.starts_at|dt }} → {{ a.ends_at|dt }} ({{ a.timezone }})</div></div>
 </div>
 
 {% if a.status.value == 'live' %}
@@ -44,16 +44,16 @@
   {% if not user or not user.is_registered %}
   <a class="btn btn-primary btn-lg btn-block" href="/app/register?next=/app/auctions/{{ a.id }}">{{ t('register.required_cta') }} → {{ t('auction.bid_now') }}</a>
   {% elif not can_bid %}
-  <div class="notice notice-warn flex-1"><span>💰</span><span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
+  <div class="notice notice-warn flex-1">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
   {% else %}
   <form hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" class="row flex-1" style="gap:8px" id="bid-form">
-    <button class="btn btn-accent btn-lg flex-1" type="submit"><span class="label">🔨 {{ t('auction.bid_now') }} · <span id="btn-next">{{ a.next_bid_total|money(a.currency) }}</span></span><span class="spinner"></span></button>
-    <button class="icon-btn" type="button" style="width:56px;height:56px;border-radius:var(--r-lg)" data-open-sheet="custom-bid" aria-label="{{ t('auction.bid_custom') }}">＋</button>
+    <button class="btn btn-primary btn-lg flex-1" type="submit"><span class="label">{{ t('auction.bid_now') }} · <span id="btn-next" class="mono">{{ a.next_bid_total|money(a.currency) }}</span></span><span class="spinner"></span></button>
+    <button class="icon-btn" type="button" style="width:52px;height:52px" data-open-sheet="custom-bid" aria-label="{{ t('auction.bid_custom') }}">{{ icon('edit', 20) }}</button>
   </form>
   <div id="custom-bid" hidden><div class="sheet-backdrop" data-close-sheet="custom-bid"></div>
-    <form class="sheet stack" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" onsubmit="closeSheet('custom-bid')"><div class="grab"></div><h2 style="font-size:18px">{{ t('auction.bid_custom') }}</h2>
+    <form class="sheet stack" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" onsubmit="closeSheet('custom-bid')"><div class="grab"></div><h2>{{ t('auction.bid_custom') }}</h2>
       <div class="field"><label>{{ t('auction.lot_total') }} ({{ a.currency }})</label><input class="input mono" name="amount" inputmode="decimal" value="{{ a.next_bid_total }}" required><span class="hint">{{ t('auction.step') }}: {{ a.step_total|money(a.currency) }}</span></div>
-      <button class="btn btn-accent btn-lg btn-block">🔨 {{ t('auction.bid_now') }}</button></form></div>
+      <button class="btn btn-primary btn-lg btn-block">{{ t('auction.bid_now') }}</button></form></div>
   {% endif %}
 </div></div>
 {% endif %}
@@ -63,7 +63,6 @@
 (function(){
   var id = {{ a.id }}; var cur = {{ a.currency|tojson }};
   var fmt = function(v){ var n = Number(v); return cur === 'USD' ? '$' + n.toLocaleString('en-US', {maximumFractionDigits: 2}) : n.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + cur; };
-  var lastVersion = {{ a.version }};
   function apply(s){
     var box = document.getElementById('price-box'); if (!box) return;
     if (s.version !== undefined && s.version <= Number(box.dataset.version || 0)) return;

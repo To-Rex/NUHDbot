@@ -3,8 +3,8 @@
   {% for b in bids %}
   <div class="bid-row {{ 'me' if b.user_id == me_id }} {{ 'leader' if loop.first }}">
     <div class="avatar">{{ (b.user.full_name if b.user else '?')|initials }}</div>
-    <div class="flex-1"><div class="semibold small">{{ t('auction.your_bid') if b.user_id == me_id else b.user|anon }}{% if loop.first %} <span class="chip chip-ok" style="height:18px">{{ t('auction.leader') }}</span>{% endif %}</div><div class="xs faint">{{ b.created_at|dt('%d.%m %H:%M:%S') }}</div></div>
-    <div class="bold num">{{ b.amount_total|money(a.currency) }}</div>
+    <div class="flex-1"><div class="semibold small">{{ t('auction.your_bid') if b.user_id == me_id else b.user|anon }}{% if loop.first %} <span class="chip chip-ok" style="height:18px;margin-left:4px">{{ t('auction.leader') }}</span>{% endif %}</div><div class="xs faint mono">{{ b.created_at|dt('%d.%m %H:%M:%S') }}</div></div>
+    <div class="amt">{{ b.amount_total|money(a.currency) }}</div>
   </div>
   {% endfor %}
   {% else %}

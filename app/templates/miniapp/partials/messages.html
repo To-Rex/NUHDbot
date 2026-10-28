@@ -1,7 +1,7 @@
 {% for m in messages %}
 <div class="msg {{ 'them' if m.from_staff else 'me' }}" data-id="{{ m.id }}">
   {% if m.from_staff %}<div class="xs semibold" style="opacity:.7;margin-bottom:2px">{{ t('support.admin') }}</div>{% endif %}
-  {% if m.attachment %}{% if m.kind.value == 'photo' %}<img src="{{ m.attachment_url }}" alt="" loading="lazy" data-lightbox="{{ m.attachment_url }}">{% else %}<a href="{{ m.attachment_url }}" target="_blank" hx-boost="false" style="text-decoration:underline">📎 {{ t('support.attachment') }}</a>{% endif %}{% endif %}
+  {% if m.attachment %}{% if m.kind.value == 'photo' %}<img src="{{ m.attachment_url }}" alt="" loading="lazy" data-lightbox="{{ m.attachment_url }}">{% else %}<a href="{{ m.attachment_url }}" target="_blank" hx-boost="false" class="row" style="gap:6px">{{ icon('paperclip', 14) }}{{ t('support.attachment') }}</a>{% endif %}{% endif %}
   {% if m.text %}<div>{{ m.text|nl2br }}</div>{% endif %}
   <time>{{ m.created_at|dt('%H:%M') }}</time>
 </div>

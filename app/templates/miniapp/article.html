@@ -1,16 +1,17 @@
 {% extends "miniapp/base.html" %}
+{% set cat_icons = {'choose': 'drive', 'tech': 'cpu', 'conditions': 'layers', 'guide': 'book'} %}
 {% block title %}{{ p(a.title) }} · {{ app_name }}{% endblock %}
 {% block topbar_actions %}{% endblock %}
 {% block content %}
 <article class="page">
-  <div style="font-size:44px;line-height:1" class="mb-3">{{ a.icon }}</div>
-  <h1 style="font-size:24px;letter-spacing:-.02em">{{ p(a.title) }}</h1>
+  <div class="eyebrow row" style="gap:6px">{{ icon(cat_icons.get(a.category, 'info'), 14) }}{{ t('info.cat_' ~ a.category) if ('info.cat_' ~ a.category) != t('info.cat_' ~ a.category) else a.category }}</div>
+  <h1 class="mt-2">{{ p(a.title) }}</h1>
   <p class="muted mt-2">{{ p(a.summary) }}</p>
   <div class="divider mt-4"></div>
   <div class="prose mt-4">{{ p(a.body)|safe }}</div>
   {% if others %}
   <div class="section-title"><h2>{{ t('common.details') }}</h2></div>
-  <div class="list">{% for o in others %}<a class="list-item" href="/app/info/{{ o.slug }}"><span class="list-icon">{{ o.icon }}</span><div class="flex-1 semibold small">{{ p(o.title) }}</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></a>{% endfor %}</div>
+  <div class="list">{% for o in others %}<a class="list-item" href="/app/info/{{ o.slug }}"><span class="list-icon">{{ icon(cat_icons.get(o.category, 'info'), 18) }}</span><div class="flex-1 semibold small">{{ p(o.title) }}</div>{{ icon('chevron-right', 18, 'chev') }}</a>{% endfor %}</div>
   {% endif %}
 </article>
 {% endblock %}

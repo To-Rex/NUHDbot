@@ -53,7 +53,13 @@
     if (!box) { box = document.createElement('div'); box.className = 'toasts'; document.body.appendChild(box); }
     const el = document.createElement('div');
     el.className = 'toast ' + (type || '');
-    el.innerHTML = (type === 'ok' ? '✅ ' : type === 'bad' ? '⚠️ ' : '') + msg;
+    var ic = type === 'ok'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>'
+      : (type === 'bad' || type === 'warn')
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21 19.5H3z"/><path d="M12 10v4M12 17h.01"/></svg>'
+        : '';
+    el.innerHTML = ic + '<span></span>';
+    el.lastChild.textContent = msg;
     box.appendChild(el);
     if (type === 'ok') haptic.success(); else if (type === 'bad') haptic.error(); else haptic.light();
     setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, ms || 2600);
@@ -101,13 +107,10 @@
     window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
   }
 
-  // ---------- button ripple origin + haptics ----------
+  // ---------- tap haptics ----------
   document.addEventListener('pointerdown', (e) => {
-    const b = e.target.closest('.btn, .fchip, .icon-btn, .pcard, .quick a, .bottom-nav a, .stepper button');
+    const b = e.target.closest('.btn, .fchip, .icon-btn, .pcard, .quick a, .bottom-nav a, .stepper button, .list-item');
     if (!b) return;
-    const r = b.getBoundingClientRect();
-    b.style.setProperty('--x', ((e.clientX - r.left) / r.width * 100) + '%');
-    b.style.setProperty('--y', ((e.clientY - r.top) / r.height * 100) + '%');
     if (b.matches('.bottom-nav a, .fchip, .stepper button')) haptic.select(); else haptic.light();
   }, { passive: true });
 
@@ -147,7 +150,7 @@
     const z = e.target.closest('[data-lightbox]');
     if (z) {
       const src = z.dataset.lightbox; const lb = document.createElement('div'); lb.className = 'lightbox';
-      lb.innerHTML = '<img src="' + src + '" alt=""><button class="close" aria-label="close">✕</button>';
+      lb.innerHTML = '<img src="' + src + '" alt=""><button class="close" aria-label="close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>';
       lb.addEventListener('click', () => lb.remove()); document.body.appendChild(lb); haptic.medium();
     }
   });
@@ -180,7 +183,7 @@
   // ---------- confetti ----------
   function confetti() {
     const box = document.createElement('div'); box.className = 'confetti';
-    const colors = ['#3b63f6', '#ff7a1a', '#16a34a', '#fde047', '#ec4899', '#06b6d4'];
+    const colors = ['#1E4FD6', '#1A7F4B', '#B7791F', '#13161C', '#5B8CFF', '#C2362F'];
     for (let i = 0; i < 70; i++) { const p = document.createElement('i'); p.style.left = Math.random() * 100 + 'vw'; p.style.background = colors[i % colors.length]; p.style.animationDelay = Math.random() * .6 + 's'; p.style.transform = 'rotate(' + Math.random() * 360 + 'deg)'; box.appendChild(p); }
     document.body.appendChild(box); haptic.success(); setTimeout(() => box.remove(), 2600);
   }

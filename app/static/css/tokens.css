@@ -1,47 +1,85 @@
-/* ===== New & Used Hard Drives — design tokens ===== */
+/* New & Used Hard Drives — design tokens
+   Concept: a precise hardware catalogue. Calm neutrals, one accent, hairlines instead of shadows, flat colour only. */
 :root {
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-display: "Manrope", "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Golos Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font: var(--font-body);
+  --mono: var(--font-mono);
 
-  /* brand */
-  --brand-50: #eef4ff; --brand-100: #d9e6ff; --brand-200: #b7cdff; --brand-300: #8aabff;
-  --brand-400: #5c84ff; --brand-500: #3b63f6; --brand-600: #2a4bdc; --brand-700: #233cb1; --brand-800: #21358c; --brand-900: #1b2a66;
-  --accent: #ff7a1a; --accent-soft: #fff1e6;
+  --bg: #F5F6F8;
+  --surface: #FFFFFF;
+  --sunken: #EDEFF3;
+  --ink: #13161C;
+  --ink-2: #596273;
+  --ink-3: #8A93A3;
+  --hairline: #E4E7EC;
+  --hairline-strong: #CDD3DC;
+  --accent: #1E4FD6;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #E8EEFC;
+  --accent-press: #1A43B5;
+  --panel: #13161C;          /* ink-coloured hero panel */
+  --panel-ink: #FFFFFF;
+  --panel-ink-2: #AAB2C0;
+  --panel-line: rgba(255,255,255,.14);
 
-  /* surfaces (light) */
-  --bg: #f4f6fb; --bg-elev: #ffffff; --bg-sunken: #eaeef6; --bg-glass: rgba(255,255,255,.72);
-  --fg: #0f172a; --fg-2: #475569; --fg-3: #94a3b8; --line: #e5e9f2; --line-strong: #cfd6e4;
-  --shadow-1: 0 1px 2px rgba(15,23,42,.05), 0 1px 1px rgba(15,23,42,.03);
-  --shadow-2: 0 6px 20px -8px rgba(15,23,42,.18), 0 2px 6px -2px rgba(15,23,42,.06);
-  --shadow-3: 0 18px 50px -20px rgba(15,23,42,.35);
-  --ring: 0 0 0 3px rgba(59,99,246,.25);
+  --ok: #1A7F4B;   --ok-bg: #E3F3EA;
+  --warn: #B7791F; --warn-bg: #FBF0DA;
+  --bad: #C2362F;  --bad-bg: #FBE5E3;
+  --info: var(--accent); --info-bg: var(--accent-soft);
 
-  /* condition colours — fixed by spec §7 */
+  /* condition colours — fixed by the client spec (§7) */
   --new-bg: #DCFCE7; --new-fg: #166534;
   --used-bg: #DBEAFE; --used-fg: #1D4ED8;
   --refresh-bg: #FEF08A; --refresh-fg: #713F12;
 
-  --ok: #16a34a; --ok-bg: #dcfce7; --warn: #d97706; --warn-bg: #fef3c7; --bad: #dc2626; --bad-bg: #fee2e2; --info: #2563eb; --info-bg: #dbeafe;
+  --shadow: 0 1px 2px rgba(16,20,28,.06);
+  --shadow-float: 0 8px 24px rgba(16,20,28,.12), 0 1px 2px rgba(16,20,28,.06);
+  --ring: 0 0 0 3px var(--accent-soft);
+  --scrim: rgba(14,17,22,.5);
 
-  --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 28px; --r-full: 999px;
+  --r-card: 12px; --r-ctl: 10px; --r-chip: 6px; --r-sm: 8px;
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
-  --nav-h: 64px; --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px);
+  --nav-h: 60px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
 
-  --ease: cubic-bezier(.2,.8,.2,1); --ease-out: cubic-bezier(.16,1,.3,1); --spring: cubic-bezier(.34,1.56,.64,1);
-  --t-fast: 140ms; --t-med: 260ms; --t-slow: 420ms;
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --t-fast: 120ms; --t-med: 180ms; --t-slow: 240ms;
+
+  /* legacy aliases kept for shared partials */
+  --fg: var(--ink); --fg-2: var(--ink-2); --fg-3: var(--ink-3);
+  --bg-elev: var(--surface); --bg-sunken: var(--sunken); --line: var(--hairline); --line-strong: var(--hairline-strong);
+  --brand-500: var(--accent); --brand-50: var(--accent-soft);
+  color-scheme: light;
 }
 
-:root[data-theme="dark"], .tg-dark {
-  --bg: #0b1020; --bg-elev: #131a2e; --bg-sunken: #0f1527; --bg-glass: rgba(19,26,46,.72);
-  --fg: #e8ecf7; --fg-2: #aab4cc; --fg-3: #6b7694; --line: #1f2940; --line-strong: #2b3651;
-  --shadow-1: 0 1px 2px rgba(0,0,0,.4); --shadow-2: 0 8px 24px -10px rgba(0,0,0,.6); --shadow-3: 0 24px 60px -24px rgba(0,0,0,.8);
-  --new-bg: #10311f; --new-fg: #86efac; --used-bg: #10234a; --used-fg: #93c5fd; --refresh-bg: #3a2f08; --refresh-fg: #fde68a;
-  --ok-bg: #0f2e1b; --warn-bg: #2f2208; --bad-bg: #3a1212; --info-bg: #10234a; --accent-soft: #3a2410;
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1116; --surface: #161A21; --sunken: #1C212A;
+    --ink: #E8EBF0; --ink-2: #A3ACBB; --ink-3: #6B7483;
+    --hairline: #262C36; --hairline-strong: #343B47;
+    --accent: #5B8CFF; --accent-ink: #0E1116; --accent-soft: #1A2A4F; --accent-press: #7AA1FF;
+    --panel: #1C212A; --panel-ink: #F2F4F8; --panel-ink-2: #8F98A8; --panel-line: rgba(255,255,255,.12);
+    --ok: #4CC27F; --ok-bg: #12301F; --warn: #E0A743; --warn-bg: #33270E; --bad: #F07067; --bad-bg: #3A1816;
+    --new-bg: #10311F; --new-fg: #86EFAC; --used-bg: #10234A; --used-fg: #93C5FD; --refresh-bg: #3A2F08; --refresh-fg: #FDE68A;
+    --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-float: 0 8px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+    --scrim: rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0b1020; --bg-elev: #131a2e; --bg-sunken: #0f1527; --bg-glass: rgba(19,26,46,.72);
-  --fg: #e8ecf7; --fg-2: #aab4cc; --fg-3: #6b7694; --line: #1f2940; --line-strong: #2b3651;
-  --shadow-1: 0 1px 2px rgba(0,0,0,.4); --shadow-2: 0 8px 24px -10px rgba(0,0,0,.6); --shadow-3: 0 24px 60px -24px rgba(0,0,0,.8);
-  --new-bg: #10311f; --new-fg: #86efac; --used-bg: #10234a; --used-fg: #93c5fd; --refresh-bg: #3a2f08; --refresh-fg: #fde68a;
-  --ok-bg: #0f2e1b; --warn-bg: #2f2208; --bad-bg: #3a1212; --info-bg: #10234a; --accent-soft: #3a2410;
-}}
+:root[data-theme="dark"], :root.tg-dark {
+  --bg: #0E1116; --surface: #161A21; --sunken: #1C212A;
+  --ink: #E8EBF0; --ink-2: #A3ACBB; --ink-3: #6B7483;
+  --hairline: #262C36; --hairline-strong: #343B47;
+  --accent: #5B8CFF; --accent-ink: #0E1116; --accent-soft: #1A2A4F; --accent-press: #7AA1FF;
+  --panel: #1C212A; --panel-ink: #F2F4F8; --panel-ink-2: #8F98A8; --panel-line: rgba(255,255,255,.12);
+  --ok: #4CC27F; --ok-bg: #12301F; --warn: #E0A743; --warn-bg: #33270E; --bad: #F07067; --bad-bg: #3A1816;
+  --new-bg: #10311F; --new-fg: #86EFAC; --used-bg: #10234A; --used-fg: #93C5FD; --refresh-bg: #3A2F08; --refresh-fg: #FDE68A;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); --shadow-float: 0 8px 24px rgba(0,0,0,.5), 0 1px 2px rgba(0,0,0,.4);
+  --scrim: rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }

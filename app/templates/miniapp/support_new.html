@@ -4,12 +4,12 @@
 {% block content %}
 <div class="page">
   <form class="card stack" method="post" action="/app/support/new" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data">
-    {% if order %}<input type="hidden" name="order_id" value="{{ order.id }}"><div class="notice notice-info"><span>📦</span><span>{{ t('support.about_order', number=order.number) }}</span></div>
-    {% elif product %}<input type="hidden" name="product_id" value="{{ product.id }}"><div class="row card-sm sunken"><img src="{{ product.cover.thumb_url if product.cover else '/static/img/placeholder.svg' }}" alt="" style="width:44px;height:44px;border-radius:10px;object-fit:cover"><div class="small"><b>{{ product.brand }} {{ product.model }}</b><div class="xs muted">{{ product.capacity_gb|capacity }} · {{ t('support.about_product', title='')|trim }}</div></div></div>
+    {% if order %}<input type="hidden" name="order_id" value="{{ order.id }}"><div class="notice notice-plain">{{ icon('package', 18) }}<span>{{ t('support.about_order', number=order.number) }}</span></div>
+    {% elif product %}<input type="hidden" name="product_id" value="{{ product.id }}"><div class="row sunken"><img src="{{ product.cover.thumb_url if product.cover else '/static/img/placeholder.svg' }}" alt="" style="width:44px;height:44px;border-radius:8px;object-fit:contain;background:var(--surface);border:1px solid var(--hairline)"><div class="small"><b>{{ product.brand }} {{ product.model }}</b><div class="xs muted">{{ product.capacity_gb|capacity }}</div></div></div>
     {% else %}<div class="small muted">{{ t('support.general') }}</div>{% endif %}
     <div class="field"><label>{{ t('support.message') }}</label><textarea class="textarea" name="text" placeholder="{{ t('support.write') }}" autofocus></textarea></div>
-    <div class="field"><label>📎 {{ t('support.attach') }}</label><input class="input" type="file" name="attachment" accept="image/*,.pdf" style="padding-top:11px"></div>
-    <p class="xs faint">🕒 {{ p(working_hours) }} · {{ p(reply_time) }}</p>
+    <div class="field"><label>{{ t('support.attach') }}</label><input class="input" type="file" name="attachment" accept="image/*,.pdf"></div>
+    <p class="xs faint row" style="gap:6px">{{ icon('clock', 14) }}<span>{{ p(working_hours) }} · {{ p(reply_time) }}</span></p>
     <button class="btn btn-primary btn-lg btn-block"><span class="label">{{ t('support.send') }}</span><span class="spinner"></span></button>
   </form>
 </div>
