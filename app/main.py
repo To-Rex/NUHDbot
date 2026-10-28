@@ -44,6 +44,7 @@ def _run_migrations() -> None:
 
     cfg = Config(str(BASE_DIR / "alembic.ini"))
     cfg.set_main_option("script_location", str(BASE_DIR / "alembic"))
+    cfg.attributes["configure_logger"] = False
     command.upgrade(cfg, "head")
     log.info("migrations applied")
 
@@ -63,7 +64,14 @@ async def lifespan(app: FastAPI):
         bot_task = await start_bot(app)
         if bot_task:
             tasks.append(bot_task)
-    log.info("started: base_url=%s bot_mode=%s", settings.base_url, settings.bot_mode)
+    log.info(
+        "started: base_url=%s bot_mode=%s token=%s https=%s",
+        settings.base_url, settings.bot_mode, "set" if settings.bot_token else "MISSING", settings.base_url.startswith("https://"),
+    )
+    if settings.bot_token and settings.bot_mode == "off":
+        log.warning("BOT_MODE=off — the Telegram bot will NOT answer. Set BOT_MODE=polling or webhook.")
+    if not settings.base_url.startswith("https://"):
+        log.warning("BASE_URL is not https — Telegram Mini App buttons are disabled until BASE_URL uses https.")
     try:
         yield
     finally:
