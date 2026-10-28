@@ -1,0 +1,11 @@
+{# name, value(dict), kind: input|textarea|code, label #}
+<div class="field" data-i18n>
+  <label>{{ label }}</label>
+  <div class="lang-tabs">{% for l in ('uz','ru','en') %}<button type="button" data-lang="{{ l }}" class="{{ 'active' if loop.first }}">{{ l|upper }}</button>{% endfor %}</div>
+  {% for l in ('uz','ru','en') %}
+  <div class="pane" data-lang="{{ l }}" {% if not loop.first %}hidden{% endif %}>
+    {% if kind == 'input' %}<input class="input" name="{{ name }}_{{ l }}" value="{{ (value or {}).get(l, '') }}">
+    {% else %}<textarea class="textarea {{ 'code' if kind == 'code' }}" name="{{ name }}_{{ l }}" rows="{{ rows or 4 }}">{{ (value or {}).get(l, '') }}</textarea>{% endif %}
+  </div>
+  {% endfor %}
+</div>

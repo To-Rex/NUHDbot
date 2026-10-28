@@ -1,0 +1,47 @@
+/* ===== New & Used Hard Drives — design tokens ===== */
+:root {
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* brand */
+  --brand-50: #eef4ff; --brand-100: #d9e6ff; --brand-200: #b7cdff; --brand-300: #8aabff;
+  --brand-400: #5c84ff; --brand-500: #3b63f6; --brand-600: #2a4bdc; --brand-700: #233cb1; --brand-800: #21358c; --brand-900: #1b2a66;
+  --accent: #ff7a1a; --accent-soft: #fff1e6;
+
+  /* surfaces (light) */
+  --bg: #f4f6fb; --bg-elev: #ffffff; --bg-sunken: #eaeef6; --bg-glass: rgba(255,255,255,.72);
+  --fg: #0f172a; --fg-2: #475569; --fg-3: #94a3b8; --line: #e5e9f2; --line-strong: #cfd6e4;
+  --shadow-1: 0 1px 2px rgba(15,23,42,.05), 0 1px 1px rgba(15,23,42,.03);
+  --shadow-2: 0 6px 20px -8px rgba(15,23,42,.18), 0 2px 6px -2px rgba(15,23,42,.06);
+  --shadow-3: 0 18px 50px -20px rgba(15,23,42,.35);
+  --ring: 0 0 0 3px rgba(59,99,246,.25);
+
+  /* condition colours — fixed by spec §7 */
+  --new-bg: #DCFCE7; --new-fg: #166534;
+  --used-bg: #DBEAFE; --used-fg: #1D4ED8;
+  --refresh-bg: #FEF08A; --refresh-fg: #713F12;
+
+  --ok: #16a34a; --ok-bg: #dcfce7; --warn: #d97706; --warn-bg: #fef3c7; --bad: #dc2626; --bad-bg: #fee2e2; --info: #2563eb; --info-bg: #dbeafe;
+
+  --r-xs: 8px; --r-sm: 12px; --r-md: 16px; --r-lg: 22px; --r-xl: 28px; --r-full: 999px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 20px; --sp-6: 24px; --sp-8: 32px;
+  --nav-h: 64px; --safe-b: env(safe-area-inset-bottom, 0px); --safe-t: env(safe-area-inset-top, 0px);
+
+  --ease: cubic-bezier(.2,.8,.2,1); --ease-out: cubic-bezier(.16,1,.3,1); --spring: cubic-bezier(.34,1.56,.64,1);
+  --t-fast: 140ms; --t-med: 260ms; --t-slow: 420ms;
+}
+
+:root[data-theme="dark"], .tg-dark {
+  --bg: #0b1020; --bg-elev: #131a2e; --bg-sunken: #0f1527; --bg-glass: rgba(19,26,46,.72);
+  --fg: #e8ecf7; --fg-2: #aab4cc; --fg-3: #6b7694; --line: #1f2940; --line-strong: #2b3651;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4); --shadow-2: 0 8px 24px -10px rgba(0,0,0,.6); --shadow-3: 0 24px 60px -24px rgba(0,0,0,.8);
+  --new-bg: #10311f; --new-fg: #86efac; --used-bg: #10234a; --used-fg: #93c5fd; --refresh-bg: #3a2f08; --refresh-fg: #fde68a;
+  --ok-bg: #0f2e1b; --warn-bg: #2f2208; --bad-bg: #3a1212; --info-bg: #10234a; --accent-soft: #3a2410;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b1020; --bg-elev: #131a2e; --bg-sunken: #0f1527; --bg-glass: rgba(19,26,46,.72);
+  --fg: #e8ecf7; --fg-2: #aab4cc; --fg-3: #6b7694; --line: #1f2940; --line-strong: #2b3651;
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4); --shadow-2: 0 8px 24px -10px rgba(0,0,0,.6); --shadow-3: 0 24px 60px -24px rgba(0,0,0,.8);
+  --new-bg: #10311f; --new-fg: #86efac; --used-bg: #10234a; --used-fg: #93c5fd; --refresh-bg: #3a2f08; --refresh-fg: #fde68a;
+  --ok-bg: #0f2e1b; --warn-bg: #2f2208; --bad-bg: #3a1212; --info-bg: #10234a; --accent-soft: #3a2410;
+}}

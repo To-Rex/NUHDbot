@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-primary btn-sm" href="/admin/ads/new">+ {{ t('admin.ads.new') }}</a>{% endblock %}
+{% block content %}
+<div class="tbl-wrap"><table><thead><tr><th>#</th><th>{{ t('admin.prod.title') }}</th><th>{{ t('admin.ads.campaign') }}</th><th>{{ t('admin.status') }}</th><th class="right">{{ t('admin.ads.products') }}</th><th class="right">{{ t('admin.ads.clicks') }}</th><th>{{ t('admin.ads.sent') }}</th></tr></thead><tbody>
+{% for p in rows %}<tr class="clickable" data-href="/admin/ads/{{ p.id }}"><td class="faint">{{ p.id }}</td><td class="bold">{{ p.title }}</td><td class="mono small">{{ p.campaign }}</td><td><span class="chip {{ 'chip-ok' if p.status.value=='sent' else ('chip-info' if p.status.value=='approved' else 'chip-soft') }}">{{ p.status.value }}</span></td><td class="num">{{ p.product_ids|length }}</td><td class="num">{{ p.clicks }}</td><td class="faint small">{{ p.sent_at|dt }}</td></tr>
+{% else %}<tr><td colspan="7" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

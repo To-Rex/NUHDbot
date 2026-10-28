@@ -1,0 +1,17 @@
+<tr id="prow-{{ prod.id }}" class="clickable" data-href="/admin/products/{{ prod.id }}">
+  <td><input type="checkbox" name="ids" value="{{ prod.id }}" form="bulk"></td>
+  <td>{% if prod.cover %}<img class="th" src="{{ prod.cover.thumb_url }}" alt="">{% else %}<img class="th" src="/static/img/placeholder.svg" alt="">{% endif %}</td>
+  <td><div class="bold">{{ prod.brand }} {{ prod.model }}</div><div class="faint xs">{{ prod.series or '' }}{% if prod.label_model %} · {{ t('common.label_model') }}: {{ prod.label_model }}{% endif %}</div></td>
+  <td><span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span></td>
+  <td class="nowrap">{{ prod.capacity_gb|capacity }} · {{ prod.interface.value }} · {{ prod.form_factor.value }}"</td>
+  <td><span class="chip test-{{ prod.test_status.value }}">{{ t('test.' ~ prod.test_status.value) }}</span></td>
+  <td class="num bold">{{ prod.price|money(prod.currency) }}</td>
+  <td class="num"><span class="{{ 'bold' if prod.available>0 else 'faint' }}">{{ prod.available }}</span><span class="faint xs"> / {{ prod.stock }}{% if prod.reserved %} ({{ prod.reserved }}){% endif %}</span></td>
+  <td class="num">{{ prod.min_order }}{% if prod.box_qty %}<span class="faint xs"> / {{ prod.box_qty }}</span>{% endif %}</td>
+  <td class="nowrap">
+    {% if can(roles.PRODUCT_EDIT_ROLES) or staff.role.value == 'warehouse' %}
+    <button class="btn btn-xs {{ 'btn-ok' if prod.is_active else 'btn-secondary' }}" hx-post="/admin/products/{{ prod.id }}/toggle" hx-vals='{"field":"is_active"}' hx-target="#prow-{{ prod.id }}" hx-swap="outerHTML">{{ t('admin.active') if prod.is_active else t('admin.inactive') }}</button>
+    <button class="btn btn-xs {{ 'btn-ok' if prod.sale_allowed else 'btn-warn' }}" hx-post="/admin/products/{{ prod.id }}/toggle" hx-vals='{"field":"sale_allowed"}' hx-target="#prow-{{ prod.id }}" hx-swap="outerHTML" title="{{ t('admin.prod.sale_allowed') }}">{{ '🛒' if prod.sale_allowed else '⛔' }}</button>
+    {% else %}<span class="chip {{ 'chip-ok' if prod.is_active else 'chip-soft' }}">{{ t('admin.active') if prod.is_active else t('admin.inactive') }}</span>{% endif %}
+  </td>
+</tr>

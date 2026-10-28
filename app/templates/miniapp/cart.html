@@ -1,0 +1,6 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ t('cart.title') }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<div class="page">{% include "miniapp/partials/cart_body.html" %}</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<form class="toolbar" method="get"><select class="select" name="entity" onchange="this.form.submit()"><option value="">{{ t('admin.aud.entity') }}: {{ t('admin.all') }}</option>{% for e in entities %}<option value="{{ e }}" {{ 'selected' if request.query_params.get('entity')==e }}>{{ e }}</option>{% endfor %}</select>
+<input class="input" name="action" placeholder="{{ t('admin.aud.action') }}" value="{{ request.query_params.get('action','') }}"><input class="input" name="actor" placeholder="{{ t('admin.aud.actor') }} id" value="{{ request.query_params.get('actor','') }}" style="min-width:100px"><input class="input" name="entity_id" placeholder="entity id" value="{{ request.query_params.get('entity_id','') }}" style="min-width:100px"><button class="btn btn-secondary btn-sm">{{ t('admin.filter') }}</button><span class="faint small" style="margin-left:auto">{{ total }}</span></form>
+<div class="tbl-wrap"><table><thead><tr><th>{{ t('admin.date') }}</th><th>{{ t('admin.aud.actor') }}</th><th>{{ t('admin.aud.action') }}</th><th>{{ t('admin.aud.entity') }}</th><th>{{ t('admin.aud.before') }}</th><th>{{ t('admin.aud.after') }}</th></tr></thead><tbody>
+{% for r in rows %}<tr><td class="faint small nowrap">{{ r.created_at|dt('%d.%m.%Y %H:%M:%S') }}</td><td>{{ actors[r.actor_id].full_name if r.actor_id in actors else t('admin.aud.system') }}</td><td class="mono small bold">{{ r.action }}</td><td class="small">{{ r.entity }} <span class="mono">{{ r.entity_id or '' }}</span></td><td>{% if r.before %}<pre class="json">{{ r.before|tojson }}</pre>{% endif %}</td><td>{% if r.after %}<pre class="json">{{ r.after|tojson }}</pre>{% endif %}</td></tr>
+{% else %}<tr><td colspan="6" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+{% include "admin/partials/pager.html" %}
+{% endblock %}

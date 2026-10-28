@@ -1,0 +1,8 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-primary btn-sm" href="/admin/articles/new">+ {{ t('admin.art.new') }}</a>{% endblock %}
+{% block content %}
+<div class="tbl-wrap"><table><thead><tr><th></th><th>{{ t('admin.art.slug') }}</th><th>{{ t('admin.art.category') }}</th><th>UZ</th><th>RU</th><th>EN</th><th class="right">{{ t('admin.prod.sort') }}</th><th>{{ t('admin.art.published') }}</th></tr></thead><tbody>
+{% for a in rows %}<tr class="clickable" data-href="/admin/articles/{{ a.id }}"><td>{{ a.icon }}</td><td class="mono">{{ a.slug }}</td><td><span class="chip chip-soft">{{ a.category }}</span></td><td class="bold">{{ a.title.get('uz','') }}</td><td class="small">{{ a.title.get('ru','') }}</td><td class="small">{{ a.title.get('en','') }}</td><td class="num">{{ a.sort }}</td>
+<td><form method="post" action="/admin/articles/{{ a.id }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-xs {{ 'btn-ok' if a.is_published else 'btn-secondary' }}" name="action" value="toggle">{{ t('admin.yes') if a.is_published else t('admin.no') }}</button></form></td></tr>
+{% else %}<tr><td colspan="8" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

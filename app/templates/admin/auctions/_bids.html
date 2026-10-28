@@ -1,0 +1,5 @@
+<div id="bids-list" hx-get="/admin/auctions/{{ a.id }}/bids" hx-trigger="refresh" hx-swap="outerHTML">
+{% if bids %}<div class="tbl-wrap"><table><thead><tr><th>#</th><th>{{ t('admin.customer') }}</th><th class="right">{{ t('admin.ord.amount') }}</th><th class="right">{{ t('admin.auc.per_unit') }}</th><th>{{ t('admin.date') }}</th></tr></thead><tbody>
+{% for b in bids %}<tr class="{{ 'bold' if loop.first }}"><td class="faint">{{ b.id }}</td><td><a href="/admin/customers/{{ b.user_id }}">{{ b.user.full_name }}</a> <span class="faint small mono">{{ b.user.phone or '' }}</span>{% if loop.first and a.status.value=='ended' %} 🏆{% endif %}</td><td class="num">{{ b.amount_total|money(a.currency) }}</td><td class="num">{{ (b.amount_total / a.qty)|money(a.currency) }}</td><td class="faint small nowrap">{{ b.created_at|dt('%d.%m %H:%M:%S') }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<div class="empty">{{ t('admin.auc.no_bids') }}</div>{% endif %}
+</div>

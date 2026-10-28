@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<form class="toolbar" method="get"><input class="input" name="q" placeholder="{{ t('admin.search') }}" value="{{ request.query_params.get('q','') }}" style="min-width:260px">
+  <select class="select" name="country" onchange="this.form.submit()"><option value="">{{ t('admin.country') }}: {{ t('admin.all') }}</option>{% for c in countries %}<option value="{{ c }}" {{ 'selected' if request.query_params.get('country')==c }}>{{ t('country.' ~ c) }}</option>{% endfor %}</select>
+  <select class="select" name="reg" onchange="this.form.submit()"><option value="">{{ t('admin.all') }}</option><option value="1" {{ 'selected' if request.query_params.get('reg')=='1' }}>{{ t('admin.cust.registered') }}</option><option value="0" {{ 'selected' if request.query_params.get('reg')=='0' }}>{{ t('admin.cust.not_registered') }}</option></select>
+  <input class="input" name="source" placeholder="{{ t('admin.cust.source') }}" value="{{ request.query_params.get('source','') }}" style="min-width:120px">
+  <button class="btn btn-secondary btn-sm">{{ t('admin.filter') }}</button><span class="faint small" style="margin-left:auto">{{ total }}</span></form>
+<div class="tbl-wrap"><table><thead><tr><th>#</th><th>{{ t('admin.name') }}</th><th>{{ t('admin.phone') }}</th><th>{{ t('admin.country') }}</th><th>{{ t('admin.lang') }}</th><th>{{ t('admin.cust.registered') }}</th><th class="right">{{ t('admin.cust.orders') }}</th><th>{{ t('admin.cust.source') }}</th><th>{{ t('admin.cust.last_seen') }}</th></tr></thead><tbody>
+{% for u, n in rows %}<tr class="clickable" data-href="/admin/customers/{{ u.id }}"><td class="faint">{{ u.id }}</td><td><b>{{ u.full_name }}</b>{% if u.tg_username %} <span class="faint small">@{{ u.tg_username }}</span>{% endif %}{% if u.is_blocked %} <span class="chip chip-bad">{{ t('admin.cust.blocked') }}</span>{% endif %}</td><td class="mono">{{ u.phone or '—' }}</td><td>{{ t('country.' ~ u.country) if u.country else '—' }} <span class="faint small">{{ u.city or '' }}</span></td><td>{{ u.lang }}</td><td>{% if u.registered_at %}<span class="chip chip-ok">{{ u.registered_at|date }}</span>{% else %}<span class="chip chip-soft">—</span>{% endif %}</td><td class="num">{{ n }}</td><td class="small">{{ u.source or '' }}</td><td class="faint small nowrap">{{ u.last_seen_at|dt }}</td></tr>
+{% else %}<tr><td colspan="9" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+{% include "admin/partials/pager.html" %}
+{% endblock %}

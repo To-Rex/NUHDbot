@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% block heading %}{{ t('admin.nav.dashboard') }}{% endblock %}
+{% block topbar_actions %}
+<div class="row">{% for n in (7,30,90,365) %}<a class="btn btn-sm {{ 'btn-primary' if n==days else 'btn-secondary' }}" href="?days={{ n }}">{{ n }} {{ t('admin.days') }}</a>{% endfor %}</div>
+{% endblock %}
+{% block content %}
+<div class="grid g4">
+  <a class="kpi" href="/admin/orders" style="--i:0"><span class="l">{{ t('admin.dash.orders') }}</span><span class="v">{{ d.orders_total }}</span><span class="s">{{ t('admin.dash.last_30', n=days) }}</span></a>
+  <a class="kpi {{ 'warn' if d.awaiting_admin }}" href="/admin/orders?status=awaiting_admin" style="--i:1"><span class="l">{{ t('admin.dash.awaiting_admin') }}</span><span class="v">{{ d.awaiting_admin }}</span><span class="s">{{ t('admin.dash.active_orders') }}: {{ d.active_orders }}</span></a>
+  <a class="kpi {{ 'warn' if d.pending_payments }}" href="/admin/orders?payments=pending" style="--i:2"><span class="l">{{ t('admin.dash.pending_payments') }}</span><span class="v">{{ d.pending_payments }}</span>{% if can_finance %}<span class="s">{{ t('admin.rep.awaiting_balance') }}: {{ d.awaiting_balance_sum|money }}</span>{% endif %}</a>
+  {% if can_finance %}<div class="kpi ok" style="--i:3"><span class="l">{{ t('admin.dash.revenue') }}</span><span class="v">{{ d.revenue|money }}</span><span class="s">{{ t('admin.rep.advances') }}: {{ d.advances|money }} · {{ t('admin.rep.refunds') }}: {{ d.refunds|money }}</span></div>
+  {% else %}<div class="kpi" style="--i:3"><span class="l">{{ t('admin.dash.disks_sold') }}</span><span class="v">{{ d.disks_sold }}</span></div>{% endif %}
+  <a class="kpi" href="/admin/customers" style="--i:4"><span class="l">{{ t('admin.dash.customers') }}</span><span class="v">{{ d.customers }}</span></a>
+  <a class="kpi {{ 'bad' if d.low_stock }}" href="/admin/products?stock=out" style="--i:5"><span class="l">{{ t('admin.dash.low_stock') }}</span><span class="v">{{ d.low_stock }}</span><span class="s">{{ t('admin.nav.products') }}: {{ d.products }}</span></a>
+  <a class="kpi" href="/admin/auctions" style="--i:6"><span class="l">{{ t('admin.dash.live_auctions') }}</span><span class="v">{{ d.live_auctions }}</span></a>
+  <div class="kpi" style="--i:7"><span class="l">{{ t('admin.dash.orders_per_day') }}</span>
+    {% if spark %}<svg class="spark" viewBox="0 0 300 60" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#3b63f6" stop-opacity=".35"/><stop offset="1" stop-color="#3b63f6" stop-opacity="0"/></linearGradient></defs><polyline points="0,60 {{ spark }} 300,60" fill="url(#sg)" stroke="none"/><polyline points="{{ spark }}" fill="none" stroke="#3b63f6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>{% else %}<span class="s">—</span>{% endif %}</div>
+</div>
+
+<h2 class="mt-lg mb" style="font-size:15px">{{ t('admin.dash.attention') }}</h2>
+<div class="grid g2">
+  <div class="card"><h2>{{ t('admin.dash.awaiting_admin') }} <a class="btn btn-xs btn-ghost" href="/admin/orders?status=awaiting_admin">{{ t('admin.open') }} →</a></h2>
+    {% if awaiting %}<div class="tbl-wrap"><table><tbody>{% for o in awaiting %}<tr class="clickable" data-href="/admin/orders/{{ o.id }}"><td class="mono bold">{{ o.number }}</td><td>{{ o.user.full_name }}</td><td class="muted">{{ o.total_qty }} × </td><td class="num bold">{{ o.total|money(o.currency) }}</td><td class="faint small nowrap">{{ o.created_at|dt }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">{{ t('admin.dash.all_clear') }}</div>{% endif %}</div>
+  <div class="card"><h2>{{ t('admin.dash.pending_payments') }}</h2>
+    {% if pending %}<div class="tbl-wrap"><table><tbody>{% for p in pending %}<tr class="clickable" data-href="/admin/orders/{{ p.order_id }}#payments"><td class="mono bold">{{ p.order.number if p.order else '—' }}</td><td><span class="chip chip-info">{{ t('payment.' ~ p.kind.value) }}</span></td><td class="num bold">{{ p.amount|money(p.currency) }}</td><td class="muted small">{{ p.method or '' }}</td><td class="faint small nowrap">{{ p.created_at|dt }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">{{ t('admin.dash.all_clear') }}</div>{% endif %}</div>
+  <div class="card"><h2>{{ t('admin.dash.unread_threads') }} <a class="btn btn-xs btn-ghost" href="/admin/support">{{ t('admin.open') }} →</a></h2>
+    {% if threads %}<div class="tbl-wrap"><table><tbody>{% for th in threads %}<tr class="clickable" data-href="/admin/support/{{ th.id }}"><td class="bold">{{ th.user.full_name }}</td><td class="muted small">{{ th.order.number if th.order else '' }}</td><td><span class="chip chip-accent">{{ th.unread_for_staff }}</span></td><td class="faint small nowrap">{{ th.last_message_at|dt }}</td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">{{ t('admin.dash.all_clear') }}</div>{% endif %}</div>
+  <div class="card"><h2>{{ t('admin.dash.ending_soon') }} <a class="btn btn-xs btn-ghost" href="/admin/auctions">{{ t('admin.open') }} →</a></h2>
+    {% if ending %}<div class="tbl-wrap"><table><tbody>{% for a in ending %}<tr class="clickable" data-href="/admin/auctions/{{ a.id }}"><td class="bold">{{ a.title }} {{ a.capacity_gb|capacity }}</td><td class="num bold">{{ a.current_price_total|money(a.currency) }}</td><td class="muted small">{{ a.bids_count }} 🔨</td><td class="mono small" data-countdown="{{ a.ends_at|iso }}"></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty">{{ t('admin.dash.all_clear') }}</div>{% endif %}</div>
+</div>
+{% endblock %}

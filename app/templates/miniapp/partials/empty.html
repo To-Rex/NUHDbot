@@ -1,0 +1,6 @@
+<div class="empty">
+  <span class="emoji">{{ emoji or '📭' }}</span>
+  <h3>{{ title or t('common.empty') }}</h3>
+  {% if text %}<p class="small mt-1">{{ text }}</p>{% endif %}
+  {% if cta_url %}<a class="btn btn-primary btn-sm mt-4" href="{{ cta_url }}">{{ cta_text }}</a>{% endif %}
+</div>

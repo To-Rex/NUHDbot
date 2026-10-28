@@ -1,0 +1,5 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="tabs"><a href="?status=open" class="{{ 'active' if status=='open' }}">{{ t('admin.sup.open') }}</a><a href="?status=closed" class="{{ 'active' if status=='closed' }}">{{ t('admin.sup.closed') }}</a><a href="?status=all" class="{{ 'active' if status=='all' }}">{{ t('admin.all') }}</a></div>
+{% include "admin/support/_list.html" %}
+{% endblock %}

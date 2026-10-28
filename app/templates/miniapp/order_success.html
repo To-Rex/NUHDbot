@@ -1,0 +1,15 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ t('checkout.success_title') }}{% endblock %}
+{% block content %}
+<div class="page" style="min-height:100dvh;display:grid;place-items:center">
+  <div class="center stack" style="max-width:360px">
+    <div class="success-mark"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="25"/><path d="M14 27l8 8 16-16"/></svg></div>
+    <h1 style="font-size:24px">{{ t('checkout.success_title') }}</h1>
+    <div class="card" style="padding:14px"><div class="xs faint semibold" style="text-transform:uppercase;letter-spacing:.05em">{{ t('checkout.success_text') }}</div><div class="mono bold" style="font-size:22px;letter-spacing:.02em" data-copy="{{ order.number }}" data-copied-text="{{ t('common.copied') }}">{{ order.number }}</div><span class="chip chip-info mt-2">{{ t('order_status.' ~ order.status.value) }}</span></div>
+    <p class="small muted">{{ t('checkout.success_next') }}</p>
+    <a class="btn btn-primary btn-lg btn-block" href="/app/orders/{{ order.id }}">{{ t('checkout.open_order') }}</a>
+    <a class="btn btn-ghost btn-block" href="/app/home">{{ t('checkout.back_home') }}</a>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>setTimeout(function(){ NUHD && NUHD.confetti(); }, 300);</script>{% endblock %}

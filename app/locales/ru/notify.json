@@ -1,0 +1,19 @@
+{
+  "notify": {
+    "order_status": "📦 Заказ <b>{number}</b>\nНовый статус: <b>{status}</b>",
+    "order_awaiting_advance": "Заказ подтверждён. Сумма аванса: <b>{advance}</b>. Реквизиты — на странице заказа.",
+    "order_awaiting_customer": "Результаты тестов готовы. Пожалуйста, подтвердите результаты и данные доставки на странице заказа.",
+    "order_awaiting_balance": "Сумма остатка: <b>{balance}</b>. Груз отправится после подтверждения полной оплаты.",
+    "order_shipped": "Груз отправлен. Трек-номер: <b>{tracking}</b>",
+    "open_order": "Открыть заказ",
+    "open_auction": "Открыть аукцион",
+    "open_chat": "Открыть чат",
+    "outbid": "🔨 Вашу ставку перебили: <b>{title}</b>\nТекущая цена: <b>{amount}</b>",
+    "auction_won": "🏆 Поздравляем! Вы выиграли аукцион <b>{title}</b>. Итоговая цена: <b>{amount}</b>. Админ свяжется с вами.",
+    "auction_lost": "Аукцион <b>{title}</b> завершён. В этот раз не повезло — следите за следующими лотами.",
+    "support_reply": "💬 Ответ администратора:\n{preview}",
+    "new_order_staff": "🆕 Новый заказ <b>{number}</b> — {customer}, {qty} шт, {total}",
+    "new_support_staff": "💬 Новое обращение: {customer}\n{preview}",
+    "new_payment_staff": "💵 Заявка об оплате: заказ <b>{number}</b>, {kind} {amount}"
+  }
+}

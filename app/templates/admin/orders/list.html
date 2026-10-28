@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="tabs">{% for key, n in tabs %}<a href="?status={{ key }}" class="{{ 'active' if status==key }}">{{ t('admin.all') if key=='' else (t('admin.ord.active') if key=='active' else (t('admin.ord.closed') if key=='closed' else t('order_status.' ~ key))) }}<span class="cnt">{{ n }}</span></a>{% endfor %}</div>
+<form class="toolbar" method="get"><input type="hidden" name="status" value="{{ status }}"><input class="input" name="q" placeholder="{{ t('admin.search') }} — {{ t('admin.ord.number') }}, {{ t('admin.phone') }}, {{ t('admin.name') }}" value="{{ request.query_params.get('q','') }}" style="min-width:320px">
+  <label class="check"><input type="checkbox" name="payments" value="pending" {{ 'checked' if request.query_params.get('payments')=='pending' }} onchange="this.form.submit()">{{ t('admin.dash.pending_payments') }}</label>
+  <button class="btn btn-secondary btn-sm">{{ t('admin.filter') }}</button><span class="faint small" style="margin-left:auto">{{ total }}</span></form>
+<div class="tbl-wrap"><table><thead><tr><th>{{ t('admin.ord.number') }}</th><th>{{ t('admin.date') }}</th><th>{{ t('admin.customer') }}</th><th>{{ t('admin.ord.items') }}</th><th class="right">{{ t('admin.ord.qty') }}</th><th class="right">{{ t('admin.total') }}</th><th class="right">{{ t('admin.ord.paid') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.ord.cargo_code') }}</th></tr></thead>
+<tbody>{% for o in items %}<tr class="clickable" data-href="/admin/orders/{{ o.id }}">
+  <td class="mono bold">{{ o.number }}</td><td class="faint small nowrap">{{ o.created_at|dt }}</td>
+  <td><div class="bold">{{ o.user.full_name }}</div><div class="faint xs">{{ o.receiver_phone }} · {{ o.country or '' }} {{ o.city or '' }}</div></td>
+  <td class="small">{% for i in o.items[:2] %}<div>{{ i.brand }} {{ i.model }} <span class="chip cond-{{ i.condition.value }}" style="height:16px;font-size:9.5px">{{ i.condition.value|upper }}</span> ×{{ i.qty }}</div>{% endfor %}{% if o.items|length > 2 %}<div class="faint xs">+{{ o.items|length - 2 }}</div>{% endif %}</td>
+  <td class="num">{{ o.total_qty }}</td><td class="num bold">{{ o.total|money(o.currency) }}</td><td class="num {{ 'bold' if o.paid_amount >= o.total and o.total > 0 }}">{{ o.paid_amount|money(o.currency) }}</td>
+  <td>{% with status=o.status %}{% include "admin/partials/status_chip.html" %}{% endwith %}</td><td class="mono small">{{ o.cargo_code or '—' }}</td></tr>
+{% else %}<tr><td colspan="9" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+{% include "admin/partials/pager.html" %}
+{% endblock %}

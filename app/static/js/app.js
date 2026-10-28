@@ -1,0 +1,214 @@
+/* New & Used Hard Drives — Mini App runtime: Telegram SDK glue, HTMX config, micro-interactions. */
+(function () {
+  const tg = window.Telegram && window.Telegram.WebApp;
+  const root = document.documentElement;
+
+  // ---------- Telegram integration ----------
+  function applyTheme() {
+    if (!tg) return;
+    const dark = tg.colorScheme === 'dark';
+    root.classList.toggle('tg-dark', dark);
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    try {
+      const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+      tg.setHeaderColor && tg.setHeaderColor(bg || (dark ? '#0b1020' : '#f4f6fb'));
+      tg.setBackgroundColor && tg.setBackgroundColor(bg || (dark ? '#0b1020' : '#f4f6fb'));
+    } catch (e) {}
+  }
+  if (tg) {
+    try { tg.ready(); tg.expand(); } catch (e) {}
+    try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}
+    try { tg.enableClosingConfirmation && document.body.dataset.confirmClose === '1' && tg.enableClosingConfirmation(); } catch (e) {}
+    applyTheme();
+    tg.onEvent && tg.onEvent('themeChanged', applyTheme);
+  }
+
+  const haptic = {
+    light() { try { tg && tg.HapticFeedback.impactOccurred('light'); } catch (e) {} },
+    medium() { try { tg && tg.HapticFeedback.impactOccurred('medium'); } catch (e) {} },
+    success() { try { tg && tg.HapticFeedback.notificationOccurred('success'); } catch (e) {} },
+    error() { try { tg && tg.HapticFeedback.notificationOccurred('error'); } catch (e) {} },
+    select() { try { tg && tg.HapticFeedback.selectionChanged(); } catch (e) {} },
+  };
+
+  // Back button: show on every page except roots
+  function syncBackButton() {
+    if (!tg || !tg.BackButton) return;
+    const roots = ['/app', '/app/', '/app/home', '/app/catalog', '/app/auctions', '/app/orders', '/app/profile', '/app/info', '/app/new'];
+    const isRoot = roots.includes(location.pathname);
+    if (isRoot) tg.BackButton.hide(); else tg.BackButton.show();
+  }
+  if (tg && tg.BackButton) {
+    tg.BackButton.onClick(() => {
+      haptic.light();
+      const back = document.body.dataset.back;
+      if (back) location.href = back; else if (history.length > 1) history.back(); else location.href = '/app/home';
+    });
+  }
+  syncBackButton();
+
+  // ---------- toasts ----------
+  function toast(msg, type, ms) {
+    let box = document.querySelector('.toasts');
+    if (!box) { box = document.createElement('div'); box.className = 'toasts'; document.body.appendChild(box); }
+    const el = document.createElement('div');
+    el.className = 'toast ' + (type || '');
+    el.innerHTML = (type === 'ok' ? '✅ ' : type === 'bad' ? '⚠️ ' : '') + msg;
+    box.appendChild(el);
+    if (type === 'ok') haptic.success(); else if (type === 'bad') haptic.error(); else haptic.light();
+    setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, ms || 2600);
+  }
+
+  // ---------- progress bar for navigations ----------
+  let bar = document.getElementById('page-progress');
+  if (!bar) { bar = document.createElement('div'); bar.id = 'page-progress'; document.body.appendChild(bar); }
+  function progressStart() { bar.classList.remove('done'); void bar.offsetWidth; bar.classList.add('active'); }
+  function progressDone() { bar.classList.remove('active'); bar.classList.add('done'); setTimeout(() => bar.classList.remove('done'), 400); }
+
+  // ---------- HTMX wiring ----------
+  document.addEventListener('htmx:configRequest', (e) => { e.detail.headers['X-Lang'] = root.lang || ''; });
+  document.addEventListener('htmx:beforeRequest', (e) => { if (e.detail.boosted || e.detail.elt.hasAttribute('hx-get')) progressStart(); });
+  document.addEventListener('htmx:afterRequest', progressDone);
+  document.addEventListener('htmx:afterSettle', () => { syncBackButton(); lazyImages(); });
+  document.addEventListener('htmx:responseError', () => toast(root.dataset.errorText || 'Error', 'bad'));
+  document.addEventListener('htmx:sendError', () => toast(root.dataset.offlineText || 'Offline', 'bad'));
+  // server-driven toasts: HX-Trigger: {"toast": {"msg": "...", "type": "ok"}}
+  document.addEventListener('toast', (e) => { const d = e.detail || {}; toast(d.msg || d.value, d.type); });
+  document.addEventListener('haptic', (e) => { const k = (e.detail && e.detail.value) || 'light'; (haptic[k] || haptic.light)(); });
+  document.addEventListener('confetti', () => confetti());
+  document.addEventListener('cartUpdated', (e) => {
+    const n = e.detail && e.detail.count;
+    document.querySelectorAll('[data-cart-count]').forEach((el) => {
+      el.textContent = n; el.hidden = !n; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('badge-count');
+    });
+  });
+
+  // ---------- lazy images with fade ----------
+  function lazyImages() {
+    document.querySelectorAll('img.lazy:not([data-bound])').forEach((img) => {
+      img.dataset.bound = '1';
+      if (img.complete && img.naturalWidth) img.classList.add('loaded');
+      else img.addEventListener('load', () => img.classList.add('loaded'), { once: true });
+      img.addEventListener('error', () => { img.classList.add('loaded'); img.src = '/static/img/placeholder.svg'; }, { once: true });
+    });
+  }
+  lazyImages();
+
+  // ---------- top bar shadow on scroll ----------
+  const topbar = document.querySelector('.topbar');
+  if (topbar) {
+    const onScroll = () => topbar.classList.toggle('scrolled', window.scrollY > 4);
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+  }
+
+  // ---------- button ripple origin + haptics ----------
+  document.addEventListener('pointerdown', (e) => {
+    const b = e.target.closest('.btn, .fchip, .icon-btn, .pcard, .quick a, .bottom-nav a, .stepper button');
+    if (!b) return;
+    const r = b.getBoundingClientRect();
+    b.style.setProperty('--x', ((e.clientX - r.left) / r.width * 100) + '%');
+    b.style.setProperty('--y', ((e.clientY - r.top) / r.height * 100) + '%');
+    if (b.matches('.bottom-nav a, .fchip, .stepper button')) haptic.select(); else haptic.light();
+  }, { passive: true });
+
+  // ---------- steppers ----------
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-step]');
+    if (!btn) return;
+    const input = btn.parentElement.querySelector('input');
+    const step = parseInt(btn.dataset.step, 10);
+    const min = parseInt(input.min || '1', 10), max = parseInt(input.max || '999999', 10);
+    let v = parseInt(input.value || '0', 10) + step;
+    if (v < min) { v = min; input.classList.add('invalid'); setTimeout(() => input.classList.remove('invalid'), 400); haptic.error(); }
+    if (v > max) { v = max; input.classList.add('invalid'); setTimeout(() => input.classList.remove('invalid'), 400); haptic.error(); }
+    input.value = v; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // ---------- copy to clipboard ----------
+  document.addEventListener('click', (e) => {
+    const c = e.target.closest('[data-copy]');
+    if (!c) return;
+    navigator.clipboard && navigator.clipboard.writeText(c.dataset.copy).then(() => toast(c.dataset.copiedText || 'Copied', 'ok', 1400));
+  });
+
+  // ---------- gallery dots + lightbox ----------
+  document.addEventListener('scroll', (e) => {
+    const track = e.target;
+    if (!(track instanceof Element) || !track.classList.contains('gallery-track')) return;
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    const g = track.closest('.gallery');
+    g && g.querySelectorAll('.gallery-dots span').forEach((d, k) => d.classList.toggle('active', k === i));
+    const thumbs = document.querySelector('.thumbs');
+    thumbs && thumbs.querySelectorAll('img').forEach((d, k) => d.classList.toggle('active', k === i));
+  }, true);
+  document.addEventListener('click', (e) => {
+    const th = e.target.closest('.thumbs img');
+    if (th) { const track = document.querySelector('.gallery-track'); track && track.scrollTo({ left: th.dataset.index * track.clientWidth, behavior: 'smooth' }); return; }
+    const z = e.target.closest('[data-lightbox]');
+    if (z) {
+      const src = z.dataset.lightbox; const lb = document.createElement('div'); lb.className = 'lightbox';
+      lb.innerHTML = '<img src="' + src + '" alt=""><button class="close" aria-label="close">✕</button>';
+      lb.addEventListener('click', () => lb.remove()); document.body.appendChild(lb); haptic.medium();
+    }
+  });
+
+  // ---------- bottom sheets ----------
+  window.openSheet = function (id) { const s = document.getElementById(id); if (!s) return; s.hidden = false; haptic.light(); };
+  window.closeSheet = function (id) {
+    const s = document.getElementById(id); if (!s) return;
+    s.querySelectorAll('.sheet,.sheet-backdrop').forEach((x) => x.classList.add('closing'));
+    setTimeout(() => { s.hidden = true; s.querySelectorAll('.closing').forEach((x) => x.classList.remove('closing')); }, 240);
+  };
+  document.addEventListener('click', (e) => { const o = e.target.closest('[data-open-sheet]'); if (o) openSheet(o.dataset.openSheet); const c = e.target.closest('[data-close-sheet]'); if (c) closeSheet(c.dataset.closeSheet); });
+
+  // ---------- countdowns ----------
+  function tickCountdowns() {
+    document.querySelectorAll('[data-countdown]').forEach((el) => {
+      const end = new Date(el.dataset.countdown).getTime(); let s = Math.max(0, Math.floor((end - Date.now()) / 1000));
+      const d = Math.floor(s / 86400); s -= d * 86400; const h = Math.floor(s / 3600); s -= h * 3600; const m = Math.floor(s / 60); s -= m * 60;
+      const pad = (n) => String(n).padStart(2, '0');
+      const cells = el.querySelectorAll('[data-u]');
+      if (cells.length) {
+        cells.forEach((c) => { const u = c.dataset.u; const v = u === 'd' ? d : u === 'h' ? h : u === 'm' ? m : s; const t = c.firstChild; if (t && t.nodeValue !== pad(v)) t.nodeValue = pad(v); });
+      } else el.textContent = (d ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+      el.classList.toggle('urgent', end - Date.now() < 120000 && end > Date.now());
+      if (end <= Date.now() && !el.dataset.ended) { el.dataset.ended = '1'; document.dispatchEvent(new CustomEvent('countdown:ended', { detail: { el } })); }
+    });
+  }
+  setInterval(tickCountdowns, 1000); tickCountdowns();
+
+  // ---------- confetti ----------
+  function confetti() {
+    const box = document.createElement('div'); box.className = 'confetti';
+    const colors = ['#3b63f6', '#ff7a1a', '#16a34a', '#fde047', '#ec4899', '#06b6d4'];
+    for (let i = 0; i < 70; i++) { const p = document.createElement('i'); p.style.left = Math.random() * 100 + 'vw'; p.style.background = colors[i % colors.length]; p.style.animationDelay = Math.random() * .6 + 's'; p.style.transform = 'rotate(' + Math.random() * 360 + 'deg)'; box.appendChild(p); }
+    document.body.appendChild(box); haptic.success(); setTimeout(() => box.remove(), 2600);
+  }
+
+  // ---------- SSE helper (auction live state) ----------
+  window.liveAuction = function (id, onState) {
+    if (!window.EventSource) return setInterval(() => fetch('/api/auctions/' + id + '/state').then((r) => r.json()).then(onState), 3000);
+    let es; let retry = 1000;
+    function connect() {
+      es = new EventSource('/api/auctions/' + id + '/stream');
+      es.addEventListener('state', (e) => { retry = 1000; onState(JSON.parse(e.data)); });
+      es.addEventListener('bid', (e) => onState(JSON.parse(e.data)));
+      es.addEventListener('ended', (e) => onState(JSON.parse(e.data)));
+      es.onerror = () => { es.close(); setTimeout(connect, retry); retry = Math.min(retry * 2, 15000); };
+    }
+    connect();
+    return es;
+  };
+
+  // ---------- Telegram helpers for templates ----------
+  window.NUHD = { tg, haptic, toast, confetti, progressStart, progressDone,
+    requestContact(cb) {
+      if (tg && tg.requestContact) { tg.requestContact((ok) => cb(!!ok)); } else cb(false);
+    },
+    mainButton(text, onClick) {
+      if (!tg || !tg.MainButton) return null;
+      tg.MainButton.setText(text); tg.MainButton.show(); tg.MainButton.onClick(onClick); return tg.MainButton;
+    },
+    hideMainButton() { try { tg && tg.MainButton.hide(); } catch (e) {} },
+  };
+})();

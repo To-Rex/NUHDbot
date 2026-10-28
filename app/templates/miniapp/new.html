@@ -1,0 +1,12 @@
+{% extends "miniapp/base.html" %}
+{% set page_title = t('catalog.new_title') %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page">
+  {% if products %}
+  <div class="product-grid">{% for p in products %}{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}{% endfor %}</div>
+  {% else %}
+  {% with emoji='📦', title=t('catalog.new_empty'), cta_url='/app/catalog', cta_text=t('nav.catalog') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% endif %}
+</div>
+{% endblock %}

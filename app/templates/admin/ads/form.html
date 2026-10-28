@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads">← {{ t('admin.back') }}</a>{% endblock %}
+{% block content %}
+{% if errors %}<div class="notice notice-bad mb">⚠️ {{ errors|join(', ') }}</div>{% endif %}
+<form method="post" class="card stack" style="max-width:760px"><input type="hidden" name="_csrf" value="{{ csrf }}">{% include "admin/ads/_form_fields.html" %}<button class="btn btn-primary">{{ t('admin.create') }}</button></form>
+{% endblock %}

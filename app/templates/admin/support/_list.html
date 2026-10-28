@@ -1,0 +1,8 @@
+<div id="thread-list" hx-get="/admin/support?status={{ status }}" hx-trigger="every 15s" hx-swap="outerHTML">
+<div class="tbl-wrap"><table><thead><tr><th>{{ t('admin.customer') }}</th><th>{{ t('admin.sup.order_link') }}</th><th>{{ t('admin.sup.last') }}</th><th>{{ t('admin.sup.assigned') }}</th><th>{{ t('admin.date') }}</th></tr></thead><tbody>
+{% for th in threads %}{% set last = th.messages[-1] if th.messages else None %}
+<tr class="clickable {{ 'bold' if th.unread_for_staff }}" data-href="/admin/support/{{ th.id }}"><td>{% if th.unread_for_staff %}<span class="chip chip-accent">{{ th.unread_for_staff }}</span> {% endif %}{{ th.user.full_name }} <span class="faint small mono">{{ th.user.phone or '' }}</span></td>
+<td class="mono small">{{ th.order.number if th.order else '—' }}</td><td class="small" style="max-width:420px"><span class="muted">{% if last %}{{ '🛡 ' if last.from_staff }}{{ (last.text or ('📎 ' ~ last.kind.value))[:120] }}{% endif %}</span></td>
+<td class="small">{{ th.assigned_to or '—' }}</td><td class="faint small nowrap">{{ th.last_message_at|dt }}</td></tr>
+{% else %}<tr><td colspan="5" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+</div>

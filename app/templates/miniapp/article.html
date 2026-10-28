@@ -1,0 +1,16 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ p(a.title) }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<article class="page">
+  <div style="font-size:44px;line-height:1" class="mb-3">{{ a.icon }}</div>
+  <h1 style="font-size:24px;letter-spacing:-.02em">{{ p(a.title) }}</h1>
+  <p class="muted mt-2">{{ p(a.summary) }}</p>
+  <div class="divider mt-4"></div>
+  <div class="prose mt-4">{{ p(a.body)|safe }}</div>
+  {% if others %}
+  <div class="section-title"><h2>{{ t('common.details') }}</h2></div>
+  <div class="list">{% for o in others %}<a class="list-item" href="/app/info/{{ o.slug }}"><span class="list-icon">{{ o.icon }}</span><div class="flex-1 semibold small">{{ p(o.title) }}</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></a>{% endfor %}</div>
+  {% endif %}
+</article>
+{% endblock %}

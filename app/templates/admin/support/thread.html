@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/support">← {{ t('admin.back') }}</a>{% endblock %}
+{% block content %}
+<div class="grid" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start">
+<div class="card">
+  <div class="notice notice-info mb">🕶 {{ t('admin.sup.anon_hint') }}</div>
+  {% include "admin/support/_messages.html" %}
+  <form class="row mt" hx-post="/admin/support/{{ th.id }}/reply" hx-target="#chat" hx-swap="outerHTML" hx-encoding="multipart/form-data" hx-on::after-request="if(event.detail.successful){this.reset();}" style="flex-wrap:nowrap;align-items:flex-end">
+    <input type="hidden" name="_csrf" value="{{ csrf }}">
+    <textarea class="textarea flex1" name="text" rows="2" placeholder="{{ t('admin.sup.reply') }}" onkeydown="if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){this.form.requestSubmit();}"></textarea>
+    <label class="btn btn-secondary" title="image">📎<input type="file" name="file" accept="image/*,.pdf" hidden></label>
+    <button class="btn btn-primary">{{ t('admin.sup.send') }} <span class="htmx-indicator spinner"></span></button>
+  </form>
+</div>
+<div class="stack">
+  <div class="card"><h2>{{ t('admin.customer') }}</h2><dl class="kv"><dt>{{ t('admin.name') }}</dt><dd><a href="/admin/customers/{{ th.user_id }}">{{ th.user.full_name }}</a></dd><dt>{{ t('admin.phone') }}</dt><dd class="mono">{{ th.user.phone or '—' }}</dd><dt>{{ t('admin.lang') }}</dt><dd>{{ th.user.lang }}</dd>{% if th.order %}<dt>{{ t('admin.sup.order_link') }}</dt><dd><a href="/admin/orders/{{ th.order_id }}" class="mono">{{ th.order.number }}</a> {% with status=th.order.status %}{% include "admin/partials/status_chip.html" %}{% endwith %}</dd>{% endif %}<dt>{{ t('admin.sup.assigned') }}</dt><dd>{{ assignee.full_name if assignee else '—' }}</dd><dt>{{ t('admin.status') }}</dt><dd>{{ th.status.value }}</dd></dl></div>
+  <div class="card"><h2>{{ t('admin.actions') }}</h2><div class="row">
+    <form method="post" action="/admin/support/{{ th.id }}/assign"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-secondary btn-sm">{{ t('admin.sup.assign_me') }}</button></form>
+    {% if th.status.value=='open' %}<form method="post" action="/admin/support/{{ th.id }}/close"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-warn btn-sm">{{ t('admin.sup.close') }}</button></form>{% else %}<form method="post" action="/admin/support/{{ th.id }}/reopen"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok btn-sm">{{ t('admin.sup.reopen') }}</button></form>{% endif %}
+  </div></div>
+</div></div>
+{% endblock %}

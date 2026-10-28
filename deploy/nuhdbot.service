@@ -1,0 +1,20 @@
+# /etc/systemd/system/nuhdbot.service
+# NOTE: keep --workers 1. Auction live updates (SSE) use an in-process pub/sub;
+# running several workers requires moving app/services/auctions.py pub/sub to Redis.
+[Unit]
+Description=New & Used Hard Drives — Telegram bot + Mini App (FastAPI)
+After=network.target postgresql.service
+
+[Service]
+User=nuhd
+Group=nuhd
+WorkingDirectory=/opt/nuhdbot
+EnvironmentFile=/opt/nuhdbot/.env
+ExecStartPre=/opt/nuhdbot/.venv/bin/alembic upgrade head
+ExecStart=/opt/nuhdbot/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips=127.0.0.1
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,22 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<div class="page stack-lg">
+  {% for cat, arts in groups %}
+  <section>
+    <div class="section-title" style="margin-top:0"><h2>{{ t('info.cat_' ~ cat) if ('info.cat_' ~ cat) != t('info.cat_' ~ cat) else cat }}</h2></div>
+    <div class="list stagger">
+      {% for a in arts %}
+      <a class="list-item" href="/app/info/{{ a.slug }}"><span class="list-icon">{{ a.icon }}</span><div class="flex-1"><div class="semibold">{{ p(a.title) }}</div><div class="xs muted clamp-2">{{ p(a.summary) }}</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+  <section class="card">
+    <h2 style="font-size:16px">🔎 {{ t('info.check_title') }}</h2>
+    <div class="grid-2 mt-3"><a class="btn btn-secondary btn-sm" href="{{ wd }}" target="_blank" rel="noopener" hx-boost="false">{{ t('info.check_wd') }} ↗</a><a class="btn btn-secondary btn-sm" href="{{ seagate }}" target="_blank" rel="noopener" hx-boost="false">{{ t('info.check_seagate') }} ↗</a></div>
+    <p class="xs faint mt-3">⚠️ {{ t('info.check_disclaimer') }}</p>
+  </section>
+</div>
+{% endblock %}

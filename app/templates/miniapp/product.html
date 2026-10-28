@@ -1,0 +1,154 @@
+{% extends "miniapp/base.html" %}
+{% set pk = p %}{% set p = p_ %}
+{% block title %}{{ p.title }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page" style="padding-top:8px;padding-bottom:calc(var(--nav-h) + 96px)">
+  {# ---- gallery ---- #}
+  <div class="gallery">
+    <div class="gallery-track">
+      {% if p.images %}
+      {% for img in p.images %}
+      <figure><img src="{{ img.url }}" alt="{{ p.title }}" {% if not loop.first %}loading="lazy"{% endif %} data-lightbox="{{ img.url }}" width="{{ img.width or 800 }}" height="{{ img.height or 800 }}"></figure>
+      {% endfor %}
+      {% else %}
+      <figure><img src="/static/img/placeholder.svg" alt=""></figure>
+      {% endif %}
+    </div>
+    <div class="gallery-tag">{% with cond=p.condition, lg=True %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
+    {% if p.images %}
+    <span class="chip chip-soft" style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.45);color:#fff;backdrop-filter:blur(6px)" id="img-kind">{{ t('product.real_badge') if p.images[0].kind.value=='real' else t('product.sample_badge') }}</span>
+    {% if p.images|length > 1 %}<div class="gallery-dots">{% for img in p.images %}<span class="{{ 'active' if loop.first }}"></span>{% endfor %}</div>{% endif %}
+    <span class="gallery-zoom" data-lightbox="{{ p.images[0].url }}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M11 8v6M8 11h6"/></svg></span>
+    {% endif %}
+  </div>
+  {% if p.images|length > 1 %}
+  <div class="thumbs mt-2">{% for img in p.images %}<img src="{{ img.thumb_url }}" alt="" class="{{ 'active' if loop.first }}" data-index="{{ loop.index0 }}" data-kind="{{ img.kind.value }}">{% endfor %}</div>
+  {% endif %}
+
+  {# ---- title & price ---- #}
+  <div class="mt-4">
+    <div class="pcard-brand">{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</div>
+    <h2 style="font-size:22px;margin-top:2px">{{ p.model }} <span class="muted" style="font-weight:600">{{ p.capacity_gb|capacity }}</span></h2>
+    <div class="pcard-meta mt-2">
+      <span class="chip chip-soft">{{ p.interface.value }}</span><span class="chip chip-soft">{{ p.form_factor.value }}"</span>
+      {% for u in p.purposes %}<span class="chip chip-soft">{{ t('purpose.' ~ u) }}</span>{% endfor %}
+      <span class="chip {{ TEST_CLASS[p.test_status] }}">{{ t('test.' ~ p.test_status.value) }}</span>
+    </div>
+  </div>
+
+  <div class="card mt-3">
+    <div class="price-row">
+      <div>
+        {% if p.price is not none %}<div class="price-big">{{ p.price|money(p.currency) }} <span class="small muted" style="font-weight:600">/ {{ t('common.per_unit') }}</span></div>{% else %}<div class="price-big muted" style="font-size:20px">{{ t('common.price_on_request') }}</div>{% endif %}
+        <div class="mt-1 stock-pill {{ 'none' if p.available<=0 else ('low' if p.available<10 else '') }}">{% if p.available>0 %}{{ t('common.in_stock') }}: {{ p.available }} {{ t('common.pcs') }}{% else %}{{ t('common.out_of_stock') }}{% endif %}</div>
+      </div>
+      <div class="center" style="min-width:90px">
+        <div class="xs faint semibold" style="text-transform:uppercase;letter-spacing:.04em">{{ t('common.min_order') }}</div>
+        <div class="bold" style="font-size:18px">{{ p.min_order }} <span class="small muted">{{ t('common.pcs') }}</span></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="small muted">
+      {% if p.box_qty %}📦 {{ t('common.box_qty') }}: <b class="fg">{{ p.box_qty }}</b> {{ t('common.pcs') }} · {% endif %}
+      {% if p.full_box_only and p.box_qty %}{{ t('product.box_rule_full', n=p.box_qty) }}{% else %}{{ t('product.box_rule_any', n=p.min_order) }}{% endif %}
+    </div>
+    {% if p.min_order > 1 %}<div class="xs faint mt-1">{{ t('product.min_order_hint', n=p.min_order) }}</div>{% endif %}
+  </div>
+
+  {# ---- condition explanation ---- #}
+  <div class="notice {{ 'notice-refresh' if p.condition.value=='refresh' else ('notice-ok' if p.condition.value=='new' else 'notice-info') }} mt-3">
+    <span>{{ '🟡' if p.condition.value=='refresh' else ('🟢' if p.condition.value=='new' else '🔵') }}</span>
+    <div><b>{{ t('condition.' ~ p.condition.value) }}</b> — {{ t('condition.' ~ p.condition.value ~ '_desc') }}</div>
+  </div>
+  {% if p.condition.value == 'refresh' and refresh_mismatch %}
+  <div class="card mt-2" style="border-color:var(--refresh-fg)">
+    <div class="semibold">{{ t('product.refresh_title') }}</div>
+    <p class="small muted mt-1">{{ t('product.refresh_text') }}</p>
+    <div class="grid-2 mt-3">
+      <div class="spec"><div class="k">{{ t('common.real_model') }}</div><div class="v">{{ p.model }}</div></div>
+      <div class="spec" style="background:var(--refresh-bg);color:var(--refresh-fg)"><div class="k" style="color:inherit;opacity:.7">{{ t('common.label_model') }}</div><div class="v">{{ p.label_model }}</div></div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ---- specs ---- #}
+  <div class="section-title"><h2>{{ t('product.specs') }}</h2></div>
+  <div class="spec-grid stagger">
+    <div class="spec"><div class="k">{{ t('catalog.capacity') }}</div><div class="v">{{ p.capacity_gb|capacity }}</div></div>
+    <div class="spec"><div class="k">{{ t('catalog.interface') }}</div><div class="v">{{ p.interface.value }}</div></div>
+    <div class="spec"><div class="k">{{ t('catalog.form_factor') }}</div><div class="v">{{ p.form_factor.value }}"</div></div>
+    {% if p.rpm %}<div class="spec"><div class="k">{{ t('product.rpm') }}</div><div class="v">{{ p.rpm }} rpm</div></div>{% endif %}
+    {% if p.cache_mb %}<div class="spec"><div class="k">{{ t('product.cache') }}</div><div class="v">{{ p.cache_mb }} MB</div></div>{% endif %}
+    {% if p.hours_used is not none %}<div class="spec"><div class="k">{{ t('common.hours') }}</div><div class="v">{{ "{:,}".format(p.hours_used) }} h</div></div>{% endif %}
+    {% if p.health %}<div class="spec"><div class="k">{{ t('common.health') }}</div><div class="v">{{ p.health }}</div></div>{% endif %}
+    {% for k, v in p.specs.items() %}{% if k not in ('RPM','Cache') %}<div class="spec"><div class="k">{{ k }}</div><div class="v">{{ v }}</div></div>{% endif %}{% endfor %}
+  </div>
+
+  {# ---- warranty ---- #}
+  <div class="section-title"><h2>{{ t('product.warranty') }}</h2></div>
+  <div class="warranty-cards">
+    <div class="warranty-card {{ 'none' if not p.seller_warranty_months }}"><div class="xs faint semibold">{{ t('common.seller_warranty') }}</div><div class="big">{{ p.seller_warranty_months }} <small style="font-size:13px">{{ t('common.months') }}</small></div>{% if not p.seller_warranty_months %}<div class="xs faint">{{ t('common.no_warranty') }}</div>{% endif %}</div>
+    <div class="warranty-card {{ 'none' if not p.factory_warranty_months }}"><div class="xs faint semibold">{{ t('common.factory_warranty') }}</div><div class="big">{{ p.factory_warranty_months }} <small style="font-size:13px">{{ t('common.months') }}</small></div>{% if not p.factory_warranty_months %}<div class="xs faint">{{ t('common.no_warranty') }}</div>{% endif %}</div>
+  </div>
+
+  {# ---- test ---- #}
+  <div class="section-title"><h2>{{ t('product.test_results') }}</h2><span class="chip {{ TEST_CLASS[p.test_status] }}">{{ t('test.' ~ p.test_status.value) }}</span></div>
+  <div class="card card-sm small muted">
+    {% if p.test_status.value == 'tested' and pk(p.test_summary) %}{{ pk(p.test_summary)|nl2br }}<div class="mt-2">{{ t('product.test_note') }}</div>
+    {% elif p.test_status.value == 'tested' %}{{ t('product.test_note') }}
+    {% else %}{{ t('product.unverified_note') }}{% endif %}
+  </div>
+
+  {# ---- description ---- #}
+  {% if pk(p.description) %}<div class="section-title"><h2>{{ t('product.about') }}</h2></div><p class="prose">{{ pk(p.description)|nl2br }}</p>{% endif %}
+  {% if pk(p.compatibility) %}<div class="section-title"><h2>{{ t('product.compat') }}</h2></div><p class="prose small muted">{{ pk(p.compatibility)|nl2br }}</p>{% endif %}
+
+  <div class="card mt-4" style="padding:0 16px">
+    <details class="acc"><summary>🚚 {{ t('product.delivery') }}</summary><div class="acc-body">{{ pk(p.delivery_note) or pk(delivery) }}</div></details>
+    <details class="acc"><summary>💵 {{ t('product.payment') }}</summary><div class="acc-body">{{ pk(payment) }}</div></details>
+  </div>
+
+  {% if similar %}
+  <div class="section-title"><h2>{{ t('product.similar') }}</h2></div>
+  <div class="scroller similar-scroller" style="padding-bottom:6px">{% for sp in similar %}<div>{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
+  {% endif %}
+  <div class="xs faint center mt-4">👁 {{ p.views }} {{ t('product.views') }}</div>
+</div>
+
+{# ---- sticky CTA ---- #}
+<div class="sticky-cta">
+  <div class="inner">
+    {% if p.price is not none and p.available > 0 and p.sale_allowed %}
+    <form hx-post="/app/cart/add" hx-swap="none" class="row" style="gap:10px;width:100%" id="add-form">
+      <input type="hidden" name="product_id" value="{{ p.id }}">
+      <div class="stepper">
+        <button type="button" data-step="-{{ step }}" aria-label="-">−</button>
+        <input type="number" name="qty" value="{{ min_qty }}" min="{{ min_qty }}" max="{{ p.available }}" step="{{ step }}" inputmode="numeric" id="qty" oninput="(function(i){var t=document.getElementById('line-total');if(t)t.textContent=(i.value*{{ p.price|float }}).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});})(this)">
+        <button type="button" data-step="{{ step }}" aria-label="+">+</button>
+      </div>
+      <button class="btn btn-primary btn-lg flex-1" type="submit" style="flex-direction:column;gap:0;line-height:1.1">
+        <span class="label">{{ t('product.add_to_cart') }}</span>
+        <span class="xs" style="opacity:.85;font-weight:600">{{ t('product.per_unit_total') }}: <span id="line-total">{{ (p.price * min_qty)|money(p.currency) }}</span></span>
+        <span class="spinner"></span>
+      </button>
+    </form>
+    <a class="icon-btn" style="width:56px;height:56px;border-radius:var(--r-lg)" href="/app/support/new?product_id={{ p.id }}" aria-label="{{ t('product.contact_admin') }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.2L4 21l1.8-5.4A8 8 0 1 1 21 12z"/></svg></a>
+    {% else %}
+    <a class="btn btn-primary btn-lg btn-block" href="/app/support/new?product_id={{ p.id }}">💬 {{ t('product.ask_price') if p.price is none else t('product.contact_admin') }}</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('scroll', function (e) {
+  var tr = e.target; if (!(tr instanceof Element) || !tr.classList.contains('gallery-track')) return;
+  var i = Math.round(tr.scrollLeft / tr.clientWidth); var th = document.querySelectorAll('.thumbs img')[i]; var k = document.getElementById('img-kind');
+  if (th && k) k.textContent = th.dataset.kind === 'real' ? {{ t('product.real_badge')|tojson }} : {{ t('product.sample_badge')|tojson }};
+  var z = document.querySelector('.gallery-zoom'); var fig = tr.children[i]; if (z && fig) z.dataset.lightbox = fig.querySelector('img').src;
+}, true);
+document.body.addEventListener('htmx:afterRequest', function (e) {
+  if (e.detail.elt && e.detail.elt.id === 'add-form' && e.detail.successful) { var b = e.detail.elt.querySelector('.btn'); b.classList.add('pulse-ok'); setTimeout(function(){ b.classList.remove('pulse-ok'); }, 600); }
+});
+</script>
+{% endblock %}

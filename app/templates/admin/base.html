@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="csrf" content="{{ csrf }}">
+<title>{% block title %}{{ page_title or t('admin.title') }}{% endblock %} · {{ app_name }}</title>
+<link rel="icon" href="/static/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/static/css/admin.css?v=1">
+<script src="/static/js/htmx.min.js" defer></script>
+{% block head %}{% endblock %}
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>NUHD<small>{{ t('admin.title') }}</small></span></a>
+    <nav class="nav">
+      {% for key, url, icon in nav %}
+      <a href="{{ url }}" class="{{ 'active' if (path == url if url == '/admin' else path.startswith(url)) }}"><span class="ico">{{ icon }}</span>{{ t('admin.nav.' ~ key) }}{% if badges and badges.get(key) %}<span class="cnt">{{ badges[key] }}</span>{% endif %}</a>
+      {% endfor %}
+    </nav>
+    <div class="me">
+      <div class="av">{{ (staff.full_name or 'A')[:1]|upper }}</div>
+      <div class="flex1"><div class="bold small">{{ staff.full_name }}</div><small>{{ t('roles.' ~ staff.role.value) }}</small></div>
+      <form method="post" action="/admin/logout"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-xs btn-secondary" title="{{ t('admin.logout') }}">⎋</button></form>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn btn btn-secondary btn-sm" aria-label="menu">☰</button>
+      <h1>{% block heading %}{{ page_title or t('admin.title') }}{% endblock %}</h1>
+      {% block topbar_actions %}{% endblock %}
+      <a class="btn btn-ghost btn-sm" href="/app" target="_blank" rel="noopener">Mini App ↗</a>
+    </header>
+    <div class="content">
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<div class="toasts"></div>
+<script src="/static/js/admin.js?v=1" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

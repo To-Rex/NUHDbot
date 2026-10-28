@@ -1,0 +1,25 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<div class="page stack">
+  <div class="notice notice-info"><span>🕒</span><div class="small"><b>{{ t('support.hours') }}:</b> {{ p(working_hours) }}<br><b>{{ t('support.reply') }}:</b> {{ p(reply_time) }}</div></div>
+  <a class="btn btn-primary btn-lg btn-block" href="/app/support/new">✍️ {{ t('support.new') }}</a>
+  {% if threads %}
+  <div class="list stagger">
+    {% for th in threads %}
+    {% set last = th.messages[-1] if th.messages else None %}
+    <a class="list-item" href="/app/support/{{ th.id }}">
+      <span class="list-icon">{{ '📦' if th.order else '💬' }}</span>
+      <div class="flex-1" style="min-width:0"><div class="row-between"><span class="semibold small truncate">{{ t('support.about_order', number=th.order.number) if th.order else t('support.general') }}</span><span class="xs faint">{{ th.last_message_at|dt('%d.%m %H:%M') }}</span></div>
+        <div class="xs muted truncate">{% if last %}{{ (t('support.admin') if last.from_staff else t('support.you')) }}: {{ last.text or ('📎 ' ~ t('support.attachment')) }}{% endif %}</div></div>
+      {% if th.unread_for_customer %}<span class="badge-count" style="position:static">{{ th.unread_for_customer }}</span>{% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  {% with emoji='💬', title=t('support.empty'), text=t('support.empty_text') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% endif %}
+  <p class="xs faint center">{{ t('support.anon_note') }}</p>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{
+  "notify": {
+    "order_status": "📦 Order <b>{number}</b>\nNew status: <b>{status}</b>",
+    "order_awaiting_advance": "Order confirmed. Advance due: <b>{advance}</b>. Payment details are on the order page.",
+    "order_awaiting_customer": "Test results are ready. Please confirm the results and delivery details on the order page.",
+    "order_awaiting_balance": "Balance due: <b>{balance}</b>. The shipment leaves once full payment is confirmed.",
+    "order_shipped": "Shipped. Tracking number: <b>{tracking}</b>",
+    "open_order": "Open order",
+    "open_auction": "Open auction",
+    "open_chat": "Open chat",
+    "outbid": "🔨 You've been outbid: <b>{title}</b>\nCurrent price: <b>{amount}</b>",
+    "auction_won": "🏆 Congratulations! You won <b>{title}</b>. Final price: <b>{amount}</b>. The admin will contact you.",
+    "auction_lost": "Auction <b>{title}</b> has ended. Not this time — keep an eye on the next lots.",
+    "support_reply": "💬 Reply from admin:\n{preview}",
+    "new_order_staff": "🆕 New order <b>{number}</b> — {customer}, {qty} pcs, {total}",
+    "new_support_staff": "💬 New support message: {customer}\n{preview}",
+    "new_payment_staff": "💵 Payment claim: order <b>{number}</b>, {kind} {amount}"
+  }
+}

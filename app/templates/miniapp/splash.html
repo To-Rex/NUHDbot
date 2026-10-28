@@ -1,0 +1,55 @@
+{% extends "miniapp/base.html" %}
+{% block head %}
+<style>
+.splash{min-height:100dvh;display:grid;place-items:center;background:radial-gradient(1200px 600px at 50% -10%,rgba(92,132,255,.25),transparent 60%),var(--bg);text-align:center;padding:24px}
+.splash .logo{position:relative;width:112px;height:112px;margin:0 auto;animation:splash-logo .9s var(--spring) both}
+.splash .logo img{width:112px;height:112px;filter:drop-shadow(0 20px 40px rgba(42,75,220,.45))}
+.splash .ring{position:absolute;inset:0;border-radius:36px;border:2px solid var(--brand-400);animation:splash-ring 1.8s ease-out infinite}
+.splash .ring:nth-child(3){animation-delay:.6s}
+.splash h1{margin-top:26px;font-size:24px;letter-spacing:-.02em;animation:page-in .6s .3s var(--ease-out) both}
+.splash p{margin-top:8px;color:var(--fg-2);animation:page-in .6s .45s var(--ease-out) both}
+.splash .status{margin-top:28px;font-size:13px;color:var(--fg-3);display:flex;gap:8px;align-items:center;justify-content:center;animation:fade-in .5s .8s both}
+.splash .langs{display:flex;gap:8px;justify-content:center;margin-top:22px;animation:page-in .6s .6s var(--ease-out) both}
+.splash .err{margin-top:20px;animation:page-in .4s both}
+</style>
+{% endblock %}
+{% block content %}
+<section class="splash" id="splash">
+  <div>
+    <div class="logo"><img src="/static/img/logo.svg" alt=""><span class="ring"></span><span class="ring"></span></div>
+    <h1>{{ app_name }}</h1>
+    <p>{{ t('app.tagline') }}</p>
+    <div class="langs">
+      {% for code in ('uz','ru','en') %}<a class="fchip {{ 'active' if code==lang }}" href="/app/lang/{{ code }}?next=/app?force=1" hx-boost="false">{{ t('lang.' ~ code) }}</a>{% endfor %}
+    </div>
+    <div class="status" id="status"><span class="spinner"></span><span>{{ t('common.loading') }}</span></div>
+    <div class="err" id="err" hidden>
+      <div class="notice notice-warn" style="text-align:left"><span>⚠️</span><span id="errtext"></span></div>
+      <a class="btn btn-primary btn-block mt-3" href="https://t.me/{{ bot_username }}" hx-boost="false">@{{ bot_username }}</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var next = {{ next|tojson }};
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var initData = tg && tg.initData;
+  function fail(msg){ document.getElementById('status').hidden = true; var e=document.getElementById('err'); e.hidden=false; document.getElementById('errtext').textContent = msg; }
+  if (!initData) {
+    {% if settings.debug %}
+    fail('Telegram initData topilmadi. Dev rejim: /app/home?dev_tg=1001 orqali kiring.');
+    {% else %}
+    fail('Iltimos, ilovani Telegram ichida boting orqali oching.');
+    {% endif %}
+    return;
+  }
+  var start = (tg.initDataUnsafe && tg.initDataUnsafe.start_param) || null;
+  fetch('/api/auth/telegram', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({init_data: initData, start_param: start})})
+    .then(function(r){ if(!r.ok) throw new Error('auth ' + r.status); return r.json(); })
+    .then(function(d){ setTimeout(function(){ location.replace(next); }, 350); })
+    .catch(function(e){ fail('Avtorizatsiya xatosi: ' + e.message); });
+})();
+</script>
+{% endblock %}

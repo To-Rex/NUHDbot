@@ -1,0 +1,2 @@
+{# usage: {% with cond=product.condition, lg=True %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %} #}
+<span class="chip {{ CONDITION_CLASS[cond] }} {% if lg %}chip-lg{% endif %}" title="{{ t('condition.' ~ cond.value ~ '_desc') }}">{{ t('condition.' ~ cond.value) }}</span>

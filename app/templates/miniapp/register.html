@@ -1,0 +1,79 @@
+{% extends "miniapp/base.html" %}
+{% set page_title = t('register.title') %}
+{% set back_url = '/app/home' %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<div class="page stack" style="padding-bottom:40px">
+  <p class="small muted">{{ t('register.why') }}</p>
+
+  {# ---- step 1: phone ---- #}
+  <div class="card">
+    <div class="filter-label">{{ t('register.step_phone') }}</div>
+    {% if user.phone %}
+    {% with phone=user.phone, verified=user.phone_verified %}{% include "miniapp/partials/phone_ok.html" %}{% endwith %}
+    {% else %}
+    <div id="phone-box">
+      <button type="button" class="btn btn-primary btn-block" id="share-phone">📱 {{ t('register.share_phone') }}</button>
+      <div class="center xs faint mt-3">{{ t('register.or_manual') }}</div>
+      <div class="field mt-2">
+        <input class="input mono {{ 'invalid' if errors.phone }}" type="tel" name="phone" form="reg-form" placeholder="{{ t('register.phone_ph') }}" value="{{ form.phone or '' }}" inputmode="tel" autocomplete="tel">
+        <span class="hint">{{ t('register.phone_hint') }}</span>
+      </div>
+    </div>
+    {% endif %}
+    {% if errors.phone %}<div class="error-text mt-2">{{ errors.phone }}</div>{% endif %}
+  </div>
+
+  {# ---- step 2: details ---- #}
+  <form class="card stack" id="reg-form" method="post" action="/app/register" hx-boost="true" hx-target="body">
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="filter-label">{{ t('register.step_info') }}</div>
+    <div class="grid-2">
+      <div class="field"><label>{{ t('register.first_name') }}</label><input class="input {{ 'invalid' if errors.name }}" name="first_name" value="{{ form.first_name if form.first_name is defined else user.first_name }}" autocomplete="given-name" required></div>
+      <div class="field"><label>{{ t('register.last_name') }}</label><input class="input" name="last_name" value="{{ form.last_name if form.last_name is defined else user.last_name }}" autocomplete="family-name"></div>
+    </div>
+    {% if errors.name %}<div class="error-text">{{ errors.name }}</div>{% endif %}
+    <div class="field"><label>{{ t('register.country') }}</label>
+      <select class="select" name="country" hx-get="/app/register/cities" hx-target="#city-wrap" hx-trigger="change" hx-include="this">
+        {% for c in countries %}<option value="{{ c.code }}" {{ 'selected' if c.code == country }}>{{ c.flag }} {{ p(c.name) }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field"><label>{{ t('register.city') }}</label>
+      <div id="city-wrap">{% with selected=(form.city if form.city is defined else user.city) %}{% include "miniapp/partials/city_select.html" %}{% endwith %}</div>
+      <input class="input mt-2" id="city-other" name="city_other" placeholder="{{ t('register.city_ph') }}" value="{{ form.city_other or '' }}" {% if cities and not (form.city == '__other__') %}hidden{% endif %}>
+      {% if errors.city %}<div class="error-text">{{ errors.city }}</div>{% endif %}
+    </div>
+    <div class="field"><label>{{ t('register.language') }}</label>
+      <div class="segmented">{% for code in ('uz','ru','en') %}<label style="flex:1"><input type="radio" name="ui_lang" value="{{ code }}" class="sr-only" {{ 'checked' if (form.ui_lang or lang) == code }}><span class="seg {{ 'active' if (form.ui_lang or lang) == code }}">{{ t('lang.' ~ code) }}</span></label>{% endfor %}</div>
+    </div>
+    <div class="field"><label>{{ t('register.bought_before') }}</label>
+      <div class="radio-cards" style="grid-template-columns:1fr 1fr">
+        <label><input type="radio" name="bought_before" value="yes" class="sr-only" {{ 'checked' if form.bought_before == 'yes' or user.bought_from_china_before is true }}><span class="radio-card">✈️ <span class="small semibold">{{ t('register.bought_yes') }}</span></span></label>
+        <label><input type="radio" name="bought_before" value="no" class="sr-only" {{ 'checked' if form.bought_before == 'no' or user.bought_from_china_before is false }}><span class="radio-card">🌱 <span class="small semibold">{{ t('register.bought_no') }}</span></span></label>
+      </div>
+    </div>
+    <label class="row-between" style="padding:6px 0"><span><span class="semibold">{{ t('register.ads') }}</span><div class="hint">{{ t('register.ads_hint') }}</div></span><input type="checkbox" name="ads_opt_in" value="1" class="sr-only" {{ 'checked' if form.ads_opt_in or user.ads_opt_in }}><span class="toggle"></span></label>
+    <p class="xs faint">🔒 {{ t('register.privacy') }}</p>
+    <button class="btn btn-primary btn-lg btn-block" type="submit"><span class="label">{{ t('register.submit') }}</span><span class="spinner"></span></button>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  var btn = document.getElementById('share-phone'); if (!btn) return;
+  var tg = window.Telegram && window.Telegram.WebApp;
+  function post(phone, source){
+    fetch('/app/register/phone', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded','X-Phone-Source':source,'HX-Request':'true'}, body:'phone='+encodeURIComponent(phone)})
+      .then(function(r){ return r.text().then(function(html){ if (r.ok) { document.getElementById('phone-box').outerHTML = html; NUHD.haptic.success(); } else { NUHD.toast({{ t('register.errors.phone')|tojson }}, 'bad'); } }); });
+  }
+  if (tg && tg.onEvent) tg.onEvent('contactRequested', function(ev){ if (ev && ev.status === 'sent' && ev.responseUnsafe && ev.responseUnsafe.contact) post(ev.responseUnsafe.contact.phone_number, 'telegram'); });
+  btn.addEventListener('click', function(){
+    btn.classList.add('htmx-request');
+    NUHD.requestContact(function(ok){ btn.classList.remove('htmx-request'); if (!ok) { NUHD.toast({{ t('register.or_manual')|tojson }}, ''); document.querySelector('input[name=phone]') && document.querySelector('input[name=phone]').focus(); } });
+  });
+})();
+document.addEventListener('change', function(e){ if (e.target.name === 'ui_lang') document.querySelectorAll('.seg').forEach(function(s){ s.classList.toggle('active', s.previousElementSibling.checked); }); });
+</script>
+{% endblock %}

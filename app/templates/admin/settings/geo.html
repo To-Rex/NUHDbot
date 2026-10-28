@@ -1,0 +1,15 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/settings">← {{ t('admin.set.title') }}</a>{% endblock %}
+{% block content %}
+<div class="grid g2" style="align-items:start">
+{% for c in countries %}
+<div class="card"><h2><span>{{ c.flag }} {{ p(c.name) }} <span class="faint small mono">{{ c.code }} {{ c.phone_code }}</span></span>
+  <form method="post" action="/admin/settings/geo/country"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="code" value="{{ c.code }}"><button class="btn btn-xs {{ 'btn-ok' if c.is_active else 'btn-secondary' }}" name="action" value="toggle">{{ t('admin.active') if c.is_active else t('admin.inactive') }}</button></form></h2>
+  <div class="row">{% for city in by_country.get(c.code, []) %}<form method="post" action="/admin/settings/geo/city" class="row" style="gap:2px"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="id" value="{{ city.id }}"><span class="chip {{ 'chip-info' if city.is_active else 'chip-soft' }}">{{ p(city.name) }}</span><button class="btn btn-xs btn-secondary" name="action" value="toggle" title="toggle">◐</button><button class="btn btn-xs btn-danger" name="action" value="delete" data-confirm="{{ t('admin.confirm_q') }}">✕</button></form>{% endfor %}</div>
+  <form method="post" action="/admin/settings/geo/city" class="row mt"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="country_code" value="{{ c.code }}"><input type="hidden" name="action" value="add"><input class="input sm" name="name" placeholder="{{ t('admin.city') }}" required style="width:auto"><input class="input sm" type="number" name="sort" value="50" style="width:70px"><button class="btn btn-xs btn-primary">{{ t('admin.set.add_city') }}</button></form>
+</div>
+{% endfor %}
+<div class="card"><h2>{{ t('admin.set.add_country') }}</h2><form method="post" action="/admin/settings/geo/country" class="form-grid"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="add">
+  <div class="field"><label>{{ t('admin.set.code') }}</label><input class="input" name="code" maxlength="2" required></div><div class="field"><label>{{ t('admin.name') }}</label><input class="input" name="name" required></div><div class="field"><label>{{ t('admin.set.flag') }}</label><input class="input" name="flag"></div><div class="field"><label>{{ t('admin.set.phone_code') }}</label><input class="input" name="phone_code"></div><div class="field"><label>&nbsp;</label><button class="btn btn-primary">{{ t('admin.create') }}</button></div></form></div>
+</div>
+{% endblock %}

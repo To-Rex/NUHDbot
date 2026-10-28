@@ -1,0 +1,31 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<div class="page" style="padding-bottom:90px">
+  <p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>
+  <div class="chat" id="chat" hx-get="/app/support/{{ th.id }}/messages" hx-trigger="every 5s" hx-vals='js:{"after": lastMsgId()}' hx-swap="beforeend">
+    {% include "miniapp/partials/messages.html" %}
+  </div>
+</div>
+<form class="chat-bar" id="chat-form" hx-post="/app/support/{{ th.id }}/send" hx-target="#chat" hx-swap="beforeend" hx-encoding="multipart/form-data">
+  <label class="icon-btn" style="width:44px;height:44px;flex:0 0 auto;cursor:pointer" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only" onchange="this.form.requestSubmit()">📎</label>
+  <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
+  <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg></button>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+function lastMsgId(){ var all = document.querySelectorAll('#chat .msg'); return all.length ? Number(all[all.length-1].dataset.id) : 0; }
+(function(){
+  var chat = document.getElementById('chat'); var form = document.getElementById('chat-form'); var ta = form.querySelector('textarea');
+  function bottom(){ window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}); }
+  bottom();
+  ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
+  ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 600) { e.preventDefault(); form.requestSubmit(); } });
+  document.body.addEventListener('htmx:afterSwap', function(e){ if (e.detail.target === chat) { bottom(); } });
+  document.body.addEventListener('htmx:afterRequest', function(e){ if (e.detail.elt === form && e.detail.successful) { form.reset(); ta.style.height = 'auto'; } });
+  document.body.addEventListener('htmx:beforeSwap', function(e){ if (e.detail.target === chat && e.detail.xhr.status === 422) e.detail.shouldSwap = false; });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+<div id="grid" class="product-grid">
+  {% for p in products %}{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}{% endfor %}
+  {% if has_more %}
+  <div id="grid-more" class="grid-sentinel" hx-get="/app/catalog?{{ f.to_query(page=next_page, partial='more')|qs }}" hx-trigger="revealed" hx-swap="outerHTML" hx-target="this" style="grid-column:1/-1">
+    <div class="row center" style="justify-content:center;padding:14px"><span class="spinner" style="color:var(--fg-3)"></span></div>
+  </div>
+  {% endif %}
+</div>
+{% if not products %}
+<div id="grid-empty">{% with emoji='🫙', title=t('catalog.nothing'), text=t('catalog.nothing_text'), cta_url='/app/catalog', cta_text=t('common.reset') %}{% include "miniapp/partials/empty.html" %}{% endwith %}</div>
+{% endif %}
+<div id="result-count" hx-swap-oob="true" class="small muted num">{{ t('catalog.found', n=total) }}</div>

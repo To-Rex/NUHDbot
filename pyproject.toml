@@ -1,0 +1,47 @@
+[project]
+name = "nuhdbot"
+version = "0.1.0"
+description = "New & Used Hard Drives — Telegram bot, Mini App and admin panel"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "jinja2>=3.1",
+    "python-multipart>=0.0.9",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.29",
+    "alembic>=1.13",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "aiogram>=3.13",
+    "httpx>=0.27",
+    "pillow>=10.3",
+    "itsdangerous>=2.2",
+    "bcrypt>=4.1",
+    "sse-starlette>=2.1",
+    "orjson>=3.10",
+    "aiofiles>=23.2",
+    "python-dotenv>=1.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.5",
+    "aiosqlite>=0.20",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501", "B008"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]

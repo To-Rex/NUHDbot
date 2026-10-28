@@ -1,0 +1,24 @@
+{% set active = 'home' if path in ('/app/home','/app','/app/') else ('catalog' if path.startswith('/app/catalog') or path.startswith('/app/products') or path.startswith('/app/new') else ('auction' if path.startswith('/app/auctions') else ('orders' if path.startswith('/app/orders') or path.startswith('/app/cart') or path.startswith('/app/checkout') else ('profile' if path.startswith('/app/profile') or path.startswith('/app/support') or path.startswith('/app/info') or path.startswith('/app/register') else '')))) %}
+<nav class="bottom-nav" aria-label="{{ t('nav.menu') }}">
+  <a href="/app/home" class="{{ 'active' if active=='home' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></svg>
+    <span>{{ t('nav.home') }}</span>
+  </a>
+  <a href="/app/catalog" class="{{ 'active' if active=='catalog' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+    <span>{{ t('nav.catalog') }}</span>
+  </a>
+  <a href="/app/auctions" class="{{ 'active' if active=='auction' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4l6 6-4 4-6-6z"/><path d="M10 10l-7 7 3 3 7-7"/><path d="M4 21h8"/></svg>
+    <span>{{ t('nav.auction') }}</span>
+  </a>
+  <a href="/app/orders" class="{{ 'active' if active=='orders' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg>
+    <span>{{ t('nav.orders') }}</span>
+    <span class="nav-badge" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span>
+  </a>
+  <a href="/app/profile" class="{{ 'active' if active=='profile' }}">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+    <span>{{ t('nav.profile') }}</span>
+  </a>
+</nav>

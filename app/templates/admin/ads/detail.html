@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads">← {{ t('admin.back') }}</a>{% endblock %}
+{% block content %}
+<div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start">
+<div class="stack">
+  <div class="card"><h2>{{ t('admin.ads.preview') }} <span class="chip {{ 'chip-ok' if post.status.value=='sent' else ('chip-info' if post.status.value=='approved' else 'chip-soft') }}">{{ post.status.value }}</span></h2><div class="tgpost">{{ preview|safe }}</div>
+    <dl class="kv mt"><dt>{{ t('admin.ads.deep_link') }}</dt><dd class="mono small">{{ links.app }}<br>{{ links.start }}</dd></dl>
+    <div class="row mt">
+      {% if post.status.value=='draft' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok" name="action" value="approve">✓ {{ t('admin.ads.approve') }}</button></form>{% endif %}
+      {% if post.status.value=='approved' %}<form method="post" data-confirm="{{ t('admin.confirm_q') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary" name="action" value="send" {{ '' if bot_on else 'disabled' }}>📣 {{ t('admin.ads.send') }} ({{ post.target_chat_ids|length }})</button></form>{% endif %}
+      <form method="post" data-confirm="{{ t('admin.confirm_q') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger" name="action" value="delete">{{ t('admin.delete') }}</button></form>
+    </div>
+    {% if not bot_on %}<div class="notice notice-warn mt">{{ t('admin.ads.bot_off') }}</div>{% endif %}
+  </div>
+  <div class="card"><h2>{{ t('admin.ads.stats') }}</h2><div class="grid g3"><div class="kpi"><span class="l">{{ t('admin.ads.clicks') }}</span><span class="v">{{ post.clicks }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.users') }}</span><span class="v">{{ users_n }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.orders') }}</span><span class="v">{{ orders_n }}</span></div></div><div class="hint mt">source = src_{{ post.campaign }} · {{ t('admin.ads.sent') }}: {{ post.sent_at|dt }}</div></div>
+</div>
+<form method="post" class="card stack"><input type="hidden" name="_csrf" value="{{ csrf }}">{% with products=all_products %}{% include "admin/ads/_form_fields.html" %}{% endwith %}<button class="btn btn-secondary">{{ t('admin.save') }}</button></form>
+</div>
+{% endblock %}

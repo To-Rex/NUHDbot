@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="{{ '/admin/auctions' if is_new else '/admin/auctions/' ~ a.id }}">← {{ t('admin.back') }}</a>{% endblock %}
+{% block content %}
+{% if errors %}<div class="notice notice-bad mb">⚠️ {{ t('admin.required') }}: {{ errors|join(', ') }}{% if 'times' in errors %} — {{ t('admin.auc.invalid_times') }}{% endif %}</div>{% endif %}
+{% if is_new %}<form method="get" class="toolbar card" style="padding:12px"><label class="lbl">{{ t('admin.auc.from_product') }}</label><select class="select" name="product_id" onchange="this.form.submit()" style="min-width:360px"><option value="">—</option>{% for p in products %}<option value="{{ p.id }}" {{ 'selected' if a.product_id==p.id }}>{{ p.brand }} {{ p.model }} · {{ p.capacity_gb|capacity }} · {{ p.condition.value|upper }} · {{ p.price|money(p.currency) }} · {{ p.available }} pcs</option>{% endfor %}</select></form>{% endif %}
+<form method="post" class="grid" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="product_id" value="{{ a.product_id or '' }}">
+<div class="stack">
+  <div class="card"><h2>{{ t('admin.auc.title') }}</h2>
+    <div class="form-grid">
+      <div class="field"><label>{{ t('admin.prod.brand') }} *</label><input class="input" name="brand" value="{{ a.brand }}" required></div>
+      <div class="field"><label>{{ t('admin.prod.model') }} *</label><input class="input" name="model" value="{{ a.model }}" required></div>
+      <div class="field"><label>{{ t('admin.prod.capacity') }}</label><input class="input" type="number" name="capacity_gb" value="{{ a.capacity_gb }}" min="1"></div>
+      <div class="field"><label>{{ t('admin.prod.condition') }}</label><select class="select" name="condition">{% for c in conditions %}<option value="{{ c.value }}" {{ 'selected' if a.condition==c }}>{{ c.value|upper }}</option>{% endfor %}</select></div>
+      <div class="field"><label>{{ t('admin.prod.test_status') }}</label><select class="select" name="test_status">{% for s in tests %}<option value="{{ s.value }}" {{ 'selected' if a.test_status==s }}>{{ t('test.' ~ s.value) }}</option>{% endfor %}</select></div>
+      <div class="field"><label>{{ t('admin.auc.qty') }} *</label><input class="input" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
+      <div class="field"><label>{{ t('admin.auc.warranty') }}</label><div class="row" style="flex-wrap:nowrap"><input class="input" type="number" name="seller_warranty_months" value="{{ a.seller_warranty_months }}" min="0"><input class="input" type="number" name="factory_warranty_months" value="{{ a.factory_warranty_months }}" min="0"></div></div>
+    </div>
+    <div class="stack mt">
+      {% with name='description', value=a.description, kind='textarea', label=t('admin.auc.description'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+      {% with name='rules', value=a.rules, kind='textarea', label=t('admin.auc.rules'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+    </div>
+  </div>
+</div>
+<div class="stack">
+  <div class="card"><h2>{{ t('admin.prod.price') }}</h2>
+    <div class="form-grid">
+      <div class="field"><label>{{ t('admin.auc.start_price') }} *</label><input class="input" name="start_price_total" value="{{ a.start_price_total }}" required></div>
+      <div class="field"><label>{{ t('admin.prod.currency') }}</label><input class="input" name="currency" value="{{ a.currency }}" maxlength="3"></div>
+      <div class="field"><label>{{ t('admin.auc.step_unit') }}</label><input class="input" name="step_per_unit" value="{{ a.step_per_unit }}"><span class="hint">{{ t('admin.auc.step_total') }} = {{ t('admin.auc.step_unit') }} × {{ t('admin.auc.qty') }}</span></div>
+      <div class="field"><label>{{ t('admin.auc.deposit') }}</label><input class="input" name="deposit_amount" value="{{ a.deposit_amount }}"></div>
+    </div>
+    <label class="check mt"><input type="checkbox" name="require_deposit" {{ 'checked' if a.require_deposit }}>{{ t('admin.auc.require_deposit') }}</label>
+  </div>
+  <div class="card"><h2>⏱ {{ t('admin.auc.starts_at') }} / {{ t('admin.auc.ends_at') }}</h2>
+    <div class="field"><label>{{ t('admin.auc.starts_at') }}</label><input class="input" type="datetime-local" name="starts_at" value="{{ dt_local(a.starts_at) }}" required></div>
+    <div class="field mt"><label>{{ t('admin.auc.ends_at') }}</label><input class="input" type="datetime-local" name="ends_at" value="{{ dt_local(a.ends_at) }}" required></div>
+    <div class="hint mt">{{ t('admin.auc.timezone_hint', tz=tz) }} · anti-sniping +{{ settings.auction_extension_seconds }}s</div>
+    <button class="btn btn-primary btn-lg mt" style="width:100%">{{ t('admin.save') }}</button>
+  </div>
+</div>
+</form>
+{% endblock %}

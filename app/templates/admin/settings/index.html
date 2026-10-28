@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/settings/geo">🌍 {{ t('admin.set.geo') }}</a>{% endblock %}
+{% block content %}
+<form method="post" class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start"><input type="hidden" name="_csrf" value="{{ csrf }}">
+<div class="stack">
+  <div class="card"><h2>{{ t('admin.set.general') }}</h2><div class="form-grid">
+    {% for k in num_keys %}<div class="field"><label>{{ defaults[k].d }}</label><input class="input" type="number" name="{{ k }}" value="{{ v[k] }}"></div>{% endfor %}
+    {% for k in str_keys %}<div class="field"><label>{{ defaults[k].d }}</label><input class="input" name="{{ k }}" value="{{ v[k] or '' }}"></div>{% endfor %}
+    <div class="field"><label>{{ defaults.support_group_id.d }}</label><input class="input" name="support_group_id" value="{{ v.support_group_id or '' }}" placeholder="-100…"></div>
+    <div class="field"><label>{{ t('admin.set.free_cities') }}</label><input class="input" name="free_cities" value="{{ v.free_cities|join(', ') }}"></div>
+  </div></div>
+  <div class="card"><h2>{{ t('admin.set.payment_methods') }}</h2>
+    <div id="pms">{% for m in v.payment_methods %}<div class="rrow form-grid mb" style="grid-template-columns:1fr 2fr auto"><input class="input" name="pm_name" value="{{ m.name }}" placeholder="{{ t('admin.set.method_name') }}"><textarea class="textarea" name="pm_details" rows="2" placeholder="{{ t('admin.set.method_details') }}">{{ m.details }}</textarea><button class="btn btn-xs btn-danger" data-remove-row>✕</button></div>{% endfor %}
+    <template><div class="rrow form-grid mb" style="grid-template-columns:1fr 2fr auto"><input class="input" name="pm_name" placeholder="{{ t('admin.set.method_name') }}"><textarea class="textarea" name="pm_details" rows="2" placeholder="{{ t('admin.set.method_details') }}"></textarea><button class="btn btn-xs btn-danger" data-remove-row>✕</button></div></template></div>
+    <button class="btn btn-xs btn-secondary" data-add-row="pms">{{ t('admin.set.add_method') }}</button></div>
+  <button class="btn btn-primary btn-lg">{{ t('admin.save') }}</button>
+</div>
+<div class="card stack"><h2>{{ t('admin.set.texts') }}</h2>
+  {% for k in i18n_keys %}{% with name=k, value=v[k], kind='textarea', label=defaults[k].d, rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}{% endfor %}
+</div>
+</form>
+{% endblock %}

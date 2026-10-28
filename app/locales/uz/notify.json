@@ -1,0 +1,19 @@
+{
+  "notify": {
+    "order_status": "📦 Буюртма <b>{number}</b>\nЯнги ҳолат: <b>{status}</b>",
+    "order_awaiting_advance": "Буюртма тасдиқланди. Аванс суммаси: <b>{advance}</b>. Тўлов реквизитлари буюртма саҳифасида.",
+    "order_awaiting_customer": "Тест натижалари тайёр. Илтимос, натижалар ва етказиш маълумотларини буюртма саҳифасида тасдиқланг.",
+    "order_awaiting_balance": "Қолдиқ тўлов суммаси: <b>{balance}</b>. Тўлиқ тўлов тасдиқлангач юк жўнатилади.",
+    "order_shipped": "Юк жўнатилди. Кузатиш рақами: <b>{tracking}</b>",
+    "open_order": "Буюртмани очиш",
+    "open_auction": "Аукционни очиш",
+    "open_chat": "Чатни очиш",
+    "outbid": "🔨 Сизнинг ставкангиз ошиб кетди: <b>{title}</b>\nЖорий нарх: <b>{amount}</b>",
+    "auction_won": "🏆 Табриклаймиз! Сиз <b>{title}</b> аукционида ғолиб бўлдингиз. Якуний нарх: <b>{amount}</b>. Админ сиз билан боғланади.",
+    "auction_lost": "Аукцион <b>{title}</b> якунланди. Бу сафар омад кулиб боқмади — кейинги аукционларни кузатиб боринг.",
+    "support_reply": "💬 Админдан жавоб:\n{preview}",
+    "new_order_staff": "🆕 Янги буюртма <b>{number}</b> — {customer}, {qty} дона, {total}",
+    "new_support_staff": "💬 Янги мурожаат: {customer}\n{preview}",
+    "new_payment_staff": "💵 Тўлов даъвоси: буюртма <b>{number}</b>, {kind} {amount}"
+  }
+}

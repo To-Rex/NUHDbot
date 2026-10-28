@@ -1,0 +1,49 @@
+{% extends "miniapp/base.html" %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+<div class="page" style="padding-bottom:120px">
+  {% if errors.general %}<div class="notice notice-bad mb-3"><span>⚠️</span><span>{{ errors.general }}</span></div>{% endif %}
+  <form id="co-form" method="post" action="/app/checkout" hx-boost="true" hx-target="body" class="stack">
+    <div class="card">
+      <div class="filter-label">{{ t('checkout.summary') }}</div>
+      {% for l in lines %}
+      <div class="row-between small" style="padding:8px 0;border-bottom:1px dashed var(--line)">
+        <div class="flex-1 truncate"><b>{{ l.p.brand }} {{ l.p.model }}</b> <span class="muted">{{ l.p.capacity_gb|capacity }}</span> {% with cond=l.p.condition %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
+        <div class="num muted" style="white-space:nowrap">{{ l.qty }} × {{ l.p.price|money(l.p.currency) }}</div>
+      </div>
+      {% endfor %}
+      <div class="cart-summary"><span class="muted">{{ t('orders.total') }}</span><strong>{{ total|money(currency) }}</strong></div>
+      <div class="row-between small mt-2"><span class="muted">{{ t('orders.advance') }}</span><b class="num">{{ (total * advance_percent / 100)|money(currency) }}</b></div>
+      <div class="row-between small"><span class="muted">{{ t('orders.balance') }}</span><b class="num">{{ (total - total * advance_percent / 100)|money(currency) }}</b></div>
+      <a class="small semibold mt-2" style="display:inline-block;color:var(--brand-500)" href="/app/cart">✎ {{ t('checkout.edit') }}</a>
+    </div>
+
+    <div class="card stack">
+      <div class="filter-label">{{ t('checkout.delivery') }}</div>
+      <div class="field"><label>{{ t('checkout.receiver_name') }}</label><input class="input {{ 'invalid' if errors.receiver_name }}" name="receiver_name" value="{{ form.receiver_name }}" required>{% if errors.receiver_name %}<span class="error-text">{{ errors.receiver_name }}</span>{% endif %}</div>
+      <div class="field"><label>{{ t('checkout.receiver_phone') }}</label><input class="input mono {{ 'invalid' if errors.receiver_phone }}" name="receiver_phone" type="tel" inputmode="tel" value="{{ form.receiver_phone }}" required>{% if errors.receiver_phone %}<span class="error-text">{{ errors.receiver_phone }}</span>{% endif %}</div>
+      <div class="grid-2">
+        <div class="field"><label>{{ t('checkout.country') }}</label><select class="select" name="country">{% for c in countries %}<option value="{{ c.code }}" {{ 'selected' if c.code == form.country }}>{{ c.flag }} {{ p(c.name) }}</option>{% endfor %}</select></div>
+        <div class="field"><label>{{ t('checkout.city') }}</label><input class="input" name="city" value="{{ form.city }}"></div>
+      </div>
+      <div class="field"><label>{{ t('checkout.address') }}</label><textarea class="textarea {{ 'invalid' if errors.address }}" name="address" placeholder="{{ t('checkout.address_ph') }}" required>{{ form.address }}</textarea>{% if errors.address %}<span class="error-text">{{ errors.address }}</span>{% endif %}</div>
+      <div class="grid-2">
+        <div class="field"><label>{{ t('checkout.cargo_company') }}</label><input class="input" name="cargo_company" value="{{ form.cargo_company }}" placeholder="{{ t('checkout.cargo_company_ph') }}"></div>
+        <div class="field"><label>{{ t('checkout.cargo_code') }}</label><input class="input mono" name="cargo_code" value="{{ form.cargo_code }}" placeholder="{{ t('checkout.cargo_code_ph') }}" autocapitalize="characters" autocorrect="off" spellcheck="false"></div>
+      </div>
+      <span class="hint">ℹ️ {{ t('checkout.cargo_code_hint') }}</span>
+      <div class="field"><label>{{ t('checkout.note') }}</label><textarea class="textarea" name="note" style="min-height:64px" placeholder="{{ t('checkout.note_ph') }}">{{ form.note }}</textarea></div>
+    </div>
+
+    <div class="card">
+      <div class="filter-label">{{ t('checkout.terms_title') }}</div>
+      <p class="small muted">{{ p(payment) }}</p>
+      <div class="divider"></div>
+      <p class="small muted">🚚 {{ p(delivery) }}</p>
+    </div>
+    <div class="notice notice-info"><span>ℹ️</span><span class="small">{{ t('checkout.confirm_note') }}</span></div>
+  </form>
+</div>
+<div class="sticky-cta"><div class="inner"><button class="btn btn-primary btn-lg btn-block" type="submit" form="co-form"><span class="label">{{ t('checkout.place_order') }} · {{ total|money(currency) }}</span><span class="spinner"></span></button></div></div>
+{% endblock %}
