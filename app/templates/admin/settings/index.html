@@ -1,22 +1,39 @@
 {% extends "admin/base.html" %}
-{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/settings/geo">🌍 {{ t('admin.set.geo') }}</a>{% endblock %}
+{% macro num(k) %}<div class="field"><label>{{ t('admin.set.key_' ~ k) }}</label><input class="input mono" type="number" name="{{ k }}" value="{{ v[k] }}"><span class="hint">{{ t('admin.set.help_' ~ k) }}</span></div>{% endmacro %}
+{% macro str(k, ph='') %}<div class="field"><label>{{ t('admin.set.key_' ~ k) }}</label><input class="input" name="{{ k }}" value="{{ v[k] or '' }}" placeholder="{{ ph }}"><span class="hint">{{ t('admin.set.help_' ~ k) }}</span></div>{% endmacro %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/settings/geo">{{ icon('globe', 15) }}{{ t('admin.set.geo') }}</a>{% endblock %}
 {% block content %}
-<form method="post" class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start"><input type="hidden" name="_csrf" value="{{ csrf }}">
+<form method="post" id="settings-form" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
+<div class="split-eq">
 <div class="stack">
-  <div class="card"><h2>{{ t('admin.set.general') }}</h2><div class="form-grid">
-    {% for k in num_keys %}<div class="field"><label>{{ defaults[k].d }}</label><input class="input" type="number" name="{{ k }}" value="{{ v[k] }}"></div>{% endfor %}
-    {% for k in str_keys %}<div class="field"><label>{{ defaults[k].d }}</label><input class="input" name="{{ k }}" value="{{ v[k] or '' }}"></div>{% endfor %}
-    <div class="field"><label>{{ defaults.support_group_id.d }}</label><input class="input" name="support_group_id" value="{{ v.support_group_id or '' }}" placeholder="-100…"></div>
-    <div class="field"><label>{{ t('admin.set.free_cities') }}</label><input class="input" name="free_cities" value="{{ v.free_cities|join(', ') }}"></div>
-  </div></div>
-  <div class="card"><h2>{{ t('admin.set.payment_methods') }}</h2>
-    <div id="pms">{% for m in v.payment_methods %}<div class="rrow form-grid mb" style="grid-template-columns:1fr 2fr auto"><input class="input" name="pm_name" value="{{ m.name }}" placeholder="{{ t('admin.set.method_name') }}"><textarea class="textarea" name="pm_details" rows="2" placeholder="{{ t('admin.set.method_details') }}">{{ m.details }}</textarea><button class="btn btn-xs btn-danger" data-remove-row>✕</button></div>{% endfor %}
-    <template><div class="rrow form-grid mb" style="grid-template-columns:1fr 2fr auto"><input class="input" name="pm_name" placeholder="{{ t('admin.set.method_name') }}"><textarea class="textarea" name="pm_details" rows="2" placeholder="{{ t('admin.set.method_details') }}"></textarea><button class="btn btn-xs btn-danger" data-remove-row>✕</button></div></template></div>
-    <button class="btn btn-xs btn-secondary" data-add-row="pms">{{ t('admin.set.add_method') }}</button></div>
-  <button class="btn btn-primary btn-lg">{{ t('admin.save') }}</button>
+  <section class="fsection"><h2>{{ t('admin.set.group_general') }}</h2>
+    <div class="form-grid mt">{{ num('advance_percent') }}{{ str('currency', 'USD') }}</div>
+    <div class="mt">{{ str('warehouse_address') }}</div>
+  </section>
+  <section class="fsection"><h2>{{ t('admin.set.group_payments') }}</h2>
+    <div class="mt">{% with name='payment_text', value=v['payment_text'], kind='textarea', label=t('admin.set.key_payment_text'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}<span class="hint">{{ t('admin.set.help_payment_text') }}</span></div>
+    <div class="field mt"><label>{{ t('admin.set.key_payment_methods') }}</label><span class="hint mb-sm">{{ t('admin.set.help_payment_methods') }}</span>
+      <div id="pms">{% for m in v.payment_methods %}<div class="rrow" style="grid-template-columns:1fr 2fr auto"><input class="input" name="pm_name" value="{{ m.name }}" placeholder="{{ t('admin.set.method_name') }}"><textarea class="textarea mono" name="pm_details" rows="2" placeholder="{{ t('admin.set.method_details') }}">{{ m.details }}</textarea><button type="button" class="icon-btn danger" data-remove-row>{{ icon('trash', 15) }}</button></div>{% endfor %}
+      <template><div class="rrow" style="grid-template-columns:1fr 2fr auto"><input class="input" name="pm_name" placeholder="{{ t('admin.set.method_name') }}"><textarea class="textarea mono" name="pm_details" rows="2" placeholder="{{ t('admin.set.method_details') }}"></textarea><button type="button" class="icon-btn danger" data-remove-row>{{ icon('trash', 15) }}</button></div></template></div>
+      <div><button type="button" class="btn btn-sm btn-secondary" data-add-row="pms">{{ icon('plus', 14) }}{{ t('admin.set.add_method') }}</button></div></div>
+  </section>
+  <section class="fsection"><h2>{{ t('admin.set.group_delivery') }}</h2>
+    <div class="mt">{% with name='delivery_text', value=v['delivery_text'], kind='textarea', label=t('admin.set.key_delivery_text'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}<span class="hint">{{ t('admin.set.help_delivery_text') }}</span></div>
+    <div class="field mt"><label>{{ t('admin.set.key_free_cities') }}</label><input class="input" name="free_cities" value="{{ v.free_cities|join(', ') }}"><span class="hint">{{ t('admin.set.help_free_cities') }}</span></div>
+  </section>
 </div>
-<div class="card stack"><h2>{{ t('admin.set.texts') }}</h2>
-  {% for k in i18n_keys %}{% with name=k, value=v[k], kind='textarea', label=defaults[k].d, rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}{% endfor %}
+<div class="stack">
+  <section class="fsection"><h2>{{ t('admin.set.group_auction') }}</h2><div class="form-grid mt">{{ num('auction_deposit_default') }}{{ num('auction_extension_seconds') }}</div></section>
+  <section class="fsection"><h2>{{ t('admin.set.group_support') }}</h2>
+    <div class="stack mt">
+      <div>{% with name='working_hours', value=v['working_hours'], kind='input', label=t('admin.set.key_working_hours') %}{% include "admin/partials/i18n_field.html" %}{% endwith %}<span class="hint">{{ t('admin.set.help_working_hours') }}</span></div>
+      <div>{% with name='reply_time', value=v['reply_time'], kind='input', label=t('admin.set.key_reply_time') %}{% include "admin/partials/i18n_field.html" %}{% endwith %}<span class="hint">{{ t('admin.set.help_reply_time') }}</span></div>
+      <div class="field"><label>{{ t('admin.set.key_support_group_id') }}</label><input class="input mono" name="support_group_id" value="{{ v.support_group_id or '' }}" placeholder="-100…"><span class="hint">{{ t('admin.set.help_support_group_id') }}</span></div>
+    </div>
+  </section>
+  <section class="fsection"><h2>{{ t('admin.set.group_links') }}</h2><div class="stack mt">{{ str('wd_check_url', 'https://') }}{{ str('seagate_check_url', 'https://') }}</div></section>
+</div>
 </div>
 </form>
+<div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span><kbd>{{ t('admin.prod.save_shortcut') }}</kbd><button class="btn btn-primary" form="settings-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
 {% endblock %}

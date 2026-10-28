@@ -31,15 +31,22 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
     ending = (
         await db.execute(select(Auction).where(Auction.status == AuctionStatus.LIVE, Auction.ends_at <= soon).order_by(Auction.ends_at).limit(6))
     ).scalars().unique().all()
-    # sparkline path
+    from app.models import Product
+
+    recent = (await db.execute(select(Order).order_by(Order.id.desc()).limit(8))).scalars().unique().all()
+    out_of_stock = (
+        await db.execute(select(Product).where(Product.is_active.is_(True), Product.stock - Product.reserved <= 0).order_by(Product.sort.desc()).limit(6))
+    ).scalars().unique().all()
+    # sparkline (solid line + translucent area, drawn in the template)
     daily = data["daily"]
-    spark = ""
+    spark, spark_pts, spark_max = "", [], 0
     if daily:
-        mx = max(c for _, c in daily) or 1
+        spark_max = max(c for _, c in daily) or 1
         w, h = 300, 60
-        pts = [(i * (w / max(1, len(daily) - 1)), h - (c / mx) * (h - 6) - 3) for i, (_, c) in enumerate(daily)]
+        pts = [(i * (w / max(1, len(daily) - 1)), h - (c / spark_max) * (h - 8) - 4) for i, (_, c) in enumerate(daily)]
         spark = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+        spark_pts = [(f"{x:.1f}", f"{y:.1f}", daily[i][0], daily[i][1]) for i, (x, y) in enumerate(pts)]
     return render(
         request, staff, "admin/dashboard.html",
-        {"page_title": "Dashboard", "d": data, "days": days, "awaiting": awaiting, "pending": pending, "threads": threads, "ending": ending, "spark": spark, "badges": await nav_badges(db)},
+        {"page_title": "Dashboard", "d": data, "days": days, "awaiting": awaiting, "pending": pending, "threads": threads, "ending": ending, "spark": spark, "spark_pts": spark_pts, "spark_max": spark_max, "recent": recent, "out_of_stock": out_of_stock, "badges": await nav_badges(db)},
     )

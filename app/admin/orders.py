@@ -45,6 +45,18 @@ async def orders_list(request: Request, db: DB, staff: User = Depends(staff_dep(
         stmt = stmt.where(Order.status == OrderStatus(status))
     if q.get("payments") == "pending":
         stmt = stmt.where(Order.id.in_(select(Payment.order_id).where(Payment.status == PaymentStatus.PENDING)))
+    if q.get("country"):
+        stmt = stmt.where(Order.country == q["country"].upper()[:2])
+    from datetime import UTC, datetime, timedelta
+
+    for key, op in (("from", "ge"), ("to", "lt")):
+        v = (q.get(key) or "").strip()
+        if v:
+            try:
+                d = datetime.fromisoformat(v).replace(tzinfo=UTC)
+            except ValueError:
+                continue
+            stmt = stmt.where(Order.created_at >= d) if op == "ge" else stmt.where(Order.created_at < d + timedelta(days=1))
     if q.get("q"):
         like = f"%{q['q'].strip()}%"
         stmt = stmt.join(User, User.id == Order.user_id).where(
@@ -53,8 +65,10 @@ async def orders_list(request: Request, db: DB, staff: User = Depends(staff_dep(
     stmt = stmt.order_by(Order.id.desc())
     items, total, pages = await paginate(db, stmt, qpage(request), 30)
     counts = dict((await db.execute(select(Order.status, func.count()).group_by(Order.status))).all())
+    countries = [c for (c,) in (await db.execute(select(Order.country).where(Order.country.is_not(None)).distinct().order_by(Order.country))).all()]
+    pending_ids = {oid for (oid,) in (await db.execute(select(Payment.order_id).where(Payment.status == PaymentStatus.PENDING).distinct())).all()}
     tabs = [("", sum(counts.values())), ("active", sum(v for k, v in counts.items() if k in ACTIVE_ORDER_STATUSES)), ("awaiting_admin", counts.get(OrderStatus.AWAITING_ADMIN, 0)), ("awaiting_advance", counts.get(OrderStatus.AWAITING_ADVANCE, 0)), ("testing", counts.get(OrderStatus.TESTING, 0)), ("awaiting_balance", counts.get(OrderStatus.AWAITING_BALANCE, 0)), ("paid", counts.get(OrderStatus.PAID, 0)), ("packing", counts.get(OrderStatus.PACKING, 0)), ("shipped", counts.get(OrderStatus.SHIPPED, 0)), ("closed", sum(v for k, v in counts.items() if k not in ACTIVE_ORDER_STATUSES))]
-    return render(request, staff, "admin/orders/list.html", {"page_title": t(staff.lang, "admin.ord.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "tabs": tabs, "status": status or "", "statuses": list(OrderStatus), "badges": await nav_badges(db)})
+    return render(request, staff, "admin/orders/list.html", {"page_title": t(staff.lang, "admin.ord.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "tabs": tabs, "status": status or "", "statuses": list(OrderStatus), "badges": await nav_badges(db), "countries": countries, "pending_ids": pending_ids})
 
 
 async def _load(db, oid: int) -> Order:
@@ -192,7 +206,9 @@ async def order_payment_action(oid: int, pid: int, action: str, request: Request
     await osvc.confirm_payment(db, pay, staff, action == "confirm", f_opt(form, "note"))
     await notifications.notify_order_status(db, o, o.user)
     await db.commit()
-    return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.ord.payment_confirmed" if action == "confirm" else "admin.ord.payment_rejected"))
+    nxt = form.get("next") or ""
+    target = nxt if nxt.startswith("/admin") else f"/admin/orders/{oid}#payments"
+    return back(request, target, t(staff.lang, "admin.ord.payment_confirmed" if action == "confirm" else "admin.ord.payment_rejected"))
 
 
 @router.post("/orders/{oid}/items/{iid}/test")
@@ -250,3 +266,21 @@ async def order_shipping(oid: int, request: Request, db: DB, staff: User = Depen
             return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.flash.error", e=e.code), "bad")
     await db.commit()
     return back(request, f"/admin/orders/{oid}", msg)
+
+
+@router.get("/payments")
+async def payments_queue(request: Request, db: DB, staff: User = Depends(staff_dep(*PAYMENT_ROLES))):
+    """Finance queue: pending payment claims first, then recent decisions."""
+    from sqlalchemy.orm import selectinload
+
+    status = request.query_params.get("status") or "pending"
+    stmt = select(Payment).options(selectinload(Payment.order))
+    if status in ("pending", "confirmed", "rejected"):
+        stmt = stmt.where(Payment.status == PaymentStatus(status))
+    stmt = stmt.order_by(Payment.id.desc())
+    items, total, pages = await paginate(db, stmt, qpage(request), 30)
+    counts = dict((await db.execute(select(Payment.status, func.count()).group_by(Payment.status))).all())
+    return render(request, staff, "admin/payments/list.html", {
+        "page_title": t(staff.lang, "admin.nav.payments"), "items": items, "total": total, "pages": pages, "page": qpage(request),
+        "status": status, "counts": {k.value if hasattr(k, "value") else k: v for k, v in counts.items()},
+    })

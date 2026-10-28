@@ -1,20 +1,20 @@
 {% extends "admin/base.html" %}
-{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/articles">← {{ t('admin.back') }}</a>{% if not is_new %}<a class="btn btn-ghost btn-sm" href="/app/info/{{ a.slug }}" target="_blank">Mini App ↗</a>{% endif %}{% endblock %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/articles">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% if not is_new %}<a class="btn btn-secondary btn-sm" href="/app/info/{{ a.slug }}" target="_blank">{{ icon('external', 15) }}{{ t('admin.ui.open_in_app') }}</a>{% endif %}{% endblock %}
 {% block content %}
-{% if errors %}<div class="notice notice-bad mb">⚠️ {{ errors|join(', ') }}</div>{% endif %}
-<form method="post" class="grid" style="grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start"><input type="hidden" name="_csrf" value="{{ csrf }}">
-<div class="card stack">
+{% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ errors|join(', ') }}</span></div>{% endif %}
+<form method="post" id="article-form" class="split" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
+<div class="fsection stack">
   {% with name='title', value=a.title, kind='input', label=t('admin.prod.title') ~ ' *' %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
   {% with name='summary', value=a.summary, kind='input', label=t('admin.art.summary') %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
-  <div class="notice notice-warn">⚠️ {{ t('admin.art.html_warn') }}</div>
-  {% with name='body', value=a.body, kind='code', label=t('admin.art.body'), rows=16 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+  <div class="help">{{ icon('alert', 16) }}<span>{{ t('admin.art.html_warn') }}</span></div>
+  {% with name='body', value=a.body, kind='code', label=t('admin.art.body'), rows=18 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
 </div>
-<div class="card stack">
-  <div class="field"><label>{{ t('admin.art.slug') }}</label><input class="input mono" name="slug" value="{{ a.slug }}" required pattern="[a-z0-9-]+"></div>
+<aside class="card stack">
+  <div class="field"><label>{{ t('admin.art.slug') }}</label><input class="input mono" name="slug" value="{{ a.slug }}" required pattern="[a-z0-9-]+" placeholder="choose-nas"></div>
   <div class="field"><label>{{ t('admin.art.category') }}</label><select class="select" name="category">{% for c in categories %}<option value="{{ c }}" {{ 'selected' if a.category==c }}>{{ c }}</option>{% endfor %}</select></div>
-  <div class="form-grid"><div class="field"><label>{{ t('admin.art.icon') }}</label><input class="input" name="icon" value="{{ a.icon }}"></div><div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input" type="number" name="sort" value="{{ a.sort }}"></div></div>
+  <div class="form-grid tight"><div class="field"><label>{{ t('admin.art.icon') }}</label><input class="input" name="icon" value="{{ a.icon }}"></div><div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ a.sort }}"></div></div>
   <label class="check"><input type="checkbox" name="is_published" {{ 'checked' if a.is_published }}>{{ t('admin.art.published') }}</label>
-  <button class="btn btn-primary btn-lg">{{ t('admin.save') }}</button>
-  {% if not is_new %}<button class="btn btn-danger" name="action" value="delete" data-confirm="{{ t('admin.confirm_q') }}" formnovalidate>{{ t('admin.delete') }}</button>{% endif %}
-</div></form>
+  <button class="btn btn-primary btn-lg">{{ icon('check', 16) }}{{ t('admin.save') }}</button>
+  {% if not is_new %}<button class="btn btn-danger" name="action" value="delete" data-confirm="{{ t('admin.delete') }}" data-confirm-text="{{ a.slug }}" data-confirm-danger="1" formnovalidate>{{ icon('trash', 16) }}{{ t('admin.delete') }}</button>{% endif %}
+</aside></form>
 {% endblock %}

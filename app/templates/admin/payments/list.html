@@ -1,0 +1,37 @@
+{% extends "admin/base.html" %}
+{% block heading %}{{ t('admin.pay.title') }}{% endblock %}
+{% block content %}
+<div class="tabs">{% for key in ('pending','confirmed','rejected') %}<a href="?status={{ key }}" class="{{ 'active' if status==key }}">{{ t('admin.pay.' ~ key) }}<span class="cnt">{{ counts.get(key, 0) }}</span></a>{% endfor %}<a href="?status=all" class="{{ 'active' if status=='all' }}">{{ t('admin.all') }}</a></div>
+{% if status == 'pending' %}<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.pay.hint') }}</span></div>{% endif %}
+{% if items %}
+<div class="grid g2">
+{% for p in items %}{% set o = p.order %}{% set expected = (o.advance_amount if p.kind.value == 'advance' else (o.balance_amount if p.kind.value == 'balance' else none)) if o else none %}
+<div class="card" style="--i:{{ loop.index0 }}">
+  <div class="between mb-sm">
+    <div class="row-nw">{% if o %}<a class="mono bold" href="/admin/orders/{{ o.id }}#payments">{{ o.number }}</a>{% endif %}<span class="chip chip-info">{{ t('payment.' ~ p.kind.value) }}</span><span class="chip {{ 'chip-ok' if p.status.value=='confirmed' else ('chip-bad' if p.status.value=='rejected' else 'chip-warn') }}">{{ t('payment.' ~ p.status.value) }}</span></div>
+    <span class="faint small">{{ p.created_at|dt }}</span>
+  </div>
+  <div class="row-nw" style="align-items:flex-start;gap:14px">
+    {% if p.proof_filename %}{% if p.proof_filename.endswith('.webp') %}<a href="#" data-lightbox="/static/uploads/{{ p.proof_filename }}" title="{{ t('admin.pay.proof') }}"><img src="/static/uploads/{{ p.proof_filename }}" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--hairline)"></a>{% else %}<a class="btn btn-secondary btn-sm" href="/static/uploads/{{ p.proof_filename }}" target="_blank">{{ icon('download', 14) }}{{ t('admin.pay.proof') }}</a>{% endif %}{% else %}<div class="sunken center faint xs" style="width:84px;height:84px;display:grid;place-items:center">{{ t('admin.pay.no_proof') }}</div>{% endif %}
+    <div class="flex1">
+      <div class="amt"><span>{{ t('admin.pay.claimed') }}</span><b>{{ p.amount|money(p.currency) }}</b></div>
+      {% if expected is not none %}<div class="amt"><span>{{ t('admin.pay.expected_advance') if p.kind.value=='advance' else t('admin.pay.expected_balance') }}</span><b>{{ expected|money(p.currency) }}</b></div>
+      <div class="amt"><span>{{ t('admin.pay.diff') }}</span>{% if p.amount == expected %}<b style="color:var(--ok)">{{ t('admin.ord.matches') }}</b>{% else %}<b style="color:var(--warn)">{{ (p.amount - expected)|money(p.currency) }}</b>{% endif %}</div>{% endif %}
+      <div class="row-sub mt-sm">{{ o.user.full_name if o and o.user else '' }}{% if p.method %} · {{ p.method }}{% endif %}{% if p.note %} · {{ p.note }}{% endif %}</div>
+    </div>
+  </div>
+  {% if p.status.value == 'pending' and o %}
+  <div class="row mt">
+    <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/confirm"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="/admin/payments"><button class="btn btn-ok" data-confirm="{{ t('admin.pay.confirm') }}" data-confirm-text="{{ o.number }} · {{ p.amount|money(p.currency) }}">{{ icon('check', 16) }}{{ t('admin.pay.confirm') }}</button></form>
+    <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/reject"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="/admin/payments"><button class="btn btn-danger" data-confirm="{{ t('admin.pay.reject') }}" data-confirm-reason="note" data-confirm-danger="1">{{ icon('x', 16) }}{{ t('admin.pay.reject') }}</button></form>
+    <a class="btn btn-ghost" href="/admin/orders/{{ o.id }}">{{ t('admin.pay.open_order') }} {{ icon('arrow-right', 14) }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endfor %}
+</div>
+{% include "admin/partials/pager.html" %}
+{% else %}
+<div class="card">{% with ico='wallet', title=t('admin.pay.empty') %}{% include "admin/partials/empty.html" %}{% endwith %}</div>
+{% endif %}
+{% endblock %}

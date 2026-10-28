@@ -43,7 +43,10 @@ async def support_thread(tid: int, request: Request, db: DB, staff: User = Depen
     assignee = await db.get(User, th.assigned_to) if th.assigned_to else None
     if request.headers.get("HX-Request") and request.query_params.get("partial") == "messages":
         return render(request, staff, "admin/support/_messages.html", {"th": th})
-    return render(request, staff, "admin/support/thread.html", {"page_title": f"💬 {th.user.full_name}", "th": th, "assignee": assignee, "badges": await nav_badges(db)})
+    threads = await _threads(db, "open", None)
+    if th not in threads:
+        threads = [th] + list(threads)
+    return render(request, staff, "admin/support/thread.html", {"page_title": th.user.full_name, "th": th, "assignee": assignee, "threads": threads, "status": "open", "badges": await nav_badges(db)})
 
 
 @router.post("/support/{tid}/reply")

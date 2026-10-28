@@ -35,20 +35,39 @@ REPORT_ROLES = {Role.ADMIN, Role.FINANCE}
 ADS_ROLES = {Role.ADMIN, Role.MARKETING}
 FINANCE_VIEW = {Role.ADMIN, Role.FINANCE}
 
-NAV = [
-    ("dashboard", "/admin", "📊", None),
-    ("orders", "/admin/orders", "📦", ORDER_ROLES),
-    ("products", "/admin/products", "💾", PRODUCT_ROLES),
-    ("auctions", "/admin/auctions", "🔨", AUCTION_ROLES),
-    ("support", "/admin/support", "💬", SUPPORT_ROLES),
-    ("customers", "/admin/customers", "👥", CUSTOMER_ROLES),
-    ("ads", "/admin/ads", "📣", ADS_ROLES),
-    ("articles", "/admin/articles", "📚", ARTICLE_ROLES),
-    ("reports", "/admin/reports", "📈", REPORT_ROLES),
-    ("audit", "/admin/audit", "🧾", ADMIN),
-    ("staff", "/admin/staff", "🛡️", ADMIN),
-    ("settings", "/admin/settings", "⚙️", ADMIN),
+NAV_GROUPS = [
+    ("manage", [("dashboard", "/admin", "home", None)]),
+    ("sales", [
+        ("orders", "/admin/orders", "package", ORDER_ROLES),
+        ("payments", "/admin/payments", "wallet", PAYMENT_ROLES),
+        ("auctions", "/admin/auctions", "gavel", AUCTION_ROLES),
+        ("support", "/admin/support", "message", SUPPORT_ROLES),
+    ]),
+    ("catalog", [
+        ("products", "/admin/products", "drive", PRODUCT_ROLES),
+        ("articles", "/admin/articles", "book", ARTICLE_ROLES),
+    ]),
+    ("people", [
+        ("customers", "/admin/customers", "users", CUSTOMER_ROLES),
+        ("staff", "/admin/staff", "shield", ADMIN),
+    ]),
+    ("system", [
+        ("settings", "/admin/settings", "settings", ADMIN),
+        ("geo", "/admin/settings/geo", "globe", ADMIN),
+        ("ads", "/admin/ads", "flag", ADS_ROLES),
+        ("reports", "/admin/reports", "chart", REPORT_ROLES),
+        ("audit", "/admin/audit", "list", ADMIN),
+    ]),
 ]
+NAV = [item for _, items in NAV_GROUPS for item in items]
+CREATE_ITEMS = [
+    ("product", "/admin/products/new", "drive", PRODUCT_EDIT_ROLES),
+    ("auction", "/admin/auctions/new", "gavel", AUCTION_EDIT_ROLES),
+    ("article", "/admin/articles/new", "book", ARTICLE_ROLES),
+    ("ad", "/admin/ads/new", "flag", ADS_ROLES),
+    ("staff", "/admin/staff#new", "shield", ADMIN),
+]
+HINT_COOKIE = "nuhd_admin_hint"
 
 
 def can(staff: User, roles: set[Role] | None) -> bool:
@@ -72,9 +91,14 @@ async def verify_csrf(request: Request, staff: User) -> None:
 def staff_dep(*roles: Role):
     base = require_staff(*roles)
 
-    async def dep(request: Request, staff: Annotated[User, Depends(base)]) -> User:
+    async def dep(request: Request, db: DB, staff: Annotated[User, Depends(base)]) -> User:
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             await verify_csrf(request, staff)
+        elif not request.headers.get("HX-Request"):
+            try:
+                request.state.badges = await nav_badges(db)
+            except Exception:  # noqa: BLE001 — badges are decoration, never block a page
+                request.state.badges = {}
         return staff
 
     return dep
@@ -85,6 +109,14 @@ def render(request: Request, staff: User, name: str, ctx: dict | None = None, **
     ctx.setdefault("staff", staff)
     ctx.setdefault("csrf", csrf_token(staff))
     ctx.setdefault("nav", [(k, u, i) for k, u, i, r in NAV if can(staff, r)])
+    ctx.setdefault("nav_groups", [(g, [(k, u, i) for k, u, i, r in items if can(staff, r)]) for g, items in NAV_GROUPS])
+    ctx.setdefault("create_items", [(k, u, i) for k, u, i, r in CREATE_ITEMS if can(staff, r)])
+    path = request.url.path
+    matches = [u for _, u, _, _ in NAV if (path == u if u == "/admin" else path.startswith(u))]
+    ctx.setdefault("active_nav", max(matches, key=len) if matches else "")
+    ctx.setdefault("show_hint", request.cookies.get(HINT_COOKIE) != "1")
+    if "badges" not in ctx:
+        ctx["badges"] = getattr(request.state, "badges", None) or {}
     ctx.setdefault("can_finance", can(staff, FINANCE_VIEW))
     ctx.setdefault("can", lambda roles: can(staff, roles))
     ctx.setdefault("roles", {k: v for k, v in globals().items() if k.endswith("_ROLES") or k in ("ADMIN", "FINANCE_VIEW")})
@@ -197,12 +229,16 @@ __all__ = ["DB", "Depends", "HTTPException", "Request", "Response", "RedirectRes
 
 
 async def nav_badges(db: AsyncSession) -> dict:
-    from app.enums import OrderStatus, PaymentStatus, ThreadStatus
-    from app.models import Order, Payment, SupportThread
+    from datetime import UTC, datetime, timedelta
+
+    from app.enums import AuctionStatus, OrderStatus, PaymentStatus, ThreadStatus
+    from app.models import Auction, Order, Payment, SupportThread
 
     awaiting = (await db.execute(select(func.count()).select_from(Order).where(Order.status == OrderStatus.AWAITING_ADMIN))).scalar_one()
     pays = (await db.execute(select(func.count()).select_from(Payment).where(Payment.status == PaymentStatus.PENDING))).scalar_one()
     unread = (
         await db.execute(select(func.count()).select_from(SupportThread).where(SupportThread.status == ThreadStatus.OPEN, SupportThread.unread_for_staff > 0))
     ).scalar_one()
-    return {"orders": awaiting + pays or None, "support": unread or None}
+    soon = datetime.now(UTC) + timedelta(hours=1)
+    ending = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE, Auction.ends_at <= soon))).scalar_one()
+    return {"orders": awaiting or None, "payments": pays or None, "support": unread or None, "auctions": ending or None, "total": (awaiting + pays + unread) or None}

@@ -1,0 +1,12 @@
+{% if q|length < 2 %}<div class="none">{{ t('admin.top.type_more') }}</div>
+{% elif not orders and not customers and not products and not serial_hits %}<div class="none">{{ t('admin.top.search_empty') }}</div>
+{% else %}
+{% if orders %}<div class="grp"><span>{{ t('admin.top.search_orders') }}</span>
+  {% for o in orders %}<a href="/admin/orders/{{ o.id }}">{{ icon('package', 16) }}<span class="mono bold">{{ o.number }}</span><span class="truncate">{{ o.user.full_name if o.user else '' }}</span><span class="m">{{ t('order_status.' ~ o.status.value) }} · {{ o.total|money(o.currency) }}</span></a>{% endfor %}</div>{% endif %}
+{% if serial_hits %}<div class="grp"><span>{{ t('admin.top.search_serials') }}</span>
+  {% for it in serial_hits %}<a href="/admin/orders/{{ it.order_id }}#tests">{{ icon('drive', 16) }}<span class="truncate">{{ it.brand }} {{ it.model }}</span><span class="m mono">{% set ns = namespace(n=0) %}{% for sn in it.serials if q|lower in sn|lower and ns.n < 2 %}{% set ns.n = ns.n + 1 %}{{ sn }}{% if not loop.last %}, {% endif %}{% endfor %}</span></a>{% endfor %}</div>{% endif %}
+{% if customers %}<div class="grp"><span>{{ t('admin.top.search_customers') }}</span>
+  {% for u in customers %}<a href="/admin/customers/{{ u.id }}">{{ icon('user', 16) }}<span class="truncate">{{ u.full_name }}</span><span class="m mono">{{ u.phone or ('@' ~ u.tg_username if u.tg_username else '') }}</span></a>{% endfor %}</div>{% endif %}
+{% if products %}<div class="grp"><span>{{ t('admin.top.search_products') }}</span>
+  {% for p in products %}<a href="/admin/products/{{ p.id }}">{{ icon('drive', 16) }}<span class="truncate">{{ p.brand }} {{ p.model }}</span><span class="chip cond-{{ p.condition.value }}">{{ p.condition.value|upper }}</span><span class="m">{{ p.capacity_gb|capacity }} · {{ p.price|money(p.currency) }} · {{ p.available }}</span></a>{% endfor %}</div>{% endif %}
+{% endif %}

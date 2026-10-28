@@ -1,16 +1,24 @@
 {% extends "admin/base.html" %}
+{% set qp = request.query_params %}
+{% block topbar_actions %}<span class="faint small">{{ total }} {{ t('admin.ord.items_count') }}</span>{% endblock %}
 {% block content %}
 <div class="tabs">{% for key, n in tabs %}<a href="?status={{ key }}" class="{{ 'active' if status==key }}">{{ t('admin.all') if key=='' else (t('admin.ord.active') if key=='active' else (t('admin.ord.closed') if key=='closed' else t('order_status.' ~ key))) }}<span class="cnt">{{ n }}</span></a>{% endfor %}</div>
-<form class="toolbar" method="get"><input type="hidden" name="status" value="{{ status }}"><input class="input" name="q" placeholder="{{ t('admin.search') }} — {{ t('admin.ord.number') }}, {{ t('admin.phone') }}, {{ t('admin.name') }}" value="{{ request.query_params.get('q','') }}" style="min-width:320px">
-  <label class="check"><input type="checkbox" name="payments" value="pending" {{ 'checked' if request.query_params.get('payments')=='pending' }} onchange="this.form.submit()">{{ t('admin.dash.pending_payments') }}</label>
-  <button class="btn btn-secondary btn-sm">{{ t('admin.filter') }}</button><span class="faint small" style="margin-left:auto">{{ total }}</span></form>
-<div class="tbl-wrap"><table><thead><tr><th>{{ t('admin.ord.number') }}</th><th>{{ t('admin.date') }}</th><th>{{ t('admin.customer') }}</th><th>{{ t('admin.ord.items') }}</th><th class="right">{{ t('admin.ord.qty') }}</th><th class="right">{{ t('admin.total') }}</th><th class="right">{{ t('admin.ord.paid') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.ord.cargo_code') }}</th></tr></thead>
-<tbody>{% for o in items %}<tr class="clickable" data-href="/admin/orders/{{ o.id }}">
-  <td class="mono bold">{{ o.number }}</td><td class="faint small nowrap">{{ o.created_at|dt }}</td>
-  <td><div class="bold">{{ o.user.full_name }}</div><div class="faint xs">{{ o.receiver_phone }} · {{ o.country or '' }} {{ o.city or '' }}</div></td>
-  <td class="small">{% for i in o.items[:2] %}<div>{{ i.brand }} {{ i.model }} <span class="chip cond-{{ i.condition.value }}" style="height:16px;font-size:9.5px">{{ i.condition.value|upper }}</span> ×{{ i.qty }}</div>{% endfor %}{% if o.items|length > 2 %}<div class="faint xs">+{{ o.items|length - 2 }}</div>{% endif %}</td>
-  <td class="num">{{ o.total_qty }}</td><td class="num bold">{{ o.total|money(o.currency) }}</td><td class="num {{ 'bold' if o.paid_amount >= o.total and o.total > 0 }}">{{ o.paid_amount|money(o.currency) }}</td>
-  <td>{% with status=o.status %}{% include "admin/partials/status_chip.html" %}{% endwith %}</td><td class="mono small">{{ o.cargo_code or '—' }}</td></tr>
-{% else %}<tr><td colspan="9" class="empty">{{ t('admin.nothing_found') }}</td></tr>{% endfor %}</tbody></table></div>
+<form class="toolbar" method="get"><input type="hidden" name="status" value="{{ status }}">
+  <label class="search">{{ icon('search', 16) }}<input class="input" name="q" placeholder="{{ t('admin.search') }} — {{ t('admin.ord.number') }}, {{ t('admin.phone') }}, {{ t('admin.name') }}" value="{{ qp.get('q','') }}"></label>
+  <select class="select" name="country" onchange="this.form.submit()"><option value="">{{ t('admin.ord.filter_country') }}: {{ t('admin.all') }}</option>{% for c in countries %}<option value="{{ c }}" {{ 'selected' if qp.get('country')==c }}>{{ t('country.' ~ c) }}</option>{% endfor %}</select>
+  <input class="input" type="date" name="from" value="{{ qp.get('from','') }}" title="{{ t('admin.ord.filter_from') }}"><input class="input" type="date" name="to" value="{{ qp.get('to','') }}" title="{{ t('admin.ord.filter_to') }}">
+  <label class="fchip {{ 'active' if qp.get('payments')=='pending' }}"><input type="checkbox" name="payments" value="pending" {{ 'checked' if qp.get('payments')=='pending' }} onchange="this.form.submit()" hidden>{{ icon('wallet', 14) }}{{ t('admin.dash.pending_payments') }}</label>
+  <button class="btn btn-secondary btn-sm">{{ icon('filter', 15) }}{{ t('admin.filter') }}</button>{% if qp.get('q') or qp.get('country') or qp.get('from') or qp.get('to') or qp.get('payments') %}<a class="btn btn-ghost btn-sm" href="?status={{ status }}">{{ t('admin.clear') }}</a>{% endif %}
+</form>
+<div class="tbl-wrap tbl-cards"><table class="tbl-sticky"><thead><tr><th>{{ t('admin.ord.number') }}</th><th>{{ t('admin.customer') }}</th><th>{{ t('admin.ord.items') }}</th><th class="right">{{ t('admin.total') }}</th><th>{{ t('admin.ord.paid_pct') }}</th><th>{{ t('admin.status') }}</th><th>{{ t('admin.ord.next_action') }}</th></tr></thead>
+<tbody>{% for o in items %}{% set pct = (100 * o.paid_amount / o.total)|round|int if o.total else 0 %}<tr class="clickable" data-href="/admin/orders/{{ o.id }}">
+  <td data-th="{{ t('admin.ord.number') }}"><div class="row-main mono">{{ o.number }}</div><div class="row-sub">{{ o.created_at|dt('%d.%m.%Y %H:%M') }}</div></td>
+  <td data-th="{{ t('admin.customer') }}"><div class="row-main">{{ o.user.full_name }}</div><div class="row-sub">{{ o.receiver_phone }} · {{ t('country.' ~ (o.country or 'OT')) }}{% if o.city %}, {{ o.city }}{% endif %}</div></td>
+  <td data-th="{{ t('admin.ord.items') }}" class="small span">{% for i in o.items[:2] %}<div>{{ i.brand }} {{ i.model }} <span class="chip cond-{{ i.condition.value }}" style="height:16px;font-size:9.5px;padding:0 5px">{{ i.condition.value|upper }}</span> <span class="mono">×{{ i.qty }}</span></div>{% endfor %}{% if o.items|length > 2 %}<div class="faint xs">+{{ o.items|length - 2 }}</div>{% endif %}</td>
+  <td data-th="{{ t('admin.total') }}" class="num bold mono">{{ o.total|money(o.currency) }}</td>
+  <td data-th="{{ t('admin.ord.paid_pct') }}" style="min-width:110px"><div class="row-nw"><div class="progress flex1 {{ 'ok' if pct >= 100 }}"><span style="width:{{ [pct,100]|min }}%"></span></div><span class="xs mono">{{ pct }}%</span></div>{% if o.id in pending_ids %}<div class="row-sub" style="color:var(--warn)">{{ t('admin.pay.pending') }}</div>{% endif %}</td>
+  <td data-th="{{ t('admin.status') }}">{% with status=o.status %}{% include "admin/partials/status_chip.html" %}{% endwith %}</td>
+  <td data-th="{{ t('admin.ord.next_action') }}" class="small muted span" style="max-width:260px">{{ t('admin.next.' ~ o.status.value) }}</td></tr>
+{% else %}<tr><td colspan="7" class="empty">{{ icon('package', 28) }}<b>{{ t('admin.nothing_found') }}</b></td></tr>{% endfor %}</tbody></table></div>
 {% include "admin/partials/pager.html" %}
 {% endblock %}

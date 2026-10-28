@@ -1,0 +1,2 @@
+{# usage: {% with ico='package', title=t('...'), text=t('...'), cta_url='/admin/x', cta=t('...') %}{% include "admin/partials/empty.html" %}{% endwith %} #}
+<div class="empty">{{ icon(ico or 'list', 28) }}<b>{{ title or t('admin.ui.nothing_here') }}</b>{% if text %}<span>{{ text }}</span>{% endif %}{% if cta_url %}<a class="btn btn-primary btn-sm mt-sm" href="{{ cta_url }}">{{ cta }}</a>{% endif %}</div>

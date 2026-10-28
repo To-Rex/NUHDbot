@@ -1,11 +1,14 @@
 <!doctype html>
-<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ t('admin.login_title') }} · {{ app_name }}</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"><link rel="stylesheet" href="/static/css/admin.css?v=1"></head>
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><title>{{ t('admin.login_title') }} · {{ app_name }}</title>
+<link rel="icon" href="/static/img/logo.svg">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Golos+Text:wght@400;500;600&display=swap"><link rel="stylesheet" href="/static/css/admin.css?v=3"></head>
 <body><div class="login-wrap"><form class="card login-card stack" method="post" action="/admin/login">
-  <div class="row" style="gap:12px;margin-bottom:6px"><img src="/static/img/logo.svg" width="44" height="44" alt=""><div><div class="bold" style="font-size:17px">{{ app_name }}</div><div class="small muted">{{ t('admin.login_title') }}</div></div></div>
-  {% if error %}<div class="notice notice-bad">{{ error }}</div>{% endif %}
+  <div class="login-brand"><img src="/static/img/logo.svg" alt=""><div><div class="t">{{ app_name }}</div><div class="s">{{ t('admin.login_title') }}</div></div></div>
+  <h1 style="font-size:20px">{{ t('admin.login_welcome') }}</h1>
+  {% if error %}<div class="notice notice-bad">{{ icon('alert', 18) }}<span>{{ error }}</span></div>{% endif %}
   <input type="hidden" name="next" value="{{ next }}">
-  <div class="field"><label>{{ t('admin.login') }}</label><input class="input" name="login" value="{{ login or '' }}" autofocus autocomplete="username" required></div>
-  <div class="field"><label>{{ t('admin.password') }}</label><input class="input" name="password" type="password" autocomplete="current-password" required></div>
-  <button class="btn btn-primary btn-lg" style="width:100%">{{ t('admin.sign_in') }}</button>
+  <div class="field"><label for="login">{{ t('admin.login') }}</label><input id="login" class="input" name="login" value="{{ login or '' }}" autofocus autocomplete="username" required></div>
+  <div class="field"><label for="password">{{ t('admin.password') }}</label><input id="password" class="input" name="password" type="password" autocomplete="current-password" required></div>
+  <button class="btn btn-primary btn-lg btn-block">{{ t('admin.sign_in') }}</button>
+  <p class="hint center">{{ t('admin.login_hint') }}</p>
 </form></div></body></html>

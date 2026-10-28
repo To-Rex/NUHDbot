@@ -1,22 +1,23 @@
 <div id="images">
-  <div class="between mb"><span class="small muted">{{ t('admin.prod.max_images', n=settings.max_images_per_product) }} · {{ prod.images|length }}</span></div>
-  <div class="imgs sortable" data-reorder-url="/admin/products/{{ prod.id }}/images-reorder" data-saved-text="{{ t('admin.saved') }}">
+  <div class="between mb-sm"><span class="small muted">{{ prod.images|length }} / {{ settings.max_images_per_product }}</span></div>
+  <div class="imgs sortable mb" data-reorder-url="/admin/products/{{ prod.id }}/images-reorder" data-saved-text="{{ t('admin.saved') }}">
   {% for img in prod.images %}
-    <div class="img-card" data-id="{{ img.id }}">
-      <a href="{{ img.url }}" target="_blank"><img src="{{ img.thumb_url }}" alt=""></a>
-      {% if img.is_cover %}<span class="chip chip-info cov">★ {{ t('admin.prod.cover') }}</span>{% endif %}
+    <div class="img-card {{ 'is-cover' if img.is_cover }}" data-id="{{ img.id }}">
+      <a href="#" data-lightbox="{{ img.url }}"><img src="{{ img.thumb_url }}" alt=""></a>
+      {% if img.is_cover %}<span class="chip chip-accent cov">{{ icon('star', 11) }}{{ t('admin.prod.cover_first') }}</span>{% endif %}
       <span class="chip {{ 'chip-ok' if img.kind.value=='real' else 'chip-soft' }} kd">{{ t('admin.prod.kind_real') if img.kind.value=='real' else t('admin.prod.kind_sample') }}</span>
       <div class="ops">
-        {% if not img.is_cover %}<button class="btn btn-xs btn-secondary" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/cover" hx-target="#images" hx-swap="outerHTML">★</button>{% endif %}
-        <button class="btn btn-xs btn-secondary" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/kind" hx-target="#images" hx-swap="outerHTML" title="{{ t('admin.prod.kind_sample') }}/{{ t('admin.prod.kind_real') }}">⇄</button>
-        <button class="btn btn-xs btn-danger" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/delete" hx-target="#images" hx-swap="outerHTML" data-confirm="{{ t('admin.confirm_q') }}">✕</button>
+        {% if not img.is_cover %}<button type="button" class="icon-btn sm" title="{{ t('admin.prod.make_cover') }}" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/cover" hx-target="#images" hx-swap="outerHTML">{{ icon('star', 14) }}</button>{% endif %}
+        <button type="button" class="icon-btn sm" title="{{ t('admin.prod.toggle_kind') }}" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/kind" hx-target="#images" hx-swap="outerHTML">{{ icon('camera', 14) }}</button>
+        <button type="button" class="icon-btn sm danger" title="{{ t('admin.prod.remove') }}" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/delete" hx-target="#images" hx-swap="outerHTML" data-confirm="{{ t('admin.prod.remove') }}" data-confirm-danger="1">{{ icon('trash', 14) }}</button>
       </div>
     </div>
   {% endfor %}
   </div>
-  <form class="mt row" hx-post="/admin/products/{{ prod.id }}/images" hx-target="#images" hx-swap="outerHTML" hx-encoding="multipart/form-data">
-    <label class="btn btn-secondary btn-sm">📷 {{ t('admin.prod.upload_images') }} <span data-count></span><input type="file" name="files" accept="image/*" multiple hidden onchange="this.form.querySelector('[type=submit]').disabled=!this.files.length"></label>
-    <select class="select" name="kind" style="width:auto"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select>
-    <button type="submit" class="btn btn-primary btn-sm" disabled>{{ t('admin.upload') }} <span class="htmx-indicator spinner"></span></button>
+  <form hx-post="/admin/products/{{ prod.id }}/images" hx-target="#images" hx-swap="outerHTML" hx-encoding="multipart/form-data" class="stack">
+    <div class="drop" data-for="img-files">{{ icon('upload', 26) }}<span>{{ t('admin.prod.drop_here') }}</span><span class="hint">{{ t('admin.prod.kind_sample') }} / {{ t('admin.prod.kind_real') }} ↓</span></div>
+    <div class="row"><input id="img-files" type="file" name="files" accept="image/*" multiple hidden>
+      <select class="select sm" name="kind" style="width:auto"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select>
+      <span class="htmx-indicator spinner"></span></div>
   </form>
 </div>

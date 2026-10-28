@@ -1,5 +1,8 @@
 {% extends "admin/base.html" %}
+{% block heading %}{{ t('admin.sup.inbox') }}{% endblock %}
 {% block content %}
-<div class="tabs"><a href="?status=open" class="{{ 'active' if status=='open' }}">{{ t('admin.sup.open') }}</a><a href="?status=closed" class="{{ 'active' if status=='closed' }}">{{ t('admin.sup.closed') }}</a><a href="?status=all" class="{{ 'active' if status=='all' }}">{{ t('admin.all') }}</a></div>
-{% include "admin/support/_list.html" %}
+<div class="inbox">
+  {% include "admin/support/_list.html" %}
+  <div class="inbox-pane"><div class="inbox-empty"><div class="empty">{{ icon('message', 30) }}<b>{{ t('admin.sup.select_thread') }}</b><span>{{ t('admin.sup.anon_hint') }}</span></div></div></div>
+</div>
 {% endblock %}

@@ -1,51 +1,78 @@
 <!doctype html>
 <html lang="{{ html_lang }}" data-theme-mode="{{ theme_mode }}"{% if theme_attr %} data-theme="{{ theme_attr }}" class="{{ 'tg-dark' if theme_attr == 'dark' }}"{% endif %}>
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="{{ theme_attr or 'light dark' }}">
 <meta name="csrf" content="{{ csrf }}">
 <title>{% block title %}{{ page_title or t('admin.title') }}{% endblock %} · {{ app_name }}</title>
 <link rel="icon" href="/static/img/logo.svg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-<link rel="stylesheet" href="/static/css/admin.css?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="/static/css/admin.css?v=3">
 <script src="/static/js/htmx.min.js" defer></script>
+<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }}};</script>
 {% block head %}{% endblock %}
 </head>
 <body>
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <a class="brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>NUHD<small>{{ t('admin.title') }}</small></span></a>
-    <nav class="nav">
-      {% for key, url, icon in nav %}
-      <a href="{{ url }}" class="{{ 'active' if (path == url if url == '/admin' else path.startswith(url)) }}"><span class="ico">{{ icon }}</span>{{ t('admin.nav.' ~ key) }}{% if badges and badges.get(key) %}<span class="cnt">{{ badges[key] }}</span>{% endif %}</a>
-      {% endfor %}
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="{{ t('admin.top.menu') }}">
+    <a class="sb-brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>NUHD<small>{{ t('admin.title') }}</small></span></a>
+    <nav class="sb-nav">
+      {% for gkey, items in nav_groups %}{% if items %}
+      <div class="sb-group"><span>{{ t('admin.nav_group.' ~ gkey) }}</span>
+        {% for key, url, ico in items %}
+        <a href="{{ url }}" class="sb-item {{ 'active' if url == active_nav }}" title="{{ t('admin.nav.' ~ key) }}">{{ icon(ico, 20) }}<span>{{ t('admin.nav.' ~ key) }}</span>{% if badges and badges.get(key) %}<span class="cnt">{{ badges[key] }}</span>{% endif %}</a>
+        {% endfor %}
+      </div>
+      {% endif %}{% endfor %}
     </nav>
-    <div class="me">
-      <div class="av">{{ (staff.full_name or 'A')[:1]|upper }}</div>
-      <div class="flex1"><div class="bold small">{{ staff.full_name }}</div><small>{{ t('roles.' ~ staff.role.value) }}</small></div>
-      <form method="post" action="/admin/logout"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-xs btn-secondary" title="{{ t('admin.logout') }}">⎋</button></form>
+    <div class="sb-foot">
+      <div class="sb-me"><div class="av">{{ (staff.full_name or 'A')[:1]|upper }}</div><div class="flex1"><div class="nm">{{ staff.full_name }}</div><div class="rl">{{ t('roles.' ~ staff.role.value) }}</div></div></div>
+      <div class="sb-ctl">
+        <select class="select" aria-label="{{ t('admin.language') }}" onchange="location.href='/admin/lang/'+this.value+'?next='+encodeURIComponent(location.pathname+location.search)">
+          {% for code in langs %}<option value="{{ code }}" {{ 'selected' if code == lang }}>{{ t('lang.' ~ code) }}</option>{% endfor %}
+        </select>
+        <button type="button" class="icon-btn theme-btn" data-theme-cycle title="{{ t('admin.theme') }}" aria-label="{{ t('admin.theme') }}"><span class="ic-sun">{{ icon('sun', 18) }}</span><span class="ic-moon">{{ icon('moon', 18) }}</span></button>
+        <form method="post" action="/admin/logout"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn" title="{{ t('admin.logout') }}" aria-label="{{ t('admin.logout') }}">{{ icon('logout', 18) }}</button></form>
+      </div>
     </div>
   </aside>
+  <div class="scrim"></div>
   <div class="main">
     <header class="topbar">
-      <button class="menu-btn btn btn-secondary btn-sm" aria-label="menu">☰</button>
-      <h1>{% block heading %}{{ page_title or t('admin.title') }}{% endblock %}</h1>
-      {% block topbar_actions %}{% endblock %}
-      <label class="topbar-lang" title="{{ t('admin.language') }}"><span class="sr-only">{{ t('admin.language') }}</span>
-        <select class="select select-sm" onchange="location.href='/admin/lang/'+this.value+'?next='+encodeURIComponent(location.pathname+location.search)">
-          {% for code in langs %}<option value="{{ code }}" {{ 'selected' if code == lang }}>{{ lang_meta[code].short }}{% if lang_meta[code].suffix %} {{ lang_meta[code].suffix }}{% endif %} · {{ t('lang.' ~ code) }}</option>{% endfor %}
-        </select>
-      </label>
-      <button type="button" class="btn btn-secondary btn-sm theme-btn" data-theme-cycle title="{{ t('admin.theme') }}" aria-label="{{ t('admin.theme') }}"><span class="ic-sun">{{ icon('sun', 16) }}</span><span class="ic-moon">{{ icon('moon', 16) }}</span></button>
-      <a class="btn btn-ghost btn-sm" href="/app" target="_blank" rel="noopener">Mini App ↗</a>
+      <button class="icon-btn menu-btn" aria-label="{{ t('admin.top.menu') }}">{{ icon('menu', 20) }}</button>
+      <nav class="crumbs" aria-label="breadcrumb">
+        <a href="/admin">{{ t('admin.top.breadcrumb_home') }}</a>
+        {% for label, url in crumbs or [] %}{{ icon('chevron-right', 12) }}{% if url %}<a href="{{ url }}">{{ label }}</a>{% else %}<span class="cur">{{ label }}</span>{% endif %}{% endfor %}
+        {% if not crumbs and page_title %}{{ icon('chevron-right', 12) }}<span class="cur">{{ page_title }}</span>{% endif %}
+      </nav>
+      <div class="gsearch">{{ icon('search', 18) }}<input id="gsearch" class="input" type="search" placeholder="{{ t('admin.top.search_hint') }}" autocomplete="off" aria-label="{{ t('admin.search') }}"><kbd>/</kbd><div id="gsearch-pop" class="gsearch-pop" hidden></div></div>
+      {% if create_items %}
+      <div class="dd"><button type="button" class="btn btn-primary btn-sm" data-dd="create-menu">{{ icon('plus', 16) }}<span class="create-lbl">{{ t('admin.create') }}</span></button>
+        <div id="create-menu" class="dd-menu" hidden>{% for key, url, ico in create_items %}<a href="{{ url }}">{{ icon(ico, 18) }}{{ t('admin.create_item.' ~ key) }}</a>{% endfor %}</div></div>
+      {% endif %}
+      <a class="icon-btn" href="/app" target="_blank" rel="noopener" title="{{ t('admin.top.open_app') }}">{{ icon('external', 18) }}</a>
     </header>
     <div class="content">
+      {% block page_head %}
+      <div class="page-head">
+        <div><h1>{% block heading %}{{ page_title or t('admin.title') }}{% endblock %}</h1>{% if page_sub %}<p class="sub">{{ page_sub }}</p>{% endif %}</div>
+        <div class="page-actions">{% block topbar_actions %}{% endblock %}</div>
+      </div>
+      {% endblock %}
       {% block content %}{% endblock %}
     </div>
   </div>
 </div>
+<dialog class="dlg" id="confirm-dlg">
+  <form method="dialog">
+    <div class="dlg-body"><h3 data-dlg-title></h3><p data-dlg-text></p>
+      <div class="field" data-dlg-reason hidden><label>{{ t('admin.ord.reason_required') }}</label><textarea class="textarea" rows="3"></textarea></div></div>
+    <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-dlg-cancel>{{ t('admin.cancel') }}</button><button type="button" class="btn btn-primary" data-dlg-ok>{{ t('admin.ui.confirm') }}</button></div>
+  </form>
+</dialog>
 <div class="toasts"></div>
-<script src="/static/js/admin.js?v=2" defer></script>
+<script src="/static/js/admin.js?v=3" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

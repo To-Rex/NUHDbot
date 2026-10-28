@@ -1,19 +1,20 @@
 {% extends "admin/base.html" %}
-{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads">← {{ t('admin.back') }}</a>{% endblock %}
+{% block heading %}{{ post.title }} <span class="chip {{ 'chip-ok' if post.status.value=='sent' else ('chip-info' if post.status.value=='approved' else 'chip-soft') }}">{{ post.status.value }}</span>{% endblock %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
-<div class="grid" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start">
+<div class="split-eq">
 <div class="stack">
-  <div class="card"><h2>{{ t('admin.ads.preview') }} <span class="chip {{ 'chip-ok' if post.status.value=='sent' else ('chip-info' if post.status.value=='approved' else 'chip-soft') }}">{{ post.status.value }}</span></h2><div class="tgpost">{{ preview|safe }}</div>
-    <dl class="kv mt"><dt>{{ t('admin.ads.deep_link') }}</dt><dd class="mono small">{{ links.app }}<br>{{ links.start }}</dd></dl>
+  <div class="card"><h2>{{ t('admin.ads.preview') }}</h2><div class="tgpost">{{ preview|safe }}</div>
+    <dl class="kv mt"><dt>{{ t('admin.ads.deep_link') }}</dt><dd><span class="copyable" data-copy="{{ links.app }}">{{ links.app }}{{ icon('copy', 12) }}</span><br><span class="copyable mt-sm" data-copy="{{ links.start }}">{{ links.start }}{{ icon('copy', 12) }}</span></dd></dl>
     <div class="row mt">
-      {% if post.status.value=='draft' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok" name="action" value="approve">✓ {{ t('admin.ads.approve') }}</button></form>{% endif %}
-      {% if post.status.value=='approved' %}<form method="post" data-confirm="{{ t('admin.confirm_q') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary" name="action" value="send" {{ '' if bot_on else 'disabled' }}>📣 {{ t('admin.ads.send') }} ({{ post.target_chat_ids|length }})</button></form>{% endif %}
-      <form method="post" data-confirm="{{ t('admin.confirm_q') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger" name="action" value="delete">{{ t('admin.delete') }}</button></form>
+      {% if post.status.value=='draft' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok" name="action" value="approve">{{ icon('check', 16) }}{{ t('admin.ads.approve') }}</button></form>{% endif %}
+      {% if post.status.value=='approved' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary" name="action" value="send" {{ '' if bot_on else 'disabled' }} data-confirm="{{ t('admin.ads.send') }}" data-confirm-text="{{ post.target_chat_ids|length }} chat(s)">{{ icon('send', 16) }}{{ t('admin.ads.send') }} ({{ post.target_chat_ids|length }})</button></form>{% endif %}
+      <form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger" name="action" value="delete" data-confirm="{{ t('admin.delete') }}" data-confirm-danger="1">{{ icon('trash', 16) }}{{ t('admin.delete') }}</button></form>
     </div>
-    {% if not bot_on %}<div class="notice notice-warn mt">{{ t('admin.ads.bot_off') }}</div>{% endif %}
+    {% if not bot_on %}<div class="notice notice-warn mt">{{ icon('alert', 18) }}<span>{{ t('admin.ads.bot_off') }}</span></div>{% endif %}
   </div>
-  <div class="card"><h2>{{ t('admin.ads.stats') }}</h2><div class="grid g3"><div class="kpi"><span class="l">{{ t('admin.ads.clicks') }}</span><span class="v">{{ post.clicks }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.users') }}</span><span class="v">{{ users_n }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.orders') }}</span><span class="v">{{ orders_n }}</span></div></div><div class="hint mt">source = src_{{ post.campaign }} · {{ t('admin.ads.sent') }}: {{ post.sent_at|dt }}</div></div>
+  <div class="card"><h2>{{ t('admin.ads.stats') }}</h2><div class="grid g3"><div class="kpi"><span class="l">{{ t('admin.ads.clicks') }}</span><span class="v">{{ post.clicks }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.users') }}</span><span class="v">{{ users_n }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.orders') }}</span><span class="v">{{ orders_n }}</span></div></div><div class="hint mt">source = <span class="mono">src_{{ post.campaign }}</span> · {{ t('admin.ads.sent') }}: {{ post.sent_at|dt }}</div></div>
 </div>
-<form method="post" class="card stack"><input type="hidden" name="_csrf" value="{{ csrf }}">{% with products=all_products %}{% include "admin/ads/_form_fields.html" %}{% endwith %}<button class="btn btn-secondary">{{ t('admin.save') }}</button></form>
+<form method="post" class="fsection stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">{% with products=all_products %}{% include "admin/ads/_form_fields.html" %}{% endwith %}<div><button class="btn btn-secondary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div></form>
 </div>
 {% endblock %}

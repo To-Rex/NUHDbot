@@ -70,3 +70,53 @@ async def admin_set_theme(mode: str, request: Request, db: DB, next: str | None 
     resp = Response(status_code=204) if request.method == "POST" else RedirectResponse(_safe_next(next), status_code=303)
     set_pref_cookie(resp, THEME_COOKIE, mode)
     return resp
+
+
+@router.post("/hint/dismiss")
+async def hint_dismiss(request: Request, staff: User = Depends(staff_dep())):
+    from app.admin.common import HINT_COOKIE
+
+    resp = Response(status_code=204)
+    set_pref_cookie(resp, HINT_COOKIE, "1", path="/admin")
+    return resp
+
+
+@router.get("/search")
+async def admin_search(request: Request, db: DB, staff: User = Depends(staff_dep())):
+    """Global search box: orders, customers, products, serials. Returns a dropdown partial."""
+    from sqlalchemy import cast, or_, select
+    from sqlalchemy.types import Text
+
+    from app.admin.common import CUSTOMER_ROLES, ORDER_ROLES, PRODUCT_ROLES, can
+    from app.admin.common import render as arender
+    from app.models import Order, OrderItem, Product
+
+    q = (request.query_params.get("q") or "").strip()[:60]
+    if len(q) < 2:
+        return arender(request, staff, "admin/partials/search_results.html", {"q": q, "orders": [], "customers": [], "products": [], "serial_hits": []})
+    like = f"%{q}%"
+    orders = customers = products = serial_hits = []
+    if can(staff, ORDER_ROLES):
+        orders = (
+            await db.execute(
+                select(Order).join(User, User.id == Order.user_id).where(
+                    or_(Order.number.ilike(like), Order.receiver_phone.ilike(like), Order.receiver_name.ilike(like), Order.cargo_code.ilike(like), Order.tracking_number.ilike(like), User.first_name.ilike(like), User.last_name.ilike(like), User.phone.ilike(like))
+                ).order_by(Order.id.desc()).limit(6)
+            )
+        ).scalars().unique().all()
+        serial_hits = (
+            await db.execute(select(OrderItem).where(cast(OrderItem.serials, Text).ilike(like)).order_by(OrderItem.id.desc()).limit(4))
+        ).scalars().unique().all()
+    if can(staff, CUSTOMER_ROLES):
+        customers = (
+            await db.execute(
+                select(User).where(User.role == "customer", or_(User.first_name.ilike(like), User.last_name.ilike(like), User.phone.ilike(like), User.tg_username.ilike(like))).order_by(User.id.desc()).limit(6)
+            )
+        ).scalars().all()
+    if can(staff, PRODUCT_ROLES):
+        products = (
+            await db.execute(
+                select(Product).where(or_(Product.brand.ilike(like), Product.model.ilike(like), Product.label_model.ilike(like), Product.series.ilike(like))).order_by(Product.is_active.desc(), Product.id.desc()).limit(6)
+            )
+        ).scalars().unique().all()
+    return arender(request, staff, "admin/partials/search_results.html", {"q": q, "orders": orders, "customers": customers, "products": products, "serial_hits": serial_hits})
