@@ -1,5 +1,7 @@
 /* New & Used Hard Drives — Mini App runtime: Telegram SDK glue, HTMX config, micro-interactions. */
 (function () {
+  // Boosted navigations swap <body> and re-run this script; the document-level wiring must only be installed once.
+  if (window.NUHD && window.NUHD.booted) return;
   const tg = window.Telegram && window.Telegram.WebApp;
   const root = document.documentElement;
 
@@ -268,7 +270,7 @@
   };
 
   // ---------- Telegram helpers for templates ----------
-  window.NUHD = { tg, haptic, toast, confetti, progressStart, progressDone, setTheme, resolvedTheme,
+  window.NUHD = { booted: true, tg, haptic, toast, confetti, progressStart, progressDone, setTheme, resolvedTheme,
     requestContact(cb) {
       if (tg && tg.requestContact) { tg.requestContact((ok) => cb(!!ok)); } else cb(false);
     },
