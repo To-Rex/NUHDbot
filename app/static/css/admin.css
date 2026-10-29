@@ -325,9 +325,10 @@ td .chip{vertical-align:middle}
 .copyable{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:7px;background:var(--sunken);font-family:var(--font-mono);font-size:12.5px;cursor:pointer;border:1px solid transparent}
 .copyable:hover{border-color:var(--hairline-strong)}.copyable svg{width:13px;height:13px;color:var(--ink-3)}
 .empty{padding:40px 20px;text-align:center;color:var(--ink-3);display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px}
-.empty svg{width:22px;height:22px;color:var(--ink-3);background:var(--sunken);border-radius:14px;padding:13px;box-sizing:content-box;margin-bottom:6px}
+.empty>svg{width:22px;height:22px;color:var(--ink-3);background:var(--sunken);border-radius:14px;padding:13px;box-sizing:content-box;margin-bottom:6px}
+.empty .row{justify-content:center;margin-top:8px}.empty .btn svg{width:15px;height:15px}
 .empty b{color:var(--ink-2);font-weight:600;font-size:13.5px}
-td.empty{display:table-cell}
+td.empty{display:table-cell;text-align:center}td.empty>*{display:block;margin-left:auto;margin-right:auto}td.empty>b{margin-top:6px}
 details.acc summary{cursor:pointer;font-weight:600;padding:8px 0;list-style:none;display:flex;align-items:center;gap:8px;font-size:13.5px}
 details.acc summary::-webkit-details-marker{display:none}
 details.acc summary::before{content:"";width:7px;height:7px;border-right:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);transform:rotate(-45deg);transition:transform var(--t-fast)}
