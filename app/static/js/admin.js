@@ -167,18 +167,19 @@
   }
 
   // ---------- product form: warranty defaults by condition ----------
-  const cond = document.querySelector('select[name="condition"]');
-  if (cond) {
+  const conds = [...document.querySelectorAll('#product-form [name="condition"]')];
+  if (conds.length) {
     const defaults = { new: [12, 36], used: [6, 0], refresh: [6, 0] };
     const sw = document.querySelector('input[name="seller_warranty_months"]'), fw = document.querySelector('input[name="factory_warranty_months"]');
     [sw, fw].forEach((i) => i && i.addEventListener('input', () => i.dataset.touched = '1'));
-    cond.addEventListener('change', () => {
+    const cond = { get value() { const c = conds.find((x) => x.checked); return c ? c.value : conds[0].value; } };
+    conds.forEach((c) => c.addEventListener('change', () => {
       const d = defaults[cond.value]; if (!d) return;
       if (sw && !sw.dataset.touched) sw.value = d[0]; if (fw && !fw.dataset.touched) fw.value = d[1];
       const lbl = document.getElementById('label-model-row'); if (lbl) lbl.hidden = cond.value !== 'refresh';
       const note = document.getElementById('warranty-autofill'); if (note) note.hidden = false;
       markDirty();
-    });
+    }));
   }
 
   // ---------- auction form live preview ----------
