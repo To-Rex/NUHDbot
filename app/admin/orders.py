@@ -30,6 +30,15 @@ from app.services import audit, media, notifications
 from app.services import orders as osvc
 
 EDITABLE_ITEMS = (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE)
+# List tabs mirror the 7-stage journey shown on the order page.
+STAGE_GROUPS: dict[str, tuple[OrderStatus, ...]] = {
+    "g_order": (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN),
+    "g_advance": (OrderStatus.AWAITING_ADVANCE, OrderStatus.ADVANCE_CONFIRMED),
+    "g_test": (OrderStatus.TESTING, OrderStatus.TEST_READY, OrderStatus.AWAITING_CUSTOMER),
+    "g_balance": (OrderStatus.AWAITING_BALANCE, OrderStatus.PAID),
+    "g_ship": (OrderStatus.PACKING, OrderStatus.SHIPPED, OrderStatus.DELIVERED),
+    "disputed": (OrderStatus.DISPUTED,),
+}
 
 
 @router.get("/orders")
@@ -41,6 +50,8 @@ async def orders_list(request: Request, db: DB, staff: User = Depends(staff_dep(
         stmt = stmt.where(Order.status.in_(ACTIVE_ORDER_STATUSES))
     elif status == "closed":
         stmt = stmt.where(Order.status.not_in(ACTIVE_ORDER_STATUSES))
+    elif status in STAGE_GROUPS:
+        stmt = stmt.where(Order.status.in_(STAGE_GROUPS[status]))
     elif status in [s.value for s in OrderStatus]:
         stmt = stmt.where(Order.status == OrderStatus(status))
     if q.get("payments") == "pending":
@@ -67,7 +78,9 @@ async def orders_list(request: Request, db: DB, staff: User = Depends(staff_dep(
     counts = dict((await db.execute(select(Order.status, func.count()).group_by(Order.status))).all())
     countries = [c for (c,) in (await db.execute(select(Order.country).where(Order.country.is_not(None)).distinct().order_by(Order.country))).all()]
     pending_ids = {oid for (oid,) in (await db.execute(select(Payment.order_id).where(Payment.status == PaymentStatus.PENDING).distinct())).all()}
-    tabs = [("", sum(counts.values())), ("active", sum(v for k, v in counts.items() if k in ACTIVE_ORDER_STATUSES)), ("awaiting_admin", counts.get(OrderStatus.AWAITING_ADMIN, 0)), ("awaiting_advance", counts.get(OrderStatus.AWAITING_ADVANCE, 0)), ("testing", counts.get(OrderStatus.TESTING, 0)), ("awaiting_balance", counts.get(OrderStatus.AWAITING_BALANCE, 0)), ("paid", counts.get(OrderStatus.PAID, 0)), ("packing", counts.get(OrderStatus.PACKING, 0)), ("shipped", counts.get(OrderStatus.SHIPPED, 0)), ("closed", sum(v for k, v in counts.items() if k not in ACTIVE_ORDER_STATUSES))]
+    tabs = [("", sum(counts.values())), ("active", sum(v for k, v in counts.items() if k in ACTIVE_ORDER_STATUSES))]
+    tabs += [(g, sum(counts.get(st, 0) for st in members)) for g, members in STAGE_GROUPS.items()]
+    tabs.append(("closed", sum(v for k, v in counts.items() if k not in ACTIVE_ORDER_STATUSES)))
     return render(request, staff, "admin/orders/list.html", {"page_title": t(staff.lang, "admin.ord.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "tabs": tabs, "status": status or "", "statuses": list(OrderStatus), "badges": await nav_badges(db), "countries": countries, "pending_ids": pending_ids})
 
 

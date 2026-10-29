@@ -2,7 +2,7 @@
 {% set qp = request.query_params %}
 {% block topbar_actions %}<span class="faint small">{{ total }} {{ t('admin.ord.items_count') }}</span>{% endblock %}
 {% block content %}
-<div class="tabs">{% for key, n in tabs %}<a href="?status={{ key }}" class="{{ 'active' if status==key }}">{{ t('admin.all') if key=='' else (t('admin.ord.active') if key=='active' else (t('admin.ord.closed') if key=='closed' else t('order_status.' ~ key))) }}<span class="cnt">{{ n }}</span></a>{% endfor %}</div>
+<div class="tabs">{% for key, n in tabs %}<a href="?status={{ key }}" class="{{ 'active' if status==key }}">{{ t('admin.all') if key=='' else (t('admin.ord.active') if key=='active' else (t('admin.ord.closed') if key=='closed' else (t('admin.ord.stage_' ~ key[2:]) if key.startswith('g_') else t('order_status.' ~ key)))) }}<span class="cnt">{{ n }}</span></a>{% endfor %}</div>
 <form class="toolbar" method="get"><input type="hidden" name="status" value="{{ status }}">
   <label class="search">{{ icon('search', 16) }}<input class="input" name="q" placeholder="{{ t('admin.search') }} — {{ t('admin.ord.number') }}, {{ t('admin.phone') }}, {{ t('admin.name') }}" value="{{ qp.get('q','') }}"></label>
   <select class="select" name="country" onchange="this.form.submit()"><option value="">{{ t('admin.ord.filter_country') }}: {{ t('admin.all') }}</option>{% for c in countries %}<option value="{{ c }}" {{ 'selected' if qp.get('country')==c }}>{{ t('country.' ~ c) }}</option>{% endfor %}</select>
