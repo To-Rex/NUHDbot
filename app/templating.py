@@ -144,3 +144,21 @@ def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | 
     ctx["t"] = lambda key, **kw: t(lang, key, **kw)
     ctx["p"] = lambda value: pick(value, lang)
     return templates.TemplateResponse(request, name, ctx, status_code=status_code, headers=headers)
+
+
+_asset_cache: dict[str, str] = {}
+
+
+def asset(path: str) -> str:
+    """Versioned static URL: /static/<path>?v=<mtime>. Prevents stale CSS/JS after deploys."""
+    if settings.debug or path not in _asset_cache:
+        f = APP_DIR / "static" / path
+        try:
+            v = str(int(f.stat().st_mtime))
+        except OSError:
+            v = "0"
+        _asset_cache[path] = f"/static/{path}?v={v}"
+    return _asset_cache[path]
+
+
+env.globals["asset"] = asset

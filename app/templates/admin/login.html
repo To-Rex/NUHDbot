@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light dark"><title>{{ t('admin.login_title') }} · {{ app_name }}</title>
 <link rel="icon" href="/static/img/logo.svg">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Golos+Text:wght@400;500;600&display=swap"><link rel="stylesheet" href="/static/css/admin.css?v=3"></head>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Golos+Text:wght@400;500;600&display=swap"><link rel="stylesheet" href="{{ asset('css/tokens.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin.css') }}"></head>
 <body><div class="login-wrap"><form class="card login-card stack" method="post" action="/admin/login">
   <div class="login-brand"><img src="/static/img/logo.svg" alt=""><div><div class="t">{{ app_name }}</div><div class="s">{{ t('admin.login_title') }}</div></div></div>
   <h1 style="font-size:20px">{{ t('admin.login_welcome') }}</h1>

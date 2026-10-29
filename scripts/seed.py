@@ -166,12 +166,8 @@ def _demo_image(brand: str, model: str, capacity: str, idx: int) -> dict:
     c1, c2 = BRAND_COLORS.get(brand, ("#334155", "#94a3b8"))
     img = Image.new("RGB", (size, size), c1)
     d = ImageDraw.Draw(img)
-    for y in range(size):
-        t = y / size
-        r = int(int(c1[1:3], 16) * (1 - t) + int(c2[1:3], 16) * t)
-        g = int(int(c1[3:5], 16) * (1 - t) + int(c2[3:5], 16) * t)
-        b = int(int(c1[5:7], 16) * (1 - t) + int(c2[5:7], 16) * t)
-        d.line([(0, y), (size, y)], fill=(r, g, b))
+    # flat brand-coloured background with a lighter inset frame (no gradients, by design rule)
+    d.rounded_rectangle((28, 28, size - 28, size - 28), radius=36, outline=c2, width=3)
     # stylised drive
     d.rounded_rectangle((150, 120, 650, 680), radius=40, fill=(20, 24, 36), outline=(255, 255, 255), width=4)
     d.ellipse((230, 220, 570, 560), fill=(60, 66, 84), outline=(200, 205, 220), width=6)

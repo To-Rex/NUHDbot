@@ -1,4 +1,3 @@
-@import url("tokens.css");
 /* ===== New & Used Hard Drives — admin panel =====
    Calm back-office UI on the shared token system: solid surfaces, hairlines, one accent, flat colour only. */
 :root{--sb-w:248px;--sb-w-min:72px;--top-h:60px;--r:12px;--r-lg:14px;--font-display:"Manrope","Golos Text",system-ui,sans-serif;--shadow-pop:0 12px 32px rgba(16,20,28,.16),0 2px 6px rgba(16,20,28,.08)}
@@ -38,6 +37,8 @@ img{max-width:100%}
 .sb-ctl .select{height:32px;font-size:12px;padding:0 26px 0 8px;border-radius:9px;flex:1;min-width:0}
 .sb-ctl .icon-btn{flex:0 0 auto}
 
+.scrim{display:none;position:fixed;inset:0;background:var(--scrim);z-index:55}
+.scrim.show{display:block}
 .main{min-width:0;display:flex;flex-direction:column}
 .topbar{position:sticky;top:0;z-index:30;height:var(--top-h);display:flex;align-items:center;gap:10px;padding:0 20px;background:var(--glass-bg-strong);-webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--hairline)}
 @supports not (backdrop-filter:blur(1px)){.topbar{background:var(--surface)}}
@@ -405,7 +406,6 @@ dialog.dlg::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(2px);b
   .sb-item .cnt{position:static;margin-left:auto;min-width:20px;height:20px;font-size:11px}
   .sb-group{border-top:0;margin-top:10px}
   .sb-ctl{flex-direction:row}
-  .scrim{display:none;position:fixed;inset:0;background:var(--scrim);z-index:55}
   .menu-btn{display:inline-grid}
   .topbar{padding:0 12px;gap:8px}
   .crumbs{display:none}

@@ -8,7 +8,8 @@
 <link rel="icon" href="/static/img/logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap">
-<link rel="stylesheet" href="/static/css/admin.css?v=3">
+<link rel="stylesheet" href="{{ asset('css/tokens.css') }}">
+<link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 <script src="/static/js/htmx.min.js" defer></script>
 <script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }}};</script>
 {% block head %}{% endblock %}
@@ -72,7 +73,7 @@
   </form>
 </dialog>
 <div class="toasts"></div>
-<script src="/static/js/admin.js?v=3" defer></script>
+<script src="{{ asset('js/admin.js') }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>
