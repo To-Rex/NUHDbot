@@ -295,7 +295,11 @@
       "stage_delivered": "Delivered",
       "stage_done": "Done",
       "other_status": "Move to another status",
-      "change_status_text": "Pick the new status — the customer is notified."
+      "change_status_text": "Pick the new status — the customer is notified.",
+      "stepper_hint": "Click a stage to change the status",
+      "jump_group": "Move to another stage (admin)",
+      "jump_hint": "Skipping steps requires a reason. Stock figures are not touched.",
+      "jump_needs_reason": "Only an admin can move to this stage, with a reason"
     },
     "auc": {
       "title": "Auctions",

@@ -295,7 +295,11 @@
       "stage_delivered": "Yetkazildi",
       "stage_done": "Yakun",
       "other_status": "Boshqa holatga o'tkazish",
-      "change_status_text": "Yangi holatni tanlang — mijozga xabar boradi."
+      "change_status_text": "Yangi holatni tanlang — mijozga xabar boradi.",
+      "stepper_hint": "Bosqichni bosib holatni o'zgartirish mumkin",
+      "jump_group": "Boshqa bosqichga o'tkazish (admin)",
+      "jump_hint": "Navbatdagi qadamni tashlab o'tish — sabab yozish shart. Ombor hisobi o'zgarmaydi.",
+      "jump_needs_reason": "Bu bosqichga faqat admin sabab bilan o'tkaza oladi"
     },
     "auc": {
       "title": "Auksionlar",

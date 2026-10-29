@@ -162,8 +162,12 @@ async def order_status(oid: int, request: Request, db: DB, staff: User = Depends
         raise HTTPException(403)
     if to == OrderStatus.SHIPPED and o.paid_amount < Decimal(o.total or 0):
         return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.need_full_payment"), "bad")
+    allowed = osvc.allowed_transitions(o, is_admin=staff.is_admin)
+    jump = to not in allowed and to != o.status
+    if jump and not (staff.is_admin and note):
+        return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.jump_needs_reason"), "bad")
     try:
-        await osvc.transition(db, o, to, by=staff, note=note)
+        await osvc.transition(db, o, to, by=staff, note=note, force=jump)
     except osvc.OrderError as e:
         return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.flash.error", e=e.code), "bad")
     await notifications.notify_order_status(db, o, o.user)

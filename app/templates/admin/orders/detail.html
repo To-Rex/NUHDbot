@@ -6,7 +6,7 @@
 {# which of the 7 stages the order is in #}
 {% set stage_of = {'new':1,'awaiting_admin':1,'awaiting_advance':2,'advance_confirmed':2,'testing':3,'test_ready':3,'awaiting_customer':3,'awaiting_balance':4,'paid':4,'packing':5,'shipped':5,'delivered':6,'completed':7} %}
 {% set stage = stage_of.get(st, 0) %}
-{% set stages = [('stage_order','package'),('stage_advance','wallet'),('stage_test','drive'),('stage_balance','money'),('stage_ship','truck'),('stage_delivered','check'),('stage_done','check-circle')] %}
+{% set stages = [('stage_order','awaiting_admin'),('stage_advance','awaiting_advance'),('stage_test','testing'),('stage_balance','awaiting_balance'),('stage_ship','packing'),('stage_delivered','delivered'),('stage_done','completed')] %}
 {# role filter for the status dialog #}
 {% set ns = namespace(opts=[]) %}
 {% for s in transitions %}{% set v = s.value %}
@@ -19,14 +19,14 @@
 {% block topbar_actions %}
 <a class="btn btn-secondary btn-sm" href="/admin/orders">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>
 {% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-secondary btn-sm" href="/admin/support?user={{ o.user_id }}">{{ icon('message', 15) }}{{ t('admin.nav.support') }}</a>{% endif %}
-{% if ns.opts %}<button type="button" class="btn btn-secondary btn-sm" id="status-open">{{ icon('refresh', 15) }}{{ t('admin.ord.change_status') }}</button>{% endif %}
+{% if ns.opts or staff.is_admin %}<button type="button" class="btn btn-secondary btn-sm" id="status-open">{{ icon('refresh', 15) }}{{ t('admin.ord.change_status') }}</button>{% endif %}
 {% endblock %}
 {% block content %}
 {# ---------- journey ---------- #}
 {% if trouble %}
 <div class="notice notice-bad mb">{{ icon('alert', 18) }}<span><b>{{ t('order_status.' ~ st) }}.</b> {{ t('admin.nexthelp.' ~ st) }}</span></div>
 {% else %}
-<ol class="stepper mb">{% for key, ico in stages %}{% set n = loop.index %}<li class="{{ 'done' if n < stage else ('cur' if n == stage) }}"><span class="dot">{% if n < stage %}{{ icon('check', 12) }}{% else %}{{ n }}{% endif %}</span><span class="lbl">{{ t('admin.ord.' ~ key) }}</span></li>{% endfor %}</ol>
+<ol class="stepper mb" title="{{ t('admin.ord.stepper_hint') }}">{% for key, target in stages %}{% set n = loop.index %}<li class="{{ 'done' if n < stage else ('cur' if n == stage) }}"><button type="button" data-stage-status="{{ target }}" {{ 'disabled' if n == stage }}><span class="dot">{% if n < stage %}{{ icon('check', 12) }}{% else %}{{ n }}{% endif %}</span><span class="lbl">{{ t('admin.ord.' ~ key) }}</span></button></li>{% endfor %}</ol>
 {% endif %}
 
 {# ---------- next step ---------- #}
@@ -47,7 +47,7 @@
       {% elif st == 'disputed' %}{{ trans(OrderStatus.COMPLETED, t('admin.ord.mark_completed'), 'btn-ok', True) }}{{ trans(OrderStatus.RETURNED, t('order_status.returned'), 'btn-warn', True) }}{{ trans(OrderStatus.CANCELLED, t('admin.ord.cancel_order'), 'btn-danger', True) }}
       {% endif %}
       {% if st == 'awaiting_customer' and can(roles.SUPPORT_ROLES) %}<a class="btn btn-lg btn-secondary" href="/admin/support?user={{ o.user_id }}">{{ icon('message', 18) }}{{ t('admin.nav.support') }}</a>{% endif %}
-      {% if ns.opts %}<button type="button" class="btn btn-lg btn-ghost" data-status-open>{{ icon('refresh', 18) }}{{ t('admin.ord.other_status') }}</button>{% endif %}
+      {% if ns.opts or staff.is_admin %}<button type="button" class="btn btn-lg btn-ghost" data-status-open>{{ icon('refresh', 18) }}{{ t('admin.ord.other_status') }}</button>{% endif %}
     </div></div>
 </section>
 
@@ -173,7 +173,7 @@
 </div>
 
 {# ---------- status dialog ---------- #}
-{% if ns.opts %}
+{% if ns.opts or staff.is_admin %}
 <dialog class="dlg" id="status-dlg">
   <form method="post" action="/admin/orders/{{ o.id }}/status" id="status-form"><input type="hidden" name="_csrf" value="{{ csrf }}">
     <div class="dlg-body">
@@ -182,6 +182,9 @@
         {% for s in ns.opts if s.value not in ('cancelled','disputed','returned') %}
         <label class="opt"><input type="radio" name="to_status" value="{{ s.value }}" required><span class="opt-dot"></span><span><b>{{ t('order_status.' ~ s.value) }}</b><small>{{ t('admin.next.' ~ s.value) }}</small></span></label>
         {% endfor %}
+        {% if staff.is_admin %}{% set jump = [] %}{% for s in OrderStatus if s not in ns.opts and s != o.status and s.value not in ('new','cancelled','disputed','returned') %}{% set _ = jump.append(s) %}{% endfor %}
+        {% if jump %}<details class="acc" id="jump-group"><summary>{{ t('admin.ord.jump_group') }}</summary><p class="hint mb-sm">{{ t('admin.ord.jump_hint') }}</p>
+        {% for s in jump %}<label class="opt jump"><input type="radio" name="to_status" value="{{ s.value }}" data-needs-note required><span class="opt-dot"></span><span><b>{{ t('order_status.' ~ s.value) }}</b><small>{{ t('admin.next.' ~ s.value) }}</small></span></label>{% endfor %}</details>{% endif %}{% endif %}
         {% set danger = ns.opts|selectattr('value','in',('cancelled','disputed','returned'))|list %}
         {% if danger %}<div class="eyebrow mt" style="margin-top:14px">{{ t('admin.ord.dangerous') }}</div>
         {% for s in danger %}<label class="opt danger"><input type="radio" name="to_status" value="{{ s.value }}" data-needs-note required><span class="opt-dot"></span><span><b>{{ t('order_status.' ~ s.value) }}</b><small>{{ t('admin.next.' ~ s.value) }}</small></span></label>{% endfor %}{% endif %}
@@ -196,6 +199,7 @@
   var dlg=document.getElementById('status-dlg'), form=document.getElementById('status-form'), note=form.querySelector('[name="note"]'), req=form.querySelector('[data-note-req]'), submit=document.getElementById('status-submit');
   function open(){ dlg.showModal(); }
   document.querySelectorAll('#status-open,[data-status-open]').forEach(function(b){ b.addEventListener('click',open); });
+  document.querySelectorAll('[data-stage-status]').forEach(function(b){ b.addEventListener('click',function(){ var r=form.querySelector('[name="to_status"][value="'+b.dataset.stageStatus+'"]'); if(r){ r.checked=true; var g=r.closest('details'); if(g) g.open=true; form.dispatchEvent(new Event('change')); } open(); if(r) r.scrollIntoView({block:'nearest'}); }); });
   dlg.querySelectorAll('[data-status-close]').forEach(function(b){ b.addEventListener('click',function(){ dlg.close(); }); });
   form.addEventListener('change',function(e){ var r=form.querySelector('[name="to_status"]:checked'); var need=!!(r&&r.hasAttribute('data-needs-note')); req.hidden=!need; note.required=need; submit.className='btn '+(need?'btn-danger':'btn-primary'); });
   form.addEventListener('submit',function(e){ if(note.required&&!note.value.trim()){ e.preventDefault(); note.classList.add('invalid'); note.focus(); } });

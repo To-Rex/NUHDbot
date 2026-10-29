@@ -295,7 +295,11 @@
       "stage_delivered": "已送达",
       "stage_done": "完成",
       "other_status": "切换到其他状态",
-      "change_status_text": "选择新状态，客户会收到通知。"
+      "change_status_text": "选择新状态，客户会收到通知。",
+      "stepper_hint": "点击阶段可更改状态",
+      "jump_group": "切换到其他阶段（管理员）",
+      "jump_hint": "跳过步骤需填写原因，库存数据不变。",
+      "jump_needs_reason": "只有管理员可跳转到该阶段，且需填写原因"
     },
     "auc": {
       "title": "拍卖",
