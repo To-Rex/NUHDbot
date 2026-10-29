@@ -103,7 +103,7 @@
       "model": "Model (real)",
       "label_model": "Label model (Refresh)",
       "series": "Series",
-      "capacity": "Capacity (GB)",
+      "capacity": "Capacity",
       "interface": "Interface",
       "form_factor": "Form factor",
       "condition": "Condition",
@@ -184,7 +184,15 @@
       "empty_text": "Add the first product by hand or load the sample catalogue. Sample products and images are marked “SAMPLE” and can be deleted or edited later.",
       "load_samples": "Load sample catalogue",
       "samples_loaded": "Sample catalogue loaded — 14 products added",
-      "samples_exist": "Catalogue is not empty, samples were not loaded"
+      "samples_exist": "Catalogue is not empty, samples were not loaded",
+      "capacity_hint": "1 TB = 1000 GB. Decimals allowed: 1.5",
+      "model_placeholder": "Pick or type…",
+      "model_hint": "Previously entered models are suggested. Just type a new one — it joins the list after saving.",
+      "model_new": "new model",
+      "model_same_brand": "This brand",
+      "model_other_brands": "Other brands",
+      "model_none": "No match — will be saved as new",
+      "prefilled": "Filled from the previous {m} product: capacity, interface, form factor. Adjust if needed."
     },
     "ord": {
       "title": "Orders",

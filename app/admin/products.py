@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import Response
@@ -50,7 +51,35 @@ async def _form_ctx(db, p: Product | None = None) -> dict:
         own = await brand_service.get_brand(db, p.brand_id)
         if own:
             brands.append(own)
-    return {"brands": brands, "series_map": {b.id: b.series for b in brands}, "capacities": await capacity_presets(db), **_ctx_lists()}
+    return {"brands": brands, "series_map": {b.id: b.series for b in brands}, "capacities": await capacity_presets(db), "models": await known_models(db), **_ctx_lists()}
+
+
+async def known_models(db) -> list[dict]:
+    """Distinct real models already entered, newest first, with the specs of their latest product (for autocomplete + prefill)."""
+    rows = (await db.execute(select(Product.brand_id, Product.model, Product.capacity_gb, Product.interface, Product.form_factor, Product.rpm, Product.cache_mb, Product.series).order_by(Product.updated_at.desc(), Product.id.desc()))).all()
+    seen, out = set(), []
+    for brand_id, model, cap, iface, ff, rpm, cache, series in rows:
+        key = (brand_id, model.strip().upper())
+        if not model.strip() or key in seen:
+            continue
+        seen.add(key)
+        out.append({"b": brand_id, "m": model.strip(), "cap": cap, "if": iface.value, "ff": ff.value, "rpm": rpm, "cache": cache, "series": series})
+    return out
+
+
+def parse_capacity(form) -> int:
+    """Capacity entered as value + unit (TB default, 1 TB = 1000 GB); legacy plain `capacity_gb` still accepted. Returns 0 when invalid."""
+    raw = (form.get("capacity_value") or "").strip().replace(",", ".")
+    if not raw:
+        return f_int(form, "capacity_gb", 0) or 0
+    try:
+        value = Decimal(raw)
+    except InvalidOperation:
+        return 0
+    if value <= 0:
+        return 0
+    gb = value * (1000 if (form.get("capacity_unit") or "tb").lower() == "tb" else 1)
+    return int(gb.to_integral_value(rounding=ROUND_HALF_UP)) if gb <= 1_000_000 else 0
 
 
 @router.get("/products")
@@ -96,7 +125,7 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
     p.label_model = f_opt(form, "label_model", 120)
     series_sel = (form.get("series_select") or "").strip()
     p.series = (f_opt(form, "series", 60) if series_sel in ("", "__other__") else series_sel[:60]) or None
-    p.capacity_gb = f_int(form, "capacity_gb", 0) or 0
+    p.capacity_gb = parse_capacity(form)
     if p.capacity_gb <= 0:
         errors.append("capacity_gb")
     p.interface = Interface(form.get("interface") or "SATA")

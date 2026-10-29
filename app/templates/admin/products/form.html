@@ -4,6 +4,7 @@
 {% block heading %}{% if is_new %}{{ t('admin.prod.new') }}{% else %}{{ prod.brand }} {{ prod.model }} <span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span>{% endif %}{% endblock %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/products">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% if not is_new %}<a class="btn btn-secondary btn-sm" href="/app/products/{{ prod.id }}" target="_blank">{{ icon('external', 15) }}{{ t('admin.prod.in_app') }}</a>{% if can(roles.AUCTION_EDIT_ROLES) %}<a class="btn btn-secondary btn-sm" href="/admin/auctions/new?product_id={{ prod.id }}">{{ icon('gavel', 15) }}{{ t('admin.auc.new') }}</a>{% endif %}{% endif %}{% endblock %}
 {% block content %}
+<div class="notice notice-info mb" id="prefill-note" hidden>{{ icon('info', 18) }}<span data-tpl="{{ t('admin.prod.prefilled') }}"></span></div>
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ t('admin.required') }}: {{ errors|join(', ') }}</span></div>{% endif %}
 <div class="split">
 <div class="stack">
@@ -19,11 +20,27 @@
         </select>
         <input class="input mt-sm" name="brand_other" id="brand-other" value="{{ prod.brand if (prod.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not prod.brand %}hidden{% endif %} {{ dis }}>
         <span class="hint"><a href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></span></div>
-      <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label><input class="input mono" name="model" value="{{ prod.model }}" required {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label>
+        <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-other="{{ t('admin.prod.model_other_brands') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
+          <input class="input mono" name="model" id="model-input" value="{{ prod.model }}" placeholder="{{ t('admin.prod.model_placeholder') }}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="model-pop" required {{ dis }}>
+          <button type="button" class="combo-toggle" id="model-toggle" tabindex="-1" aria-label="▾" {{ dis }}>{{ icon('chevron-down', 16) }}</button>
+          <div class="combo-pop" id="model-pop" role="listbox" hidden></div>
+        </div>
+        <span class="hint" id="model-hint">{{ t('admin.prod.model_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.prod.series') }}</label>
         <select class="select" name="series_select" id="series-select" {{ dis }}><option value="">{{ t('admin.brands.series_none') }}</option><option value="__other__">{{ t('admin.brands.series_other') }}</option></select>
         <input class="input mt-sm" name="series" id="series-other" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.capacity') }} <span class="req">*</span></label><input class="input mono" type="number" name="capacity_gb" value="{{ prod.capacity_gb }}" min="1" list="caps" required {{ dis }}><datalist id="caps">{% for g in capacities %}<option value="{{ g }}">{% endfor %}</datalist></div>
+      {% set cap_tb = prod.capacity_gb >= 1000 and prod.capacity_gb % 100 == 0 %}
+      <div class="field"><label>{{ t('admin.prod.capacity') }} <span class="req">*</span></label>
+        <div class="unit-input" id="cap-wrap" data-presets='{{ capacities|tojson }}'>
+          <input class="input mono" type="number" name="capacity_value" id="cap-value" value="{{ (prod.capacity_gb / 1000)|round(2)|string|replace('.0','') if cap_tb else prod.capacity_gb }}" min="0.01" step="any" inputmode="decimal" list="caps" required {{ dis }}>
+          <div class="seg" role="radiogroup">
+            <label class="seg-opt"><input type="radio" name="capacity_unit" value="tb" {{ 'checked' if cap_tb }} {{ dis }}><span>TB</span></label>
+            <label class="seg-opt"><input type="radio" name="capacity_unit" value="gb" {{ 'checked' if not cap_tb }} {{ dis }}><span>GB</span></label>
+          </div>
+          <datalist id="caps"></datalist>
+        </div>
+        <span class="hint">{{ t('admin.prod.capacity_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
@@ -123,6 +140,50 @@
   function onBrand(init){ var other=bs.value==='__other__'; bo.hidden=!other; if(!other&&!init) bo.value=''; fillSeries(init); }
   bs.addEventListener('change',function(){onBrand(false);}); ss.addEventListener('change',function(){ if(ss.value==='__other__'){so.hidden=false; so.focus();} else {so.hidden=true; so.value=ss.value;} });
   onBrand(true);
+})();
+(function(){
+  /* model combobox: pick an existing model or type a new one; picking prefills specs on a new product */
+  var box=document.getElementById('model-combo'), inp=document.getElementById('model-input'), pop=document.getElementById('model-pop'), tog=document.getElementById('model-toggle'), bs=document.getElementById('brand-select');
+  if(!box||inp.disabled) return; var all=[]; try{all=JSON.parse(box.dataset.models||'[]')}catch(e){}
+  var L=box.dataset, sel=-1, items=[];
+  function brandId(){ var v=bs&&bs.value; return /^\d+$/.test(v||'')?parseInt(v,10):null; }
+  function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function mark(name,q){ if(!q) return esc(name); var i=name.toLowerCase().indexOf(q.toLowerCase()); if(i<0) return esc(name); return esc(name.slice(0,i))+'<b>'+esc(name.slice(i,i+q.length))+'</b>'+esc(name.slice(i+q.length)); }
+  function cap(gb){ return gb>=1000?((gb%1000?(gb/1000).toFixed(1):gb/1000)+' TB'):gb+' GB'; }
+  function build(q){ var b=brandId(), same=[], other=[], ql=q.toLowerCase();
+    all.forEach(function(m){ if(ql&&m.m.toLowerCase().indexOf(ql)<0) return; (b!==null&&m.b===b?same:other).push(m); });
+    if(b===null){ other=same.concat(other); same=[]; }
+    items=same.concat(other).slice(0,60); sel=-1; var h='';
+    function grp(lbl,arr,off){ if(!arr.length) return; if(b!==null) h+='<div class="grp"><span>'+esc(lbl)+'</span></div>'; arr.forEach(function(m,i){ h+='<div class="opt" role="option" data-i="'+(off+i)+'"><span class="mono">'+mark(m.m,q)+'</span><span class="m">'+cap(m.cap)+' · '+esc(m.if)+' '+esc(m.ff)+'"'+(m.series?' · '+esc(m.series):'')+'</span></div>'; }); }
+    grp(L.lSame,same,0); grp(L.lOther,other.slice(0,60-same.length),same.length);
+    if(!items.length) h='<div class="none">'+esc(q?L.lNone:'—')+'</div>';
+    pop.innerHTML=h; }
+  function open(){ build(inp.value.trim()); pop.hidden=false; inp.setAttribute('aria-expanded','true'); }
+  function close(){ pop.hidden=true; inp.setAttribute('aria-expanded','false'); sel=-1; }
+  function setField(name,val){ var el=document.querySelector('#product-form [name="'+name+'"]'); if(!el||val===null||val===undefined||val==='') return; el.value=String(val); el.dispatchEvent(new Event('change',{bubbles:true})); el.dispatchEvent(new Event('input',{bubbles:true})); }
+  function pick(i){ var m=items[i]; if(!m) return; inp.value=m.m; inp.dispatchEvent(new Event('input',{bubbles:true})); close();
+    if(L.prefill==='on'){ var cv=document.getElementById('cap-value'), unit=document.querySelector('[name="capacity_unit"][value="'+(m.cap>=1000&&m.cap%100===0?'tb':'gb')+'"]');
+      if(unit){unit.checked=true; unit.dispatchEvent(new Event('change',{bubbles:true}));} if(cv){ cv.value=m.cap>=1000&&m.cap%100===0?String(m.cap/1000):String(m.cap); cv.dispatchEvent(new Event('input',{bubbles:true})); }
+      setField('interface',m.if); setField('form_factor',m.ff); setField('rpm',m.rpm); setField('cache_mb',m.cache);
+      if(m.series){ var so=document.getElementById('series-other'), ss=document.getElementById('series-select'); if(ss){ var has=Array.prototype.some.call(ss.options,function(o){return o.value===m.series;}); ss.value=has?m.series:'__other__'; ss.dispatchEvent(new Event('change',{bubbles:true})); } if(so){so.value=m.series;} }
+      var note=document.getElementById('prefill-note'); if(note){ var sp=note.querySelector('span'); sp.textContent=sp.dataset.tpl.replace('{m}',m.m); note.hidden=false; note.scrollIntoView({block:'nearest',behavior:'smooth'}); } }
+    inp.focus(); }
+  function move(d){ var opts=pop.querySelectorAll('.opt'); if(!opts.length) return; sel=(sel+d+opts.length)%opts.length; opts.forEach(function(o,i){o.classList.toggle('sel',i===sel);}); opts[sel].scrollIntoView({block:'nearest'}); }
+  inp.addEventListener('input',open); inp.addEventListener('focus',function(){ if(!inp.value) open(); });
+  inp.addEventListener('keydown',function(e){ if(e.key==='ArrowDown'){ if(pop.hidden) open(); move(1); e.preventDefault(); } else if(e.key==='ArrowUp'){ move(-1); e.preventDefault(); } else if(e.key==='Enter'&&!pop.hidden&&sel>=0){ pick(parseInt(pop.querySelectorAll('.opt')[sel].dataset.i,10)); e.preventDefault(); } else if(e.key==='Escape'){ close(); } });
+  pop.addEventListener('mousedown',function(e){ var o=e.target.closest('.opt'); if(o){ e.preventDefault(); pick(parseInt(o.dataset.i,10)); } });
+  tog.addEventListener('click',function(){ if(pop.hidden){ inp.focus(); open(); } else close(); });
+  document.addEventListener('click',function(e){ if(!box.contains(e.target)) close(); });
+  if(bs) bs.addEventListener('change',function(){ if(!pop.hidden) open(); });
+})();
+(function(){
+  /* capacity: number + TB/GB segmented unit; presets follow the unit */
+  var wrap=document.getElementById('cap-wrap'), v=document.getElementById('cap-value'), dl=document.getElementById('caps'); if(!wrap) return;
+  var presets=[]; try{presets=JSON.parse(wrap.dataset.presets||'[]')}catch(e){}
+  function unit(){ var r=wrap.querySelector('[name="capacity_unit"]:checked'); return r?r.value:'tb'; }
+  function fill(){ var u=unit(); dl.innerHTML=''; presets.forEach(function(g){ if(u==='tb'&&g<1000) return; var o=document.createElement('option'); o.value=u==='tb'?String(g/1000):String(g); dl.appendChild(o); }); v.step=u==='tb'?'0.01':'1'; }
+  wrap.querySelectorAll('[name="capacity_unit"]').forEach(function(r){ r.addEventListener('change',function(){ var n=parseFloat(v.value); if(!isNaN(n)&&n>0){ v.value=r.value==='tb'?String(Math.round(n)/1000):String(Math.round(n*1000)); } fill(); }); });
+  fill();
 })();
 </script>
 {% endblock %}

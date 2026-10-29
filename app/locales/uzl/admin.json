@@ -103,7 +103,7 @@
       "model": "Model (haqiqiy)",
       "label_model": "Yorliqdagi model (Refresh)",
       "series": "Seriya",
-      "capacity": "Sig'im (GB)",
+      "capacity": "Sig'im",
       "interface": "Interfeys",
       "form_factor": "Form-faktor",
       "condition": "Holat",
@@ -184,7 +184,15 @@
       "empty_text": "Birinchi mahsulotni qo'lda qo'shing yoki namuna katalogni yuklang. Namuna mahsulotlar va rasmlar «SAMPLE» deb belgilanadi, ularni keyin o'chirish yoki tahrirlash mumkin.",
       "load_samples": "Namuna katalogni yuklash",
       "samples_loaded": "Namuna katalog yuklandi — 14 ta mahsulot qo'shildi",
-      "samples_exist": "Katalog bo'sh emas, namuna yuklanmadi"
+      "samples_exist": "Katalog bo'sh emas, namuna yuklanmadi",
+      "capacity_hint": "1 TB = 1000 GB. O'nlik ham mumkin: 1.5",
+      "model_placeholder": "Tanlang yoki yozing…",
+      "model_hint": "Oldin kiritilgan modellar taklif etiladi. Yangisini shunchaki yozing — saqlangach ro'yxatga qo'shiladi.",
+      "model_new": "yangi model",
+      "model_same_brand": "Shu brend",
+      "model_other_brands": "Boshqa brendlar",
+      "model_none": "Mos model yo'q — yangisi sifatida saqlanadi",
+      "prefilled": "{m} bo'yicha oldingi mahsulotdan to'ldirildi: sig'im, interfeys, form-faktor. Kerak bo'lsa o'zgartiring."
     },
     "ord": {
       "title": "Buyurtmalar",

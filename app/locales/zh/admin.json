@@ -103,7 +103,7 @@
       "model": "型号（实际）",
       "label_model": "标签型号（Refresh）",
       "series": "系列",
-      "capacity": "容量（GB）",
+      "capacity": "容量",
       "interface": "接口",
       "form_factor": "尺寸",
       "condition": "成色",
@@ -184,7 +184,15 @@
       "empty_text": "请手动添加第一件商品，或加载示例目录。示例商品及图片均标注为“SAMPLE”，之后可删除或编辑。",
       "load_samples": "加载示例目录",
       "samples_loaded": "示例目录已加载，新增 14 件商品",
-      "samples_exist": "目录不为空，未加载示例"
+      "samples_exist": "目录不为空，未加载示例",
+      "capacity_hint": "1 TB = 1000 GB，可输入小数：1.5",
+      "model_placeholder": "选择或输入…",
+      "model_hint": "会提示已录入的型号。新型号直接输入，保存后加入列表。",
+      "model_new": "新型号",
+      "model_same_brand": "本品牌",
+      "model_other_brands": "其他品牌",
+      "model_none": "无匹配 — 将作为新型号保存",
+      "prefilled": "已按上次 {m} 商品填充：容量、接口、尺寸。如需请修改。"
     },
     "ord": {
       "title": "订单",
