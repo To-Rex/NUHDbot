@@ -42,6 +42,7 @@ from app.services import auctions as asvc
 from app.services import audit, media, notifications
 from app.services import brands as brand_service
 from app.services import orders as osvc
+from app.templating import capacity
 
 
 @router.get("/auctions")
@@ -152,7 +153,7 @@ async def auction_detail(aid: int, request: Request, db: DB, staff: User = Depen
     bids = await asvc.recent_bids(db, a.id, 100)
     deposits = (await db.execute(select(AuctionDeposit).where(AuctionDeposit.auction_id == a.id).order_by(AuctionDeposit.id.desc()))).scalars().all()
     result_order = await db.get(Order, a.result_order_id) if a.result_order_id else None
-    return render(request, staff, "admin/auctions/detail.html", {"page_title": f"🔨 {a.title} {a.capacity_gb}", "a": a, "bids": bids, "deposits": deposits, "result_order": result_order, "can_edit": can(staff, AUCTION_EDIT_ROLES), "can_pay": can(staff, PAYMENT_ROLES), **_ctx()})
+    return render(request, staff, "admin/auctions/detail.html", {"page_title": f"{a.title} {capacity(a.capacity_gb)}", "a": a, "bids": bids, "deposits": deposits, "result_order": result_order, "can_edit": can(staff, AUCTION_EDIT_ROLES), "can_pay": can(staff, PAYMENT_ROLES), **_ctx()})
 
 
 @router.get("/auctions/{aid}/bids")

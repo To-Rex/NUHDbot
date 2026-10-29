@@ -6,7 +6,7 @@
 {% block content %}
 <div class="notice notice-info mb" id="prefill-note" hidden>{{ icon('info', 18) }}<span data-tpl="{{ t('admin.prod.prefilled') }}"></span></div>
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ t('admin.required') }}: {{ errors|join(', ') }}</span></div>{% endif %}
-<div class="split">
+<div class="split form-split">
 <div class="stack">
 <form method="post" id="product-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection" id="s-basic"><h2>{{ t('admin.prod.sec_basic') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.prod.help_basic') }}</span></div>

@@ -1,18 +1,15 @@
 <tr id="prow-{{ prod.id }}" class="clickable" data-href="/admin/products/{{ prod.id }}">
-  <td>{% if can(roles.PRODUCT_EDIT_ROLES) %}<input type="checkbox" name="ids" value="{{ prod.id }}" form="bulk" aria-label="select">{% endif %}</td>
-  <td><img class="th" src="{{ prod.cover.thumb_url if prod.cover else '/static/img/placeholder.svg' }}" alt="" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'"></td>
-  <td><div class="row-main">{{ prod.brand }} {{ prod.model }}</div><div class="row-sub">{{ prod.series or '' }}{% if prod.label_model %} · <span style="color:var(--refresh-fg)">{{ t('common.label_model') }}: {{ prod.label_model }}</span>{% endif %}</div></td>
-  <td><span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span></td>
-  <td class="nowrap">{{ prod.capacity_gb|capacity }} · {{ prod.interface.value }} · {{ prod.form_factor.value }}"</td>
-  <td><span class="chip test-{{ prod.test_status.value }}">{{ t('test.' ~ prod.test_status.value) }}</span></td>
-  <td class="num bold mono">{{ prod.price|money(prod.currency) }}</td>
-  <td class="num"><span class="mono {{ 'bold' if prod.available>0 else 'faint' }}">{{ prod.available }}</span><div class="row-sub">{{ prod.stock }}{% if prod.reserved %} − {{ prod.reserved }}{% endif %}</div></td>
-  <td class="num mono">{{ prod.min_order }}{% if prod.box_qty %} <span class="faint">/ {{ prod.box_qty }}</span>{% endif %}</td>
-  <td class="small nowrap">{{ prod.seller_warranty_months }} / {{ prod.factory_warranty_months }} {{ t('common.months') }}</td>
-  <td class="nowrap">
+  <td class="sel">{% if can(roles.PRODUCT_EDIT_ROLES) %}<input type="checkbox" name="ids" value="{{ prod.id }}" form="bulk" aria-label="select">{% endif %}</td>
+  <td class="span" data-th="{{ t('admin.prod.brand') }} / {{ t('admin.prod.model') }}"><div class="row-nw"><img class="th" src="{{ prod.cover.thumb_url if prod.cover else '/static/img/placeholder.svg' }}" alt="" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'"><div class="flex1"><div class="row-main">{{ prod.brand }} {{ prod.model }}</div><div class="row-sub">{{ prod.capacity_gb|capacity }} · {{ prod.interface.value }} · {{ prod.form_factor.value }}"{% if prod.series %} · {{ prod.series }}{% endif %}{% if prod.label_model %} · <span style="color:var(--refresh-fg)">{{ t('common.label_model') }}: {{ prod.label_model }}</span>{% endif %}</div></div></div></td>
+  <td data-th="{{ t('admin.prod.condition') }}"><div class="row" style="gap:4px"><span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span><span class="chip test-{{ prod.test_status.value }}">{{ t('test.' ~ prod.test_status.value) }}</span></div></td>
+  <td data-th="{{ t('admin.prod.price') }}" class="num bold mono">{{ prod.price|money(prod.currency) }}</td>
+  <td data-th="{{ t('admin.prod.available') }}" class="num"><span class="mono {{ 'bold' if prod.available>0 else 'faint' }}">{{ prod.available }}</span><div class="row-sub">{{ prod.stock }}{% if prod.reserved %} − {{ prod.reserved }}{% endif %}</div></td>
+  <td data-th="{{ t('admin.prod.min_order') }} / {{ t('admin.prod.box_qty') }}" class="num mono hide-md">{{ prod.min_order }}{% if prod.box_qty %} <span class="faint">/ {{ prod.box_qty }}</span>{% endif %}</td>
+  <td data-th="{{ t('admin.prod.seller_warranty') }}" class="small nowrap hide-lg">{{ prod.seller_warranty_months }} / {{ prod.factory_warranty_months }} {{ t('common.months') }}</td>
+  <td data-th="{{ t('admin.actions') }}" class="nowrap span">
     {% if can(roles.PRODUCT_EDIT_ROLES) or staff.role.value == 'warehouse' %}
-    <button class="btn btn-xs {{ 'btn-ok' if prod.is_active else 'btn-secondary' }}" hx-post="/admin/products/{{ prod.id }}/toggle" hx-vals='{"field":"is_active"}' hx-target="#prow-{{ prod.id }}" hx-swap="outerHTML" title="{{ t('admin.prod.is_active') }}">{{ icon('eye' if prod.is_active else 'eye-off', 13) }}{{ t('admin.prod.visible') if prod.is_active else t('admin.prod.hidden') }}</button>
-    <button class="btn btn-xs {{ 'btn-ok' if prod.sale_allowed else 'btn-warn' }}" hx-post="/admin/products/{{ prod.id }}/toggle" hx-vals='{"field":"sale_allowed"}' hx-target="#prow-{{ prod.id }}" hx-swap="outerHTML" title="{{ t('admin.prod.sale_allowed') }}">{{ icon('cart', 13) }}{{ t('admin.prod.sale_on') if prod.sale_allowed else t('admin.prod.sale_off') }}</button>
+    <div class="row" style="gap:6px"><button class="btn btn-xs {{ 'btn-ok' if prod.is_active else 'btn-secondary' }}" hx-post="/admin/products/{{ prod.id }}/toggle" hx-vals='{"field":"is_active"}' hx-target="#prow-{{ prod.id }}" hx-swap="outerHTML" title="{{ t('admin.prod.is_active') }}">{{ icon('eye' if prod.is_active else 'eye-off', 13) }}{{ t('admin.prod.visible') if prod.is_active else t('admin.prod.hidden') }}</button>
+    <button class="btn btn-xs {{ 'btn-ok' if prod.sale_allowed else 'btn-warn' }}" hx-post="/admin/products/{{ prod.id }}/toggle" hx-vals='{"field":"sale_allowed"}' hx-target="#prow-{{ prod.id }}" hx-swap="outerHTML" title="{{ t('admin.prod.sale_allowed') }}">{{ icon('cart', 13) }}{{ t('admin.prod.sale_on') if prod.sale_allowed else t('admin.prod.sale_off') }}</button></div>
     {% else %}<span class="chip {{ 'chip-ok' if prod.is_active else 'chip-soft' }}">{{ t('admin.prod.visible') if prod.is_active else t('admin.prod.hidden') }}</span>{% endif %}
   </td>
 </tr>
