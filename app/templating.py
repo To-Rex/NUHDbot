@@ -85,7 +85,10 @@ env.filters.update(
     money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br,
     pick=lambda v, lang: pick(v, lang),
 )
+from app.services.storage import url as media_url  # noqa: E402
+
 env.globals.update(
+    media_url=media_url,
     settings=settings,
     app_name=settings.app_name,
     bot_username=settings.bot_username,

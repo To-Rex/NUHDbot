@@ -1,6 +1,6 @@
 """Customer ↔ admin chat through the bot (spec §24). Admin identity is never exposed."""
+import io
 import logging
-import secrets
 from pathlib import Path
 
 from aiogram import Bot, F, Router
@@ -15,7 +15,7 @@ from app.config import settings
 from app.enums import MessageKind
 from app.i18n import pick, t
 from app.models import SupportThread, User
-from app.services import notifications, support
+from app.services import media, notifications, support
 from app.services import orders as order_service
 from app.services.notifications import esc
 from app.services.settings_service import get_setting
@@ -97,9 +97,10 @@ async def _download(bot: Bot, file_id: str, size: int | None, suffix: str) -> st
         tg_file = await bot.get_file(file_id)
         if tg_file.file_size and tg_file.file_size > MAX_DL:
             return None
-        name = f"tg_{secrets.token_urlsafe(10)}{suffix}"
-        await bot.download(tg_file, destination=settings.upload_dir / name)
-        return name
+        buf = io.BytesIO()
+        await bot.download(tg_file, destination=buf)
+        meta = await media.save_bytes_image(buf.getvalue(), prefix="tg")
+        return meta["filename"]
     except Exception:  # noqa: BLE001
         log.exception("download failed")
         return None

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.enums import Condition, FormFactor, ImageKind, Interface, TestStatus
 from app.models.base import Base, TimestampMixin, str_enum, utcnow
+from app.services import storage  # noqa: I001
 
 
 class Product(Base, TimestampMixin):
@@ -98,11 +99,11 @@ class ProductImage(Base):
 
     @property
     def url(self) -> str:
-        return f"/static/uploads/{self.filename}"
+        return storage.url(self.filename)
 
     @property
     def thumb_url(self) -> str:
-        return f"/static/uploads/{self.thumb}"
+        return storage.url(self.thumb)
 
 
 class PriceHistory(Base):

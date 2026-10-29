@@ -8,7 +8,7 @@
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ t('admin.required') }}: {{ errors|join(', ') }}</span></div>{% endif %}
 <div class="split form-split">
 <div class="stack">
-<form method="post" id="product-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
+<form method="post" id="product-form" class="stack" data-track enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection" id="s-basic"><h2>{{ t('admin.prod.sec_basic') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.prod.help_basic') }}</span></div>
     <div class="form-grid">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
@@ -96,13 +96,22 @@
     </div>
   </section>
   {% endif %}
+  {% if is_new and not tester %}
+  <section class="fsection" id="s-media"><h2>{{ t('admin.prod.sec_media') }}</h2><div class="help">{{ icon('image', 16) }}<span>{{ t('admin.prod.images_new_hint') }}</span></div>
+    <div class="imgs mb" id="new-previews" hidden></div>
+    <div class="drop" data-for="new-images" data-no-submit>{{ icon('upload', 26) }}<span>{{ t('admin.prod.drop_here') }}</span><span class="hint">JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</span></div>
+    <div class="row mt-sm"><input id="new-images" type="file" name="images" accept="image/*" multiple hidden>
+      <label class="lbl">{{ t('admin.prod.kind') }}</label><select class="select sm" name="images_kind" style="width:auto"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select>
+      <span class="hint" id="new-images-count"></span></div>
+  </section>
+  {% endif %}
 </form>
 
 {% if not is_new and not tester %}
 <section class="fsection" id="s-media"><h2>{{ t('admin.prod.sec_media') }}</h2><div class="help">{{ icon('image', 16) }}<span>{{ t('admin.prod.help_media') }}</span></div>
   {% include "admin/products/_images.html" %}
 </section>
-{% elif is_new %}<div class="notice notice-info">{{ icon('image', 18) }}<span>{{ t('admin.prod.sec_media') }}: {{ t('admin.save') }} →</span></div>{% endif %}
+{% endif %}
 </div>
 
 <aside class="stack">
@@ -117,7 +126,7 @@
     {% if not is_new %}<div class="hint mt">#{{ prod.id }} · {{ t('admin.updated') }} {{ prod.updated_at|dt }}</div>{% endif %}
   </div>
   <nav class="form-nav card" style="padding:8px">
-    <a href="#s-basic">{{ t('admin.prod.sec_basic') }}</a><a href="#s-condition">{{ t('admin.prod.sec_condition') }}</a><a href="#s-price">{{ t('admin.prod.sec_price') }}</a><a href="#s-warranty">{{ t('admin.prod.sec_warranty') }}</a>{% if not tester %}<a href="#s-texts">{{ t('admin.prod.sec_texts') }}</a>{% endif %}{% if not is_new and not tester %}<a href="#s-media">{{ t('admin.prod.sec_media') }}</a>{% endif %}
+    <a href="#s-basic">{{ t('admin.prod.sec_basic') }}</a><a href="#s-condition">{{ t('admin.prod.sec_condition') }}</a><a href="#s-price">{{ t('admin.prod.sec_price') }}</a><a href="#s-warranty">{{ t('admin.prod.sec_warranty') }}</a>{% if not tester %}<a href="#s-texts">{{ t('admin.prod.sec_texts') }}</a>{% endif %}{% if not tester %}<a href="#s-media">{{ t('admin.prod.sec_media') }}</a>{% endif %}
   </nav>
 </aside>
 </div>
@@ -201,6 +210,16 @@
   function fill(){ var u=unit(); dl.innerHTML=''; presets.forEach(function(g){ if(u==='tb'&&g<1000) return; var o=document.createElement('option'); o.value=u==='tb'?String(g/1000):String(g); dl.appendChild(o); }); v.step=u==='tb'?'0.01':'1'; }
   wrap.querySelectorAll('[name="capacity_unit"]').forEach(function(r){ r.addEventListener('change',function(){ var n=parseFloat(v.value); if(!isNaN(n)&&n>0){ v.value=r.value==='tb'?String(Math.round(n)/1000):String(Math.round(n*1000)); } fill(); }); });
   fill();
+})();
+(function(){
+  /* new product: pick images before the first save — previews, remove, kept in the form as files */
+  var inp=document.getElementById('new-images'), grid=document.getElementById('new-previews'), cnt=document.getElementById('new-images-count'); if(!inp) return;
+  var files=[], max={{ settings.max_images_per_product }};
+  function sync(){ var dt=new DataTransfer(); files.forEach(function(f){dt.items.add(f);}); inp.files=dt.files; grid.hidden=!files.length; cnt.textContent=files.length?files.length+' / '+max:''; }
+  function draw(){ grid.innerHTML=''; files.forEach(function(f,i){ var c=document.createElement('div'); c.className='img-card'+(i===0?' is-cover':''); var im=document.createElement('img'); im.src=URL.createObjectURL(f); im.onload=function(){URL.revokeObjectURL(im.src);}; c.appendChild(im);
+      if(i===0){ var cv=document.createElement('span'); cv.className='chip chip-accent cov'; cv.textContent={{ t('admin.prod.cover_first')|tojson }}; c.appendChild(cv); }
+      var ops=document.createElement('div'); ops.className='ops'; var x=document.createElement('button'); x.type='button'; x.className='icon-btn sm danger'; x.innerHTML='&times;'; x.title={{ t('admin.prod.remove')|tojson }}; x.addEventListener('click',function(){ files.splice(i,1); draw(); sync(); }); ops.appendChild(x); c.appendChild(ops); grid.appendChild(c); }); }
+  inp.addEventListener('change',function(){ Array.prototype.forEach.call(inp.files,function(f){ if(files.length<max && /^image\//.test(f.type) && !files.some(function(g){return g.name===f.name&&g.size===f.size;})) files.push(f); }); draw(); sync(); });
 })();
 (function(){
   /* model dictionary dialog: bulk add + delete without leaving the form; refreshes the combobox */

@@ -166,9 +166,10 @@ async def product_create(request: Request, db: DB, staff: User = Depends(staff_d
     await db.flush()
     if p.price is not None:
         db.add(PriceHistory(product_id=p.id, old_price=None, new_price=p.price, currency=p.currency, changed_by=staff.id, note="created"))
-    await audit.log(db, staff.id, "product.create", "product", p.id, None, snapshot(p, PRODUCT_FIELDS))
+    added, img_msg, img_kind = await _add_images(db, p, form.getlist("images"), form.get("images_kind"), staff.lang)
+    await audit.log(db, staff.id, "product.create", "product", p.id, None, {**snapshot(p, PRODUCT_FIELDS), "images": added})
     await db.commit()
-    return back(request, f"/admin/products/{p.id}", t(staff.lang, "admin.flash.saved"))
+    return back(request, f"/admin/products/{p.id}", t(staff.lang, "admin.flash.saved") if img_kind == "ok" else img_msg, "ok" if img_kind == "ok" else img_kind)
 
 
 @router.get("/products/{pid}")
@@ -243,27 +244,33 @@ async def product_bulk(request: Request, db: DB, staff: User = Depends(staff_dep
 
 # ---------------- images ----------------
 
+async def _add_images(db, p: Product, uploads, kind_raw, lang: str) -> tuple[int, str, str]:
+    """Convert + store uploaded files as product images. Returns (added, toast message, toast kind)."""
+    kind = ImageKind(kind_raw or "sample")
+    files = [f for f in uploads if isinstance(f, UploadFile) and f.filename]
+    existing = len(p.images) if p.id and "images" in p.__dict__ else 0
+    msg, mkind, added = t(lang, "admin.flash.saved"), "ok", 0
+    for f in files:
+        if existing + added >= settings.max_images_per_product:
+            msg, mkind = t(lang, "admin.prod.too_many_images"), "warn"
+            break
+        try:
+            meta = await media.save_image(f, prefix=f"p{p.id}")
+        except media.MediaError as e:
+            msg, mkind = t(lang, "admin.prod.image_error", e=str(e)), "bad"
+            continue
+        db.add(ProductImage(product_id=p.id, kind=kind, is_cover=existing == 0 and added == 0, sort=existing + added, **meta))
+        added += 1
+    return added, msg, mkind
+
+
 @router.post("/products/{pid}/images")
 async def product_images_upload(pid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     p = await db.get(Product, pid)
     if not p:
         raise HTTPException(404)
     form = await request.form()
-    kind = ImageKind(form.get("kind") or "sample")
-    files = [f for f in form.getlist("files") if isinstance(f, UploadFile) and f.filename]
-    msg, mkind = t(staff.lang, "admin.flash.saved"), "ok"
-    added = 0
-    for f in files:
-        if len(p.images) + added >= settings.max_images_per_product:
-            msg, mkind = t(staff.lang, "admin.prod.too_many_images"), "warn"
-            break
-        try:
-            meta = await media.save_image(f, prefix=f"p{p.id}")
-        except media.MediaError as e:
-            msg, mkind = t(staff.lang, "admin.prod.image_error", e=str(e)), "bad"
-            continue
-        db.add(ProductImage(product_id=p.id, kind=kind, is_cover=not p.images and added == 0, sort=len(p.images) + added, **meta))
-        added += 1
+    added, msg, mkind = await _add_images(db, p, form.getlist("files"), form.get("kind"), staff.lang)
     await audit.log(db, staff.id, "product.images.add", "product", p.id, None, {"added": added})
     await db.commit()
     await db.refresh(p)
@@ -280,7 +287,7 @@ async def product_image_action(pid: int, iid: int, action: str, request: Request
         for i in p.images:
             i.is_cover = i.id == img.id
     elif action == "delete":
-        media.delete_files(img.filename, img.thumb)
+        await media.delete_files(img.filename, img.thumb)
         was_cover = img.is_cover
         await db.delete(img)
         await db.flush()

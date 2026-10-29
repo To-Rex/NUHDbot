@@ -52,6 +52,13 @@ def _run_migrations() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings.upload_dir.mkdir(parents=True, exist_ok=True)
+    from app.services import storage
+
+    if storage.enabled():
+        err = await asyncio.to_thread(storage.check)
+        log.warning("Object store (%s, bucket %s) not reachable: %s — uploads will fail until fixed.", settings.s3_endpoint, settings.s3_bucket, err) if err else log.info("Object store: %s / %s", settings.s3_endpoint, settings.s3_bucket)
+    else:
+        log.warning("No object store configured (S3_* variables) — uploads are kept on local disk and are lost on redeploy.")
     if settings.run_migrations:
         await asyncio.to_thread(_run_migrations)
     async with session_scope() as db:
@@ -101,6 +108,19 @@ class CachedStatic(StaticFiles):
 
 
 app.mount("/static", CachedStatic(directory=str(APP_DIR / "static")), name="static")
+
+
+@app.get("/media/{name}", include_in_schema=False)
+async def media_file(name: str):
+    """Serve files from the object store when it has no public URL (keeps everything on the app's https origin)."""
+    from app.services import storage
+
+    if "/" in name or name.startswith("."):
+        return Response(status_code=404)
+    blob = await storage.get(name)
+    if blob is None:
+        return Response(status_code=404)
+    return Response(blob[0], media_type=blob[1], headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @app.middleware("http")

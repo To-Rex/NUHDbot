@@ -11,10 +11,10 @@ from datetime import UTC, datetime, timedelta
 from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy import select
 
-from app.config import settings
 from app.db import session_scope
 from app.enums import Condition, FormFactor, ImageKind, Interface, Purpose, TestStatus
 from app.models import Article, City, Country, Product, ProductImage
+from app.services import media
 from app.services.settings_service import DEFAULTS, set_setting
 from scripts.geo_data import COUNTRIES, iter_places
 
@@ -151,7 +151,7 @@ DEMO_PRODUCTS = [
 BRAND_COLORS = {"Western Digital": ("#1b2a66", "#5c84ff"), "Seagate": ("#0f5132", "#4ade80"), "Toshiba": ("#7c2d12", "#fb923c"), "HGST": ("#312e81", "#a5b4fc"), "Hikvision": ("#7f1d1d", "#f87171"), "Dahua": ("#1e3a5f", "#7dd3fc")}
 
 
-def _demo_image(brand: str, model: str, capacity: str, idx: int) -> dict:
+def _demo_image(brand: str, model: str, capacity: str, idx: int) -> Image.Image:
     """Generate a clean, clearly-labelled SAMPLE cover image (never passed off as a real photo)."""
     size = 800
     c1, c2 = BRAND_COLORS.get(brand, ("#334155", "#94a3b8"))
@@ -173,13 +173,7 @@ def _demo_image(brand: str, model: str, capacity: str, idx: int) -> dict:
     d.text((400, 735), f"{brand} {model}", fill="white", font=f_mid, anchor="mm")
     d.rounded_rectangle((20, 20, 230, 70), radius=14, fill=(255, 255, 255))
     d.text((125, 45), "SAMPLE", fill=(220, 38, 38), font=f_mid, anchor="mm")
-    name = f"demo_{idx}.webp"
-    thumb = f"demo_{idx}_t.webp"
-    img.save(settings.upload_dir / name, "WEBP", quality=82)
-    im2 = img.copy()
-    im2.thumbnail((480, 480))
-    im2.save(settings.upload_dir / thumb, "WEBP", quality=78)
-    return {"filename": name, "thumb": thumb, "width": size, "height": size}
+    return img
 
 
 async def seed_geography(db) -> dict:
@@ -292,7 +286,7 @@ async def seed_demo() -> None:
             linked = await brand_service.find_by_name(db, brand) or await brand_service.find_by_name(db, "HGST / Ultrastar" if brand == "HGST" else brand)
             if linked:
                 brand_service.sync_product_brand(p, linked)
-            meta = _demo_image(brand, model, cap, i)
+            meta = await media.store_image(_demo_image(brand, model, cap, i), prefix="demo")
             db.add(ProductImage(product_id=p.id, kind=ImageKind.SAMPLE, is_cover=True, sort=0, **meta))
     print("demo products ready")
 

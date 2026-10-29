@@ -2,6 +2,7 @@ from sqlalchemy import JSON, Boolean, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin
+from app.services import storage  # noqa: I001
 
 
 class Brand(Base, TimestampMixin):
@@ -22,11 +23,11 @@ class Brand(Base, TimestampMixin):
 
     @property
     def logo_url(self) -> str | None:
-        return f"/static/uploads/{self.logo}" if self.logo else None
+        return storage.url(self.logo)
 
     @property
     def logo_thumb_url(self) -> str | None:
-        return f"/static/uploads/{self.logo_thumb}" if self.logo_thumb else None
+        return storage.url(self.logo_thumb)
 
     @property
     def monogram(self) -> str:

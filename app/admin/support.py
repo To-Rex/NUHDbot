@@ -75,11 +75,13 @@ async def support_reply(tid: int, request: Request, db: DB, staff: User = Depend
     if bot and th.user.tg_id:
         try:
             if attachment and kind == MessageKind.PHOTO:
-                from aiogram.types import FSInputFile
+                from aiogram.types import BufferedInputFile
 
-                from app.config import settings as cfg
+                from app.services import storage
 
-                await bot.send_photo(th.user.tg_id, FSInputFile(cfg.upload_dir / attachment), caption=text or None)
+                blob = await storage.get(attachment)
+                if blob:
+                    await bot.send_photo(th.user.tg_id, BufferedInputFile(blob[0], filename=attachment), caption=text or None)
             elif text:
                 await bot.send_message(th.user.tg_id, f"💬 <b>Admin</b>:\n{__import__('html').escape(text)}")
         except Exception:  # noqa: BLE001

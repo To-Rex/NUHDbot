@@ -193,7 +193,9 @@
       "model_same_brand": "Shu brend",
       "model_other_brands": "Boshqa brendlar",
       "model_none": "Mos model yo'q — yangisi sifatida saqlanadi",
-      "prefilled": "{m} bo'yicha oldingi mahsulotdan to'ldirildi: sig'im, interfeys, form-faktor. Kerak bo'lsa o'zgartiring."
+      "prefilled": "{m} bo'yicha oldingi mahsulotdan to'ldirildi: sig'im, interfeys, form-faktor. Kerak bo'lsa o'zgartiring.",
+      "images_new_hint": "Rasmlarni hoziroq tanlang — mahsulot bilan birga saqlanadi. Birinchi rasm muqova bo'ladi, keyin tartibni o'zgartirish mumkin.",
+      "kind": "Tur"
     },
     "ord": {
       "title": "Buyurtmalar",

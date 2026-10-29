@@ -5,6 +5,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.enums import MessageKind, ThreadStatus
 from app.models.base import Base, TimestampMixin, str_enum, utcnow
+from app.services import storage  # noqa: I001
 
 
 class SupportThread(Base, TimestampMixin):
@@ -47,4 +48,4 @@ class SupportMessage(Base):
 
     @property
     def attachment_url(self) -> str | None:
-        return f"/static/uploads/{self.attachment}" if self.attachment else None
+        return storage.url(self.attachment)

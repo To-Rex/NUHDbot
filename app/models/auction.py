@@ -6,6 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.enums import AuctionStatus, Condition, DepositStatus, TestStatus
 from app.models.base import Base, TimestampMixin, str_enum, utcnow
+from app.services import storage  # noqa: I001
 
 
 class Auction(Base, TimestampMixin):
@@ -101,11 +102,11 @@ class AuctionImage(Base):
 
     @property
     def url(self) -> str:
-        return f"/static/uploads/{self.filename}"
+        return storage.url(self.filename)
 
     @property
     def thumb_url(self) -> str:
-        return f"/static/uploads/{self.thumb}"
+        return storage.url(self.thumb)
 
 
 class Bid(Base):

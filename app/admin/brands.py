@@ -57,9 +57,9 @@ async def _save_logo(form, b: Brand) -> str | None:
         old = (b.logo, b.logo_thumb)
         meta = await media.save_image(f, prefix="brand")
         b.logo, b.logo_thumb = meta["filename"], meta["thumb"]
-        media.delete_files(*old)
+        await media.delete_files(*old)
     elif form.get("logo_remove"):
-        media.delete_files(b.logo, b.logo_thumb)
+        await media.delete_files(b.logo, b.logo_thumb)
         b.logo = b.logo_thumb = None
     return None
 
@@ -146,7 +146,7 @@ async def brand_delete(bid: int, request: Request, db: DB, staff: User = Depends
         await svc.delete_brand(db, b)
     except svc.BrandError as e:
         return back(request, f"/admin/brands/{bid}", t(lang, "admin.brands.delete_blocked", n=e.ctx.get("count", 0)), "warn")
-    media.delete_files(*logo)
+    await media.delete_files(*logo)
     await audit.log(db, staff.id, "brand.delete", "brand", bid, snap, None)
     await db.commit()
     return back(request, "/admin/brands", t(lang, "admin.brands.deleted"))

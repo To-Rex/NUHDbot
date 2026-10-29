@@ -209,7 +209,7 @@ async def auction_images(aid: int, request: Request, db: DB, staff: User = Depen
 async def auction_image_delete(aid: int, iid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
     img = await db.get(AuctionImage, iid)
     if img and img.auction_id == aid:
-        media.delete_files(img.filename, img.thumb)
+        await media.delete_files(img.filename, img.thumb)
         await db.delete(img)
         await db.commit()
     return back(request, f"/admin/auctions/{aid}", t(staff.lang, "admin.flash.deleted"))

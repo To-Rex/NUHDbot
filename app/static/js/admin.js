@@ -246,7 +246,7 @@
       ['dragenter', 'dragover'].forEach((ev) => z.addEventListener(ev, (e) => { e.preventDefault(); z.classList.add('over'); }));
       ['dragleave', 'drop'].forEach((ev) => z.addEventListener(ev, (e) => { e.preventDefault(); z.classList.remove('over'); }));
       z.addEventListener('drop', (e) => { if (!inp || !e.dataTransfer.files.length) return; inp.files = e.dataTransfer.files; inp.dispatchEvent(new Event('change', { bubbles: true })); });
-      inp && inp.addEventListener('change', () => { const f = inp.closest('form'); if (f && inp.files.length) { if (window.htmx && f.hasAttribute('hx-post')) htmx.trigger(f, 'submit'); else f.requestSubmit && f.requestSubmit(); } });
+      inp && !z.hasAttribute('data-no-submit') && inp.addEventListener('change', () => { const f = inp.closest('form'); if (f && inp.files.length) { if (window.htmx && f.hasAttribute('hx-post')) htmx.trigger(f, 'submit'); else f.requestSubmit && f.requestSubmit(); } });
     });
   }
   bindDrop();

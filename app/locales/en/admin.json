@@ -193,7 +193,9 @@
       "model_same_brand": "This brand",
       "model_other_brands": "Other brands",
       "model_none": "No match — will be saved as new",
-      "prefilled": "Filled from the previous {m} product: capacity, interface, form factor. Adjust if needed."
+      "prefilled": "Filled from the previous {m} product: capacity, interface, form factor. Adjust if needed.",
+      "images_new_hint": "Pick photos now — they are saved together with the product. The first one becomes the cover; reorder later.",
+      "kind": "Type"
     },
     "ord": {
       "title": "Orders",
