@@ -40,11 +40,17 @@ async def profile_page(request: Request, db: DB, lang: Lang, user: CurrentUser):
 @router.get("/profile/edit")
 async def profile_edit(request: Request, db: DB, lang: Lang, user: User = Depends(require_user)):
     countries = (await db.execute(select(Country).where(Country.is_active.is_(True)).order_by(Country.sort))).scalars().all()
-    return render(request, "miniapp/profile_edit.html", {"lang": lang, "countries": countries, "page_title": t(lang, "profile.edit_title"), "back_url": "/app/profile"})
+    from app.models import City
+
+    code = (user.country or (countries[0].code if countries else "UZ"))
+    cities = (await db.execute(select(City).where(City.country_code == code, City.is_active.is_(True)).order_by(City.sort))).scalars().all()
+    return render(request, "miniapp/profile_edit.html", {"lang": lang, "countries": countries, "cities": cities, "page_title": t(lang, "profile.edit_title"), "back_url": "/app/profile"})
 
 
 @router.post("/profile/edit")
-async def profile_edit_submit(request: Request, db: DB, lang: Lang, user: User = Depends(require_user), first_name: str = Form(""), last_name: str = Form(""), phone: str = Form(""), country: str = Form(""), city: str = Form(""), ui_lang: str = Form("uz"), ads_opt_in: str | None = Form(None)):
+async def profile_edit_submit(request: Request, db: DB, lang: Lang, user: User = Depends(require_user), first_name: str = Form(""), last_name: str = Form(""), phone: str = Form(""), country: str = Form(""), city: str = Form(""), city_other: str = Form(""), ui_lang: str = Form("uz"), ads_opt_in: str | None = Form(None)):
+    if city == "__other__":
+        city = city_other
     if first_name.strip():
         user.first_name = first_name.strip()[:100]
     user.last_name = last_name.strip()[:100]

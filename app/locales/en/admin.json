@@ -462,7 +462,11 @@
       "group_catalog": "Catalogue dictionaries",
       "key_capacity_presets": "Capacity chips (GB)",
       "help_capacity_presets": "Comma-separated, in GB (e.g. 500, 1000, 2000). Shown in catalogue filters and the product form. Range 100–100000.",
-      "capacity_invalid": "Invalid capacity values: {v}"
+      "capacity_invalid": "Invalid capacity values: {v}",
+      "region": "Region / oblast",
+      "no_region": "No region",
+      "geo_filter": "Search city or country…",
+      "geo_hint": "Cities are grouped by region. Hiding is safer than deleting."
     },
     "art": {
       "title": "Articles",

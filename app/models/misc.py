@@ -73,6 +73,7 @@ class City(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     country_code: Mapped[str] = mapped_column(ForeignKey("countries.code", ondelete="CASCADE"), index=True)
     name: Mapped[dict] = mapped_column(JSON, default=dict)
+    region: Mapped[dict | None] = mapped_column(JSON)  # i18n region/oblast name used to group cities
     sort: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 

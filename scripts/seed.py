@@ -16,16 +16,7 @@ from app.db import session_scope
 from app.enums import Condition, FormFactor, ImageKind, Interface, Purpose, TestStatus
 from app.models import Article, City, Country, Product, ProductImage
 from app.services.settings_service import DEFAULTS, set_setting
-
-COUNTRIES = [
-    ("UZ", {"uz": "Ўзбекистон", "ru": "Узбекистан", "en": "Uzbekistan"}, "🇺🇿", "+998", ["Toshkent", "Samarqand", "Buxoro", "Andijon", "Farg'ona", "Namangan", "Qarshi", "Nukus", "Urganch", "Termiz", "Jizzax", "Navoiy", "Guliston"]),
-    ("KZ", {"uz": "Қозоғистон", "ru": "Казахстан", "en": "Kazakhstan"}, "🇰🇿", "+7", ["Almaty", "Astana", "Shymkent", "Karaganda", "Aktobe", "Taraz", "Pavlodar"]),
-    ("KG", {"uz": "Қирғизистон", "ru": "Кыргызстан", "en": "Kyrgyzstan"}, "🇰🇬", "+996", ["Bishkek", "Osh", "Jalal-Abad", "Karakol"]),
-    ("TJ", {"uz": "Тожикистон", "ru": "Таджикистан", "en": "Tajikistan"}, "🇹🇯", "+992", ["Dushanbe", "Khujand", "Bokhtar", "Kulob"]),
-    ("TM", {"uz": "Туркманистон", "ru": "Туркменистан", "en": "Turkmenistan"}, "🇹🇲", "+993", ["Ashgabat", "Türkmenabat", "Daşoguz", "Mary"]),
-    ("RU", {"uz": "Россия", "ru": "Россия", "en": "Russia"}, "🇷🇺", "+7", ["Moscow", "Saint Petersburg", "Novosibirsk", "Yekaterinburg", "Kazan"]),
-    ("OT", {"uz": "Бошқа", "ru": "Другая", "en": "Other"}, "🌍", "", []),
-]
+from scripts.geo_data import COUNTRIES, iter_places
 
 ARTICLES = [
     {
@@ -191,15 +182,61 @@ def _demo_image(brand: str, model: str, capacity: str, idx: int) -> dict:
     return {"filename": name, "thumb": thumb, "width": size, "height": size}
 
 
+async def seed_geography(db) -> dict:
+    """Upsert countries → regions → cities from scripts/geo_data. Adds what is missing, never deletes."""
+    added = {"countries": 0, "cities": 0}
+    existing_cities = (await db.execute(select(City))).scalars().all()
+    by_country: dict[str, dict[str, City]] = {}
+    for c in existing_cities:
+        bucket = by_country.setdefault(c.country_code, {})
+        for v in (c.name or {}).values():  # match on any spelling (old rows stored the Latin name as "en")
+            if v:
+                bucket.setdefault(str(v).lower(), c)
+    for sort, (code, flag, phone, names, regions) in enumerate(COUNTRIES):
+        country = await db.get(Country, code)
+        if country is None:
+            country = Country(code=code, name=names, flag=flag, phone_code=phone, sort=sort)
+            db.add(country)
+            await db.flush()  # no ORM relationship City→Country, so make sure the parent row exists first
+            added["countries"] += 1
+        else:
+            merged = dict(country.name or {})
+            for k, v in names.items():
+                merged.setdefault(k, v)
+            country.name = merged
+            country.flag = country.flag or flag
+            country.phone_code = country.phone_code or phone
+            country.sort = 999 if code == "OT" else sort
+        known = by_country.setdefault(code, {})
+        for i, (region, city) in enumerate(iter_places(code, regions)):
+            row = next((known[k] for k in (city["en"].lower(), city["uzl"].lower(), city["ru"].lower()) if k in known), None)
+            if row is None:
+                row = City(country_code=code, name=city, region=region, sort=i)
+                db.add(row)
+                added["cities"] += 1
+                for v in city.values():
+                    known.setdefault(v.lower(), row)
+            else:
+                if region:
+                    row.region = region
+                row.name = {**city, **{k: v for k, v in (row.name or {}).items() if k not in city}}
+                row.sort = i
+        await db.flush()
+    # drop leftover duplicates: a region-less row whose name equals a regioned row in the same country
+    rows = (await db.execute(select(City))).scalars().all()
+    regioned = {(r.country_code, str(v).lower()) for r in rows if r.region for v in (r.name or {}).values() if v}
+    for r in rows:
+        if not r.region and any((r.country_code, str(v).lower()) in regioned for v in (r.name or {}).values() if v):
+            await db.delete(r)
+            added.setdefault("merged", 0)
+            added["merged"] += 1
+    await db.flush()
+    return added
+
+
 async def seed_reference() -> None:
     async with session_scope() as db:
-        for code, name, flag, phone, cities in COUNTRIES:
-            c = await db.get(Country, code)
-            if c is None:
-                db.add(Country(code=code, name=name, flag=flag, phone_code=phone, sort=COUNTRIES.index((code, name, flag, phone, cities))))
-                await db.flush()
-                for i, city in enumerate(cities):
-                    db.add(City(country_code=code, name={"uz": city, "ru": city, "en": city}, sort=i))
+        await seed_geography(db)
         for a in ARTICLES:
             existing = (await db.execute(select(Article).where(Article.slug == a["slug"]))).scalar_one_or_none()
             if existing is None:

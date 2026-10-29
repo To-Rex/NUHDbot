@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from app.admin.common import ADMIN, DB, back, f_i18n, f_int, f_opt, f_str, render, staff_dep
 from app.admin.router import router
-from app.i18n import t
+from app.i18n import pick, t
 from app.models import City, Country, User
 from app.services import audit
 from app.services.settings_service import DEFAULTS, get_all_settings, set_setting
@@ -53,9 +53,14 @@ async def geo_page(request: Request, db: DB, staff: User = Depends(staff_dep(*AD
     countries = (await db.execute(select(Country).order_by(Country.sort, Country.code))).scalars().all()
     cities = (await db.execute(select(City).order_by(City.country_code, City.sort, City.id))).scalars().all()
     by_country: dict[str, list[City]] = {}
+    regions: dict[str, list[str]] = {}
     for c in cities:
         by_country.setdefault(c.country_code, []).append(c)
-    return render(request, staff, "admin/settings/geo.html", {"page_title": t(staff.lang, "admin.set.geo"), "countries": countries, "by_country": by_country})
+        if c.region:
+            label = pick(c.region, staff.lang)
+            if label and label not in regions.setdefault(c.country_code, []):
+                regions[c.country_code].append(label)
+    return render(request, staff, "admin/settings/geo.html", {"page_title": t(staff.lang, "admin.set.geo"), "countries": countries, "by_country": by_country, "regions": regions})
 
 
 @router.post("/settings/geo/country")
@@ -78,11 +83,27 @@ async def geo_country(request: Request, db: DB, staff: User = Depends(staff_dep(
 async def geo_city(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
     form = await request.form()
     action = form.get("action")
+    op = form.get("op") or ""
+    if ":" in op:  # compact per-country form: op=toggle:<id> | delete:<id>
+        action, _, cid_raw = op.partition(":")
+        form = dict(form)
+        form["id"] = cid_raw
+        form["action"] = action
     if action == "add":
         code = f_str(form, "country_code", maxlen=2).upper()
         name = f_str(form, "name", maxlen=100)
+        region = f_str(form, "region", maxlen=100)
         if code and name:
-            db.add(City(country_code=code, name={"uz": name, "ru": name, "en": name}, sort=f_int(form, "sort", 50) or 50))
+            # reuse the stored i18n region dict when the typed label matches an existing region of this country
+            region_dict = None
+            if region:
+                for existing in (await db.execute(select(City).where(City.country_code == code, City.region.is_not(None)))).scalars():
+                    if pick(existing.region, staff.lang) == region:
+                        region_dict = existing.region
+                        break
+                region_dict = region_dict or {"uz": region, "uzl": region, "ru": region, "en": region}
+            langs_name = {"uz": name, "uzl": name, "ru": name, "en": name}
+            db.add(City(country_code=code, name=langs_name, region=region_dict, sort=f_int(form, "sort", 500) or 500))
     else:
         cid = f_int(form, "id", None)
         c = await db.get(City, cid) if cid else None

@@ -1,4 +1,16 @@
+{# cities are ordered by sort, which follows region order; group into <optgroup> when regions exist #}
+{% set names = cities|map(attribute='name.en')|list %}
 <select class="select" name="city" id="city" onchange="document.getElementById('city-other').hidden = this.value !== '__other__'">
-  {% for c in cities %}<option value="{{ c.name.en }}" {{ 'selected' if selected == c.name.en }}>{{ p(c.name) }}</option>{% endfor %}
-  <option value="__other__" {{ 'selected' if (selected and cities and selected not in cities|map(attribute='name.en')|list) or not cities }}>{{ t('register.city_other') }}</option>
+  {% set ns = namespace(region=None, open=False) %}
+  {% for c in cities %}
+    {% set r = p(c.region) if c.region else '' %}
+    {% if r != ns.region %}
+      {% if ns.open %}</optgroup>{% endif %}
+      {% if r %}<optgroup label="{{ r }}">{% set ns.open = True %}{% else %}{% set ns.open = False %}{% endif %}
+      {% set ns.region = r %}
+    {% endif %}
+    <option value="{{ c.name.en }}" {{ 'selected' if selected == c.name.en }}>{{ p(c.name) }}</option>
+  {% endfor %}
+  {% if ns.open %}</optgroup>{% endif %}
+  <option value="__other__" {{ 'selected' if (selected and selected not in names) or not cities }}>{{ t('register.city_other') }}</option>
 </select>

@@ -462,7 +462,11 @@
       "group_catalog": "目录字典",
       "key_capacity_presets": "容量筛选项（GB）",
       "help_capacity_presets": "以逗号分隔，单位 GB（例如 500, 1000, 2000）。显示在目录筛选和商品表单中。范围 100–100000。",
-      "capacity_invalid": "容量数值无效：{v}"
+      "capacity_invalid": "容量数值无效：{v}",
+      "region": "州 / 地区",
+      "no_region": "未分区",
+      "geo_filter": "搜索城市或国家…",
+      "geo_hint": "城市按地区分组。隐藏比删除更安全。"
     },
     "art": {
       "title": "资讯文章",

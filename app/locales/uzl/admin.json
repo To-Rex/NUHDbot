@@ -462,7 +462,11 @@
       "group_catalog": "Katalog lug'atlari",
       "key_capacity_presets": "Sig'im chiplari (GB)",
       "help_capacity_presets": "Vergul bilan, GB da (masalan 500, 1000, 2000). Katalog filtrlari va mahsulot formasida ko'rsatiladi. 100–100000 oralig'i.",
-      "capacity_invalid": "Sig'im qiymatlari noto'g'ri: {v}"
+      "capacity_invalid": "Sig'im qiymatlari noto'g'ri: {v}",
+      "region": "Viloyat / hudud",
+      "no_region": "Hududsiz",
+      "geo_filter": "Shahar yoki davlat bo'yicha qidirish…",
+      "geo_hint": "Shaharlar viloyat bo'yicha guruhlangan. O'chirish o'rniga yashirish xavfsizroq."
     },
     "art": {
       "title": "Foydali ma'lumotlar",

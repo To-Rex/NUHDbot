@@ -1,15 +1,35 @@
 {% extends "admin/base.html" %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/settings">{{ icon('chevron-left', 15) }}{{ t('admin.set.title') }}</a>{% endblock %}
 {% block content %}
-<div class="grid g2" style="align-items:start">
+<div class="toolbar mb"><div class="search" style="flex:1 1 320px">{{ icon('search', 16) }}<input class="input" id="geo-filter" placeholder="{{ t('admin.set.geo_filter') }}" autocomplete="off"></div><span class="faint small">{{ t('admin.set.geo_hint') }}</span></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="i-eye" viewBox="0 0 256 256">{{ icon('eye', 13)|replace('<svg', '<g')|replace('</svg>', '</g>')|safe }}</symbol><symbol id="i-eye-off" viewBox="0 0 256 256">{{ icon('eye-off', 13)|replace('<svg', '<g')|replace('</svg>', '</g>')|safe }}</symbol><symbol id="i-x" viewBox="0 0 256 256">{{ icon('x', 13)|replace('<svg', '<g')|replace('</svg>', '</g>')|safe }}</symbol></defs></svg>
+<div class="stack" id="geo-list">
 {% for c in countries %}
-<div class="card"><h2><span class="row-nw"><span style="font-size:20px">{{ c.flag }}</span>{{ p(c.name) }} <span class="faint small mono">{{ c.code }} {{ c.phone_code }}</span></span>
-  <form method="post" action="/admin/settings/geo/country"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="code" value="{{ c.code }}"><button class="btn btn-xs {{ 'btn-ok' if c.is_active else 'btn-secondary' }}" name="action" value="toggle">{{ t('admin.active') if c.is_active else t('admin.inactive') }}</button></form></h2>
-  <div class="row">{% for city in by_country.get(c.code, []) %}<form method="post" action="/admin/settings/geo/city" class="fchip {{ 'active' if city.is_active }}" style="padding:0 4px 0 10px;gap:4px"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="id" value="{{ city.id }}"><span>{{ p(city.name) }}</span><button class="icon-btn sm" style="border:0;background:transparent;width:24px;height:24px" name="action" value="toggle" title="{{ t('admin.active') }}/{{ t('admin.inactive') }}">{{ icon('eye' if city.is_active else 'eye-off', 13) }}</button><button class="icon-btn sm danger" style="border:0;background:transparent;width:24px;height:24px" name="action" value="delete" data-confirm="{{ t('admin.delete') }}" data-confirm-text="{{ p(city.name) }}" data-confirm-danger="1">{{ icon('x', 13) }}</button></form>{% endfor %}</div>
-  <form method="post" action="/admin/settings/geo/city" class="row mt"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="country_code" value="{{ c.code }}"><input type="hidden" name="action" value="add"><input class="input sm" name="name" placeholder="{{ t('admin.city') }}" required style="width:auto;flex:1"><input class="input sm mono" type="number" name="sort" value="50" style="width:70px" title="{{ t('admin.prod.sort') }}"><button class="btn btn-sm btn-secondary">{{ icon('plus', 14) }}{{ t('admin.set.add_city') }}</button></form>
-</div>
+{% set cities = by_country.get(c.code, []) %}
+<details class="card geo-country" {% if loop.index <= 2 %}open{% endif %} data-name="{{ p(c.name)|lower }} {{ c.code|lower }}">
+  <summary class="row-between" style="cursor:pointer;list-style:none">
+    <span class="row-nw"><span style="font-size:20px">{{ c.flag }}</span><b>{{ p(c.name) }}</b> <span class="faint small mono">{{ c.code }} {{ c.phone_code }}</span> <span class="chip chip-soft">{{ cities|length }}</span></span>
+    <form method="post" action="/admin/settings/geo/country" onclick="event.stopPropagation()"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="code" value="{{ c.code }}"><button class="btn btn-xs {{ 'btn-ok' if c.is_active else 'btn-secondary' }}" name="action" value="toggle">{{ t('admin.active') if c.is_active else t('admin.inactive') }}</button></form>
+  </summary>
+  <form method="post" action="/admin/settings/geo/city" class="mt"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  {% set ns = namespace(region=None) %}
+  {% for city in cities %}
+    {% set r = p(city.region) if city.region else '' %}
+    {% if r != ns.region or loop.first %}{% if not loop.first %}</div>{% endif %}<div class="geo-region"><div class="eyebrow mt" style="margin-bottom:6px">{{ r or t('admin.set.no_region') }}</div>{% set ns.region = r %}{% endif %}
+    <span class="fchip geo-city {{ 'active' if city.is_active }}" style="padding:0 4px 0 10px;gap:4px;margin:0 6px 6px 0" data-name="{{ p(city.name)|lower }} {{ city.name.en|lower }} {{ city.name.ru|lower }}"><span>{{ p(city.name) }}</span><button class="icon-btn sm" style="border:0;background:transparent;width:24px;height:24px" name="op" value="toggle:{{ city.id }}" title="{{ t('admin.active') }}/{{ t('admin.inactive') }}"><svg width="13" height="13" fill="currentColor"><use href="#i-eye{{ '' if city.is_active else '-off' }}"/></svg></button><button class="icon-btn sm danger" style="border:0;background:transparent;width:24px;height:24px" name="op" value="delete:{{ city.id }}" data-confirm="{{ t('admin.delete') }}" data-confirm-text="{{ p(city.name) }}" data-confirm-danger="1"><svg width="13" height="13" fill="currentColor"><use href="#i-x"/></svg></button></span>
+    {% if loop.last %}</div>{% endif %}
+  {% endfor %}
+  </form>
+  <form method="post" action="/admin/settings/geo/city" class="row mt" style="flex-wrap:wrap"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="country_code" value="{{ c.code }}"><input type="hidden" name="action" value="add">
+    <input class="input sm" name="name" placeholder="{{ t('admin.city') }}" required style="width:auto;flex:1 1 160px">
+    <input class="input sm" name="region" list="regions-{{ c.code }}" placeholder="{{ t('admin.set.region') }}" style="width:auto;flex:1 1 180px"><datalist id="regions-{{ c.code }}">{% for r in regions.get(c.code, []) %}<option value="{{ r }}">{% endfor %}</datalist>
+    <input class="input sm mono" type="number" name="sort" value="500" style="width:80px" title="{{ t('admin.prod.sort') }}"><button class="btn btn-sm btn-secondary">{{ icon('plus', 14) }}{{ t('admin.set.add_city') }}</button></form>
+</details>
 {% endfor %}
 <div class="card"><h2>{{ t('admin.set.add_country') }}</h2><form method="post" action="/admin/settings/geo/country" class="form-grid tight"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="add">
   <div class="field"><label>{{ t('admin.set.code') }}</label><input class="input mono" name="code" maxlength="2" required placeholder="KZ"></div><div class="field"><label>{{ t('admin.name') }}</label><input class="input" name="name" required></div><div class="field"><label>{{ t('admin.set.flag') }}</label><input class="input" name="flag"></div><div class="field"><label>{{ t('admin.set.phone_code') }}</label><input class="input mono" name="phone_code" placeholder="+7"></div><div class="field"><label>&nbsp;</label><button class="btn btn-primary">{{ icon('plus', 16) }}{{ t('admin.create') }}</button></div></form></div>
 </div>
+<script>
+(function(){var f=document.getElementById('geo-filter');if(!f)return;f.addEventListener('input',function(){var q=f.value.trim().toLowerCase();document.querySelectorAll('.geo-country').forEach(function(d){var any=false;d.querySelectorAll('.geo-city').forEach(function(c){var ok=!q||c.dataset.name.indexOf(q)>-1||d.dataset.name.indexOf(q)>-1;c.style.display=ok?'':'none';any=any||ok;});d.querySelectorAll('.geo-region').forEach(function(r){r.style.display=[].some.call(r.querySelectorAll('.geo-city'),function(c){return c.style.display!=='none'})?'':'none';});d.style.display=(any||!q)?'':'none';if(q)d.open=true;});})();
+</script>
 {% endblock %}
