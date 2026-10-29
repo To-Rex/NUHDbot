@@ -212,6 +212,9 @@ async def seed_reference() -> None:
 
             if await db.get(Setting, key) is None:
                 await set_setting(db, key, spec["v"], spec["d"])
+        from app.services import brands as brand_service
+
+        await brand_service.backfill(db)
     print("reference data ready")
 
 
@@ -247,6 +250,11 @@ async def seed_demo() -> None:
             )
             db.add(p)
             await db.flush()
+            from app.services import brands as brand_service
+
+            linked = await brand_service.find_by_name(db, brand) or await brand_service.find_by_name(db, "HGST / Ultrastar" if brand == "HGST" else brand)
+            if linked:
+                brand_service.sync_product_brand(p, linked)
             meta = _demo_image(brand, model, cap, i)
             db.add(ProductImage(product_id=p.id, kind=ImageKind.SAMPLE, is_cover=True, sort=0, **meta))
     print("demo products ready")

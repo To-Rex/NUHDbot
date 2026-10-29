@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block heading %}{% if is_new %}{{ t('admin.brands.new') }}{% else %}{{ b.name }}{% if not b.is_active %} <span class="chip chip-soft">{{ t('admin.brands.hidden') }}</span>{% endif %}{% endif %}{% endblock %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/brands">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% if not is_new and count %}<a class="btn btn-secondary btn-sm" href="/admin/products?brand_id={{ b.id }}">{{ icon('drive', 15) }}{{ t('admin.brands.view_products') }} · {{ count }}</a>{% endif %}{% endblock %}
+{% block content %}
+{% if error %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ error }}</span></div>{% endif %}
+{% if not is_new and not b.is_active %}<div class="notice notice-warn mb">{{ icon('eye-off', 18) }}<span>{{ t('admin.brands.inactive_note') }}</span></div>{% endif %}
+<div class="split">
+<form method="post" id="brand-form" class="stack" data-track enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <section class="fsection"><h2>{{ t('admin.brands.edit') if not is_new else t('admin.brands.new') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.brands.help_form') }}</span></div>
+    <div class="form-grid">
+      <div class="field"><label>{{ t('admin.brands.name') }} <span class="req">*</span></label><input class="input" name="name" value="{{ b.name }}" required maxlength="60" autofocus></div>
+      <div class="field"><label>{{ t('admin.brands.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ b.sort }}"></div>
+    </div>
+    <div class="field mt"><label>{{ t('admin.brands.series') }}</label><textarea class="textarea" name="series" rows="5" placeholder="Purple&#10;SkyHawk&#10;Exos">{{ b.series|join('\n') }}</textarea><span class="hint">{{ t('admin.brands.series_hint') }}</span></div>
+    <div class="field mt"><label>{{ t('admin.brands.warranty_url') }}</label><input class="input mono" type="url" name="warranty_url" value="{{ b.warranty_url or '' }}" placeholder="https://"><span class="hint">{{ t('admin.brands.warranty_url_hint') }}</span></div>
+    <div class="mt">{% with name='description', value=b.description, kind='textarea', label=t('admin.brands.description'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
+  </section>
+  <section class="fsection"><h2>{{ t('admin.brands.logo') }}</h2><div class="help">{{ icon('image', 16) }}<span>{{ t('admin.brands.logo_hint') }}</span></div>
+    <div class="row" style="gap:16px;align-items:center;flex-wrap:wrap">
+      {% if b.logo_thumb %}<img src="{{ b.logo_thumb_url }}" alt="" class="brand-logo-lg">{% else %}<span class="brand-mono lg">{{ b.monogram if b.name else '?' }}</span>{% endif %}
+      <div class="stack" style="gap:8px"><input type="file" name="logo_file" accept="image/*" class="input" style="padding:8px">
+      {% if b.logo %}<label class="check"><input type="checkbox" name="logo_remove" value="1">{{ t('admin.brands.logo_remove') }}</label>{% endif %}</div>
+    </div>
+  </section>
+</form>
+<aside class="stack">
+  <div class="card"><h2>{{ t('admin.status') }}</h2>
+    <label class="check"><input type="checkbox" name="is_active" form="brand-form" {{ 'checked' if b.is_active }}>{{ t('admin.brands.active') }}</label>
+    <div class="hint mt">{{ t('admin.brands.help_list') }}</div>
+    {% if not is_new %}<div class="divider"></div><div class="kv-list"><div><span>{{ t('admin.brands.products') }}</span><b class="mono">{{ count }}</b></div><div><span>slug</span><b class="mono">{{ b.slug }}</b></div><div><span>{{ t('admin.updated') }}</span><b>{{ b.updated_at|dt }}</b></div></div>{% endif %}
+  </div>
+  {% if not is_new %}
+  <div class="card"><h2>{{ t('admin.brands.delete') }}</h2>
+    {% if count %}<p class="small muted">{{ t('admin.brands.delete_blocked', n=count) }}</p>
+    {% else %}<form method="post" action="/admin/brands/{{ b.id }}/delete" class="mt-sm"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger btn-sm" data-confirm="{{ t('admin.brands.delete_q') }}" data-confirm-text="{{ b.name }}" data-confirm-danger="1">{{ icon('trash', 14) }}{{ t('admin.brands.delete') }}</button></form>{% endif %}
+  </div>
+  {% endif %}
+</aside>
+</div>
+<div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span><kbd>{{ t('admin.prod.save_shortcut') }}</kbd><a class="btn btn-secondary" href="/admin/brands">{{ t('admin.cancel') }}</a><button class="btn btn-primary" form="brand-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+{% endblock %}

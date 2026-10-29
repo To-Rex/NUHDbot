@@ -7,7 +7,14 @@
 <form method="post" id="auction-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="product_id" value="{{ a.product_id or '' }}">
   <section class="fsection"><h2>{{ t('admin.auc.sec_lot') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.auc.help_lot') }}</span></div>
     <div class="form-grid">
-      <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label><input class="input" name="brand" value="{{ a.brand }}" required></div>
+      {% set brand_known = a.brand_id and (brands|selectattr('id','equalto',a.brand_id)|list|length > 0) %}
+      <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label>
+        <select class="select" name="brand_id" required onchange="var o=this.form.querySelector('[name=brand_other]');o.hidden=this.value!=='__other__';if(!o.hidden)o.focus();">
+          <option value="" disabled {{ 'selected' if not a.brand }}>{{ t('admin.brands.select_brand') }}</option>
+          {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if a.brand_id==b.id }}>{{ b.name }}</option>{% endfor %}
+          <option value="__other__" {{ 'selected' if a.brand and not brand_known }}>{{ t('admin.brands.other') }}</option>
+        </select>
+        <input class="input mt-sm" name="brand_other" value="{{ a.brand if (a.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not a.brand %}hidden{% endif %}></div>
       <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label><input class="input mono" name="model" value="{{ a.model }}" required></div>
       <div class="field"><label>{{ t('admin.prod.capacity') }} (GB)</label><input class="input mono" type="number" name="capacity_gb" value="{{ a.capacity_gb }}" min="1"></div>
       <div class="field"><label>{{ t('admin.prod.condition') }}</label><select class="select" name="condition">{% for c in conditions %}<option value="{{ c.value }}" {{ 'selected' if a.condition==c }}>{{ c.value|upper }}</option>{% endfor %}</select></div>

@@ -10,14 +10,24 @@
 <form method="post" id="product-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection" id="s-basic"><h2>{{ t('admin.prod.sec_basic') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.prod.help_basic') }}</span></div>
     <div class="form-grid">
-      <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label><input class="input" name="brand" value="{{ prod.brand }}" list="brands" required {{ dis }}><datalist id="brands"><option>Western Digital</option><option>Seagate</option><option>Toshiba</option><option>HGST</option><option>Hikvision</option><option>Dahua</option></datalist></div>
+      {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
+      <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label>
+        <select class="select" name="brand_id" id="brand-select" required {{ dis }} data-series-map='{{ series_map|tojson }}'>
+          <option value="" disabled {{ 'selected' if not prod.brand }}>{{ t('admin.brands.select_brand') }}</option>
+          {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if prod.brand_id==b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
+          <option value="__other__" {{ 'selected' if prod.brand and not brand_known }}>{{ t('admin.brands.other') }}</option>
+        </select>
+        <input class="input mt-sm" name="brand_other" id="brand-other" value="{{ prod.brand if (prod.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not prod.brand %}hidden{% endif %} {{ dis }}>
+        <span class="hint"><a href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></span></div>
       <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label><input class="input mono" name="model" value="{{ prod.model }}" required {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.series') }}</label><input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.capacity') }} (GB) <span class="req">*</span></label><input class="input mono" type="number" name="capacity_gb" value="{{ prod.capacity_gb }}" min="1" list="caps" required {{ dis }}><datalist id="caps">{% for g in (500,1000,2000,3000,4000,6000,8000,10000,12000,14000,16000,18000,20000) %}<option value="{{ g }}">{% endfor %}</datalist></div>
+      <div class="field"><label>{{ t('admin.prod.series') }}</label>
+        <select class="select" name="series_select" id="series-select" {{ dis }}><option value="">{{ t('admin.brands.series_none') }}</option><option value="__other__">{{ t('admin.brands.series_other') }}</option></select>
+        <input class="input mt-sm" name="series" id="series-other" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.capacity') }} <span class="req">*</span></label><input class="input mono" type="number" name="capacity_gb" value="{{ prod.capacity_gb }}" min="1" list="caps" required {{ dis }}><datalist id="caps">{% for g in capacities %}<option value="{{ g }}">{% endfor %}</datalist></div>
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.cache') }} (MB)</label><input class="input mono" type="number" name="cache_mb" value="{{ prod.cache_mb or '' }}" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.cache') }}</label><input class="input mono" type="number" name="cache_mb" value="{{ prod.cache_mb or '' }}" {{ dis }}></div>
     </div>
     <div class="field mt"><label>{{ t('admin.prod.purposes') }}</label><div class="row">{% for u in purposes %}<label class="fchip {{ 'active' if u.value in prod.purposes }}"><input type="checkbox" name="purposes" value="{{ u.value }}" {{ 'checked' if u.value in prod.purposes }} {{ dis }} hidden onchange="this.parentElement.classList.toggle('active', this.checked)">{{ t('purpose.' ~ u.value) }}</label>{% endfor %}</div></div>
   </section>
@@ -100,4 +110,19 @@
   <a class="btn btn-secondary" href="/admin/products">{{ t('admin.cancel') }}</a>
   <button class="btn btn-primary" form="product-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button>
 </div>
+<script>
+(function(){
+  var bs=document.getElementById('brand-select'), bo=document.getElementById('brand-other'), ss=document.getElementById('series-select'), so=document.getElementById('series-other');
+  if(!bs||!ss) return; var map={}; try{map=JSON.parse(bs.dataset.seriesMap||'{}')}catch(e){}
+  var noneLbl=ss.options[0].text, otherLbl=ss.options[1].text;
+  function fillSeries(keep){ var cur=(so.value||'').trim(); var list=map[bs.value]||[]; ss.innerHTML='';
+    ss.add(new Option(noneLbl,'')); list.forEach(function(x){ss.add(new Option(x,x));}); ss.add(new Option(otherLbl,'__other__'));
+    if(keep&&cur){ if(list.indexOf(cur)>=0){ss.value=cur; so.hidden=true;} else {ss.value='__other__'; so.hidden=false;} } else { ss.value=''; so.hidden=true; so.value=''; }
+    if(!list.length){ ss.value=cur?'__other__':''; so.hidden=!cur&&ss.value!=='__other__'; }
+  }
+  function onBrand(init){ var other=bs.value==='__other__'; bo.hidden=!other; if(!other&&!init) bo.value=''; fillSeries(init); }
+  bs.addEventListener('change',function(){onBrand(false);}); ss.addEventListener('change',function(){ if(ss.value==='__other__'){so.hidden=false; so.focus();} else {so.hidden=true; so.value=ss.value;} });
+  onBrand(true);
+})();
+</script>
 {% endblock %}

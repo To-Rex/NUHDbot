@@ -12,7 +12,8 @@ class Product(Base, TimestampMixin):
     __tablename__ = "products"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    brand: Mapped[str] = mapped_column(String(60), index=True)
+    brand: Mapped[str] = mapped_column(String(60), index=True)  # denormalised display name (kept in sync with brand_id)
+    brand_id: Mapped[int | None] = mapped_column(ForeignKey("brands.id", ondelete="SET NULL"), index=True)
     model: Mapped[str] = mapped_column(String(120), index=True)  # real hardware model
     label_model: Mapped[str | None] = mapped_column(String(120))  # model printed on the label (Refresh)
     series: Mapped[str | None] = mapped_column(String(60))  # e.g. Purple, SkyHawk
@@ -53,6 +54,7 @@ class Product(Base, TimestampMixin):
     sort: Mapped[int] = mapped_column(Integer, default=0)
     views: Mapped[int] = mapped_column(Integer, default=0)
 
+    brand_ref = relationship("Brand", lazy="selectin")
     images: Mapped[list["ProductImage"]] = relationship(
         back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.sort", lazy="selectin"
     )

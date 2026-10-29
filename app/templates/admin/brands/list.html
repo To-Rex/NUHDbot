@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<span class="faint small">{{ brands|length }}</span><a class="btn btn-primary btn-sm" href="/admin/brands/new">{{ icon('plus', 15) }}{{ t('admin.brands.new') }}</a>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.brands.help_list') }}</span></div>
+<div class="tbl-wrap"><table class="tbl-cards">
+<thead><tr><th style="width:36px"></th><th style="width:56px"></th><th>{{ t('admin.brands.name') }}</th><th>{{ t('admin.brands.series') }}</th><th class="right">{{ t('admin.brands.products') }}</th><th>{{ t('admin.status') }}</th><th class="right">{{ t('admin.actions') }}</th></tr></thead>
+<tbody class="sortable brand-sort" data-reorder-url="/admin/brands-reorder" data-saved-text="{{ t('admin.brands.reordered') }}">
+{% for b in brands %}{% include "admin/brands/_row.html" %}{% else %}
+<tr><td colspan="7" class="empty">{{ icon('tag', 28) }}<b>{{ t('admin.brands.empty_title') }}</b><p class="sub" style="max-width:480px;margin:6px auto 12px">{{ t('admin.brands.empty_text') }}</p><a class="btn btn-primary btn-sm" href="/admin/brands/new">{{ icon('plus', 16) }}{{ t('admin.brands.new') }}</a></td></tr>
+{% endfor %}
+</tbody></table></div>
+{% endblock %}

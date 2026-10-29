@@ -3,16 +3,15 @@ from fastapi import Request
 from app.deps import DB, CurrentUser, Lang
 from app.enums import Condition, FormFactor, Interface, Purpose, TestStatus
 from app.services import catalog
-from app.services.catalog import CAPACITY_PRESETS_GB
 from app.templating import render
 from app.web.router import router
 
 
-def _filter_ctx(f: catalog.CatalogFilters, facets: dict) -> dict:
+def _filter_ctx(f: catalog.CatalogFilters, facets: dict, presets: list[int]) -> dict:
     return {
         "f": f,
         "facets": facets,
-        "capacity_presets": [g for g in CAPACITY_PRESETS_GB if any(g == c for c, _ in facets["capacities"])] or [c for c, _ in facets["capacities"]],
+        "capacity_presets": [g for g in presets if any(g == c for c, _ in facets["capacities"])] or [c for c, _ in facets["capacities"]],
         "conditions": list(Condition),
         "purposes": list(Purpose),
         "interfaces": list(Interface),
@@ -33,7 +32,7 @@ async def catalog_page(request: Request, db: DB, user: CurrentUser, lang: Lang):
         tpl = "miniapp/partials/product_grid.html" if request.headers.get("HX-Target") != "grid-more" and partial != "more" else "miniapp/partials/product_grid_more.html"
         return render(request, tpl, ctx)
     facets = await catalog.facets(db)
-    ctx.update(_filter_ctx(f, facets))
+    ctx.update(_filter_ctx(f, facets, await catalog.capacity_presets(db)))
     ctx["page_title"] = None
     return render(request, "miniapp/catalog.html", ctx)
 

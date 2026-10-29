@@ -84,7 +84,9 @@
     "per_unit_total": "Jami",
     "views": "ko'rildi",
     "min_order_hint": "Minimal buyurtma {n} dona. Kamroq kerak bo'lsa — admin bilan kelishing.",
-    "not_found": "Mahsulot topilmadi"
+    "not_found": "Mahsulot topilmadi",
+    "warranty_check": "Rasmiy kafolat tekshiruvi",
+    "warranty_check_note": "Rasmiy saytdagi tekshirish originallikni 100% isbotlamaydi; natija chiqmasligi disk soxta degani emas."
   },
   "cart": {
     "title": "Savat",

@@ -519,3 +519,5 @@ details.acc .acc-body{padding:0 0 14px;color:var(--ink-2);font-size:14px;animati
 .fchip .lang-badge{height:20px;line-height:20px;margin-right:4px;background:var(--sunken)}
 .fchip.active .lang-badge{background:var(--surface);color:var(--accent)}
 @media (min-width:600px){.lang-grid{grid-template-columns:repeat(3,1fr)}}
+
+.brand-logo-sm{width:22px;height:22px;border-radius:6px;object-fit:contain;background:var(--surface);border:1px solid var(--hairline);padding:2px}

@@ -1,0 +1,14 @@
+{% set n = counts.get(b.id, 0) %}
+<tr id="brow-{{ b.id }}" class="img-card brand-row {{ 'is-hidden' if not b.is_active }}" data-id="{{ b.id }}">
+  <td class="drag" title="{{ t('admin.brands.sort') }}">{{ icon('dots', 16) }}</td>
+  <td data-th="{{ t('admin.brands.logo') }}">{% if b.logo_thumb %}<img class="th brand-logo" src="{{ b.logo_thumb_url }}" alt="">{% else %}<span class="brand-mono">{{ b.monogram }}</span>{% endif %}</td>
+  <td data-th="{{ t('admin.brands.name') }}"><a class="row-main" href="/admin/brands/{{ b.id }}">{{ b.name }}</a><div class="row-sub mono">{{ b.slug }}{% if b.warranty_url %} · <a href="{{ b.warranty_url }}" target="_blank" rel="noopener" title="{{ t('admin.brands.warranty_url') }}" style="display:inline-flex;vertical-align:middle">{{ icon('external', 11) }}</a>{% endif %}</div></td>
+  <td data-th="{{ t('admin.brands.series') }}"><div class="row" style="flex-wrap:wrap;gap:4px">{% for s in b.series %}<span class="chip chip-soft">{{ s }}</span>{% else %}<span class="faint">—</span>{% endfor %}</div></td>
+  <td class="num" data-th="{{ t('admin.brands.products') }}">{% if n %}<a class="mono bold" href="/admin/products?brand_id={{ b.id }}">{{ n }}</a>{% else %}<span class="faint">0</span>{% endif %}</td>
+  <td data-th="{{ t('admin.status') }}"><button class="btn btn-xs {{ 'btn-ok' if b.is_active else 'btn-secondary' }}" hx-post="/admin/brands/{{ b.id }}/toggle" hx-target="#brow-{{ b.id }}" hx-swap="outerHTML" title="{{ t('admin.brands.deactivate') if b.is_active else t('admin.brands.activate') }}">{{ icon('eye' if b.is_active else 'eye-off', 13) }}{{ t('admin.brands.active') if b.is_active else t('admin.brands.hidden') }}</button></td>
+  <td class="right nowrap" data-th="{{ t('admin.actions') }}">
+    <a class="btn btn-xs btn-secondary" href="/admin/brands/{{ b.id }}">{{ icon('edit', 13) }}{{ t('admin.edit') }}</a>
+    {% if n %}<span class="btn btn-xs btn-secondary" aria-disabled="true" style="opacity:.5;cursor:not-allowed" title="{{ t('admin.brands.delete_blocked', n=n) }}">{{ icon('trash', 13) }}</span>
+    {% else %}<form method="post" action="/admin/brands/{{ b.id }}/delete" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-xs btn-danger" data-confirm="{{ t('admin.brands.delete_q') }}" data-confirm-text="{{ b.name }}" data-confirm-danger="1">{{ icon('trash', 13) }}</button></form>{% endif %}
+  </td>
+</tr>

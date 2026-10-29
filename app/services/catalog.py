@@ -165,12 +165,21 @@ async def new_arrivals(db: AsyncSession, limit: int = 12) -> list[Product]:
     return list((await db.execute(stmt)).scalars().unique().all())
 
 
+async def capacity_presets(db: AsyncSession) -> list[int]:
+    from app.services.settings_service import get_setting
+
+    raw = await get_setting(db, "capacity_presets")
+    try:
+        vals = sorted({int(v) for v in (raw or []) if 100 <= int(v) <= 100000})
+    except (TypeError, ValueError):
+        vals = []
+    return vals or list(CAPACITY_PRESETS_GB)
+
+
 async def facets(db: AsyncSession) -> dict:
-    brands = (
-        await db.execute(
-            select(Product.brand, func.count()).where(Product.is_active.is_(True)).group_by(Product.brand).order_by(func.count().desc())
-        )
-    ).all()
+    from app.services import brands as brand_service
+
+    brands = [(b.name, n) for b, n in await brand_service.catalog_brands(db)]
     caps = (
         await db.execute(
             select(Product.capacity_gb, func.count()).where(Product.is_active.is_(True)).group_by(Product.capacity_gb).order_by(Product.capacity_gb)
@@ -178,7 +187,7 @@ async def facets(db: AsyncSession) -> dict:
     ).all()
     price = (await db.execute(select(func.min(Product.price), func.max(Product.price)).where(Product.is_active.is_(True)))).one()
     return {
-        "brands": [(b, c) for b, c in brands],
+        "brands": brands,
         "capacities": [(g, c) for g, c in caps],
         "price_min": float(price[0] or 0),
         "price_max": float(price[1] or 0),

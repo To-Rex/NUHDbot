@@ -32,13 +32,25 @@ from app.enums import Condition, FormFactor, ImageKind, Interface, Purpose, Role
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
 from app.services import audit, media
+from app.services import brands as brand_service
+from app.services.catalog import capacity_presets
 
-PRODUCT_FIELDS = ["brand", "model", "label_model", "series", "capacity_gb", "interface", "form_factor", "condition", "price", "currency", "cost_price", "stock", "min_order", "box_qty", "full_box_only", "seller_warranty_months", "factory_warranty_months", "test_status", "hours_used", "health", "is_active", "sale_allowed", "arrived_at", "sort", "rpm", "cache_mb"]
+PRODUCT_FIELDS = ["brand", "brand_id", "model", "label_model", "series", "capacity_gb", "interface", "form_factor", "condition", "price", "currency", "cost_price", "stock", "min_order", "box_qty", "full_box_only", "seller_warranty_months", "factory_warranty_months", "test_status", "hours_used", "health", "is_active", "sale_allowed", "arrived_at", "sort", "rpm", "cache_mb"]
 WARRANTY_DEFAULTS = {Condition.NEW: (12, 36), Condition.USED: (6, 0), Condition.REFRESH: (6, 0)}
 
 
 def _ctx_lists():
     return {"conditions": list(Condition), "interfaces": list(Interface), "form_factors": list(FormFactor), "tests": list(TestStatus), "purposes": list(Purpose)}
+
+
+async def _form_ctx(db, p: Product | None = None) -> dict:
+    """Brands (active + the product's own even if hidden), their series map and capacity presets for the product form."""
+    brands = await brand_service.list_brands(db, active_only=True)
+    if p is not None and p.brand_id and all(b.id != p.brand_id for b in brands):
+        own = await brand_service.get_brand(db, p.brand_id)
+        if own:
+            brands.append(own)
+    return {"brands": brands, "series_map": {b.id: b.series for b in brands}, "capacities": await capacity_presets(db), **_ctx_lists()}
 
 
 @router.get("/products")
@@ -48,7 +60,9 @@ async def products_list(request: Request, db: DB, staff: User = Depends(staff_de
     if q.get("q"):
         like = f"%{q['q'].strip()}%"
         stmt = stmt.where(or_(Product.brand.ilike(like), Product.model.ilike(like), Product.label_model.ilike(like), Product.series.ilike(like)))
-    if q.get("brand"):
+    if q.get("brand_id", "").isdigit():
+        stmt = stmt.where(Product.brand_id == int(q["brand_id"]))
+    elif q.get("brand"):
         stmt = stmt.where(Product.brand == q["brand"])
     if q.get("cond"):
         stmt = stmt.where(Product.condition == q["cond"])
@@ -62,24 +76,26 @@ async def products_list(request: Request, db: DB, staff: User = Depends(staff_de
         stmt = stmt.where(Product.stock - Product.reserved > 0)
     stmt = stmt.order_by(Product.is_active.desc(), Product.sort.desc(), Product.id.desc())
     items, total, pages = await paginate(db, stmt, qpage(request), 40)
-    brands = [b for (b,) in (await db.execute(select(Product.brand).distinct().order_by(Product.brand))).all()]
+    brands = await brand_service.list_brands(db, active_only=False)
     return render(request, staff, "admin/products/list.html", {"page_title": t(staff.lang, "admin.prod.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "brands": brands, "badges": await nav_badges(db), **_ctx_lists()})
 
 
 @router.get("/products/new")
 async def product_new(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, currency=settings.default_currency, seller_warranty_months=12, factory_warranty_months=36, min_order=1, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC))
-    return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "history": [], **_ctx_lists()})
+    return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "history": [], **(await _form_ctx(db, p))})
 
 
 async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[str]:
     errors = []
-    p.brand = f_str(form, "brand", maxlen=60)
+    b = await brand_service.resolve_brand(db, form.get("brand_id"), f_str(form, "brand_other", maxlen=60) or f_str(form, "brand", maxlen=60))
+    brand_service.sync_product_brand(p, b, fallback_name="")
     p.model = f_str(form, "model", maxlen=120)
     if not p.brand or not p.model:
         errors.append("brand/model")
     p.label_model = f_opt(form, "label_model", 120)
-    p.series = f_opt(form, "series", 60)
+    series_sel = (form.get("series_select") or "").strip()
+    p.series = (f_opt(form, "series", 60) if series_sel in ("", "__other__") else series_sel[:60]) or None
     p.capacity_gb = f_int(form, "capacity_gb", 0) or 0
     if p.capacity_gb <= 0:
         errors.append("capacity_gb")
@@ -129,7 +145,7 @@ async def product_create(request: Request, db: DB, staff: User = Depends(staff_d
     p = Product(purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={})
     errors = await _apply_form(db, p, form, staff, True)
     if errors:
-        return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "errors": errors, "history": [], **_ctx_lists()}, status_code=400)
+        return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "errors": errors, "history": [], **(await _form_ctx(db, p))}, status_code=400)
     db.add(p)
     await db.flush()
     if p.price is not None:
@@ -145,7 +161,7 @@ async def product_edit(pid: int, request: Request, db: DB, staff: User = Depends
     if not p:
         raise HTTPException(404)
     history = (await db.execute(select(PriceHistory).where(PriceHistory.product_id == pid).order_by(PriceHistory.id.desc()).limit(20))).scalars().all()
-    return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "history": history, "readonly": not can(staff, PRODUCT_EDIT_ROLES | {Role.TESTER}), **_ctx_lists()})
+    return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "history": history, "readonly": not can(staff, PRODUCT_EDIT_ROLES | {Role.TESTER}), **(await _form_ctx(db, p))})
 
 
 @router.post("/products/{pid}")
@@ -166,7 +182,7 @@ async def product_update(pid: int, request: Request, db: DB, staff: User = Depen
         errors = await _apply_form(db, p, form, staff, False)
     if errors:
         history = (await db.execute(select(PriceHistory).where(PriceHistory.product_id == pid).order_by(PriceHistory.id.desc()).limit(20))).scalars().all()
-        return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "errors": errors, "history": history, **_ctx_lists()}, status_code=400)
+        return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "errors": errors, "history": history, **(await _form_ctx(db, p))}, status_code=400)
     await audit.log(db, staff.id, "product.update", "product", p.id, before, snapshot(p, PRODUCT_FIELDS))
     await db.commit()
     return back(request, f"/admin/products/{p.id}", t(staff.lang, "admin.flash.saved"))

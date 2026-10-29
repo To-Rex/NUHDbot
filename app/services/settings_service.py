@@ -29,6 +29,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "wd_check_url": {"v": "https://support-en.wd.com/app/warrantystatusweb", "d": "WD warranty check"},
     "seagate_check_url": {"v": "https://www.seagate.com/support/warranty-and-replacements/", "d": "Seagate warranty check"},
     "support_group_id": {"v": None, "d": "Telegram group id where support messages are mirrored"},
+    "capacity_presets": {"v": [500, 1000, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000], "d": "Capacity chips (GB) shown in catalogue filters and product form"},
 }
 
 

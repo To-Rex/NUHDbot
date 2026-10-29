@@ -14,6 +14,7 @@ class Auction(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
     brand: Mapped[str] = mapped_column(String(60))
+    brand_id: Mapped[int | None] = mapped_column(ForeignKey("brands.id", ondelete="SET NULL"))
     model: Mapped[str] = mapped_column(String(120))
     capacity_gb: Mapped[int] = mapped_column(Integer)
     condition: Mapped[Condition] = mapped_column(str_enum(Condition, 10))

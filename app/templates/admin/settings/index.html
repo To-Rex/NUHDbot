@@ -31,6 +31,10 @@
       <div class="field"><label>{{ t('admin.set.key_support_group_id') }}</label><input class="input mono" name="support_group_id" value="{{ v.support_group_id or '' }}" placeholder="-100…"><span class="hint">{{ t('admin.set.help_support_group_id') }}</span></div>
     </div>
   </section>
+  <section class="fsection"><h2>{{ t('admin.set.group_catalog') }}</h2>
+    <div class="field mt"><label>{{ t('admin.set.key_capacity_presets') }}</label><input class="input mono" name="capacity_presets" value="{{ v.capacity_presets|join(', ') }}" placeholder="500, 1000, 2000, 4000"><span class="hint">{{ t('admin.set.help_capacity_presets') }}</span></div>
+    <div class="hint mt-sm"><a href="/admin/brands">{{ icon('tag', 13) }} {{ t('admin.brands.title') }} →</a></div>
+  </section>
   <section class="fsection"><h2>{{ t('admin.set.group_links') }}</h2><div class="stack mt">{{ str('wd_check_url', 'https://') }}{{ str('seagate_check_url', 'https://') }}</div></section>
 </div>
 </div>

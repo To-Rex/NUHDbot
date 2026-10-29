@@ -25,7 +25,7 @@
   {% endif %}
 
   <div class="mt-4">
-    <div class="pcard-brand">{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</div>
+    <div class="pcard-brand row" style="gap:8px">{% if p.brand_ref and p.brand_ref.logo_thumb %}<img src="{{ p.brand_ref.logo_thumb_url }}" alt="" class="brand-logo-sm">{% endif %}<span>{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</span></div>
     <h1 style="font-size:24px;margin-top:4px">{{ p.model }} <span class="muted" style="font-weight:600">{{ p.capacity_gb|capacity }}</span></h1>
     <div class="row mt-2" style="flex-wrap:wrap;gap:6px">
       <span class="chip chip-soft">{{ p.interface.value }}</span><span class="chip chip-soft">{{ p.form_factor.value }}″</span>
@@ -85,6 +85,9 @@
     <div class="warranty-card {{ 'none' if not p.seller_warranty_months }}"><div class="eyebrow">{{ t('common.seller_warranty') }}</div><div class="big">{{ p.seller_warranty_months }} <small>{{ t('common.months') }}</small></div>{% if not p.seller_warranty_months %}<div class="xs faint mt-1">{{ t('common.no_warranty') }}</div>{% endif %}</div>
     <div class="warranty-card {{ 'none' if not p.factory_warranty_months }}"><div class="eyebrow">{{ t('common.factory_warranty') }}</div><div class="big">{{ p.factory_warranty_months }} <small>{{ t('common.months') }}</small></div>{% if not p.factory_warranty_months %}<div class="xs faint mt-1">{{ t('common.no_warranty') }}</div>{% endif %}</div>
   </div>
+  {% if p.brand_ref and p.brand_ref.warranty_url %}
+  <a class="card card-sm row mt-2" href="{{ p.brand_ref.warranty_url }}" target="_blank" rel="noopener" style="gap:10px"><span class="list-icon">{{ icon('shield', 18) }}</span><span class="flex-1"><span class="semibold" style="display:block">{{ t('product.warranty_check') }} · {{ p.brand_ref.name }}</span><span class="xs faint">{{ t('product.warranty_check_note') }}</span></span>{{ icon('external', 16) }}</a>
+  {% endif %}
 
   <div class="section-title"><h2>{{ t('product.test_results') }}</h2><span class="chip {{ TEST_CLASS[p.test_status] }}">{{ t('test.' ~ p.test_status.value) }}</span></div>
   <div class="card card-sm small muted">

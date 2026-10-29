@@ -21,7 +21,8 @@
       "staff": "Xodimlar",
       "settings": "Sozlamalar",
       "payments": "To'lovlar",
-      "geo": "Mamlakat va shaharlar"
+      "geo": "Mamlakat va shaharlar",
+      "brands": "Brendlar"
     },
     "actions": "Amallar",
     "search": "Qidirish…",
@@ -457,7 +458,11 @@
       "help_warehouse_address": "Hozircha bo'sh qoldirish mumkin.",
       "help_wd_check_url": "Foydali ma'lumotlar bo'limida ko'rsatiladi.",
       "help_seagate_check_url": "Foydali ma'lumotlar bo'limida ko'rsatiladi.",
-      "help_support_group_id": "Mijoz xabarlari shu guruhga ham tushadi, xodimlar javob bera oladi. Masalan: -1001234567890."
+      "help_support_group_id": "Mijoz xabarlari shu guruhga ham tushadi, xodimlar javob bera oladi. Masalan: -1001234567890.",
+      "group_catalog": "Katalog lug'atlari",
+      "key_capacity_presets": "Sig'im chiplari (GB)",
+      "help_capacity_presets": "Vergul bilan, GB da (masalan 500, 1000, 2000). Katalog filtrlari va mahsulot formasida ko'rsatiladi. 100–100000 oralig'i.",
+      "capacity_invalid": "Sig'im qiymatlari noto'g'ri: {v}"
     },
     "art": {
       "title": "Foydali ma'lumotlar",
@@ -545,7 +550,8 @@
       "auction": "Auksion",
       "article": "Maqola",
       "ad": "Reklama posti",
-      "staff": "Xodim"
+      "staff": "Xodim",
+      "brand": "Brend"
     },
     "top": {
       "search_hint": "Qidirish: buyurtma raqami, telefon, model, seriya… ( / )",
@@ -644,6 +650,48 @@
       "yesterday": "Kecha"
     },
     "login_welcome": "Xush kelibsiz",
-    "login_hint": "Login va parolni bosh administratordan oling."
+    "login_hint": "Login va parolni bosh administratordan oling.",
+    "brands": {
+      "title": "Brendlar",
+      "new": "Yangi brend",
+      "edit": "Brendni tahrirlash",
+      "name": "Nomi",
+      "series": "Seriyalar",
+      "series_hint": "Har qatorga bitta seriya (masalan Purple, SkyHawk). Mahsulot formasida tanlov sifatida chiqadi.",
+      "logo": "Logotip",
+      "logo_hint": "Kvadrat rasm, 2 MB gacha. Katalogda brend nomi yonida kichik ko'rinadi.",
+      "logo_remove": "Logotipni o'chirish",
+      "warranty_url": "Rasmiy kafolat tekshirish havolasi",
+      "warranty_url_hint": "Mijozga mahsulot sahifasida «Rasmiy kafolat tekshiruvi» havolasi sifatida ko'rsatiladi.",
+      "description": "Tavsif",
+      "products": "Mahsulotlar",
+      "view_products": "Mahsulotlarni ko'rish",
+      "in_use_count": "{n} ta mahsulot",
+      "no_products": "Mahsulot yo'q",
+      "active": "Ko'rinadi",
+      "hidden": "Yashirin",
+      "activate": "Ko'rsatish",
+      "deactivate": "Yashirish",
+      "sort": "Tartib",
+      "help_list": "Brendni yashirsangiz u filtrlardan yo'qoladi, lekin mahsulotlari saqlanadi. O'chirish faqat mahsuloti yo'q brend uchun mumkin. Tartibni sudrab o'zgartiring.",
+      "help_form": "Nom mahsulot kartochkalarida ko'rsatiladi. Nomni o'zgartirsangiz, shu brenddagi barcha mahsulotlarda ham yangilanadi.",
+      "delete": "O'chirish",
+      "delete_q": "Brendni o'chirasizmi?",
+      "delete_blocked": "Bu brendda {n} ta mahsulot bor. Avval ularni boshqa brendga o'tkazing yoki brendni yashirib qo'ying.",
+      "saved": "Brend saqlandi",
+      "deleted": "Brend o'chirildi",
+      "duplicate": "Bunday nomli brend allaqachon mavjud",
+      "name_required": "Brend nomi majburiy",
+      "reordered": "Tartib saqlandi",
+      "empty_title": "Hali brend yo'q",
+      "empty_text": "Birinchi brendni qo'shing. Mahsulot yaratishda brend shu ro'yxatdan tanlanadi.",
+      "select_brand": "Brendni tanlang",
+      "other": "Boshqa…",
+      "other_name": "Brend nomi",
+      "series_select": "Seriya",
+      "series_other": "Boshqa seriya…",
+      "series_none": "— yo'q —",
+      "inactive_note": "Bu brend yashirin — katalog filtrlarida chiqmaydi."
+    }
   }
 }

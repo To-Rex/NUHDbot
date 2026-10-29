@@ -21,7 +21,8 @@
       "staff": "Staff",
       "settings": "Settings",
       "payments": "Payments",
-      "geo": "Countries & cities"
+      "geo": "Countries & cities",
+      "brands": "Brands"
     },
     "actions": "Actions",
     "search": "Search…",
@@ -457,7 +458,11 @@
       "help_warehouse_address": "Can stay empty for now.",
       "help_wd_check_url": "Shown in the Useful info section.",
       "help_seagate_check_url": "Shown in the Useful info section.",
-      "help_support_group_id": "Customer messages are mirrored to this group and staff can reply there. Example: -1001234567890."
+      "help_support_group_id": "Customer messages are mirrored to this group and staff can reply there. Example: -1001234567890.",
+      "group_catalog": "Catalogue dictionaries",
+      "key_capacity_presets": "Capacity chips (GB)",
+      "help_capacity_presets": "Comma-separated, in GB (e.g. 500, 1000, 2000). Shown in catalogue filters and the product form. Range 100–100000.",
+      "capacity_invalid": "Invalid capacity values: {v}"
     },
     "art": {
       "title": "Articles",
@@ -545,7 +550,8 @@
       "auction": "Auction",
       "article": "Article",
       "ad": "Ad post",
-      "staff": "Staff member"
+      "staff": "Staff member",
+      "brand": "Brand"
     },
     "top": {
       "search_hint": "Search: order number, phone, model, serial… ( / )",
@@ -644,6 +650,48 @@
       "yesterday": "Yesterday"
     },
     "login_welcome": "Welcome",
-    "login_hint": "Get your login and password from the main administrator."
+    "login_hint": "Get your login and password from the main administrator.",
+    "brands": {
+      "title": "Brands",
+      "new": "New brand",
+      "edit": "Edit brand",
+      "name": "Name",
+      "series": "Series",
+      "series_hint": "One series per line (e.g. Purple, SkyHawk). They appear as choices in the product form.",
+      "logo": "Logo",
+      "logo_hint": "Square image up to 2 MB. Shown small next to the brand name in the catalogue.",
+      "logo_remove": "Remove logo",
+      "warranty_url": "Official warranty check URL",
+      "warranty_url_hint": "Shown to the customer on the product page as the “Official warranty check” link.",
+      "description": "Description",
+      "products": "Products",
+      "view_products": "View products",
+      "in_use_count": "{n} products",
+      "no_products": "No products",
+      "active": "Visible",
+      "hidden": "Hidden",
+      "activate": "Show",
+      "deactivate": "Hide",
+      "sort": "Order",
+      "help_list": "Hiding a brand removes it from filters but keeps its products. Deleting is only possible for a brand with no products. Drag rows to reorder.",
+      "help_form": "The name is shown on product cards. Renaming updates every product of this brand.",
+      "delete": "Delete",
+      "delete_q": "Delete this brand?",
+      "delete_blocked": "This brand has {n} products. Move them to another brand first or hide the brand.",
+      "saved": "Brand saved",
+      "deleted": "Brand deleted",
+      "duplicate": "A brand with this name already exists",
+      "name_required": "Brand name is required",
+      "reordered": "Order saved",
+      "empty_title": "No brands yet",
+      "empty_text": "Add the first brand. When creating a product the brand is picked from this list.",
+      "select_brand": "Select a brand",
+      "other": "Other…",
+      "other_name": "Brand name",
+      "series_select": "Series",
+      "series_other": "Other series…",
+      "series_none": "— none —",
+      "inactive_note": "This brand is hidden — it does not appear in catalogue filters."
+    }
   }
 }

@@ -21,7 +21,8 @@
       "staff": "员工",
       "settings": "设置",
       "payments": "付款",
-      "geo": "国家与城市"
+      "geo": "国家与城市",
+      "brands": "品牌"
     },
     "actions": "操作",
     "search": "搜索…",
@@ -457,7 +458,11 @@
       "help_warehouse_address": "暂时可留空。",
       "help_wd_check_url": "显示在“实用信息”板块。",
       "help_seagate_check_url": "显示在“实用信息”板块。",
-      "help_support_group_id": "客户消息会同步到该群，员工可在群内回复。例如：-1001234567890。"
+      "help_support_group_id": "客户消息会同步到该群，员工可在群内回复。例如：-1001234567890。",
+      "group_catalog": "目录字典",
+      "key_capacity_presets": "容量筛选项（GB）",
+      "help_capacity_presets": "以逗号分隔，单位 GB（例如 500, 1000, 2000）。显示在目录筛选和商品表单中。范围 100–100000。",
+      "capacity_invalid": "容量数值无效：{v}"
     },
     "art": {
       "title": "资讯文章",
@@ -545,7 +550,8 @@
       "auction": "拍卖",
       "article": "文章",
       "ad": "推广帖",
-      "staff": "员工"
+      "staff": "员工",
+      "brand": "品牌"
     },
     "top": {
       "search_hint": "搜索：订单号、电话、型号、序列号…（按 / ）",
@@ -644,6 +650,48 @@
       "yesterday": "昨天"
     },
     "login_welcome": "欢迎",
-    "login_hint": "登录名和密码请向主管理员索取。"
+    "login_hint": "登录名和密码请向主管理员索取。",
+    "brands": {
+      "title": "品牌",
+      "new": "新建品牌",
+      "edit": "编辑品牌",
+      "name": "名称",
+      "series": "系列",
+      "series_hint": "每行一个系列（如 Purple、SkyHawk），将作为商品表单中的选项。",
+      "logo": "标志",
+      "logo_hint": "正方形图片，最大 2 MB。在目录中显示于品牌名称旁。",
+      "logo_remove": "删除标志",
+      "warranty_url": "官方保修查询链接",
+      "warranty_url_hint": "在商品页面向客户显示为“官方保修查询”链接。",
+      "description": "描述",
+      "products": "商品",
+      "view_products": "查看商品",
+      "in_use_count": "{n} 件商品",
+      "no_products": "暂无商品",
+      "active": "显示",
+      "hidden": "隐藏",
+      "activate": "显示",
+      "deactivate": "隐藏",
+      "sort": "排序",
+      "help_list": "隐藏品牌后它不再出现在筛选中，但商品会保留。只有没有商品的品牌才能删除。拖动行可调整顺序。",
+      "help_form": "名称显示在商品卡片上。重命名后，该品牌下所有商品都会同步更新。",
+      "delete": "删除",
+      "delete_q": "确定删除该品牌？",
+      "delete_blocked": "该品牌下有 {n} 件商品。请先将它们转移到其他品牌，或隐藏该品牌。",
+      "saved": "品牌已保存",
+      "deleted": "品牌已删除",
+      "duplicate": "已存在同名品牌",
+      "name_required": "品牌名称为必填项",
+      "reordered": "排序已保存",
+      "empty_title": "暂无品牌",
+      "empty_text": "请添加第一个品牌。创建商品时将从此列表中选择品牌。",
+      "select_brand": "选择品牌",
+      "other": "其他…",
+      "other_name": "品牌名称",
+      "series_select": "系列",
+      "series_other": "其他系列…",
+      "series_none": "— 无 —",
+      "inactive_note": "该品牌已隐藏，不会出现在目录筛选中。"
+    }
   }
 }

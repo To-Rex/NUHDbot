@@ -35,6 +35,12 @@ async def settings_save(request: Request, db: DB, staff: User = Depends(staff_de
     await set_setting(db, "free_cities", [c.strip() for c in (form.get("free_cities") or "").split(",") if c.strip()])
     sg = f_opt(form, "support_group_id")
     await set_setting(db, "support_group_id", int(sg) if sg and sg.lstrip("-").isdigit() else None)
+    raw_caps = [c.strip() for c in (form.get("capacity_presets") or "").replace(";", ",").split(",") if c.strip()]
+    bad = [c for c in raw_caps if not c.isdigit() or not (100 <= int(c) <= 100000)]
+    if bad:
+        return back(request, "/admin/settings", t(staff.lang, "admin.set.capacity_invalid", v=", ".join(bad)), "bad")
+    if raw_caps:
+        await set_setting(db, "capacity_presets", sorted({int(c) for c in raw_caps}))
     after = await get_all_settings(db)
     changed = {k: after[k] for k in after if before.get(k) != after[k]}
     await audit.log(db, staff.id, "settings.update", "settings", None, {k: before.get(k) for k in changed}, changed)

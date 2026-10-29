@@ -8,6 +8,7 @@ from app.admin import (  # noqa: E402,F401
     articles,
     auctions,
     auth,
+    brands,
     customers,
     dashboard,
     orders,

@@ -45,6 +45,7 @@ NAV_GROUPS = [
     ]),
     ("catalog", [
         ("products", "/admin/products", "drive", PRODUCT_ROLES),
+        ("brands", "/admin/brands", "tag", PRODUCT_EDIT_ROLES),
         ("articles", "/admin/articles", "book", ARTICLE_ROLES),
     ]),
     ("people", [
@@ -62,6 +63,7 @@ NAV_GROUPS = [
 NAV = [item for _, items in NAV_GROUPS for item in items]
 CREATE_ITEMS = [
     ("product", "/admin/products/new", "drive", PRODUCT_EDIT_ROLES),
+    ("brand", "/admin/brands/new", "tag", PRODUCT_EDIT_ROLES),
     ("auction", "/admin/auctions/new", "gavel", AUCTION_EDIT_ROLES),
     ("article", "/admin/articles/new", "book", ARTICLE_ROLES),
     ("ad", "/admin/ads/new", "flag", ADS_ROLES),
