@@ -301,7 +301,7 @@ td .chip{vertical-align:middle}
 .img-card img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
 .img-card .ops{display:flex;gap:4px;padding:6px;background:var(--surface);justify-content:center}
 .img-card .cov{position:absolute;top:6px;left:6px}
-.img-card .kd{position:absolute;top:6px;right:6px}
+.img-card .kd{position:absolute;right:6px;bottom:50px}
 .img-card.is-cover{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .sortable .img-card{cursor:grab}
 .drop{border:1.5px dashed var(--hairline-strong);border-radius:12px;padding:20px;text-align:center;color:var(--ink-2);transition:border-color var(--t-fast),background var(--t-fast);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px}
