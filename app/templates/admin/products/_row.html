@@ -1,6 +1,6 @@
 <tr id="prow-{{ prod.id }}" class="clickable" data-href="/admin/products/{{ prod.id }}">
   <td>{% if can(roles.PRODUCT_EDIT_ROLES) %}<input type="checkbox" name="ids" value="{{ prod.id }}" form="bulk" aria-label="select">{% endif %}</td>
-  <td><img class="th" src="{{ prod.cover.thumb_url if prod.cover else '/static/img/placeholder.svg' }}" alt=""></td>
+  <td><img class="th" src="{{ prod.cover.thumb_url if prod.cover else '/static/img/placeholder.svg' }}" alt="" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'"></td>
   <td><div class="row-main">{{ prod.brand }} {{ prod.model }}</div><div class="row-sub">{{ prod.series or '' }}{% if prod.label_model %} · <span style="color:var(--refresh-fg)">{{ t('common.label_model') }}: {{ prod.label_model }}</span>{% endif %}</div></td>
   <td><span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span></td>
   <td class="nowrap">{{ prod.capacity_gb|capacity }} · {{ prod.interface.value }} · {{ prod.form_factor.value }}"</td>

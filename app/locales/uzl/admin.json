@@ -503,7 +503,8 @@
       "unknown_cost": "tannarx yo'q",
       "qty": "Dona",
       "export": "Eksport",
-      "period_hint": "Ko'rsatkichlar tanlangan davr uchun; foyda faqat tannarx ma'lum bo'lganda hisoblanadi."
+      "period_hint": "Ko'rsatkichlar tanlangan davr uchun; foyda faqat tannarx ma'lum bo'lganda hisoblanadi.",
+      "profit_short": "Sof foyda"
     },
     "aud": {
       "title": "Audit jurnali",

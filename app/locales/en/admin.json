@@ -503,7 +503,8 @@
       "unknown_cost": "no cost",
       "qty": "Qty",
       "export": "Export",
-      "period_hint": "Figures for the selected period; profit is computed only where cost price is known."
+      "period_hint": "Figures for the selected period; profit is computed only where cost price is known.",
+      "profit_short": "Net profit"
     },
     "aud": {
       "title": "Audit log",

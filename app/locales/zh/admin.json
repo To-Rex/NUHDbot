@@ -503,7 +503,8 @@
       "unknown_cost": "无成本价",
       "qty": "数量",
       "export": "导出",
-      "period_hint": "所选时间段内的数据；仅在已知成本价时计算利润。"
+      "period_hint": "所选时间段内的数据；仅在已知成本价时计算利润。",
+      "profit_short": "净利润"
     },
     "aud": {
       "title": "审计日志",
