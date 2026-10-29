@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<span class="faint small">{{ total }}</span><a class="btn btn-secondary btn-sm" href="/admin/brands">{{ icon('tag', 15) }}{{ t('admin.brands.title') }}</a>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.models.help') }}</span></div>
+<div class="split">
+<div class="stack">
+  <div class="toolbar card" style="padding:10px 14px"><form method="get" class="row" style="gap:8px;flex-wrap:wrap">
+    <select class="select sm" name="brand_id" onchange="this.form.submit()"><option value="">{{ t('admin.models.all_brands') }}</option>{% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }} ({{ counts.get(b.id, 0) }})</option>{% endfor %}</select>
+    {% if brand_id %}<a class="btn btn-xs btn-secondary" href="/admin/models">{{ icon('x', 13) }}{{ t('admin.clear') }}</a>{% endif %}
+  </form></div>
+  {% for b in brands if (not brand_id or b.id == brand_id) and by_brand.get(b.id) %}
+  <section class="fsection" id="brand-{{ b.id }}">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="margin:0">{{ b.name }} <span class="faint small mono">{{ by_brand[b.id]|length }}</span></h2><a class="btn btn-xs btn-secondary" href="/admin/brands/{{ b.id }}">{{ icon('edit', 13) }}{{ t('admin.edit') }}</a></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>{{ t('admin.prod.model') }}</th><th>{{ t('admin.prod.capacity') }}</th><th>{{ t('admin.prod.interface') }}</th><th>{{ t('admin.prod.form_factor') }}</th><th>{{ t('admin.prod.series') }}</th><th class="right"></th></tr></thead>
+      <tbody>{% for m in by_brand[b.id] %}
+      <tr><td class="mono bold">{{ m.name }}</td><td class="mono">{{ m.capacity_gb|capacity if m.capacity_gb else '—' }}</td><td>{{ m.interface or '—' }}</td><td>{{ (m.form_factor ~ '"') if m.form_factor else '—' }}</td><td>{{ m.series or '—' }}</td>
+        <td class="right"><form method="post" action="/admin/models/{{ m.id }}/delete" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" data-confirm="{{ t('admin.models.delete_q') }}" data-confirm-text="{{ b.name }} {{ m.name }}" data-confirm-danger="1" title="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form></td></tr>
+      {% endfor %}</tbody></table></div>
+  </section>
+  {% else %}
+  <div class="card empty">{{ icon('layers', 28) }}<b>{{ t('admin.models.empty_title') }}</b><p class="sub" style="max-width:480px;margin:6px auto 0">{{ t('admin.models.empty_text') }}</p></div>
+  {% endfor %}
+</div>
+<aside class="stack">
+  <div class="card"><h2>{{ t('admin.models.add_title') }}</h2>
+    {% with form_id='models-bulk', form_class='stack mt-sm' %}{% include "admin/models/_bulk_form.html" %}{% endwith %}
+  </div>
+</aside>
+</div>
+{% endblock %}

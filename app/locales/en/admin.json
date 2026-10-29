@@ -22,7 +22,8 @@
       "settings": "Settings",
       "payments": "Payments",
       "geo": "Countries & cities",
-      "brands": "Brands"
+      "brands": "Brands",
+      "models": "Models"
     },
     "actions": "Actions",
     "search": "Search…",
@@ -704,6 +705,25 @@
       "series_other": "Other series…",
       "series_none": "— none —",
       "inactive_note": "This brand is hidden — it does not appear in catalogue filters."
+    },
+    "models": {
+      "title": "Model dictionary",
+      "manage": "Model list",
+      "brand": "Brand",
+      "lines": "Models (one per line)",
+      "lines_hint": "The model name alone is enough. Optional: capacity, interface, form factor, series — separated by | or spaces: ST4000VX016 | 4TB | SkyHawk. Duplicates are skipped.",
+      "add": "Add to list",
+      "add_title": "Add models",
+      "added": "{n} models added, {s} skipped",
+      "deleted": "Model removed from the list",
+      "delete_q": "Remove this model from the list?",
+      "pick_brand": "Pick a brand first",
+      "all_brands": "All brands",
+      "existing": "Models in the list",
+      "help": "This dictionary feeds the suggestions in the product form's Model field. Enter as many models as you like at once — one per line. Models from existing products are suggested automatically too.",
+      "dialog_text": "Paste models as a list — they appear in the Model suggestions right away.",
+      "empty_title": "No models yet",
+      "empty_text": "Pick a brand in the form on the right and type the models, one per line."
     }
   }
 }

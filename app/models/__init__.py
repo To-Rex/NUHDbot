@@ -1,6 +1,7 @@
 from app.models.auction import Auction, AuctionDeposit, AuctionImage, Bid
 from app.models.base import Base
 from app.models.brand import Brand
+from app.models.brand_model import BrandModel
 from app.models.misc import AdPost, Article, AuditLog, City, Country, NotificationLog, Setting, Subscription
 from app.models.order import Order, OrderItem, OrderStatusHistory, Payment
 from app.models.product import PriceHistory, Product, ProductImage
@@ -10,6 +11,7 @@ from app.models.user import User
 __all__ = [
     "Base",
     "Brand",
+    "BrandModel",
     "User",
     "Product",
     "ProductImage",

@@ -11,6 +11,7 @@ from app.admin import (  # noqa: E402,F401
     brands,
     customers,
     dashboard,
+    models_dict,
     orders,
     products,
     reports,

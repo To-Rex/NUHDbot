@@ -46,6 +46,7 @@ NAV_GROUPS = [
     ("catalog", [
         ("products", "/admin/products", "drive", PRODUCT_ROLES),
         ("brands", "/admin/brands", "tag", PRODUCT_EDIT_ROLES),
+        ("models", "/admin/models", "layers", PRODUCT_EDIT_ROLES),
         ("articles", "/admin/articles", "book", ARTICLE_ROLES),
     ]),
     ("people", [

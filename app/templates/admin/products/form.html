@@ -26,7 +26,8 @@
           <button type="button" class="combo-toggle" id="model-toggle" tabindex="-1" aria-label="▾" {{ dis }}>{{ icon('chevron-down', 16) }}</button>
           <div class="combo-pop" id="model-pop" role="listbox" hidden></div>
         </div>
-        <span class="hint" id="model-hint">{{ t('admin.prod.model_hint') }}</span></div>
+        <span class="hint" id="model-hint">{{ t('admin.prod.model_hint') }}</span>
+        {% if not tester %}<button type="button" class="link-btn" id="models-open">{{ icon('layers', 13) }}{{ t('admin.models.manage') }}</button>{% endif %}</div>
       <div class="field"><label>{{ t('admin.prod.series') }}</label>
         <select class="select" name="series_select" id="series-select" {{ dis }}><option value="">{{ t('admin.brands.series_none') }}</option><option value="__other__">{{ t('admin.brands.series_other') }}</option></select>
         <input class="input mt-sm" name="series" id="series-other" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" {{ dis }}></div>
@@ -121,6 +122,19 @@
 </aside>
 </div>
 
+{% if not tester %}
+<dialog class="dlg dlg-wide" id="models-dlg" data-l-pick="{{ t('admin.models.pick_brand') }}">
+  <div class="dlg-body">
+    <div class="dlg-head"><div><h3>{{ t('admin.models.title') }}</h3><p>{{ t('admin.models.dialog_text') }}</p></div><button type="button" class="icon-btn" data-models-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
+    <div class="models-dlg-grid mt">
+      <div>{% with form_id='models-bulk-dlg', form_class='stack', brand_id=prod.brand_id %}{% include "admin/models/_bulk_form.html" %}{% endwith %}</div>
+      <div class="models-list"><div class="row" style="justify-content:space-between;align-items:center"><span class="lbl">{{ t('admin.models.existing') }} <span class="mono faint" data-models-count>0</span></span><a class="small" href="/admin/models" target="_blank">{{ t('admin.models.title') }} →</a></div>
+        <div class="chips mt-sm" data-models-chips></div></div>
+    </div>
+  </div>
+  <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-models-close>{{ t('admin.ui.close') }}</button></div>
+</dialog>
+{% endif %}
 <div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}">
   <span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span>
   <kbd>{{ t('admin.prod.save_shortcut') }}</kbd>
@@ -145,16 +159,18 @@
   /* model combobox: pick an existing model or type a new one; picking prefills specs on a new product */
   var box=document.getElementById('model-combo'), inp=document.getElementById('model-input'), pop=document.getElementById('model-pop'), tog=document.getElementById('model-toggle'), bs=document.getElementById('brand-select');
   if(!box||inp.disabled) return; var all=[]; try{all=JSON.parse(box.dataset.models||'[]')}catch(e){}
+  window.__setKnownModels=function(list){ all=list||[]; if(!pop.hidden) open(); };
   var L=box.dataset, sel=-1, items=[];
   function brandId(){ var v=bs&&bs.value; return /^\d+$/.test(v||'')?parseInt(v,10):null; }
-  function esc(s){ return s.replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function meta(m){ var p=[]; if(m.cap) p.push(cap(m.cap)); if(m.if||m.ff) p.push([m.if,m.ff?m.ff+'"':''].filter(Boolean).join(' ')); if(m.series) p.push(m.series); return p.map(esc).join(' · '); }
   function mark(name,q){ if(!q) return esc(name); var i=name.toLowerCase().indexOf(q.toLowerCase()); if(i<0) return esc(name); return esc(name.slice(0,i))+'<b>'+esc(name.slice(i,i+q.length))+'</b>'+esc(name.slice(i+q.length)); }
   function cap(gb){ return gb>=1000?((gb%1000?(gb/1000).toFixed(1):gb/1000)+' TB'):gb+' GB'; }
   function build(q){ var b=brandId(), same=[], other=[], ql=q.toLowerCase();
     all.forEach(function(m){ if(ql&&m.m.toLowerCase().indexOf(ql)<0) return; (b!==null&&m.b===b?same:other).push(m); });
     if(b===null){ other=same.concat(other); same=[]; }
     items=same.concat(other).slice(0,60); sel=-1; var h='';
-    function grp(lbl,arr,off){ if(!arr.length) return; if(b!==null) h+='<div class="grp"><span>'+esc(lbl)+'</span></div>'; arr.forEach(function(m,i){ h+='<div class="opt" role="option" data-i="'+(off+i)+'"><span class="mono">'+mark(m.m,q)+'</span><span class="m">'+cap(m.cap)+' · '+esc(m.if)+' '+esc(m.ff)+'"'+(m.series?' · '+esc(m.series):'')+'</span></div>'; }); }
+    function grp(lbl,arr,off){ if(!arr.length) return; if(b!==null) h+='<div class="grp"><span>'+esc(lbl)+'</span></div>'; arr.forEach(function(m,i){ h+='<div class="opt" role="option" data-i="'+(off+i)+'"><span class="mono">'+mark(m.m,q)+'</span><span class="m">'+meta(m)+'</span></div>'; }); }
     grp(L.lSame,same,0); grp(L.lOther,other.slice(0,60-same.length),same.length);
     if(!items.length) h='<div class="none">'+esc(q?L.lNone:'—')+'</div>';
     pop.innerHTML=h; }
@@ -163,7 +179,8 @@
   function setField(name,val){ var el=document.querySelector('#product-form [name="'+name+'"]'); if(!el||val===null||val===undefined||val==='') return; el.value=String(val); el.dispatchEvent(new Event('change',{bubbles:true})); el.dispatchEvent(new Event('input',{bubbles:true})); }
   function pick(i){ var m=items[i]; if(!m) return; inp.value=m.m; inp.dispatchEvent(new Event('input',{bubbles:true})); close();
     if(L.prefill==='on'){ var cv=document.getElementById('cap-value'), unit=document.querySelector('[name="capacity_unit"][value="'+(m.cap>=1000&&m.cap%100===0?'tb':'gb')+'"]');
-      if(unit){unit.checked=true; unit.dispatchEvent(new Event('change',{bubbles:true}));} if(cv){ cv.value=m.cap>=1000&&m.cap%100===0?String(m.cap/1000):String(m.cap); cv.dispatchEvent(new Event('input',{bubbles:true})); }
+      if(m.cap){ if(unit){unit.checked=true; unit.dispatchEvent(new Event('change',{bubbles:true}));} if(cv){ cv.value=m.cap>=1000&&m.cap%100===0?String(m.cap/1000):String(m.cap); cv.dispatchEvent(new Event('input',{bubbles:true})); } }
+      if(!m.cap&&!m.if&&!m.ff&&!m.series){ inp.focus(); return; }
       setField('interface',m.if); setField('form_factor',m.ff); setField('rpm',m.rpm); setField('cache_mb',m.cache);
       if(m.series){ var so=document.getElementById('series-other'), ss=document.getElementById('series-select'); if(ss){ var has=Array.prototype.some.call(ss.options,function(o){return o.value===m.series;}); ss.value=has?m.series:'__other__'; ss.dispatchEvent(new Event('change',{bubbles:true})); } if(so){so.value=m.series;} }
       var note=document.getElementById('prefill-note'); if(note){ var sp=note.querySelector('span'); sp.textContent=sp.dataset.tpl.replace('{m}',m.m); note.hidden=false; note.scrollIntoView({block:'nearest',behavior:'smooth'}); } }
@@ -184,6 +201,25 @@
   function fill(){ var u=unit(); dl.innerHTML=''; presets.forEach(function(g){ if(u==='tb'&&g<1000) return; var o=document.createElement('option'); o.value=u==='tb'?String(g/1000):String(g); dl.appendChild(o); }); v.step=u==='tb'?'0.01':'1'; }
   wrap.querySelectorAll('[name="capacity_unit"]').forEach(function(r){ r.addEventListener('change',function(){ var n=parseFloat(v.value); if(!isNaN(n)&&n>0){ v.value=r.value==='tb'?String(Math.round(n)/1000):String(Math.round(n*1000)); } fill(); }); });
   fill();
+})();
+(function(){
+  /* model dictionary dialog: bulk add + delete without leaving the form; refreshes the combobox */
+  var dlg=document.getElementById('models-dlg'), btn=document.getElementById('models-open'); if(!dlg||!btn) return;
+  var form=dlg.querySelector('form[data-models-bulk]'), sel=form.querySelector('[name="brand_id"]'), ta=form.querySelector('[name="lines"]'), chips=dlg.querySelector('[data-models-chips]'), cnt=dlg.querySelector('[data-models-count]'), bs=document.getElementById('brand-select');
+  var csrf=form.querySelector('[name="_csrf"]').value, models=[];
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function cap(gb){ return gb>=1000?((gb%1000?(gb/1000).toFixed(1):gb/1000)+' TB'):gb+' GB'; }
+  function draw(){ var b=parseInt(sel.value||'0',10); var mine=models.filter(function(m){return m.b===b;}); cnt.textContent=mine.length;
+    chips.innerHTML=mine.length?mine.map(function(m){ return '<span class="chip chip-soft mchip" data-id="'+m.id+'"><span class="mono">'+esc(m.m)+'</span>'+(m.cap?'<i>'+cap(m.cap)+'</i>':'')+'<button type="button" class="mchip-x" aria-label="×" data-del="'+m.id+'">&times;</button></span>'; }).join(''):'<span class="faint small">—</span>'; }
+  function apply(d){ if(d.models) models=d.models.filter(function(m){return m.src==='dict';}).concat(models.filter(function(m){return m.b!==parseInt(sel.value||'0',10);})); if(d.known&&window.__setKnownModels) window.__setKnownModels(d.known); draw(); }
+  function load(){ fetch('/admin/models/known'+(sel.value?'?brand_id='+sel.value:''),{headers:{'X-Requested-With':'fetch'},credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){ models=d.models||[]; if(d.known&&window.__setKnownModels) window.__setKnownModels(d.known); draw(); }).catch(function(){}); }
+  btn.addEventListener('click',function(){ if(bs&&/^\d+$/.test(bs.value)) sel.value=bs.value; dlg.showModal(); load(); setTimeout(function(){ta.focus();},50); });
+  dlg.querySelectorAll('[data-models-close]').forEach(function(b){ b.addEventListener('click',function(){ dlg.close(); }); });
+  sel.addEventListener('change',load);
+  form.addEventListener('submit',function(e){ e.preventDefault(); if(!sel.value){ sel.classList.add('invalid'); sel.focus(); return; }
+    fetch(form.action,{method:'POST',headers:{'X-Requested-With':'fetch','X-CSRF':csrf},body:new FormData(form),credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){ if(d.error){ window.toast&&toast(d.error,'bad'); return; } ta.value=''; window.toast&&toast(d.msg,d.added?'ok':'warn'); models=d.models||[]; if(d.known&&window.__setKnownModels) window.__setKnownModels(d.known); draw(); if(bs&&!/^\d+$/.test(bs.value)){ bs.value=sel.value; bs.dispatchEvent(new Event('change')); } }).catch(function(){ window.toast&&toast('Error','bad'); }); });
+  chips.addEventListener('click',function(e){ var x=e.target.closest('[data-del]'); if(!x) return; var id=x.dataset.del;
+    fetch('/admin/models/'+id+'/delete',{method:'POST',headers:{'X-Requested-With':'fetch','X-CSRF':csrf},credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){ window.toast&&toast(d.msg,'ok'); models=d.models||[]; if(d.known&&window.__setKnownModels) window.__setKnownModels(d.known); draw(); }).catch(function(){ window.toast&&toast('Error','bad'); }); });
 })();
 </script>
 {% endblock %}

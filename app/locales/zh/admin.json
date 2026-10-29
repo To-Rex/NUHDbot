@@ -22,7 +22,8 @@
       "settings": "设置",
       "payments": "付款",
       "geo": "国家与城市",
-      "brands": "品牌"
+      "brands": "品牌",
+      "models": "型号"
     },
     "actions": "操作",
     "search": "搜索…",
@@ -704,6 +705,25 @@
       "series_other": "其他系列…",
       "series_none": "— 无 —",
       "inactive_note": "该品牌已隐藏，不会出现在目录筛选中。"
+    },
+    "models": {
+      "title": "型号字典",
+      "manage": "型号列表",
+      "brand": "品牌",
+      "lines": "型号（每行一个）",
+      "lines_hint": "只填型号名即可。可选：容量、接口、尺寸、系列，用 | 或空格分隔：ST4000VX016 | 4TB | SkyHawk。重复项会跳过。",
+      "add": "加入列表",
+      "add_title": "添加型号",
+      "added": "已添加 {n} 个型号，跳过 {s} 个",
+      "deleted": "型号已从列表移除",
+      "delete_q": "从列表中移除该型号？",
+      "pick_brand": "请先选择品牌",
+      "all_brands": "全部品牌",
+      "existing": "列表中的型号",
+      "help": "该字典为商品表单的“型号”字段提供提示。可一次录入任意多个型号，每行一个。已有商品的型号也会自动提示。",
+      "dialog_text": "按列表录入型号，立即出现在“型号”提示中。",
+      "empty_title": "暂无型号",
+      "empty_text": "在右侧表单选择品牌，然后每行输入一个型号。"
     }
   }
 }

@@ -392,7 +392,7 @@ dialog.dlg::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(2px);b
   .sb-me{justify-content:center}
   .sb-ctl{flex-direction:column}
   .g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}.tasks{grid-template-columns:1fr 1fr}
-  .split,.split-rev,.split-eq{grid-template-columns:1fr}
+  .split,.split-rev,.split-eq{grid-template-columns:minmax(0,1fr)}
   .inbox{grid-template-columns:280px minmax(0,1fr)}
 }
 @media (max-width:760px){
@@ -415,7 +415,7 @@ dialog.dlg::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(2px);b
   .g2,.g3,.g4,.tasks{grid-template-columns:1fr}
   .hint-steps{grid-template-columns:1fr 1fr}
   .next{grid-template-columns:1fr}.next .ic{display:none}
-  .savebar{margin:18px -14px -90px;padding:10px 14px}
+  .savebar{margin:18px -14px -90px;padding:10px 14px;flex-wrap:wrap;gap:8px}.savebar kbd{display:none}
   .form-nav{display:none}
   .inbox{grid-template-columns:1fr;min-height:0}
   .inbox-list{border-right:0}
@@ -478,3 +478,18 @@ dialog.dlg::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(2px);b
 .seg-opt input:checked+span{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 .seg-opt input:focus-visible+span{box-shadow:var(--ring)}
 .seg-opt input:disabled+span{opacity:.6;cursor:default}
+
+/* ---------- model dictionary dialog ---------- */
+dialog.dlg-wide{width:min(860px,calc(100vw - 32px))}
+.link-btn{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--accent);border-radius:6px;padding:2px 4px;align-self:flex-start;margin-left:-4px}
+.link-btn:hover{background:var(--accent-soft)}
+.link-btn svg{width:13px;height:13px}
+.dlg-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:nowrap}
+.models-dlg-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:20px}
+.models-list{min-width:0}
+.models-list .chips{display:flex;flex-wrap:wrap;gap:6px;max-height:340px;overflow:auto;padding:2px}
+.mchip{height:26px;padding:0 4px 0 9px;gap:6px;font-weight:600}
+.mchip i{font-style:normal;color:var(--ink-3);font-weight:500}
+.mchip-x{width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;color:var(--ink-3);font-size:15px;line-height:1}
+.mchip-x:hover{background:var(--bad-bg);color:var(--bad)}
+@media (max-width:720px){.models-dlg-grid{grid-template-columns:1fr}}

@@ -32,7 +32,7 @@ from app.config import settings
 from app.enums import Condition, FormFactor, ImageKind, Interface, Purpose, Role, TestStatus
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
-from app.services import audit, media
+from app.services import audit, media, model_dict
 from app.services import brands as brand_service
 from app.services.catalog import capacity_presets
 
@@ -51,20 +51,7 @@ async def _form_ctx(db, p: Product | None = None) -> dict:
         own = await brand_service.get_brand(db, p.brand_id)
         if own:
             brands.append(own)
-    return {"brands": brands, "series_map": {b.id: b.series for b in brands}, "capacities": await capacity_presets(db), "models": await known_models(db), **_ctx_lists()}
-
-
-async def known_models(db) -> list[dict]:
-    """Distinct real models already entered, newest first, with the specs of their latest product (for autocomplete + prefill)."""
-    rows = (await db.execute(select(Product.brand_id, Product.model, Product.capacity_gb, Product.interface, Product.form_factor, Product.rpm, Product.cache_mb, Product.series).order_by(Product.updated_at.desc(), Product.id.desc()))).all()
-    seen, out = set(), []
-    for brand_id, model, cap, iface, ff, rpm, cache, series in rows:
-        key = (brand_id, model.strip().upper())
-        if not model.strip() or key in seen:
-            continue
-        seen.add(key)
-        out.append({"b": brand_id, "m": model.strip(), "cap": cap, "if": iface.value, "ff": ff.value, "rpm": rpm, "cache": cache, "series": series})
-    return out
+    return {"brands": brands, "series_map": {b.id: b.series for b in brands}, "capacities": await capacity_presets(db), "models": await model_dict.known_models(db), **_ctx_lists()}
 
 
 def parse_capacity(form) -> int:
