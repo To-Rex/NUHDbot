@@ -286,7 +286,16 @@
       "timeline": "Status history",
       "audit_short": "Change log",
       "items_count": "items",
-      "pcs": "pcs"
+      "pcs": "pcs",
+      "stage_order": "Order",
+      "stage_advance": "Advance 30%",
+      "stage_test": "Testing",
+      "stage_balance": "Balance 70%",
+      "stage_ship": "Shipping",
+      "stage_delivered": "Delivered",
+      "stage_done": "Done",
+      "other_status": "Move to another status",
+      "change_status_text": "Pick the new status — the customer is notified."
     },
     "auc": {
       "title": "Auctions",

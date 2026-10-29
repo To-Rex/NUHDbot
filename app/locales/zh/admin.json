@@ -286,7 +286,16 @@
       "timeline": "状态历史",
       "audit_short": "变更日志",
       "items_count": "项",
-      "pcs": "个"
+      "pcs": "个",
+      "stage_order": "订单",
+      "stage_advance": "预付 30%",
+      "stage_test": "检测",
+      "stage_balance": "尾款 70%",
+      "stage_ship": "发货",
+      "stage_delivered": "已送达",
+      "stage_done": "完成",
+      "other_status": "切换到其他状态",
+      "change_status_text": "选择新状态，客户会收到通知。"
     },
     "auc": {
       "title": "拍卖",

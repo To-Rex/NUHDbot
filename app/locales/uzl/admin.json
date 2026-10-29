@@ -286,7 +286,16 @@
       "timeline": "Holatlar tarixi",
       "audit_short": "O'zgarishlar jurnali",
       "items_count": "ta pozitsiya",
-      "pcs": "dona"
+      "pcs": "dona",
+      "stage_order": "Buyurtma",
+      "stage_advance": "Avans 30%",
+      "stage_test": "Tekshiruv",
+      "stage_balance": "Qoldiq 70%",
+      "stage_ship": "Jo'natish",
+      "stage_delivered": "Yetkazildi",
+      "stage_done": "Yakun",
+      "other_status": "Boshqa holatga o'tkazish",
+      "change_status_text": "Yangi holatni tanlang — mijozga xabar boradi."
     },
     "auc": {
       "title": "Auksionlar",

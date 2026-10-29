@@ -286,7 +286,16 @@
       "timeline": "История статусов",
       "audit_short": "Журнал изменений",
       "items_count": "позиций",
-      "pcs": "шт"
+      "pcs": "шт",
+      "stage_order": "Заказ",
+      "stage_advance": "Аванс 30%",
+      "stage_test": "Проверка",
+      "stage_balance": "Остаток 70%",
+      "stage_ship": "Отправка",
+      "stage_delivered": "Доставлен",
+      "stage_done": "Завершён",
+      "other_status": "Перевести в другой статус",
+      "change_status_text": "Выберите новый статус — клиент получит уведомление."
     },
     "auc": {
       "title": "Аукционы",
