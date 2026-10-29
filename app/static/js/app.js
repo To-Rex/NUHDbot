@@ -184,7 +184,8 @@
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-step]');
     if (!btn) return;
-    const input = btn.parentElement.querySelector('input');
+    const input = btn.parentElement.querySelector('input[type="number"]') || btn.parentElement.querySelector('input:not([type=hidden])');
+    if (!input) return;
     const step = parseInt(btn.dataset.step, 10);
     const min = parseInt(input.min || '1', 10), max = parseInt(input.max || '999999', 10);
     let v = parseInt(input.value || '0', 10) + step;
