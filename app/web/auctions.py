@@ -69,11 +69,13 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
         except InvalidOperation:
             resp = HTMLResponse("", status_code=422)
             return toast(resp, t(lang, "misc.error_generic"), "bad", "error")
+    uid = user.id
     try:
         a, bid, prev = await auctions.place_bid(db, auction_id, user, amt)
         await db.commit()
     except auctions.AuctionError as e:
         await db.rollback()
+        user = await db.get(User, uid)
         a = await auctions.get_auction(db, auction_id)
         if a is None:
             return HTMLResponse("", status_code=404)

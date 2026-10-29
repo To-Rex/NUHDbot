@@ -74,7 +74,7 @@
     <dl class="kv">
       <dt>{{ t('orders.receiver') }}</dt><dd>{{ order.receiver_name }}<br><span class="mono small">{{ order.receiver_phone }}</span></dd>
       <dt>{{ t('orders.address') }}</dt><dd style="text-align:left;font-weight:500">{% if order.country %}{{ t('country.' ~ order.country) }}{% if order.city %}, {{ order.city }}{% endif %}<br>{% endif %}{{ order.address }}</dd>
-      <dt>{{ t('orders.cargo') }}</dt><dd>{{ order.cargo_company or '—' }}<br><span class="mono">{{ order.cargo_code or '—' }}</span></dd>
+      {% if order.cargo_company or order.cargo_code %}<dt>{{ t('orders.cargo') }}</dt><dd>{{ order.cargo_company or '' }}{% if order.cargo_company and order.cargo_code %}<br>{% endif %}<span class="mono">{{ order.cargo_code or '' }}</span></dd>{% endif %}
     </dl>
     {% if order.delivery_terms %}<p class="small muted mt-2">{{ order.delivery_terms|nl2br }}</p>{% endif %}
     {% if order.admin_note %}<div class="notice notice-plain mt-2">{{ icon('edit', 18) }}<span class="small">{{ order.admin_note|nl2br }}</span></div>{% endif %}

@@ -206,12 +206,20 @@ async def confirm_payment(db: AsyncSession, pay: Payment, staff: User, ok: bool,
     if note:
         pay.note = (pay.note + "\n" if pay.note else "") + note
     await audit.log(db, staff.id, "payment.confirm" if ok else "payment.reject", "payment", pay.id, None, {"amount": str(pay.amount)})
+    pay.stage_complete = True  # informational for the caller: did this confirmation complete the current payment stage?
     if ok and pay.order is not None:
         order = pay.order
-        if pay.kind == PaymentKind.ADVANCE and order.status == OrderStatus.AWAITING_ADVANCE:
-            await transition(db, order, OrderStatus.ADVANCE_CONFIRMED, by=staff, note="advance confirmed")
-        elif pay.kind == PaymentKind.BALANCE and order.status == OrderStatus.AWAITING_BALANCE:
-            await transition(db, order, OrderStatus.PAID, by=staff, note="balance confirmed")
+        paid = order.paid_amount
+        if order.status == OrderStatus.AWAITING_ADVANCE:
+            if paid >= order.advance_amount:
+                await transition(db, order, OrderStatus.ADVANCE_CONFIRMED, by=staff, note="advance confirmed")
+            else:
+                pay.stage_complete = False
+        elif order.status == OrderStatus.AWAITING_BALANCE:
+            if paid >= Decimal(order.total or 0):
+                await transition(db, order, OrderStatus.PAID, by=staff, note="balance confirmed")
+            else:
+                pay.stage_complete = False
     await db.flush()
     return pay
 

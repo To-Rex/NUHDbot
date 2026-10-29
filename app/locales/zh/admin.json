@@ -299,7 +299,8 @@
       "stepper_hint": "点击阶段可更改状态",
       "jump_group": "切换到其他阶段（管理员）",
       "jump_hint": "跳过步骤需填写原因，库存数据不变。",
-      "jump_needs_reason": "只有管理员可跳转到该阶段，且需填写原因"
+      "jump_needs_reason": "只有管理员可跳转到该阶段，且需填写原因",
+      "payment_partial": "付款已确认，但本阶段尚未付清：{paid} / {expected}。请等待余款。"
     },
     "auc": {
       "title": "拍卖",

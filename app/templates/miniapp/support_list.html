@@ -3,7 +3,7 @@
 {% block topbar_actions %}{% endblock %}
 {% block content %}
 <div class="page stack">
-  <div class="notice notice-plain">{{ icon('clock', 18) }}<div class="small"><b>{{ t('support.hours') }}:</b> {{ p(working_hours) }}<br><b>{{ t('support.reply') }}:</b> {{ p(reply_time) }}</div></div>
+  {% if p(working_hours) or p(reply_time) %}<div class="notice notice-plain">{{ icon('clock', 18) }}<div class="small">{% if p(working_hours) %}<b>{{ t('support.hours') }}:</b> {{ p(working_hours) }}{% endif %}{% if p(working_hours) and p(reply_time) %}<br>{% endif %}{% if p(reply_time) %}<b>{{ t('support.reply') }}:</b> {{ p(reply_time) }}{% endif %}</div></div>{% endif %}
   <a class="btn btn-primary btn-lg btn-block" href="/app/support/new">{{ icon('edit', 18) }}{{ t('support.new') }}</a>
   {% if threads %}
   <div class="list stagger">

@@ -68,6 +68,7 @@ async def checkout_submit(
         await db.commit()
     except OrderError as e:
         await db.rollback()
+        await db.refresh(user)
         ctx = await _ctx(request, db, user, lang, form, {"general": t(lang, f"checkout.errors.{e.code}", **e.ctx)})
         return hx_trigger(render(request, "miniapp/checkout.html", ctx, status_code=422), toast={"msg": ctx["errors"]["general"], "type": "bad"}, haptic="error")
     # staff alert (never blocks the customer)

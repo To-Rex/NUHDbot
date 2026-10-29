@@ -79,6 +79,7 @@ async def brand_create(request: Request, db: DB, staff: User = Depends(staff_dep
         return render(request, staff, "admin/brands/form.html", {"page_title": t(lang, "admin.brands.new"), "b": b, "is_new": True, "count": 0, "error": t(lang, f"admin.brands.{e.code}")}, status_code=400)
     except media.MediaError as e:
         await db.rollback()
+        await db.refresh(staff)
         return back(request, "/admin/brands/new", t(lang, "admin.prod.image_error", e=str(e)), "bad")
     await audit.log(db, staff.id, "brand.create", "brand", b.id, None, _snap(b))
     await db.commit()
@@ -110,11 +111,13 @@ async def brand_update(bid: int, request: Request, db: DB, staff: User = Depends
         await _save_logo(form, b)
     except svc.BrandError as e:
         await db.rollback()
+        await db.refresh(staff)
         b = await svc.get_brand(db, bid)
         count = (await svc.product_counts(db)).get(b.id, 0)
         return render(request, staff, "admin/brands/form.html", {"page_title": b.name, "b": b, "is_new": False, "count": count, "error": t(lang, f"admin.brands.{e.code}")}, status_code=400)
     except media.MediaError as e:
         await db.rollback()
+        await db.refresh(staff)
         return back(request, f"/admin/brands/{bid}", t(lang, "admin.prod.image_error", e=str(e)), "bad")
     await audit.log(db, staff.id, "brand.update", "brand", b.id, before, _snap(b))
     await db.commit()

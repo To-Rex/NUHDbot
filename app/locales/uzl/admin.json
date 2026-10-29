@@ -299,7 +299,8 @@
       "stepper_hint": "Bosqichni bosib holatni o'zgartirish mumkin",
       "jump_group": "Boshqa bosqichga o'tkazish (admin)",
       "jump_hint": "Navbatdagi qadamni tashlab o'tish — sabab yozish shart. Ombor hisobi o'zgarmaydi.",
-      "jump_needs_reason": "Bu bosqichga faqat admin sabab bilan o'tkaza oladi"
+      "jump_needs_reason": "Bu bosqichga faqat admin sabab bilan o'tkaza oladi",
+      "payment_partial": "To'lov tasdiqlandi, lekin bosqich uchun yetarli emas: {paid} / {expected}. Qolganini kuting."
     },
     "auc": {
       "title": "Auksionlar",

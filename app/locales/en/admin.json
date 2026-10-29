@@ -299,7 +299,8 @@
       "stepper_hint": "Click a stage to change the status",
       "jump_group": "Move to another stage (admin)",
       "jump_hint": "Skipping steps requires a reason. Stock figures are not touched.",
-      "jump_needs_reason": "Only an admin can move to this stage, with a reason"
+      "jump_needs_reason": "Only an admin can move to this stage, with a reason",
+      "payment_partial": "Payment confirmed, but the stage is not covered yet: {paid} / {expected}. Wait for the rest."
     },
     "auc": {
       "title": "Auctions",

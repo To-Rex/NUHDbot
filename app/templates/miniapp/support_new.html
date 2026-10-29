@@ -9,7 +9,7 @@
     {% else %}<div class="small muted">{{ t('support.general') }}</div>{% endif %}
     <div class="field"><label>{{ t('support.message') }}</label><textarea class="textarea" name="text" placeholder="{{ t('support.write') }}" autofocus></textarea></div>
     <div class="field"><label>{{ t('support.attach') }}</label><input class="input" type="file" name="attachment" accept="image/*,.pdf"></div>
-    <p class="xs faint row" style="gap:6px">{{ icon('clock', 14) }}<span>{{ p(working_hours) }} · {{ p(reply_time) }}</span></p>
+    {% if p(working_hours) or p(reply_time) %}<p class="xs faint row" style="gap:6px">{{ icon('clock', 14) }}<span>{{ [p(working_hours), p(reply_time)]|select|join(' · ') }}</span></p>{% endif %}
     <button class="btn btn-primary btn-lg btn-block"><span class="label">{{ t('support.send') }}</span><span class="spinner"></span></button>
   </form>
 </div>

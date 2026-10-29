@@ -212,6 +212,9 @@ async def order_payment_action(oid: int, pid: int, action: str, request: Request
     await db.commit()
     nxt = form.get("next") or ""
     target = nxt if nxt.startswith("/admin") else f"/admin/orders/{oid}#payments"
+    if action == "confirm" and not getattr(pay, "stage_complete", True):
+        expected = o.advance_amount if o.status == OrderStatus.AWAITING_ADVANCE else Decimal(o.total or 0)
+        return back(request, target, t(staff.lang, "admin.ord.payment_partial", paid=f"{o.paid_amount} {o.currency}", expected=f"{expected} {o.currency}"), "warn")
     return back(request, target, t(staff.lang, "admin.ord.payment_confirmed" if action == "confirm" else "admin.ord.payment_rejected"))
 
 
