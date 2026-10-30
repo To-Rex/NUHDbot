@@ -42,7 +42,7 @@
   {% if can_finance %}<div class="kpi ok" style="--i:1"><span class="l">{{ icon('money', 16) }}{{ t('admin.dash.revenue') }}</span><span class="v">{{ d.revenue|money }}</span><span class="s">{{ t('admin.rep.advances') }}: {{ d.advances|money }} · {{ t('admin.rep.awaiting_balance') }}: {{ d.awaiting_balance_sum|money }}</span></div>
   {% else %}<div class="kpi" style="--i:1"><span class="l">{{ icon('drive', 16) }}{{ t('admin.dash.disks_sold') }}</span><span class="v">{{ d.disks_sold }}</span></div>{% endif %}
   <a class="kpi" href="/admin/customers" style="--i:2"><span class="l">{{ icon('users', 16) }}{{ t('admin.dash.customers') }}</span><span class="v">{{ d.customers }}</span></a>
-  <a class="kpi {{ 'bad' if d.low_stock }}" href="/admin/products?stock=out" style="--i:3"><span class="l">{{ icon('drive', 16) }}{{ t('admin.dash.low_stock') }}</span><span class="v">{{ d.low_stock }}</span><span class="s">{{ t('admin.nav.products') }}: {{ d.products }}</span></a>
+  <a class="kpi {{ 'bad' if d.low_stock }}" href="/admin/products?view=out" style="--i:3"><span class="l">{{ icon('drive', 16) }}{{ t('admin.dash.low_stock') }}</span><span class="v">{{ d.low_stock }}</span><span class="s">{{ t('admin.nav.products') }}: {{ d.products }}</span></a>
 </div>
 </div>
 

@@ -194,7 +194,21 @@
       "images_new_hint": "Rasmlarni hoziroq tanlang — mahsulot bilan birga saqlanadi. Birinchi rasm muqova bo'ladi, keyin tartibni o'zgartirish mumkin.",
       "kind": "Tur",
       "sec_more": "Qo'shimcha ma'lumotlar",
-      "sec_more_hint": "Interfeys, test, kafolat, minimal buyurtma — kerak bo'lsa oching"
+      "sec_more_hint": "Interfeys, test, kafolat, minimal buyurtma — kerak bo'lsa oching",
+      "tab_all": "Hammasi",
+      "tab_sale": "Sotuvda",
+      "tab_out": "Tugagan",
+      "tab_stopped": "Sotuvi to'xtatilgan",
+      "tab_hidden": "Yashirin",
+      "search_ph": "Brend, model yoki seriya bo'yicha qidirish",
+      "col_product": "Mahsulot",
+      "col_terms": "Shartlar",
+      "col_catalog": "Katalogda",
+      "col_sale": "Sotuvda",
+      "min_short": "Min.",
+      "box_short": "Quti",
+      "warranty_short": "Kafolat",
+      "reserved_short": "band"
     },
     "ord": {
       "title": "Buyurtmalar",

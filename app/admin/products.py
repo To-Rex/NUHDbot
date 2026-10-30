@@ -1,9 +1,10 @@
 from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from urllib.parse import urlencode
 
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import Response
-from sqlalchemy import or_, select
+from sqlalchemy import and_, func, or_, select
 from starlette.datastructures import UploadFile
 
 from app.admin.common import (
@@ -72,28 +73,38 @@ def parse_capacity(form) -> int:
 @router.get("/products")
 async def products_list(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_ROLES))):
     q = request.query_params
-    stmt = select(Product)
+    base = []  # search, brand and condition narrow every tab
     if q.get("q"):
         like = f"%{q['q'].strip()}%"
-        stmt = stmt.where(or_(Product.brand.ilike(like), Product.model.ilike(like), Product.label_model.ilike(like), Product.series.ilike(like)))
+        base.append(or_(Product.brand.ilike(like), Product.model.ilike(like), Product.label_model.ilike(like), Product.series.ilike(like)))
     if q.get("brand_id", "").isdigit():
-        stmt = stmt.where(Product.brand_id == int(q["brand_id"]))
+        base.append(Product.brand_id == int(q["brand_id"]))
     elif q.get("brand"):
-        stmt = stmt.where(Product.brand == q["brand"])
+        base.append(Product.brand == q["brand"])
     if q.get("cond"):
-        stmt = stmt.where(Product.condition == q["cond"])
-    if q.get("active") == "1":
-        stmt = stmt.where(Product.is_active.is_(True))
-    elif q.get("active") == "0":
-        stmt = stmt.where(Product.is_active.is_(False))
-    if q.get("stock") == "out":
-        stmt = stmt.where(Product.stock - Product.reserved <= 0)
-    elif q.get("stock") == "in":
-        stmt = stmt.where(Product.stock - Product.reserved > 0)
+        base.append(Product.condition == q["cond"])
+    avail = Product.stock - Product.reserved
+    views = {
+        "sale": and_(Product.is_active.is_(True), Product.sale_allowed.is_(True), avail > 0),
+        "out": avail <= 0,
+        "stopped": Product.sale_allowed.is_(False),
+        "hidden": Product.is_active.is_(False),
+    }
+    # older links (?stock=out, ?active=0) land on the matching tab
+    view = q.get("view") or ("out" if q.get("stock") == "out" else "hidden" if q.get("active") == "0" else "")
+    view = view if view in views else ""
+    counts = (await db.execute(select(func.count(Product.id), *(func.count(Product.id).filter(c) for c in views.values())).where(*base))).one()
+    keep = urlencode({k: q[k] for k in ("q", "brand_id", "cond") if q.get(k)})
+    tabs = [(key, n, "?" + "&".join(filter(None, [keep, f"view={key}" if key else ""]))) for key, n in zip(["", *views], counts, strict=True)]
+    stmt = select(Product).where(*base, *([views[view]] if view else []))
     stmt = stmt.order_by(Product.is_active.desc(), Product.sort.desc(), Product.id.desc())
     items, total, pages = await paginate(db, stmt, qpage(request), 40)
     brands = await brand_service.list_brands(db, active_only=False)
-    return render(request, staff, "admin/products/list.html", {"page_title": t(staff.lang, "admin.prod.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "brands": brands, "badges": await nav_badges(db), **_ctx_lists()})
+    return render(
+        request, staff, "admin/products/list.html",
+        {"page_title": t(staff.lang, "admin.prod.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "brands": brands,
+         "tabs": tabs, "view": view, "filtered": bool(keep), "badges": await nav_badges(db), **_ctx_lists()},
+    )
 
 
 @router.get("/products/new")

@@ -194,7 +194,21 @@
       "images_new_hint": "Pick photos now — they are saved together with the product. The first one becomes the cover; reorder later.",
       "kind": "Type",
       "sec_more": "More details",
-      "sec_more_hint": "Interface, testing, warranty, minimum order — open when needed"
+      "sec_more_hint": "Interface, testing, warranty, minimum order — open when needed",
+      "tab_all": "All",
+      "tab_sale": "On sale",
+      "tab_out": "Out of stock",
+      "tab_stopped": "Sale stopped",
+      "tab_hidden": "Hidden",
+      "search_ph": "Search by brand, model or series",
+      "col_product": "Product",
+      "col_terms": "Terms",
+      "col_catalog": "In catalog",
+      "col_sale": "For sale",
+      "min_short": "Min.",
+      "box_short": "Box",
+      "warranty_short": "Warranty",
+      "reserved_short": "reserved"
     },
     "ord": {
       "title": "Orders",

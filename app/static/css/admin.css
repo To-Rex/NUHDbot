@@ -622,6 +622,28 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .stepper li button:disabled{cursor:default}
 .opt.jump:has(input:checked){border-color:var(--warn);background:var(--warn-bg)}.opt.jump:has(input:checked) .opt-dot{border-color:var(--warn)}.opt.jump:has(input:checked) .opt-dot::after{background:var(--warn)}
 #jump-group summary{color:var(--ink-2);font-size:13px}
+/* products list: one clear line per product, switches for catalog / sale */
+.prod-tbl td{white-space:nowrap}
+.prod-cell{display:flex;align-items:center;gap:12px;min-width:0}
+.prod-cell .row-main,.prod-cell .row-sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prod-tbl .label-model{color:var(--refresh-fg)}
+.prod-tbl tr.is-off .prod-cell{opacity:.5}
+.prod-tbl .unit{font-family:var(--font-body);font-weight:500;font-size:12px;color:var(--ink-3)}
+.prod-tbl .out{color:var(--bad)}
+.prod-tbl .terms{font-size:12.5px;color:var(--ink-2)}
+.tdot{display:flex;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--ink-3)}
+.tdot::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3);flex:0 0 auto}
+.tdot.t-tested::before{background:var(--ok)}.tdot.t-testing::before{background:var(--warn)}
+.switch{position:relative;display:inline-block;vertical-align:middle;width:38px;height:22px;border-radius:999px;background:var(--hairline-strong);transition:background var(--t-fast);flex:0 0 auto;cursor:pointer}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(16,20,28,.3);transition:transform var(--t-fast) var(--ease-out)}
+.switch.on{background:var(--ok)}
+.switch.on::after{transform:translateX(16px)}
+.switch[aria-disabled="true"]{opacity:.55;cursor:default}
+.switch.htmx-request{opacity:.6;pointer-events:none}
+.switch:focus-visible{box-shadow:var(--ring)}
+@media (min-width:901px){.prod-tbl td.prod{width:40%;max-width:0}}
+@media (max-width:900px){.tbl-cards td.center{text-align:left}.tbl-cards td.prod::before{display:none}}
+
 /* geography: region name on the left, its cities on the right */
 .geo-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
 .geo-list>.geo-country[open],.geo-list>.card:not(.geo-country){grid-column:1/-1}

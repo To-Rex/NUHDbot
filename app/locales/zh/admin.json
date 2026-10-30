@@ -194,7 +194,21 @@
       "images_new_hint": "现在选择图片，将与商品一起保存。第一张为封面，之后可调整顺序。",
       "kind": "类型",
       "sec_more": "更多信息",
-      "sec_more_hint": "接口、测试、保修、最小订购量 — 需要时展开"
+      "sec_more_hint": "接口、测试、保修、最小订购量 — 需要时展开",
+      "tab_all": "全部",
+      "tab_sale": "在售",
+      "tab_out": "缺货",
+      "tab_stopped": "已停售",
+      "tab_hidden": "已隐藏",
+      "search_ph": "按品牌、型号或系列搜索",
+      "col_product": "商品",
+      "col_terms": "条件",
+      "col_catalog": "目录展示",
+      "col_sale": "可售",
+      "min_short": "起订",
+      "box_short": "整箱",
+      "warranty_short": "保修",
+      "reserved_short": "已预留"
     },
     "ord": {
       "title": "订单",
