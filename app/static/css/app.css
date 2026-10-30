@@ -222,16 +222,6 @@ input:checked+.radio-card svg{color:var(--accent)}
 .kv dd.mono,.kv .mono{font-family:var(--font-mono);font-weight:500}
 
 /* ===== timeline ===== */
-.timeline{position:relative;padding-left:24px}
-.timeline::before{content:"";position:absolute;left:4px;top:8px;bottom:8px;width:1px;background:var(--hairline-strong)}
-.tl-item{position:relative;padding:2px 0 16px}
-.tl-item:last-child{padding-bottom:0}
-.tl-item::before{content:"";position:absolute;left:-24px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:1px solid var(--hairline-strong)}
-.tl-item.done::before{background:var(--accent);border-color:var(--accent)}
-.tl-item.current::before{background:var(--surface);border:2px solid var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.tl-item.current .tl-title{color:var(--accent)}
-.tl-item .tl-title{font-weight:600;font-size:14px}
-.tl-item .tl-sub{font-family:var(--font-mono);font-size:12px;color:var(--ink-3);margin-top:2px}
 .progress{height:4px;border-radius:2px;background:var(--sunken);overflow:hidden}
 .progress>span{display:block;height:100%;border-radius:2px;background:var(--accent);transition:width var(--t-slow) var(--ease-out)}
 .steps-dots{display:flex;gap:3px}
@@ -520,4 +510,3 @@ details.acc .acc-body{padding:0 0 14px;color:var(--ink-2);font-size:14px;animati
 .fchip.active .lang-badge{background:var(--surface);color:var(--accent)}
 @media (min-width:600px){.lang-grid{grid-template-columns:repeat(3,1fr)}}
 
-.brand-logo-sm{width:22px;height:22px;border-radius:6px;object-fit:contain;background:var(--surface);border:1px solid var(--hairline);padding:2px}

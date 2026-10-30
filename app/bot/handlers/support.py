@@ -131,9 +131,7 @@ async def on_support_message(message: Message, user: User, db: AsyncSession, sta
         return
     await support.add_message(db, th, sender=user, from_staff=False, text=text, kind=kind, attachment=attachment, tg_file_id=file_id)
     await message.answer(t(user.lang, "bot.support_ack", reply=esc(pick(await get_setting(db, "reply_time"), user.lang))))
-    preview = (text or f"[{kind}]")[:200]
     order_txt = f"📦 {th.order.number}" if th.order else ""
-    await notifications.notify_staff(db, t("uz", "notify.new_support_staff", customer=esc(user.full_name), preview=esc(preview)), kind="new_support")
     # mirror into staff group so staff can reply from Telegram
     if settings.admin_chat_id:
         mirror = t("uz", "bot.support_mirror", id=th.id, customer=esc(user.full_name), country=esc(user.country or "—"), phone=esc(user.phone or "—"), order=order_txt, text=esc(text or f"[{kind}]"))

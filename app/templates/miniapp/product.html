@@ -25,7 +25,7 @@
   {% endif %}
 
   <div class="mt-4">
-    <div class="pcard-brand row" style="gap:8px">{% if p.brand_ref and p.brand_ref.logo_thumb %}<img src="{{ p.brand_ref.logo_thumb_url }}" alt="" class="brand-logo-sm">{% endif %}<span>{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</span></div>
+    <div class="pcard-brand row" style="gap:8px"><span>{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</span></div>
     <h1 style="font-size:24px;margin-top:4px">{{ p.model }} <span class="muted" style="font-weight:600">{{ p.capacity_gb|capacity }}</span></h1>
     <div class="row mt-2" style="flex-wrap:wrap;gap:6px">
       <span class="chip chip-soft">{{ p.interface.value }}</span><span class="chip chip-soft">{{ p.form_factor.value }}″</span>

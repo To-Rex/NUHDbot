@@ -4,7 +4,6 @@ from sqlalchemy import select
 from app.deps import DB, Lang, redirect, require_registered
 from app.i18n import t
 from app.models import Country, Order, User
-from app.services import notifications
 from app.services.orders import OrderError, create_order
 from app.services.settings_service import get_setting
 from app.templating import render
@@ -71,14 +70,6 @@ async def checkout_submit(
         await db.refresh(user)
         ctx = await _ctx(request, db, user, lang, form, {"general": t(lang, f"checkout.errors.{e.code}", **e.ctx)})
         return hx_trigger(render(request, "miniapp/checkout.html", ctx, status_code=422), toast={"msg": ctx["errors"]["general"], "type": "bad"}, haptic="error")
-    # staff alert (never blocks the customer)
-    try:
-        await notifications.notify_staff(
-            db, t("uz", "notify.new_order_staff", number=order.number, customer=notifications.esc(user.full_name), qty=order.total_qty, total=f"{order.total} {order.currency}"), kind="new_order"
-        )
-        await db.commit()
-    except Exception:  # noqa: BLE001
-        pass
     resp = redirect(request, f"/app/orders/{order.id}/success")
     save_cart(request, resp, {})
     return resp

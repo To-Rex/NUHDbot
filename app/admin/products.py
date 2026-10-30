@@ -45,13 +45,13 @@ def _ctx_lists():
 
 
 async def _form_ctx(db, p: Product | None = None) -> dict:
-    """Brands (active + the product's own even if hidden), their series map and capacity presets for the product form."""
+    """Brands (active + the product's own even if hidden) and capacity presets for the product form."""
     brands = await brand_service.list_brands(db, active_only=True)
     if p is not None and p.brand_id and all(b.id != p.brand_id for b in brands):
         own = await brand_service.get_brand(db, p.brand_id)
         if own:
             brands.append(own)
-    return {"brands": brands, "series_map": {b.id: b.series for b in brands}, "capacities": await capacity_presets(db), "models": await model_dict.known_models(db), **_ctx_lists()}
+    return {"brands": brands, "capacities": await capacity_presets(db), "models": await model_dict.known_models(db), **_ctx_lists()}
 
 
 def parse_capacity(form) -> int:
@@ -110,8 +110,7 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
     if not p.brand or not p.model:
         errors.append("brand/model")
     p.label_model = f_opt(form, "label_model", 120)
-    series_sel = (form.get("series_select") or "").strip()
-    p.series = (f_opt(form, "series", 60) if series_sel in ("", "__other__") else series_sel[:60]) or None
+    p.series = f_opt(form, "series", 60)
     p.capacity_gb = parse_capacity(form)
     if p.capacity_gb <= 0:
         errors.append("capacity_gb")

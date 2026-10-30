@@ -22,7 +22,6 @@ async def dashboard(db: AsyncSession, days: int = 30) -> dict:
             )
         )
     ).scalar_one()
-    pending_payments = (await db.execute(select(func.count()).select_from(Payment).where(Payment.status == PaymentStatus.PENDING))).scalar_one()
     advances = (
         await db.execute(select(func.coalesce(func.sum(Payment.amount), 0)).where(Payment.status == PaymentStatus.CONFIRMED, Payment.kind == PaymentKind.ADVANCE))
     ).scalar_one()
@@ -68,7 +67,6 @@ async def dashboard(db: AsyncSession, days: int = 30) -> dict:
         "active_orders": active,
         "awaiting_admin": awaiting_admin,
         "revenue": Decimal(revenue),
-        "pending_payments": pending_payments,
         "advances": Decimal(advances),
         "refunds": Decimal(refunds),
         "awaiting_balance_sum": awaiting_balance_sum,
@@ -104,11 +102,11 @@ async def profit_report(db: AsyncSession) -> list[dict]:
 async def orders_csv(db: AsyncSession) -> str:
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(["number", "created_at", "status", "customer", "phone", "country", "city", "items", "qty", "total", "currency", "paid", "cargo_code", "tracking"])
+    w.writerow(["number", "created_at", "status", "customer", "phone", "country", "city", "items", "qty", "total", "currency", "paid", "cargo_code"])
     for o in (await db.execute(select(Order).order_by(Order.id.desc()))).scalars().unique().all():
         w.writerow([
             o.number, o.created_at.isoformat(timespec="minutes"), o.status, o.user.full_name if o.user else "", o.receiver_phone, o.country or "", o.city or "",
-            "; ".join(f"{i.brand} {i.model} x{i.qty}" for i in o.items), o.total_qty, o.total, o.currency, o.paid_amount, o.cargo_code or "", o.tracking_number or "",
+            "; ".join(f"{i.brand} {i.model} x{i.qty}" for i in o.items), o.total_qty, o.total, o.currency, o.paid_amount, o.cargo_code or "",
         ])
     return buf.getvalue()
 

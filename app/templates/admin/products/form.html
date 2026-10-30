@@ -13,7 +13,7 @@
     <div class="form-grid mt">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
       <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label>
-        <select class="select" name="brand_id" id="brand-select" required {{ dis }} data-series-map='{{ series_map|tojson }}'>
+        <select class="select" name="brand_id" id="brand-select" required {{ dis }}>
           <option value="" disabled {{ 'selected' if not prod.brand }}>{{ t('admin.brands.select_brand') }}</option>
           {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if prod.brand_id==b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
           <option value="__other__" {{ 'selected' if prod.brand and not brand_known }}>{{ t('admin.brands.other') }}</option>
@@ -63,8 +63,7 @@
   <details class="fsection" id="s-more" {{ 'open' if errors }}><summary><span class="ttl">{{ t('admin.prod.sec_more') }}</span><span class="sub">{{ t('admin.prod.sec_more_hint') }}</span></summary>
     <div class="form-grid mt">
       <div class="field"><label>{{ t('admin.prod.series') }}</label>
-        <select class="select" name="series_select" id="series-select" {{ dis }}><option value="">{{ t('admin.brands.series_none') }}</option><option value="__other__">{{ t('admin.brands.series_other') }}</option></select>
-        <input class="input mt-sm" name="series" id="series-other" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" {{ dis }}></div>
+        <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" {{ dis }}></div>
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
@@ -152,17 +151,11 @@
 </div>
 <script>
 (function(){
-  var bs=document.getElementById('brand-select'), bo=document.getElementById('brand-other'), ss=document.getElementById('series-select'), so=document.getElementById('series-other');
-  if(!bs||!ss) return; var map={}; try{map=JSON.parse(bs.dataset.seriesMap||'{}')}catch(e){}
-  var noneLbl=ss.options[0].text, otherLbl=ss.options[1].text;
-  function fillSeries(keep){ var cur=(so.value||'').trim(); var list=map[bs.value]||[]; ss.innerHTML='';
-    ss.add(new Option(noneLbl,'')); list.forEach(function(x){ss.add(new Option(x,x));}); ss.add(new Option(otherLbl,'__other__'));
-    if(keep&&cur){ if(list.indexOf(cur)>=0){ss.value=cur; so.hidden=true;} else {ss.value='__other__'; so.hidden=false;} } else { ss.value=''; so.hidden=true; so.value=''; }
-    if(!list.length){ ss.value=cur?'__other__':''; so.hidden=!cur&&ss.value!=='__other__'; }
-  }
-  function onBrand(init){ var other=bs.value==='__other__'; bo.hidden=!other; if(!other&&!init) bo.value=''; fillSeries(init); }
-  bs.addEventListener('change',function(){onBrand(false);}); ss.addEventListener('change',function(){ if(ss.value==='__other__'){so.hidden=false; so.focus();} else {so.hidden=true; so.value=ss.value;} });
-  onBrand(true);
+  /* brand "other": show the free-text input only when it is chosen */
+  var bs=document.getElementById('brand-select'), bo=document.getElementById('brand-other');
+  if(!bs||!bo) return;
+  function onBrand(init){ var other=bs.value==='__other__'; bo.hidden=!other; if(!other&&!init) bo.value=''; }
+  bs.addEventListener('change',function(){onBrand(false);}); onBrand(true);
 })();
 (function(){
   /* model combobox: pick an existing model or type a new one; picking prefills specs on a new product */
@@ -191,7 +184,7 @@
       if(m.cap){ if(unit){unit.checked=true; unit.dispatchEvent(new Event('change',{bubbles:true}));} if(cv){ cv.value=m.cap>=1000&&m.cap%100===0?String(m.cap/1000):String(m.cap); cv.dispatchEvent(new Event('input',{bubbles:true})); } }
       if(!m.cap&&!m.if&&!m.ff&&!m.series){ inp.focus(); return; }
       setField('interface',m.if); setField('form_factor',m.ff); setField('rpm',m.rpm); setField('cache_mb',m.cache);
-      if(m.series){ var so=document.getElementById('series-other'), ss=document.getElementById('series-select'); if(ss){ var has=Array.prototype.some.call(ss.options,function(o){return o.value===m.series;}); ss.value=has?m.series:'__other__'; ss.dispatchEvent(new Event('change',{bubbles:true})); } if(so){so.value=m.series;} }
+      setField('series',m.series);
       var note=document.getElementById('prefill-note'); if(note){ var sp=note.querySelector('span'); sp.textContent=sp.dataset.tpl.replace('{m}',m.m); note.hidden=false; note.scrollIntoView({block:'nearest',behavior:'smooth'}); } }
     inp.focus(); }
   function move(d){ var opts=pop.querySelectorAll('.opt'); if(!opts.length) return; sel=(sel+d+opts.length)%opts.length; opts.forEach(function(o,i){o.classList.toggle('sel',i===sel);}); opts[sel].scrollIntoView({block:'nearest'}); }

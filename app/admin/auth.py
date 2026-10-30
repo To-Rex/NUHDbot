@@ -83,29 +83,25 @@ async def hint_dismiss(request: Request, staff: User = Depends(staff_dep())):
 
 @router.get("/search")
 async def admin_search(request: Request, db: DB, staff: User = Depends(staff_dep())):
-    """Global search box: orders, customers, products, serials. Returns a dropdown partial."""
-    from sqlalchemy import cast, or_, select
-    from sqlalchemy.types import Text
+    """Global search box: orders, customers, products. Returns a dropdown partial."""
+    from sqlalchemy import or_, select
 
     from app.admin.common import CUSTOMER_ROLES, ORDER_ROLES, PRODUCT_ROLES, can
     from app.admin.common import render as arender
-    from app.models import Order, OrderItem, Product
+    from app.models import Order, Product
 
     q = (request.query_params.get("q") or "").strip()[:60]
     if len(q) < 2:
-        return arender(request, staff, "admin/partials/search_results.html", {"q": q, "orders": [], "customers": [], "products": [], "serial_hits": []})
+        return arender(request, staff, "admin/partials/search_results.html", {"q": q, "orders": [], "customers": [], "products": []})
     like = f"%{q}%"
-    orders = customers = products = serial_hits = []
+    orders = customers = products = []
     if can(staff, ORDER_ROLES):
         orders = (
             await db.execute(
                 select(Order).join(User, User.id == Order.user_id).where(
-                    or_(Order.number.ilike(like), Order.receiver_phone.ilike(like), Order.receiver_name.ilike(like), Order.cargo_code.ilike(like), Order.tracking_number.ilike(like), User.first_name.ilike(like), User.last_name.ilike(like), User.phone.ilike(like))
+                    or_(Order.number.ilike(like), Order.receiver_phone.ilike(like), Order.receiver_name.ilike(like), Order.cargo_code.ilike(like), User.first_name.ilike(like), User.last_name.ilike(like), User.phone.ilike(like))
                 ).order_by(Order.id.desc()).limit(6)
             )
-        ).scalars().unique().all()
-        serial_hits = (
-            await db.execute(select(OrderItem).where(cast(OrderItem.serials, Text).ilike(like)).order_by(OrderItem.id.desc()).limit(4))
         ).scalars().unique().all()
     if can(staff, CUSTOMER_ROLES):
         customers = (
@@ -119,4 +115,4 @@ async def admin_search(request: Request, db: DB, staff: User = Depends(staff_dep
                 select(Product).where(or_(Product.brand.ilike(like), Product.model.ilike(like), Product.label_model.ilike(like), Product.series.ilike(like))).order_by(Product.is_active.desc(), Product.id.desc()).limit(6)
             )
         ).scalars().unique().all()
-    return arender(request, staff, "admin/partials/search_results.html", {"q": q, "orders": orders, "customers": customers, "products": products, "serial_hits": serial_hits})
+    return arender(request, staff, "admin/partials/search_results.html", {"q": q, "orders": orders, "customers": customers, "products": products})

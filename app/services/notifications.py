@@ -1,13 +1,12 @@
-"""Telegram notifications to customers and staff. Never raises; logs to notification_log."""
+"""Telegram notifications to customers. Never raises; logs to notification_log."""
 import html
 import logging
 
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.instance import get_bot
 from app.config import settings
-from app.enums import STAFF_ROLES, OrderStatus, Role
+from app.enums import OrderStatus
 from app.i18n import t
 from app.models import NotificationLog, User
 
@@ -52,22 +51,10 @@ async def notify_order_status(db: AsyncSession, order, user: User) -> None:
         OrderStatus.AWAITING_ADVANCE: "notify.order_awaiting_advance",
         OrderStatus.AWAITING_CUSTOMER: "notify.order_awaiting_customer",
         OrderStatus.AWAITING_BALANCE: "notify.order_awaiting_balance",
-        OrderStatus.SHIPPED: "notify.order_shipped",
     }.get(order.status)
     if extra_key:
-        text += "\n\n" + t(lang, extra_key, advance=f"{order.advance_amount} {order.currency}", balance=f"{order.balance_amount} {order.currency}", tracking=esc(order.tracking_number or "—"))
+        text += "\n\n" + t(lang, extra_key, advance=f"{order.advance_amount} {order.currency}", balance=f"{order.balance_amount} {order.currency}")
     await send(db, user, text, kind="order_status", reply_markup=miniapp_button(t(lang, "notify.open_order"), f"/app/orders/{order.id}"))
-
-
-async def notify_staff(db: AsyncSession, text: str, *, kind: str, roles: set[Role] | None = None) -> None:
-    """Send to the configured staff group if any, else to every staff member with a Telegram id."""
-    if settings.admin_chat_id:
-        await send(db, None, text, kind=kind, chat_id=settings.admin_chat_id)
-        return
-    roles = roles or STAFF_ROLES
-    staff = (await db.execute(select(User).where(User.role.in_(list(roles)), User.tg_id.is_not(None)))).scalars().all()
-    for s in staff:
-        await send(db, s, text, kind=kind)
 
 
 async def notify_outbid(db: AsyncSession, user: User, auction, new_total) -> None:

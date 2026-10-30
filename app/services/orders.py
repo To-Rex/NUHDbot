@@ -166,14 +166,6 @@ async def transition(
     return order
 
 
-async def customer_cancel(db: AsyncSession, order: Order, user: User) -> Order:
-    if order.user_id != user.id:
-        raise OrderError("forbidden")
-    if order.status not in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE):
-        raise OrderError("cannot_cancel")
-    return await transition(db, order, OrderStatus.CANCELLED, by=user, note="customer", force=True)
-
-
 async def customer_confirm_offer(db: AsyncSession, order: Order, user: User) -> Order:
     """Customer agrees to the admin's final offer -> advance stage (16.08)."""
     if order.user_id != user.id or order.status != OrderStatus.AWAITING_ADMIN:
@@ -181,16 +173,10 @@ async def customer_confirm_offer(db: AsyncSession, order: Order, user: User) -> 
     return await transition(db, order, OrderStatus.AWAITING_ADVANCE, by=user, note="customer accepted offer", force=True)
 
 
-async def customer_confirm_tests(db: AsyncSession, order: Order, user: User) -> Order:
-    """Customer accepts test results and shipping details -> balance stage (17.07-17.09)."""
-    if order.user_id != user.id or order.status != OrderStatus.AWAITING_CUSTOMER:
-        raise OrderError("cannot_confirm")
-    return await transition(db, order, OrderStatus.AWAITING_BALANCE, by=user, note="customer accepted test results", force=True)
-
-
-async def add_payment_claim(
+async def add_payment(
     db: AsyncSession, order: Order, user: User, kind: PaymentKind, amount: Decimal, method: str | None, proof: str | None, note: str | None
 ) -> Payment:
+    """A payment row for the order. Staff record money they have received (the receipt itself is settled in chat)."""
     pay = Payment(
         order=order, user_id=user.id, kind=kind, amount=amount, currency=order.currency, method=method, proof_filename=proof, note=note
     )

@@ -1,8 +1,8 @@
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import func, or_, select, update
-from starlette.datastructures import UploadFile
 
 from app.admin.common import (
     DB,
@@ -25,8 +25,8 @@ from app.admin.common import (
 from app.admin.router import router
 from app.enums import ACTIVE_ORDER_STATUSES, OrderStatus, PaymentKind, PaymentStatus
 from app.i18n import t
-from app.models import AuditLog, Order, OrderItem, Payment, Product, User
-from app.services import audit, media, notifications
+from app.models import Order, Payment, Product, SupportThread, User
+from app.services import audit, notifications
 from app.services import orders as osvc
 
 EDITABLE_ITEMS = (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE)
@@ -39,6 +39,8 @@ STAGE_GROUPS: dict[str, tuple[OrderStatus, ...]] = {
     "g_ship": (OrderStatus.PACKING, OrderStatus.SHIPPED, OrderStatus.DELIVERED),
     "disputed": (OrderStatus.DISPUTED,),
 }
+# Orders where money is expected; the customer sends the receipt in the support chat.
+AWAITING_PAYMENT = (OrderStatus.AWAITING_ADVANCE, OrderStatus.AWAITING_BALANCE)
 
 
 @router.get("/orders")
@@ -50,16 +52,14 @@ async def orders_list(request: Request, db: DB, staff: User = Depends(staff_dep(
         stmt = stmt.where(Order.status.in_(ACTIVE_ORDER_STATUSES))
     elif status == "closed":
         stmt = stmt.where(Order.status.not_in(ACTIVE_ORDER_STATUSES))
+    elif status == "awaiting_payment":
+        stmt = stmt.where(Order.status.in_(AWAITING_PAYMENT))
     elif status in STAGE_GROUPS:
         stmt = stmt.where(Order.status.in_(STAGE_GROUPS[status]))
     elif status in [s.value for s in OrderStatus]:
         stmt = stmt.where(Order.status == OrderStatus(status))
-    if q.get("payments") == "pending":
-        stmt = stmt.where(Order.id.in_(select(Payment.order_id).where(Payment.status == PaymentStatus.PENDING)))
     if q.get("country"):
         stmt = stmt.where(Order.country == q["country"].upper()[:2])
-    from datetime import UTC, datetime, timedelta
-
     for key, op in (("from", "ge"), ("to", "lt")):
         v = (q.get(key) or "").strip()
         if v:
@@ -77,11 +77,10 @@ async def orders_list(request: Request, db: DB, staff: User = Depends(staff_dep(
     items, total, pages = await paginate(db, stmt, qpage(request), 30)
     counts = dict((await db.execute(select(Order.status, func.count()).group_by(Order.status))).all())
     countries = [c for (c,) in (await db.execute(select(Order.country).where(Order.country.is_not(None)).distinct().order_by(Order.country))).all()]
-    pending_ids = {oid for (oid,) in (await db.execute(select(Payment.order_id).where(Payment.status == PaymentStatus.PENDING).distinct())).all()}
     tabs = [("", sum(counts.values())), ("active", sum(v for k, v in counts.items() if k in ACTIVE_ORDER_STATUSES))]
     tabs += [(g, sum(counts.get(st, 0) for st in members)) for g, members in STAGE_GROUPS.items()]
     tabs.append(("closed", sum(v for k, v in counts.items() if k not in ACTIVE_ORDER_STATUSES)))
-    return render(request, staff, "admin/orders/list.html", {"page_title": t(staff.lang, "admin.ord.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "tabs": tabs, "status": status or "", "statuses": list(OrderStatus), "badges": await nav_badges(db), "countries": countries, "pending_ids": pending_ids})
+    return render(request, staff, "admin/orders/list.html", {"page_title": t(staff.lang, "admin.ord.title"), "items": items, "total": total, "pages": pages, "page": qpage(request), "tabs": tabs, "status": status or "", "statuses": list(OrderStatus), "badges": await nav_badges(db), "countries": countries})
 
 
 async def _load(db, oid: int) -> Order:
@@ -95,15 +94,14 @@ async def _load(db, oid: int) -> Order:
 async def order_detail(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ORDER_ROLES))):
     o = await _load(db, oid)
     prev_count = (await db.execute(select(func.count()).select_from(Order).where(Order.user_id == o.user_id, Order.id != o.id))).scalar_one()
-    logs = (await db.execute(select(AuditLog).where(AuditLog.entity.in_(["order", "payment"]), AuditLog.entity_id.in_([str(o.id)] + [str(p.id) for p in o.payments])).order_by(AuditLog.id.desc()).limit(30))).scalars().all()
-    actors = {}
-    ids = {lg.actor_id for lg in logs if lg.actor_id}
-    if ids:
-        actors = {u.id: u for u in (await db.execute(select(User).where(User.id.in_(ids)))).scalars().all()}
+    # payments are agreed in chat, so the order page links straight to the conversation about this order
+    thread = (await db.execute(select(SupportThread).where(SupportThread.order_id == o.id).order_by(SupportThread.last_message_at.desc().nulls_last(), SupportThread.id.desc()).limit(1))).scalars().first()
+    chat_url = f"/admin/support/{thread.id}" if thread else f"/admin/support?user={o.user_id}"
     transitions = osvc.allowed_transitions(o, is_admin=staff.is_admin)
+    due = (o.advance_amount if o.status in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE) else Decimal(o.total or 0)) - o.paid_amount
     return render(request, staff, "admin/orders/detail.html", {
-        "page_title": o.number, "o": o, "prev_count": prev_count, "logs": logs, "actors": actors, "transitions": transitions,
-        "items_editable": o.status in EDITABLE_ITEMS and can(staff, ORDER_EDIT_ROLES), "kinds": list(PaymentKind),
+        "page_title": o.number, "o": o, "prev_count": prev_count, "transitions": transitions, "chat_url": chat_url, "due": due if due > 0 else None,
+        "items_editable": o.status in EDITABLE_ITEMS and can(staff, ORDER_EDIT_ROLES),
         "can_pay": can(staff, PAYMENT_ROLES), "can_ship": can(staff, SHIP_ROLES), "can_test": can(staff, TEST_ROLES), "can_edit": can(staff, ORDER_EDIT_ROLES),
     })
 
@@ -150,6 +148,8 @@ async def order_offer(oid: int, request: Request, db: DB, staff: User = Depends(
     if form.get("send") == "1":
         if o.status == OrderStatus.NEW:
             await osvc.transition(db, o, OrderStatus.AWAITING_ADMIN, by=staff, note="offer", force=True)
+        # marks the offer as sent: the customer now sees the "accept offer" button
+        o.confirmed_at = o.confirmed_at or datetime.now(UTC)
         await notifications.notify_order_status(db, o, o.user)
         await audit.log(db, staff.id, "order.offer.sent", "order", o.id)
         msg = t(staff.lang, "admin.ord.offer_sent")
@@ -192,22 +192,20 @@ async def order_status(oid: int, request: Request, db: DB, staff: User = Depends
 async def order_payment_record(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PAYMENT_ROLES))):
     o = await _load(db, oid)
     form = await request.form()
-    kind = PaymentKind(form.get("kind") or "advance")
+    # the stage decides what the money is for; staff only type the amount they received
+    before_advance = o.status in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE)
+    kind = PaymentKind.ADVANCE if before_advance else PaymentKind.BALANCE
     amount = f_dec(form, "amount")
     if amount is None or amount <= 0:
         return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.required"), "bad")
-    proof = None
-    f = form.get("proof")
-    if isinstance(f, UploadFile) and f.filename:
-        try:
-            proof = await media.save_document(f, prefix=f"pay{o.id}")
-        except media.MediaError:
-            proof = None
-    pay = await osvc.add_payment_claim(db, o, o.user, kind, amount, f_opt(form, "method", 60), proof, f_opt(form, "note"))
+    pay = await osvc.add_payment(db, o, o.user, kind, amount, f_opt(form, "method", 60), None, f_opt(form, "note"))
     await audit.log(db, staff.id, "payment.record", "payment", pay.id, None, {"order": o.number, "kind": kind, "amount": str(amount)})
     await osvc.confirm_payment(db, pay, staff, True, "recorded by staff")
     await notifications.notify_order_status(db, o, o.user)
     await db.commit()
+    if not getattr(pay, "stage_complete", True):
+        expected = o.advance_amount if o.status == OrderStatus.AWAITING_ADVANCE else Decimal(o.total or 0)
+        return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.ord.payment_partial", paid=f"{o.paid_amount} {o.currency}", expected=f"{expected} {o.currency}"), "warn")
     return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.ord.payment_confirmed"))
 
 
@@ -223,84 +221,8 @@ async def order_payment_action(oid: int, pid: int, action: str, request: Request
     await osvc.confirm_payment(db, pay, staff, action == "confirm", f_opt(form, "note"))
     await notifications.notify_order_status(db, o, o.user)
     await db.commit()
-    nxt = form.get("next") or ""
-    target = nxt if nxt.startswith("/admin") else f"/admin/orders/{oid}#payments"
+    target = f"/admin/orders/{oid}#payments"
     if action == "confirm" and not getattr(pay, "stage_complete", True):
         expected = o.advance_amount if o.status == OrderStatus.AWAITING_ADVANCE else Decimal(o.total or 0)
         return back(request, target, t(staff.lang, "admin.ord.payment_partial", paid=f"{o.paid_amount} {o.currency}", expected=f"{expected} {o.currency}"), "warn")
     return back(request, target, t(staff.lang, "admin.ord.payment_confirmed" if action == "confirm" else "admin.ord.payment_rejected"))
-
-
-@router.post("/orders/{oid}/items/{iid}/test")
-async def order_item_test(oid: int, iid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*TEST_ROLES))):
-    o = await _load(db, oid)
-    it = await db.get(OrderItem, iid)
-    if not it or it.order_id != o.id:
-        raise HTTPException(404)
-    form = await request.form()
-    serials = [s.strip() for s in (form.get("serials") or "").splitlines() if s.strip()]
-    # 11.06 — a serial must not be assigned to two active orders
-    if serials:
-        others = (await db.execute(select(OrderItem).join(Order).where(Order.status.in_(ACTIVE_ORDER_STATUSES), OrderItem.id != it.id))).scalars().all()
-        taken = {s for other in others for s in (other.serials or [])}
-        dup = [s for s in serials if s in taken]
-        if dup:
-            return back(request, f"/admin/orders/{oid}#tests", t(staff.lang, "admin.flash.error", e=f"serial already used: {', '.join(dup[:5])}"), "bad")
-    before = {"serials": it.serials, "test_note": it.test_note}
-    it.serials = serials
-    it.test_note = f_opt(form, "test_note")
-    await audit.log(db, staff.id, "order.item.test", "order", o.id, before, {"item": it.id, "serials": serials, "test_note": it.test_note})
-    await db.commit()
-    msg = t(staff.lang, "admin.flash.saved")
-    kind = "ok"
-    if serials and len(serials) != it.qty:
-        msg, kind = t(staff.lang, "admin.ord.serials_count_mismatch", n=len(serials), qty=it.qty), "warn"
-    return back(request, f"/admin/orders/{oid}#tests", msg, kind)
-
-
-@router.post("/orders/{oid}/shipping")
-async def order_shipping(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*SHIP_ROLES))):
-    o = await _load(db, oid)
-    form = await request.form()
-    before = {"tracking_number": o.tracking_number, "cargo_code": o.cargo_code, "cargo_company": o.cargo_company}
-    o.tracking_number = f_opt(form, "tracking_number", 120)
-    o.cargo_code = f_opt(form, "cargo_code", 64)  # stored verbatim (15.06)
-    o.cargo_company = f_opt(form, "cargo_company", 120)
-    await audit.log(db, staff.id, "order.shipping", "order", o.id, before, {"tracking_number": o.tracking_number, "cargo_code": o.cargo_code, "cargo_company": o.cargo_company, "cargo_confirmed": form.get("cargo_confirmed") == "on"})
-    msg = t(staff.lang, "admin.flash.saved")
-    if form.get("ship") == "1":
-        if o.paid_amount < Decimal(o.total or 0):
-            await db.commit()
-            return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.need_full_payment"), "bad")
-        if form.get("cargo_confirmed") != "on":
-            await db.commit()
-            return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.cargo_confirm"), "warn")
-        try:
-            if o.status == OrderStatus.PAID:
-                await osvc.transition(db, o, OrderStatus.PACKING, by=staff, note="packing")
-            await osvc.transition(db, o, OrderStatus.SHIPPED, by=staff, note=f"tracking: {o.tracking_number or '-'}")
-            await notifications.notify_order_status(db, o, o.user)
-            msg = t(staff.lang, "admin.ord.status_changed")
-        except osvc.OrderError as e:
-            await db.commit()
-            return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.flash.error", e=e.code), "bad")
-    await db.commit()
-    return back(request, f"/admin/orders/{oid}", msg)
-
-
-@router.get("/payments")
-async def payments_queue(request: Request, db: DB, staff: User = Depends(staff_dep(*PAYMENT_ROLES))):
-    """Finance queue: pending payment claims first, then recent decisions."""
-    from sqlalchemy.orm import selectinload
-
-    status = request.query_params.get("status") or "pending"
-    stmt = select(Payment).options(selectinload(Payment.order))
-    if status in ("pending", "confirmed", "rejected"):
-        stmt = stmt.where(Payment.status == PaymentStatus(status))
-    stmt = stmt.order_by(Payment.id.desc())
-    items, total, pages = await paginate(db, stmt, qpage(request), 30)
-    counts = dict((await db.execute(select(Payment.status, func.count()).group_by(Payment.status))).all())
-    return render(request, staff, "admin/payments/list.html", {
-        "page_title": t(staff.lang, "admin.nav.payments"), "items": items, "total": total, "pages": pages, "page": qpage(request),
-        "status": status, "counts": {k.value if hasattr(k, "value") else k: v for k, v in counts.items()},
-    })

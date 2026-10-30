@@ -2,12 +2,11 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, Request
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from app.admin.common import DB, nav_badges, render, staff_dep
 from app.admin.router import router
-from app.enums import AuctionStatus, OrderStatus, PaymentStatus, ThreadStatus
-from app.models import Auction, Order, Payment, SupportThread, User
+from app.enums import AuctionStatus, OrderStatus, ThreadStatus
+from app.models import Auction, Order, SupportThread, User
 from app.services import reports
 
 
@@ -21,7 +20,10 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
     days = days if days in (7, 30, 90, 365) else 30
     data = await reports.dashboard(db, days)
     awaiting = (await db.execute(select(Order).where(Order.status == OrderStatus.AWAITING_ADMIN).order_by(Order.id.desc()).limit(8))).scalars().unique().all()
-    pending = (await db.execute(select(Payment).options(selectinload(Payment.order)).where(Payment.status == PaymentStatus.PENDING).order_by(Payment.id.desc()).limit(8))).scalars().unique().all()
+    # money is agreed in chat; these orders are waiting for staff to record what arrived
+    awaiting_pay = (
+        await db.execute(select(Order).where(Order.status.in_((OrderStatus.AWAITING_ADVANCE, OrderStatus.AWAITING_BALANCE))).order_by(Order.id.desc()).limit(8))
+    ).scalars().unique().all()
     threads = (
         await db.execute(
             select(SupportThread).where(SupportThread.status == ThreadStatus.OPEN, SupportThread.unread_for_staff > 0).order_by(SupportThread.last_message_at.desc()).limit(8)
@@ -48,5 +50,5 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
         spark_pts = [(f"{x:.1f}", f"{y:.1f}", daily[i][0], daily[i][1]) for i, (x, y) in enumerate(pts)]
     return render(
         request, staff, "admin/dashboard.html",
-        {"page_title": "Dashboard", "d": data, "days": days, "awaiting": awaiting, "pending": pending, "threads": threads, "ending": ending, "spark": spark, "spark_pts": spark_pts, "spark_max": spark_max, "recent": recent, "out_of_stock": out_of_stock, "badges": await nav_badges(db)},
+        {"page_title": "Dashboard", "d": data, "days": days, "awaiting": awaiting, "awaiting_pay": awaiting_pay, "threads": threads, "ending": ending, "spark": spark, "spark_pts": spark_pts, "spark_max": spark_max, "recent": recent, "out_of_stock": out_of_stock, "badges": await nav_badges(db)},
     )

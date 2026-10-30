@@ -2,6 +2,7 @@
 
 Usage: uv run python scripts/e2e_smoke.py http://127.0.0.1:8765 ADMIN_LOGIN ADMIN_PASSWORD  (use a local DATABASE_URL — it creates data)
 """
+import io
 import re
 import sys
 import time
@@ -9,6 +10,7 @@ from datetime import datetime, timedelta
 from html.parser import HTMLParser
 
 import httpx
+from PIL import Image
 
 UID = str(int(time.time()))[-5:]
 
@@ -165,7 +167,7 @@ r = adm.post("/admin/login", data={"login": ADMIN_LOGIN, "password": ADMIN_PASSW
 ok("admin login", r.status_code == 303 and "nuhd_admin" in adm.cookies, str(r.status_code))
 csrf = re.search(r'name="csrf" content="([^"]+)"', adm.get("/admin").text).group(1)
 adm.headers["X-CSRF"] = csrf
-admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/payments", "/admin/payments?status=all", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new"]
+admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new"]
 for p in admin_pages:
     r = adm.get(p, headers={"HX-Request": "true"} if "search" in p else {})
     ok(f"GET {p}", r.status_code == 200 and clean(r.text), str(r.status_code))
@@ -176,55 +178,54 @@ def status_of(oid):
     return chip.group(1) if chip else None
 
 ok("order status awaiting_admin", status_of(oid) == "awaiting_admin", str(status_of(oid)))
+ok("no accept button before the offer", f"/app/orders/{oid}/accept" not in cust.get(f"/app/orders/{oid}").text)
 # offer
 r = adm.post(f"/admin/orders/{oid}/offer", data={"total": "", "advance_percent": "30", "delivery_terms": "7 kun", "warranty_terms": "12 oy", "admin_note": "", "send": "1"})
 ok("admin send offer", r.status_code == 303 and "flash_kind=ok" in r.headers.get("location", ""), r.headers.get("location"))
+ok("accept button shown after the offer", f"/app/orders/{oid}/accept" in cust.get(f"/app/orders/{oid}").text)
 # items edit
 r = adm.post(f"/admin/orders/{oid}/items", data={})
 ok("admin items save", r.status_code == 303)
 # customer accepts
 r = cust.post(f"/app/orders/{oid}/accept")
 ok("customer accepts offer", r.status_code == 303 and status_of(oid) == "awaiting_advance", f"{r.status_code} {status_of(oid)}")
-# customer pays advance
+# payment is settled in chat: the order page points there, there is no "I have paid" form
 html = cust.get(f"/app/orders/{oid}").text
-amt = re.search(r'name="amount"[^>]*value="([\d.]+)"', html)
-ok("pay form shows advance amount", bool(amt))
-r = cust.post(f"/app/orders/{oid}/pay", data={"kind": "advance", "amount": amt.group(1) if amt else "1", "method": "USDT", "note": "e2e"})
-ok("customer sends advance claim", r.status_code == 303, str(r.status_code))
-# admin confirms claim
-html = adm.get(f"/admin/orders/{oid}").text
-pay_ids = re.findall(rf'/admin/orders/{oid}/payments/(\d+)/confirm', html)
-ok("admin sees pending claim", bool(pay_ids))
-if pay_ids:
-    r = adm.post(f"/admin/orders/{oid}/payments/{pay_ids[0]}/confirm", data={})
-    ok("admin confirms advance → advance_confirmed", r.status_code == 303 and status_of(oid) == "advance_confirmed", status_of(oid))
+ok("payment card links to the order chat", f"/app/support/new?order_id={oid}" in html and 'name="amount"' not in html)
+for gone in ("pay", "cancel", "confirm-tests"):
+    ok(f"customer route /{gone} removed", cust.post(f"/app/orders/{oid}/{gone}", data={}).status_code in (404, 405))
+buf = io.BytesIO()
+Image.new("RGB", (40, 40), (200, 200, 200)).save(buf, "PNG")
+r = cust.post("/app/support/new", data={"text": "chek", "order_id": str(oid)}, files={"attachment": ("chek.png", buf.getvalue(), "image/png")})
+ok("customer sends receipt photo in the order chat", r.status_code == 303 and "/app/support/" in r.headers.get("location", ""), f"{r.status_code} {r.headers.get('location')}")
+otid = int(re.search(r"/support/(\d+)", r.headers.get("location", "/support/0")).group(1))
+ok("order page now opens that chat", f"/app/support/{otid}" in cust.get(f"/app/orders/{oid}").text)
+ok("admin order page links to that chat", f"/admin/support/{otid}" in adm.get(f"/admin/orders/{oid}").text)
+# staff record the money they received
+def due_of(oid):
+    m = re.search(r'name="amount"[^>]*value="([\d.]+)"', adm.get(f"/admin/orders/{oid}").text)
+    return m.group(1) if m else None
+ok("record form prefilled with the advance", bool(due_of(oid)), str(due_of(oid)))
+r = adm.post(f"/admin/orders/{oid}/payments", data={"amount": "1", "method": "USDT"})
+ok("partial advance warns and keeps the stage", "flash_kind=warn" in r.headers.get("location", "") and status_of(oid) == "awaiting_advance", f"{r.headers.get('location')} {status_of(oid)}")
+r = adm.post(f"/admin/orders/{oid}/payments", data={"amount": due_of(oid) or "0", "method": "USDT"})
+ok("rest of advance → advance_confirmed", r.status_code == 303 and status_of(oid) == "advance_confirmed", status_of(oid))
 # testing
 r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "testing"})
 ok("→ testing", status_of(oid) == "testing", status_of(oid))
-html = adm.get(f"/admin/orders/{oid}").text
-item_ids = re.findall(rf'/admin/orders/{oid}/items/(\d+)/test', html)
-serials = "\n".join(f"SN-E2E-{oid}-{i}" for i in range(qty + 1))
-r = adm.post(f"/admin/orders/{oid}/items/{item_ids[0]}/test", data={"serials": serials, "test_note": "ok"})
-ok("serials saved", r.status_code == 303 and "flash_kind=ok" in r.headers.get("location", ""), r.headers.get("location"))
 r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "test_ready"})
 ok("→ test_ready", status_of(oid) == "test_ready", status_of(oid))
 r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "awaiting_customer"})
 ok("→ awaiting_customer", status_of(oid) == "awaiting_customer", status_of(oid))
-r = cust.post(f"/app/orders/{oid}/confirm-tests")
-ok("customer confirms tests → awaiting_balance", status_of(oid) == "awaiting_balance", status_of(oid))
-html = cust.get(f"/app/orders/{oid}").text
-amt = re.search(r'name="amount"[^>]*value="([\d.]+)"', html)
-r = cust.post(f"/app/orders/{oid}/pay", data={"kind": "balance", "amount": amt.group(1) if amt else "1", "method": "bank"})
-html = adm.get(f"/admin/orders/{oid}").text
-pay_ids = re.findall(rf'/admin/orders/{oid}/payments/(\d+)/confirm', html)
-if pay_ids:
-    adm.post(f"/admin/orders/{oid}/payments/{pay_ids[0]}/confirm", data={})
-ok("balance confirmed → paid", status_of(oid) == "paid", status_of(oid))
+ok("customer sees chat button while results are discussed", f"/app/support/{otid}" in cust.get(f"/app/orders/{oid}").text)
+ok("admin sees 'customer agreed' action", 'value="awaiting_balance"' in adm.get(f"/admin/orders/{oid}").text)
+r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "awaiting_balance"})
+ok("customer agreed → awaiting_balance", status_of(oid) == "awaiting_balance", status_of(oid))
+r = adm.post(f"/admin/orders/{oid}/payments", data={"amount": due_of(oid) or "0", "method": "bank"})
+ok("balance recorded → paid", status_of(oid) == "paid", status_of(oid))
 adm.post(f"/admin/orders/{oid}/status", data={"to_status": "packing"})
 ok("→ packing", status_of(oid) == "packing", status_of(oid))
-r = adm.post(f"/admin/orders/{oid}/shipping", data={"cargo_company": "Kargo", "cargo_code": "AB001", "tracking_number": "TRK123", "ship": "1"})
-ok("ship without cargo confirm is blocked", status_of(oid) == "packing", status_of(oid))
-r = adm.post(f"/admin/orders/{oid}/shipping", data={"cargo_company": "Kargo", "cargo_code": "AB001", "tracking_number": "TRK123", "ship": "1", "cargo_confirmed": "on"})
+r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "shipped"})
 ok("→ shipped", status_of(oid) == "shipped", status_of(oid))
 adm.post(f"/admin/orders/{oid}/status", data={"to_status": "delivered"})
 adm.post(f"/admin/orders/{oid}/status", data={"to_status": "completed"})
@@ -235,12 +236,13 @@ ok("customer history tab", "NU-" in cust.get("/app/orders?tab=history").text)
 # admin jump (reason required)
 r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "delivered"})
 ok("jump without reason rejected", "flash_kind=bad" in r.headers.get("location", ""))
-# second order to test cancel from customer
+# second order: only staff cancel now
 cust.post("/app/cart/add", data={"product_id": pid, "qty": qty})
 r = cust.post("/app/checkout", data={"receiver_name": "Test Buyer", "receiver_phone": "+998901112233", "country": "UZ", "city": "Тошкент", "address": "Chilonzor 1"})
 oid2 = int(re.search(r"/orders/(\d+)/success", r.headers.get("location", "/orders/0/success")).group(1))
-r = cust.post(f"/app/orders/{oid2}/cancel")
-ok("customer cancels new order", status_of(oid2) == "cancelled", status_of(oid2))
+ok("shipping blocked before full payment", "flash_kind=bad" in adm.post(f"/admin/orders/{oid2}/status", data={"to_status": "shipped", "note": "e2e"}).headers.get("location", ""))
+r = adm.post(f"/admin/orders/{oid2}/status", data={"to_status": "cancelled", "note": "e2e"})
+ok("admin cancels order", status_of(oid2) == "cancelled", status_of(oid2))
 
 # ---------------------------------------------------------------- support
 r = cust.post("/app/support/new", data={"text": "Salom, e2e savol"})
@@ -284,7 +286,7 @@ ok("order created from auction", r.status_code == 303 and "/admin/orders/" in r.
 ok("customer profile auctions", cust.get("/app/profile/auctions").status_code == 200)
 
 # ---------------------------------------------------------------- catalog admin
-r = adm.post("/admin/brands/new", data={"name": "E2E Brand " + UID, "series": "Alpha\nBeta", "warranty_url": "", "sort": "99", "is_active": "on"})
+r = adm.post("/admin/brands/new", data={"name": "E2E Brand " + UID, "warranty_url": "", "sort": "99", "is_active": "on"})
 ok("brand create", r.status_code == 303 and "/admin/brands/" in r.headers.get("location", ""), f"{r.status_code} {r.text[:200]}")
 bid = int(re.search(r"/brands/(\d+)", r.headers.get("location", "/brands/0")).group(1))
 html = adm.get(f"/admin/brands/{bid}").text

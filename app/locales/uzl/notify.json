@@ -1,19 +1,15 @@
 {
   "notify": {
     "order_status": "📦 Buyurtma <b>{number}</b>\nYangi holat: <b>{status}</b>",
-    "order_awaiting_advance": "Buyurtma tasdiqlandi. Avans summasi: <b>{advance}</b>. To'lov rekvizitlari buyurtma sahifasida.",
-    "order_awaiting_customer": "Test natijalari tayyor. Iltimos, natijalar va yetkazish ma'lumotlarini buyurtma sahifasida tasdiqlang.",
-    "order_awaiting_balance": "Qoldiq to'lov summasi: <b>{balance}</b>. To'liq to'lov tasdiqlangach yuk jo'natiladi.",
-    "order_shipped": "Yuk jo'natildi. Kuzatish raqami: <b>{tracking}</b>",
+    "order_awaiting_advance": "Buyurtma tasdiqlandi. Avans summasi: <b>{advance}</b>. To'lov rekvizitlari buyurtma sahifasida. To'lagach, chekni chatga yuboring.",
+    "order_awaiting_customer": "Test natijalari tayyor. Admin siz bilan chatda bog'lanadi.",
+    "order_awaiting_balance": "Qoldiq to'lov summasi: <b>{balance}</b>. To'lagach, chekni chatga yuboring. To'liq to'lovdan keyin yuk jo'natiladi.",
     "open_order": "Buyurtmani ochish",
     "open_auction": "Auksionni ochish",
     "open_chat": "Chatni ochish",
     "outbid": "🔨 Sizning stavkangiz oshib ketdi: <b>{title}</b>\nJoriy narx: <b>{amount}</b>",
     "auction_won": "🏆 Tabriklaymiz! Siz <b>{title}</b> auksionida g'olib bo'ldingiz. Yakuniy narx: <b>{amount}</b>. Admin siz bilan bog'lanadi.",
     "auction_lost": "Auksion <b>{title}</b> yakunlandi. Bu safar omad kulib boqmadi — keyingi auksionlarni kuzatib boring.",
-    "support_reply": "💬 Admindan javob:\n{preview}",
-    "new_order_staff": "🆕 Yangi buyurtma <b>{number}</b> — {customer}, {qty} dona, {total}",
-    "new_support_staff": "💬 Yangi murojaat: {customer}\n{preview}",
-    "new_payment_staff": "💵 To'lov da'vosi: buyurtma <b>{number}</b>, {kind} {amount}"
+    "support_reply": "💬 Admindan javob:\n{preview}"
   }
 }

@@ -5,22 +5,14 @@
 {% if error %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ error }}</span></div>{% endif %}
 {% if not is_new and not b.is_active %}<div class="notice notice-warn mb">{{ icon('eye-off', 18) }}<span>{{ t('admin.brands.inactive_note') }}</span></div>{% endif %}
 <div class="split">
-<form method="post" id="brand-form" class="stack" data-track enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
+<form method="post" id="brand-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection"><h2>{{ t('admin.brands.edit') if not is_new else t('admin.brands.new') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.brands.help_form') }}</span></div>
     <div class="form-grid">
       <div class="field"><label>{{ t('admin.brands.name') }} <span class="req">*</span></label><input class="input" name="name" value="{{ b.name }}" required maxlength="60" autofocus></div>
       <div class="field"><label>{{ t('admin.brands.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ b.sort }}"></div>
     </div>
-    <div class="field mt"><label>{{ t('admin.brands.series') }}</label><textarea class="textarea" name="series" rows="5" placeholder="Purple&#10;SkyHawk&#10;Exos">{{ b.series|join('\n') }}</textarea><span class="hint">{{ t('admin.brands.series_hint') }}</span></div>
     <div class="field mt"><label>{{ t('admin.brands.warranty_url') }}</label><input class="input mono" type="url" name="warranty_url" value="{{ b.warranty_url or '' }}" placeholder="https://"><span class="hint">{{ t('admin.brands.warranty_url_hint') }}</span></div>
     <div class="mt">{% with name='description', value=b.description, kind='textarea', label=t('admin.brands.description'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
-  </section>
-  <section class="fsection"><h2>{{ t('admin.brands.logo') }}</h2><div class="help">{{ icon('image', 16) }}<span>{{ t('admin.brands.logo_hint') }}</span></div>
-    <div class="row" style="gap:16px;align-items:center;flex-wrap:wrap">
-      {% if b.logo_thumb %}<img src="{{ b.logo_thumb_url }}" alt="" class="brand-logo-lg">{% else %}<span class="brand-mono lg">{{ b.monogram if b.name else '?' }}</span>{% endif %}
-      <div class="stack" style="gap:8px"><input type="file" name="logo_file" accept="image/*" class="input" style="padding:8px">
-      {% if b.logo %}<label class="check"><input type="checkbox" name="logo_remove" value="1">{{ t('admin.brands.logo_remove') }}</label>{% endif %}</div>
-    </div>
   </section>
 </form>
 <aside class="stack">

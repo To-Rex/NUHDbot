@@ -305,7 +305,7 @@ async def auction_create_order(aid: int, request: Request, db: DB, staff: User =
         dep.status = DepositStatus.APPLIED
         from app.enums import PaymentKind
 
-        pay = await osvc.add_payment_claim(db, o, winner, PaymentKind.DEPOSIT, Decimal(dep.amount), "deposit", dep.proof_filename, f"auction deposit #{dep.id}")
+        pay = await osvc.add_payment(db, o, winner, PaymentKind.DEPOSIT, Decimal(dep.amount), "deposit", dep.proof_filename, f"auction deposit #{dep.id}")
         await osvc.confirm_payment(db, pay, staff, True, "deposit applied")
     await audit.log(db, staff.id, "auction.order", "auction", a.id, None, {"order": o.number})
     await notifications.notify_order_status(db, o, winner)

@@ -5,7 +5,6 @@ from app.deps import DB, Lang, redirect, require_user
 from app.enums import MessageKind
 from app.i18n import t
 from app.models import Order, Product, SupportMessage, User
-from app.services import notifications
 from app.services.media import ALLOWED_TYPES, MediaError, save_document
 from app.services.settings_service import get_setting
 from app.services.support import add_message, get_or_create_thread, mark_read, user_threads
@@ -63,11 +62,6 @@ async def support_create(request: Request, db: DB, lang: Lang, user: User = Depe
         th.subject = o.number if o else None
     await add_message(db, th, sender=user, from_staff=False, text=text, kind=kind, attachment=att)
     await db.commit()
-    try:
-        await notifications.notify_staff(db, t("uz", "notify.new_support_staff", customer=notifications.esc(user.full_name), preview=notifications.esc(text[:200])), kind="support_new")
-        await db.commit()
-    except Exception:  # noqa: BLE001
-        pass
     return hx_trigger(redirect(request, f"/app/support/{th.id}"), toast={"msg": t(lang, "support.sent"), "type": "ok"}, haptic="success")
 
 
@@ -108,11 +102,6 @@ async def support_send(thread_id: int, request: Request, db: DB, lang: Lang, use
         return toast(HTMLResponse("", status_code=422), t(lang, "support.errors.file"), "bad", "error")
     msg = await add_message(db, th, sender=user, from_staff=False, text=text, kind=kind, attachment=att)
     await db.commit()
-    try:
-        await notifications.notify_staff(db, t("uz", "notify.new_support_staff", customer=notifications.esc(user.full_name), preview=notifications.esc(text[:200])), kind="support_msg")
-        await db.commit()
-    except Exception:  # noqa: BLE001
-        pass
     resp = render(request, "miniapp/partials/messages.html", {"lang": lang, "th": th, "messages": [msg]})
     return hx_trigger(resp, haptic="light", messageSent=True)
 

@@ -1,7 +1,6 @@
 """Brand dictionary management (Каталог → Брендлар)."""
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import Response
-from starlette.datastructures import UploadFile
 
 from app.admin.common import (
     DB,
@@ -19,10 +18,10 @@ from app.admin.common import (
 from app.admin.router import router
 from app.i18n import t
 from app.models import Brand, User
-from app.services import audit, media
+from app.services import audit
 from app.services import brands as svc
 
-BRAND_FIELDS = ["name", "slug", "series", "warranty_url", "sort", "is_active", "logo"]
+BRAND_FIELDS = ["name", "slug", "warranty_url", "sort", "is_active"]
 
 
 def _snap(b: Brand) -> dict:
@@ -51,36 +50,18 @@ async def brand_new(request: Request, db: DB, staff: User = Depends(staff_dep(*P
     return render(request, staff, "admin/brands/form.html", {"page_title": t(_lang(request, staff), "admin.brands.new"), "b": b, "is_new": True, "count": 0})
 
 
-async def _save_logo(form, b: Brand) -> str | None:
-    f = form.get("logo_file")
-    if isinstance(f, UploadFile) and f.filename:
-        old = (b.logo, b.logo_thumb)
-        meta = await media.save_image(f, prefix="brand")
-        b.logo, b.logo_thumb = meta["filename"], meta["thumb"]
-        await media.delete_files(*old)
-    elif form.get("logo_remove"):
-        await media.delete_files(b.logo, b.logo_thumb)
-        b.logo = b.logo_thumb = None
-    return None
-
-
 @router.post("/brands/new")
 async def brand_create(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     form = await request.form()
     lang = _lang(request, staff)
     try:
         b = await svc.create_brand(
-            db, name=f_str(form, "name", maxlen=60), series=[form.get("series") or ""], warranty_url=f_opt(form, "warranty_url", 500),
+            db, name=f_str(form, "name", maxlen=60), warranty_url=f_opt(form, "warranty_url", 500),
             description=f_i18n(form, "description"), sort=f_int(form, "sort", None), is_active=f_bool(form, "is_active"),
         )
-        await _save_logo(form, b)
     except svc.BrandError as e:
-        b = Brand(name=f_str(form, "name", maxlen=60), slug="", series=svc.clean_series([form.get("series") or ""]), description=f_i18n(form, "description"), warranty_url=f_opt(form, "warranty_url", 500), sort=f_int(form, "sort", 0) or 0, is_active=f_bool(form, "is_active"))
+        b = Brand(name=f_str(form, "name", maxlen=60), slug="", series=[], description=f_i18n(form, "description"), warranty_url=f_opt(form, "warranty_url", 500), sort=f_int(form, "sort", 0) or 0, is_active=f_bool(form, "is_active"))
         return render(request, staff, "admin/brands/form.html", {"page_title": t(lang, "admin.brands.new"), "b": b, "is_new": True, "count": 0, "error": t(lang, f"admin.brands.{e.code}")}, status_code=400)
-    except media.MediaError as e:
-        await db.rollback()
-        await db.refresh(staff)
-        return back(request, "/admin/brands/new", t(lang, "admin.prod.image_error", e=str(e)), "bad")
     await audit.log(db, staff.id, "brand.create", "brand", b.id, None, _snap(b))
     await db.commit()
     return back(request, f"/admin/brands/{b.id}", t(lang, "admin.brands.saved"))
@@ -105,20 +86,15 @@ async def brand_update(bid: int, request: Request, db: DB, staff: User = Depends
     before = _snap(b)
     try:
         await svc.update_brand(
-            db, b, name=f_str(form, "name", maxlen=60), series=[form.get("series") or ""], warranty_url=f_str(form, "warranty_url", "", 500),
+            db, b, name=f_str(form, "name", maxlen=60), warranty_url=f_str(form, "warranty_url", "", 500),
             description=f_i18n(form, "description"), sort=f_int(form, "sort", b.sort), is_active=f_bool(form, "is_active"),
         )
-        await _save_logo(form, b)
     except svc.BrandError as e:
         await db.rollback()
         await db.refresh(staff)
         b = await svc.get_brand(db, bid)
         count = (await svc.product_counts(db)).get(b.id, 0)
         return render(request, staff, "admin/brands/form.html", {"page_title": b.name, "b": b, "is_new": False, "count": count, "error": t(lang, f"admin.brands.{e.code}")}, status_code=400)
-    except media.MediaError as e:
-        await db.rollback()
-        await db.refresh(staff)
-        return back(request, f"/admin/brands/{bid}", t(lang, "admin.prod.image_error", e=str(e)), "bad")
     await audit.log(db, staff.id, "brand.update", "brand", b.id, before, _snap(b))
     await db.commit()
     return back(request, f"/admin/brands/{b.id}", t(lang, "admin.brands.saved"))
@@ -145,11 +121,9 @@ async def brand_delete(bid: int, request: Request, db: DB, staff: User = Depends
     lang = _lang(request, staff)
     try:
         snap = _snap(b)
-        logo = (b.logo, b.logo_thumb)
         await svc.delete_brand(db, b)
     except svc.BrandError as e:
         return back(request, f"/admin/brands/{bid}", t(lang, "admin.brands.delete_blocked", n=e.ctx.get("count", 0)), "warn")
-    await media.delete_files(*logo)
     await audit.log(db, staff.id, "brand.delete", "brand", bid, snap, None)
     await db.commit()
     return back(request, "/admin/brands", t(lang, "admin.brands.deleted"))

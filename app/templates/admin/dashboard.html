@@ -23,9 +23,9 @@
     {% else %}<div class="done">{{ icon('check-circle', 22) }}{{ t('admin.dash.no_tasks') }}</div>{% endif %}
   </div>
   <div class="task">
-    <div class="task-h"><span class="ic {{ 'warn' if pending }}">{{ icon('wallet', 18) }}</span><h3>{{ t('admin.dash.task_payments') }}</h3><span class="n {{ 'zero' if not pending }}">{{ pending|length }}</span></div>
-    {% if pending %}<ul>{% for p in pending %}<li><a href="{{ '/admin/payments' if can(roles.PAYMENT_ROLES) else '/admin/orders/' ~ p.order_id ~ '#payments' }}"><span class="mono bold">{{ p.order.number if p.order else '—' }}</span><span class="chip chip-info">{{ t('payment.' ~ p.kind.value) }}</span><span class="m">{{ p.amount|money(p.currency) }} · {{ p.created_at|dt('%d.%m %H:%M') }}</span></a></li>{% endfor %}</ul>
-    <div class="foot"><a class="btn btn-xs btn-ghost" href="{{ '/admin/payments' if can(roles.PAYMENT_ROLES) else '/admin/orders?payments=pending' }}">{{ t('admin.dash.view_all') }} {{ icon('arrow-right', 13) }}</a></div>
+    <div class="task-h"><span class="ic {{ 'warn' if awaiting_pay }}">{{ icon('wallet', 18) }}</span><h3>{{ t('admin.dash.task_payments') }}</h3><span class="n {{ 'zero' if not awaiting_pay }}">{{ awaiting_pay|length }}</span></div>
+    {% if awaiting_pay %}<ul>{% for o in awaiting_pay %}<li><a href="/admin/orders/{{ o.id }}#payments"><span class="mono bold">{{ o.number }}</span><span class="truncate">{{ o.user.full_name }}</span><span class="m">{{ (o.advance_amount if o.status.value == 'awaiting_advance' else o.balance_amount)|money(o.currency) }} · {{ t('payment.' ~ ('advance' if o.status.value == 'awaiting_advance' else 'balance')) }}</span></a></li>{% endfor %}</ul>
+    <div class="foot"><a class="btn btn-xs btn-ghost" href="/admin/orders?status=awaiting_payment">{{ t('admin.dash.view_all') }} {{ icon('arrow-right', 13) }}</a></div>
     {% else %}<div class="done">{{ icon('check-circle', 22) }}{{ t('admin.dash.no_tasks') }}</div>{% endif %}
   </div>
   <div class="task">

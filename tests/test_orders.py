@@ -56,7 +56,7 @@ async def test_cancel_releases_reservation_and_ship_decrements_stock(db):
     admin = await make_user(db, tg_id=1, role=__import__("app.enums", fromlist=["Role"]).Role.ADMIN)
     p = await make_product(db, stock=50)
     o1 = await orders.create_order(db, u, [(p.id, 10)], **DELIVERY)
-    await orders.customer_cancel(db, o1, u)
+    await orders.transition(db, o1, OrderStatus.CANCELLED, by=admin)
     await db.commit()
     await db.refresh(p)
     assert p.reserved == 0 and p.stock == 50
@@ -88,31 +88,24 @@ async def test_transitions_follow_flow(db):
     assert o.status == OrderStatus.AWAITING_ADVANCE and o.confirmed_at is not None
 
 
-async def test_customer_cancel_in_awaiting_advance_is_allowed(db):
-    u = await make_user(db)
-    p = await make_product(db)
-    o = await orders.create_order(db, u, [(p.id, 5)], **DELIVERY)
-    await orders.customer_confirm_offer(db, o, u)
-    await orders.customer_cancel(db, o, u)
-    assert o.status == OrderStatus.CANCELLED
-
-
-async def test_payment_confirmation_moves_status(db):
+async def test_recorded_payments_move_status(db):
+    """Receipts are settled in chat; staff record what arrived and the stage follows the money."""
     u = await make_user(db)
     finance = await make_user(db, tg_id=3, role=__import__("app.enums", fromlist=["Role"]).Role.FINANCE)
     p = await make_product(db)
     o = await orders.create_order(db, u, [(p.id, 5)], **DELIVERY)
     await orders.customer_confirm_offer(db, o, u)
-    pay = await orders.add_payment_claim(db, o, u, PaymentKind.ADVANCE, o.advance_amount, "USDT", None, None)
+    pay = await orders.add_payment(db, o, u, PaymentKind.ADVANCE, o.advance_amount, "USDT", None, None)
     await orders.confirm_payment(db, pay, finance, ok=True)
     assert o.status == OrderStatus.ADVANCE_CONFIRMED and o.paid_amount == o.advance_amount
     for st in (OrderStatus.TESTING, OrderStatus.TEST_READY, OrderStatus.AWAITING_CUSTOMER):
         await orders.transition(db, o, st, by=finance)
-    await orders.customer_confirm_tests(db, o, u)
+    # staff move the order on once the customer agrees in chat
+    await orders.transition(db, o, OrderStatus.AWAITING_BALANCE, by=finance)
     assert o.status == OrderStatus.AWAITING_BALANCE
-    bal = await orders.add_payment_claim(db, o, u, PaymentKind.BALANCE, o.balance_amount, "USDT", None, None)
-    rejected = await orders.confirm_payment(db, bal, finance, ok=False, note="wrong amount")
-    assert o.status == OrderStatus.AWAITING_BALANCE and rejected.status.value == "rejected"
-    bal2 = await orders.add_payment_claim(db, o, u, PaymentKind.BALANCE, o.balance_amount, "USDT", None, None)
-    await orders.confirm_payment(db, bal2, finance, ok=True)
+    part = await orders.add_payment(db, o, u, PaymentKind.BALANCE, o.balance_amount / 2, "USDT", None, None)
+    await orders.confirm_payment(db, part, finance, ok=True)
+    assert o.status == OrderStatus.AWAITING_BALANCE and part.stage_complete is False
+    rest = await orders.add_payment(db, o, u, PaymentKind.BALANCE, o.total - o.paid_amount, "USDT", None, None)
+    await orders.confirm_payment(db, rest, finance, ok=True)
     assert o.status == OrderStatus.PAID and o.paid_amount == o.total

@@ -18,7 +18,7 @@
 {% block heading %}<span class="mono">{{ o.number }}</span>{% with status=o.status %}{% include "admin/partials/status_chip.html" %}{% endwith %}{% endblock %}
 {% block topbar_actions %}
 <a class="btn btn-secondary btn-sm" href="/admin/orders">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>
-{% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-secondary btn-sm" href="/admin/support?user={{ o.user_id }}">{{ icon('message', 15) }}{{ t('admin.nav.support') }}</a>{% endif %}
+{% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-secondary btn-sm" href="{{ chat_url }}">{{ icon('message', 15) }}{{ t('admin.ord.open_chat') }}</a>{% endif %}
 {% if ns.opts or staff.is_admin %}<button type="button" class="btn btn-secondary btn-sm" id="status-open">{{ icon('refresh', 15) }}{{ t('admin.ord.change_status') }}</button>{% endif %}
 {% endblock %}
 {% block content %}
@@ -35,18 +35,19 @@
   <div class="ic">{{ icon('bolt' if tone=='accent' else ('check-circle' if tone=='ok' else ('alert' if tone=='bad' else 'clock')), 20) }}</div>
   <div><div class="eyebrow">{{ t('admin.next.title') }}</div><h2>{{ t('admin.next.' ~ st) }}</h2><p>{{ t('admin.nexthelp.' ~ st) }}</p>
     <div class="acts">
+      {% set chat_btn %}{% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-lg btn-secondary" href="{{ chat_url }}">{{ icon('message', 18) }}{{ t('admin.ord.open_chat') }}</a>{% endif %}{% endset %}
       {% if st in ('new','awaiting_admin') %}{% if can_edit %}<a class="btn btn-lg btn-primary" href="#offer">{{ icon('send', 18) }}{{ t('admin.ord.send_offer') }}</a>{% endif %}
-      {% elif st in ('awaiting_advance','awaiting_balance') %}{% if pending_claims and can_pay %}<a class="btn btn-lg btn-primary" href="#payments">{{ icon('wallet', 18) }}{{ t('admin.ord.confirm') }} ({{ pending_claims|length }})</a>{% elif can_pay %}<a class="btn btn-lg btn-primary" href="#payments">{{ icon('wallet', 18) }}{{ t('admin.ord.record_payment') }}</a>{% endif %}
+      {% elif st in ('awaiting_advance','awaiting_balance') %}{% if can_pay %}<a class="btn btn-lg btn-primary" href="#payments">{{ icon('wallet', 18) }}{{ t('admin.ord.record_payment') }}</a>{% endif %}{{ chat_btn }}
       {% elif st == 'advance_confirmed' %}{% if can_test or can_edit %}{{ trans(OrderStatus.TESTING, t('admin.ord.take_to_testing'), 'btn-primary', False, 'drive') }}{% endif %}
-      {% elif st == 'testing' %}<a class="btn btn-lg btn-secondary" href="#tests">{{ icon('drive', 18) }}{{ t('admin.ord.tests') }}</a>{% if can_test or can_edit %}{{ trans(OrderStatus.TEST_READY, t('order_status.test_ready'), 'btn-primary', True, 'check') }}{% endif %}
-      {% elif st == 'test_ready' %}{% if can_edit or can_test %}{{ trans(OrderStatus.AWAITING_CUSTOMER, t('admin.ord.send_results'), 'btn-primary', True, 'send') }}{% endif %}
+      {% elif st == 'testing' %}{% if can_test or can_edit %}{{ trans(OrderStatus.TEST_READY, t('order_status.test_ready'), 'btn-primary', True, 'check') }}{% endif %}
+      {% elif st == 'test_ready' %}{% if can_edit or can_test %}{{ trans(OrderStatus.AWAITING_CUSTOMER, t('admin.ord.send_results'), 'btn-primary', True, 'send') }}{% endif %}{{ chat_btn }}
+      {% elif st == 'awaiting_customer' %}{% if can_edit %}{{ trans(OrderStatus.AWAITING_BALANCE, t('admin.ord.customer_agreed'), 'btn-primary', True, 'check') }}{% endif %}{{ chat_btn }}
       {% elif st == 'paid' %}{% if can_ship %}{{ trans(OrderStatus.PACKING, t('admin.ord.start_packing'), 'btn-primary', False, 'package') }}{% endif %}
-      {% elif st == 'packing' %}<a class="btn btn-lg btn-primary" href="#shipping">{{ icon('truck', 18) }}{{ t('admin.ord.mark_shipped') }}</a>
+      {% elif st == 'packing' %}{% if o.paid_amount < o.total %}<span class="notice notice-bad">{{ icon('lock', 18) }}<span>{{ t('admin.ord.ship_blocked_payment') }}</span></span>{% elif can_ship %}{{ trans(OrderStatus.SHIPPED, t('admin.ord.mark_shipped'), 'btn-primary', True, 'truck') }}{% endif %}
       {% elif st == 'shipped' %}{% if can_ship %}{{ trans(OrderStatus.DELIVERED, t('admin.ord.mark_delivered'), 'btn-primary', True, 'check') }}{% endif %}
       {% elif st == 'delivered' %}{{ trans(OrderStatus.COMPLETED, t('admin.ord.mark_completed'), 'btn-primary', True, 'check-circle') }}
       {% elif st == 'disputed' %}{{ trans(OrderStatus.COMPLETED, t('admin.ord.mark_completed'), 'btn-ok', True) }}{{ trans(OrderStatus.RETURNED, t('order_status.returned'), 'btn-warn', True) }}{{ trans(OrderStatus.CANCELLED, t('admin.ord.cancel_order'), 'btn-danger', True) }}
       {% endif %}
-      {% if st == 'awaiting_customer' and can(roles.SUPPORT_ROLES) %}<a class="btn btn-lg btn-secondary" href="/admin/support?user={{ o.user_id }}">{{ icon('message', 18) }}{{ t('admin.nav.support') }}</a>{% endif %}
       {% if ns.opts or staff.is_admin %}<button type="button" class="btn btn-lg btn-ghost" data-status-open>{{ icon('refresh', 18) }}{{ t('admin.ord.other_status') }}</button>{% endif %}
     </div></div>
 </section>
@@ -58,7 +59,7 @@
     <form method="post" action="/admin/orders/{{ o.id }}/items"><input type="hidden" name="_csrf" value="{{ csrf }}">
     <div class="tbl-wrap"><table><thead><tr><th>#</th><th></th><th class="right">{{ t('admin.ord.qty') }}</th><th class="right">{{ t('admin.ord.unit_price') }}</th><th class="right">{{ t('admin.total') }}</th></tr></thead><tbody>
     {% for i in o.items %}<tr><td class="faint">{{ loop.index }}</td>
-      <td><a class="row-main" href="/admin/products/{{ i.product_id }}">{{ i.brand }} {{ i.model }}</a> <span class="chip cond-{{ i.condition.value }}">{{ i.condition.value|upper }}</span><div class="row-sub">{{ i.capacity_gb|capacity }}{% if i.product and i.product.label_model %} · <span style="color:var(--refresh-fg)">{{ t('common.label_model') }}: {{ i.product.label_model }}</span>{% endif %}{% if i.serials %} · <span class="mono">{{ i.serials|length }} SN</span>{% endif %}</div></td>
+      <td><a class="row-main" href="/admin/products/{{ i.product_id }}">{{ i.brand }} {{ i.model }}</a> <span class="chip cond-{{ i.condition.value }}">{{ i.condition.value|upper }}</span><div class="row-sub">{{ i.capacity_gb|capacity }}{% if i.product and i.product.label_model %} · <span style="color:var(--refresh-fg)">{{ t('common.label_model') }}: {{ i.product.label_model }}</span>{% endif %}</div></td>
       <td class="num">{% if items_editable %}<input class="input sm num mono" style="width:72px" type="number" name="qty_{{ i.id }}" value="{{ i.qty }}" min="1">{% else %}<span class="mono">{{ i.qty }}</span>{% endif %}</td>
       <td class="num">{% if items_editable %}<input class="input sm num mono" style="width:104px" name="price_{{ i.id }}" value="{{ i.unit_price }}">{% else %}<span class="mono">{{ i.unit_price|money(o.currency) }}</span>{% endif %}</td>
       <td class="num bold mono">{{ i.line_total|money(o.currency) }}</td></tr>{% endfor %}
@@ -86,69 +87,26 @@
   </details>
   {% endif %}
 
-  {# ---------- payments ---------- #}
-  <details class="fsection plain" id="payments" {{ 'open' if st in ('awaiting_advance','awaiting_balance') or pending_claims }}><summary><span class="ttl">{{ t('admin.ord.payments') }}</span><span class="sub">{{ t('admin.ord.paid') }}: <b class="mono">{{ o.paid_amount|money(o.currency) }}</b> / {{ o.total|money(o.currency) }}{% if pending_claims %} · <span class="chip chip-warn">{{ pending_claims|length }} {{ t('admin.pay.pending')|lower }}</span>{% endif %}</span></summary>
-    <div class="mt">
-    {% if o.payments %}<div class="tbl-wrap"><table><thead><tr><th>{{ t('admin.date') }}</th><th>{{ t('admin.ord.kind') }}</th><th class="right">{{ t('admin.ord.amount') }}</th><th>{{ t('admin.ord.method') }}</th><th>{{ t('admin.ord.proof') }}</th><th>{{ t('admin.status') }}</th><th></th></tr></thead><tbody>
-      {% for p in o.payments %}{% set expected = o.advance_amount if p.kind.value == 'advance' else (o.balance_amount if p.kind.value == 'balance' else none) %}<tr><td class="faint small nowrap">{{ p.created_at|dt }}</td><td><span class="chip chip-info">{{ t('payment.' ~ p.kind.value) }}</span></td>
-        <td class="num bold mono">{{ p.amount|money(p.currency) }}{% if expected is not none and p.status.value=='pending' %}<div class="row-sub">{% if p.amount == expected %}<span style="color:var(--ok)">{{ t('admin.ord.matches') }}</span>{% else %}<span style="color:var(--warn)">{{ t('admin.ord.expected') }}: {{ expected|money(o.currency) }}</span>{% endif %}</div>{% endif %}</td>
-        <td class="small">{{ p.method or '—' }}{% if p.note %}<div class="row-sub">{{ p.note }}</div>{% endif %}</td>
-        <td>{% if p.proof_filename %}{% if p.proof_filename.endswith('.webp') %}<a href="#" data-lightbox="{{ media_url(p.proof_filename) }}"><img class="th" src="{{ media_url(p.proof_filename) }}" alt=""></a>{% else %}<a class="btn btn-xs btn-secondary" href="{{ media_url(p.proof_filename) }}" target="_blank">{{ icon('download', 13) }}</a>{% endif %}{% else %}<span class="faint">—</span>{% endif %}</td>
-        <td><span class="chip {{ 'chip-ok' if p.status.value=='confirmed' else ('chip-bad' if p.status.value=='rejected' else 'chip-warn') }}">{{ t('payment.' ~ p.status.value) }}</span>{% if p.confirmed_at %}<div class="row-sub">{{ p.confirmed_at|dt }}</div>{% endif %}</td>
-        <td class="nowrap">{% if p.status.value=='pending' and can_pay %}<form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/confirm" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-ok" data-confirm="{{ t('admin.pay.confirm') }}" data-confirm-text="{{ p.amount|money(p.currency) }} · {{ t('payment.' ~ p.kind.value) }}">{{ icon('check', 14) }}{{ t('admin.ord.confirm') }}</button></form> <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/reject" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-danger" data-confirm="{{ t('admin.pay.reject') }}" data-confirm-reason="note" data-confirm-danger="1">{{ icon('x', 14) }}</button></form>{% endif %}</td></tr>{% endfor %}
-    </tbody></table></div>{% else %}<div class="empty">{{ icon('wallet', 28) }}<b>{{ t('admin.none') }}</b></div>{% endif %}
-    {% if can_pay %}<details class="acc mt" {{ 'open' if st in ('awaiting_advance','awaiting_balance') and not pending_claims }}><summary>{{ icon('plus', 14) }}{{ t('admin.ord.record_payment') }}</summary>
-      <form method="post" action="/admin/orders/{{ o.id }}/payments" enctype="multipart/form-data" class="form-grid mt"><input type="hidden" name="_csrf" value="{{ csrf }}">
-        <div class="field"><label>{{ t('admin.ord.kind') }}</label><select class="select" name="kind">{% for k in kinds %}<option value="{{ k.value }}" {{ 'selected' if (k.value=='advance' and st=='awaiting_advance') or (k.value=='balance' and st=='awaiting_balance') }}>{{ t('payment.' ~ k.value) }}</option>{% endfor %}</select></div>
-        <div class="field"><label>{{ t('admin.ord.amount') }} ({{ o.currency }})</label><input class="input mono" name="amount" value="{{ o.advance_amount if st=='awaiting_advance' else (o.balance_amount if st=='awaiting_balance' else '') }}"></div>
-        <div class="field"><label>{{ t('admin.ord.method') }}</label><input class="input" name="method" placeholder="USDT / bank / cash"></div>
-        <div class="field"><label>{{ t('admin.ord.proof') }}</label><input class="input" type="file" name="proof" accept="image/*,.pdf"></div>
-        <div class="field"><label>{{ t('admin.note') }}</label><input class="input" name="note"></div>
-        <div class="field"><label>&nbsp;</label><button class="btn btn-primary">{{ t('admin.ord.record_payment') }}</button></div>
-      </form><p class="hint mt-sm">{{ t('admin.ord.payments_hint') }}</p></details>{% endif %}
-    </div>
-  </details>
-
-  {# ---------- tests ---------- #}
-  <details class="fsection plain" id="tests" {{ 'open' if st in ('testing','test_ready') }}><summary><span class="ttl">{{ t('admin.ord.tests') }}</span><span class="sub">{% set sn = o.items|map(attribute='serials')|map('length')|sum %}{{ sn }} / {{ o.total_qty }} SN</span></summary>
+  {# ---------- payments: the receipt is settled in chat, staff record what arrived ---------- #}
+  <details class="fsection plain" id="payments" {{ 'open' if st in ('awaiting_advance','awaiting_balance') or pending_claims }}><summary><span class="ttl">{{ t('admin.ord.payments') }}</span><span class="sub">{{ t('admin.ord.paid') }}: <b class="mono">{{ o.paid_amount|money(o.currency) }}</b> / {{ o.total|money(o.currency) }}</span></summary>
     <div class="mt stack">
-    {% for i in o.items %}
-    <form method="post" action="/admin/orders/{{ o.id }}/items/{{ i.id }}/test" class="sunken"><input type="hidden" name="_csrf" value="{{ csrf }}">
-      <div class="between mb-sm"><span class="row-main">{{ i.brand }} {{ i.model }} <span class="mono">× {{ i.qty }}</span></span><span class="chip {{ 'chip-ok' if i.serials|length == i.qty else ('chip-warn' if i.serials else 'chip-soft') }}">{{ i.serials|length }}/{{ i.qty }} SN</span></div>
+    {% if can_pay and not closed %}
+    <form method="post" action="/admin/orders/{{ o.id }}/payments" class="sunken stack"><input type="hidden" name="_csrf" value="{{ csrf }}">
       <div class="form-grid">
-        <div class="field"><label>{{ t('admin.ord.serials') }}</label><textarea class="textarea code" name="serials" rows="3" {{ '' if can_test else 'readonly' }}>{{ i.serials|join('\n') }}</textarea></div>
-        <div class="field"><label>{{ t('admin.ord.test_note') }}</label><textarea class="textarea" name="test_note" rows="3" {{ '' if can_test else 'readonly' }}>{{ i.test_note or '' }}</textarea></div>
+        <div class="field"><label>{{ t('admin.ord.amount_received') }} ({{ o.currency }})</label><input class="input mono" name="amount" inputmode="decimal" value="{{ due if due else '' }}" required></div>
+        <div class="field"><label>{{ t('admin.ord.method') }}</label><input class="input" name="method" placeholder="USDT / bank / cash"></div>
       </div>
-      {% if can_test %}<div class="right mt-sm"><button class="btn btn-secondary btn-sm">{{ t('admin.save') }}</button></div>{% endif %}
-    </form>{% endfor %}
-    <p class="hint">{{ t('admin.ord.tests_hint') }}</p>
-    </div>
-  </details>
-
-  {# ---------- shipping ---------- #}
-  <details class="fsection plain" id="shipping" {{ 'open' if st in ('paid','packing','shipped') }}><summary><span class="ttl">{{ t('admin.ord.delivery_card') }}</span><span class="sub">{{ t('country.' ~ (o.country or 'OT')) }}{% if o.city %}, {{ o.city }}{% endif %}{% if o.tracking_number %} · <span class="mono">{{ o.tracking_number }}</span>{% endif %}</span></summary>
-    <div class="mt">
-    <dl class="kv mb"><dt>{{ t('admin.ord.receiver') }}</dt><dd>{{ o.receiver_name }} · <span class="copyable" data-copy="{{ o.receiver_phone }}">{{ o.receiver_phone }}{{ icon('copy', 13) }}</span></dd><dt>{{ t('admin.ord.address') }}</dt><dd>{{ t('country.' ~ (o.country or 'OT')) }}, {{ o.city or '' }}<br>{{ o.address }}</dd></dl>
-    <form method="post" action="/admin/orders/{{ o.id }}/shipping" class="stack"><input type="hidden" name="_csrf" value="{{ csrf }}">
-      <div class="form-grid">
-        <div class="field"><label>{{ t('admin.ord.cargo') }}</label><input class="input" name="cargo_company" value="{{ o.cargo_company or '' }}" {{ '' if can_ship else 'readonly' }}></div>
-        <div class="field"><label>{{ t('admin.ord.cargo_code') }}</label><div class="row-nw"><input class="input mono" name="cargo_code" value="{{ o.cargo_code or '' }}" {{ '' if can_ship else 'readonly' }}>{% if o.cargo_code %}<button type="button" class="icon-btn" data-copy="{{ o.cargo_code }}" title="{{ t('admin.ui.copy') }}">{{ icon('copy', 16) }}</button>{% endif %}</div><span class="hint">{{ t('admin.ord.shipping_hint') }}</span></div>
-        <div class="field"><label>{{ t('admin.ord.tracking') }}</label><div class="row-nw"><input class="input mono" name="tracking_number" value="{{ o.tracking_number or '' }}" {{ '' if can_ship else 'readonly' }}>{% if o.tracking_number %}<button type="button" class="icon-btn" data-copy="{{ o.tracking_number }}" title="{{ t('admin.ui.copy') }}">{{ icon('copy', 16) }}</button>{% endif %}</div></div>
-      </div>
-      {% if can_ship %}
-        {% if st in ('paid','packing') %}
-          {% if o.paid_amount < o.total %}<div class="notice notice-bad">{{ icon('lock', 18) }}<span>{{ t('admin.ord.ship_blocked_payment') }}</span></div>{% else %}<label class="check"><input type="checkbox" name="cargo_confirmed">{{ t('admin.ord.cargo_confirm') }}</label>{% endif %}
-        {% endif %}
-        <div class="row"><button class="btn btn-secondary">{{ t('admin.save') }}</button>{% if st in ('paid','packing') and o.paid_amount >= o.total %}<button class="btn btn-primary" name="ship" value="1" data-confirm="{{ t('admin.ord.mark_shipped') }}" data-confirm-text="{{ t('admin.ord.ship_blocked_cargo') }}">{{ icon('truck', 16) }}{{ t('admin.ord.mark_shipped') }}</button>{% endif %}</div>
-      {% endif %}
+      <div class="field"><label>{{ t('admin.note') }}</label><input class="input" name="note"></div>
+      <div class="row"><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.ord.record_payment') }}</button><span class="hint">{{ t('admin.ord.payments_hint') }}</span></div>
     </form>
+    {% endif %}
+    {% if o.payments %}<div class="tbl-wrap"><table><thead><tr><th>{{ t('admin.date') }}</th><th>{{ t('admin.ord.kind') }}</th><th class="right">{{ t('admin.ord.amount') }}</th><th>{{ t('admin.ord.method') }}</th><th></th></tr></thead><tbody>
+      {% for p in o.payments %}<tr><td class="faint small nowrap">{{ p.created_at|dt }}</td><td><span class="chip chip-info">{{ t('payment.' ~ p.kind.value) }}</span></td>
+        <td class="num bold mono">{{ p.amount|money(p.currency) }}</td>
+        <td class="small">{{ p.method or '—' }}{% if p.note %}<div class="row-sub">{{ p.note }}</div>{% endif %}</td>
+        <td class="nowrap right">{% if p.status.value == 'pending' %}{% if can_pay %}<form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/confirm" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-ok" data-confirm="{{ t('admin.pay.confirm') }}" data-confirm-text="{{ p.amount|money(p.currency) }}">{{ icon('check', 14) }}{{ t('admin.ord.confirm') }}</button></form> <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/reject" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-danger" data-confirm="{{ t('admin.pay.reject') }}" data-confirm-reason="note" data-confirm-danger="1">{{ icon('x', 14) }}</button></form>{% else %}<span class="chip chip-warn">{{ t('payment.pending') }}</span>{% endif %}{% elif p.status.value == 'rejected' %}<span class="chip chip-bad">{{ t('payment.rejected') }}</span>{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>{% elif not (can_pay and not closed) %}<div class="empty">{{ icon('wallet', 28) }}<b>{{ t('admin.none') }}</b></div>{% endif %}
     </div>
-  </details>
-
-  {# ---------- history ---------- #}
-  <details class="fsection plain" id="history"><summary><span class="ttl">{{ t('admin.ord.timeline') }}</span><span class="sub">{{ o.history|length }}</span></summary>
-    <div class="timeline mt">{% for h in o.history|reverse %}<div class="tl {{ 'cur' if loop.first else 'done' }}"><div class="t">{{ t('order_status.' ~ h.to_status) }}</div><div class="s">{{ h.created_at|dt }} · {{ h.by_user.full_name if h.by_user else t('admin.aud.system') }}{% if h.note %} · {{ h.note }}{% endif %}</div></div>{% endfor %}</div>
-    {% if logs %}<details class="acc"><summary>{{ t('admin.ord.audit_short') }} ({{ logs|length }})</summary><div class="stack mt-sm">{% for lg in logs %}<div class="small"><span class="faint mono">{{ lg.created_at|dt('%d.%m %H:%M') }}</span> · <b>{{ lg.action }}</b> · {{ actors[lg.actor_id].full_name if lg.actor_id in actors else t('admin.aud.system') }}{% if lg.after %}<div class="diff mt-sm">{% for k, v in lg.after.items() %}<div><span class="k">{{ k }}:</span> {% if lg.before and k in lg.before %}<span class="was">{{ lg.before[k] }}</span> {% endif %}<span class="now">{{ v }}</span></div>{% endfor %}</div>{% endif %}</div>{% endfor %}</div></details>{% endif %}
   </details>
 </div>
 
@@ -168,6 +126,12 @@
     <div class="row-nw mb"><div class="avatar">{{ (o.user.full_name or '?')[:1]|upper }}</div><div class="flex1"><div class="row-main">{{ o.user.full_name }}{% if o.user.tg_username %} <span class="faint">@{{ o.user.tg_username }}</span>{% endif %}</div><div class="row-sub">{{ t('country.' ~ (o.user.country or 'OT')) }}{% if o.user.city %} · {{ o.user.city }}{% endif %} · {{ t('lang.' ~ o.user.lang) }}</div></div></div>
     <dl class="kv"><dt>{{ t('admin.phone') }}</dt><dd>{% if o.user.phone %}<span class="copyable" data-copy="{{ o.user.phone }}">{{ o.user.phone }}{{ icon('copy', 13) }}</span>{% else %}—{% endif %}</dd>
       <dt>{{ t('admin.ord.previous_orders') }}</dt><dd>{{ prev_count }}</dd><dt>{{ t('admin.cust.bought_before') }}</dt><dd>{{ t('admin.yes') if o.user.bought_from_china_before else t('admin.no') }}</dd>{% if o.source %}<dt>{{ t('admin.cust.source') }}</dt><dd class="mono">{{ o.source }}</dd>{% endif %}</dl>
+  </div>
+  {# ---------- delivery (what the customer entered at checkout) ---------- #}
+  <div class="card"><h2>{{ t('admin.ord.delivery_card') }}</h2>
+    <dl class="kv"><dt>{{ t('admin.ord.receiver') }}</dt><dd>{{ o.receiver_name }}<br><span class="copyable" data-copy="{{ o.receiver_phone }}">{{ o.receiver_phone }}{{ icon('copy', 13) }}</span></dd>
+      <dt>{{ t('admin.ord.address') }}</dt><dd>{{ t('country.' ~ (o.country or 'OT')) }}{% if o.city %}, {{ o.city }}{% endif %}<br>{{ o.address }}</dd>
+      {% if o.cargo_company or o.cargo_code %}<dt>{{ t('admin.ord.cargo') }}</dt><dd>{{ o.cargo_company or '' }}{% if o.cargo_code %}{% if o.cargo_company %}<br>{% endif %}<span class="copyable mono" data-copy="{{ o.cargo_code }}">{{ o.cargo_code }}{{ icon('copy', 13) }}</span>{% endif %}</dd>{% endif %}</dl>
   </div>
 </div>
 </div>

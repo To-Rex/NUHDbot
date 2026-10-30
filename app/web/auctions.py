@@ -105,11 +105,6 @@ async def auction_deposit(auction_id: int, request: Request, db: DB, lang: Lang,
             return toast(redirect(request, f"/app/auctions/{auction_id}"), t(lang, "support.errors.file"), "bad", "error")
     await auctions.claim_deposit(db, a, user, proof_name, note or None)
     await db.commit()
-    try:
-        await notifications.notify_staff(db, f"💰 Депозит даъвоси: аукцион #{a.id}, {notifications.esc(user.full_name)}, {a.deposit_amount} {a.currency}", kind="deposit_claim")
-        await db.commit()
-    except Exception:  # noqa: BLE001
-        pass
     return hx_trigger(redirect(request, f"/app/auctions/{auction_id}"), toast={"msg": t(lang, "auction.deposit_pending"), "type": "ok"}, haptic="success")
 
 

@@ -27,10 +27,6 @@ async def _auction_ticker() -> None:
                 for a in ended:
                     users = await auctions.participants(db, a.id)
                     await notifications.notify_auction_result(db, a, users)
-                    if a.winner_user_id:
-                        await notifications.notify_staff(
-                            db, f"🔨 Аукцион #{a.id} якунланди: {a.title} {a.capacity_label} — {a.current_price_total} {a.currency}", kind="auction_ended"
-                        )
         except Exception:  # noqa: BLE001
             log.exception("auction tick failed")
         await asyncio.sleep(2)
