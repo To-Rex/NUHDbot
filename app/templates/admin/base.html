@@ -54,7 +54,7 @@
       {% endif %}
       <a class="icon-btn" href="/app" target="_blank" rel="noopener" title="{{ t('admin.top.open_app') }}">{{ icon('external', 18) }}</a>
     </header>
-    <div class="content">
+    <div class="content {% block content_class %}{% endblock %}">
       {% block page_head %}
       <div class="page-head">
         <div><h1>{% block heading %}{{ page_title or t('admin.title') }}{% endblock %}</h1>{% if page_sub %}<p class="sub">{{ page_sub }}</p>{% endif %}</div>
