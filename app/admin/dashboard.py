@@ -19,14 +19,14 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
         days = 30
     days = days if days in (7, 30, 90, 365) else 30
     data = await reports.dashboard(db, days)
-    # each task card lists the newest few; the badge shows the full count
+    # every card lists the newest four; task badges show the full count
     awaiting_q = (Order.status == OrderStatus.AWAITING_ADMIN,)
     # money is agreed in chat; these orders are waiting for staff to record what arrived
     awaiting_pay_q = (Order.status.in_((OrderStatus.AWAITING_ADVANCE, OrderStatus.AWAITING_BALANCE)),)
     threads_q = (SupportThread.status == ThreadStatus.OPEN, SupportThread.unread_for_staff > 0)
-    awaiting = (await db.execute(select(Order).where(*awaiting_q).order_by(Order.id.desc()).limit(5))).scalars().unique().all()
-    awaiting_pay = (await db.execute(select(Order).where(*awaiting_pay_q).order_by(Order.id.desc()).limit(5))).scalars().unique().all()
-    threads = (await db.execute(select(SupportThread).where(*threads_q).order_by(SupportThread.last_message_at.desc()).limit(5))).scalars().unique().all()
+    awaiting = (await db.execute(select(Order).where(*awaiting_q).order_by(Order.id.desc()).limit(4))).scalars().unique().all()
+    awaiting_pay = (await db.execute(select(Order).where(*awaiting_pay_q).order_by(Order.id.desc()).limit(4))).scalars().unique().all()
+    threads = (await db.execute(select(SupportThread).where(*threads_q).order_by(SupportThread.last_message_at.desc()).limit(4))).scalars().unique().all()
     task_counts = {
         "orders": await db.scalar(select(func.count(Order.id)).where(*awaiting_q)),
         "payments": await db.scalar(select(func.count(Order.id)).where(*awaiting_pay_q)),
@@ -34,14 +34,9 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
     }
     soon = datetime.now(UTC) + timedelta(hours=24)
     ending = (
-        await db.execute(select(Auction).where(Auction.status == AuctionStatus.LIVE, Auction.ends_at <= soon).order_by(Auction.ends_at).limit(5))
+        await db.execute(select(Auction).where(Auction.status == AuctionStatus.LIVE, Auction.ends_at <= soon).order_by(Auction.ends_at).limit(4))
     ).scalars().unique().all()
-    from app.models import Product
-
-    recent = (await db.execute(select(Order).order_by(Order.id.desc()).limit(5))).scalars().unique().all()
-    out_of_stock = (
-        await db.execute(select(Product).where(Product.is_active.is_(True), Product.stock - Product.reserved <= 0).order_by(Product.sort.desc()).limit(5))
-    ).scalars().unique().all()
+    recent = (await db.execute(select(Order).order_by(Order.id.desc()).limit(4))).scalars().unique().all()
     # sparkline (solid line + translucent area, drawn in the template)
     daily = data["daily"]
     spark, spark_pts, spark_max = "", [], 0
@@ -53,5 +48,5 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
         spark_pts = [(f"{x:.1f}", f"{y:.1f}", daily[i][0], daily[i][1]) for i, (x, y) in enumerate(pts)]
     return render(
         request, staff, "admin/dashboard.html",
-        {"page_title": "Dashboard", "d": data, "days": days, "awaiting": awaiting, "awaiting_pay": awaiting_pay, "threads": threads, "task_counts": task_counts, "ending": ending, "spark": spark, "spark_pts": spark_pts, "spark_max": spark_max, "recent": recent, "out_of_stock": out_of_stock, "badges": await nav_badges(db)},
+        {"page_title": "Dashboard", "d": data, "days": days, "awaiting": awaiting, "awaiting_pay": awaiting_pay, "threads": threads, "task_counts": task_counts, "ending": ending, "spark": spark, "spark_pts": spark_pts, "spark_max": spark_max, "recent": recent, "badges": await nav_badges(db)},
     )

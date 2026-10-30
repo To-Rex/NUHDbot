@@ -157,26 +157,34 @@ a.kpi:hover{background:var(--sunken)}
 
 /* ---------- dashboard: tighter spacing so it fits one desktop screen ---------- */
 .dash .section{margin-top:16px}
-.dash .section-h{margin-bottom:7px}
-.dash .kpi{padding:10px 18px 12px;gap:4px}
+.dash .section-h{margin-bottom:8px;align-items:center;flex-wrap:wrap;min-height:36px}
+.dash .kpi{padding:12px 18px 14px;gap:5px}
 .dash .kpi .v{font-size:26px}
 .dash .card{padding:14px 18px}
-.dash .card>h2{margin-bottom:10px}
+.dash .card>h2{margin-bottom:10px;min-height:24px}
 .dash .card.flush{padding:0}
-.dash .card.flush>h2{padding:12px 18px 0;margin-bottom:6px}
+.dash .card.flush>h2{padding:12px 18px 0;margin-bottom:4px}
+.dash .card.flush .tbl-wrap{border:0;border-radius:0}
 .dash .card.flush .tbl-wrap td:first-child{padding-left:18px}.dash .card.flush .tbl-wrap td:last-child{padding-right:18px}
-.dash td{padding:7px 12px}
-.dash .row-sub{margin-top:0}
-.dash td img.th{width:32px;height:32px;border-radius:8px}
-.dash .spark{height:52px}
-.dash .empty{padding:14px 12px;gap:4px}
+.dash td{padding:8px 12px}
+.dash tr:last-child td{border-bottom:0}
+.dash .row-sub{margin-top:1px}
+.dash td.grow{width:100%;max-width:0}
+.dash td.grow>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dash td.rstack{text-align:right;white-space:nowrap}
+.dash td.rstack>div+div{margin-top:3px}
+.dash td.rstack .chip{height:19px;padding:0 7px;font-size:10.5px}
+.dash .empty{flex:1;justify-content:center;padding:14px 12px;gap:4px}
 .dash .empty>svg{width:18px;height:18px;padding:8px;margin-bottom:2px}
-.dash td.thumb{width:1%;padding-right:0}
-.dash-bottom{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start;margin-top:12px}
-.dash-side{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
-@media (min-width:1500px){.dash-bottom{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) minmax(0,1fr)}.dash-side{grid-column:auto;grid-template-columns:minmax(0,1fr)}}
-@media (max-width:900px){.dash-bottom,.dash-side{grid-template-columns:minmax(0,1fr)}}
-@media (min-width:901px){.content.dash{padding-top:20px;padding-bottom:24px}.dash .page-head{margin-bottom:14px}}
+/* bottom row lines up with the three task cards; every card in a row is the same height */
+.dash-bottom{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:12px}
+.dash-bottom>.card{display:flex;flex-direction:column;min-width:0}
+.chart-card .spark-box{position:relative;flex:1;min-height:110px;margin-top:2px}
+.chart-card .spark{position:absolute;inset:0;width:100%;height:100%}
+.spark-dot{position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 2px var(--surface)}
+@media (max-width:1439px){.dash-bottom{grid-template-columns:repeat(2,minmax(0,1fr))}.dash-bottom>:last-child{grid-column:1/-1}}
+@media (max-width:900px){.dash-bottom{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:901px){.content.dash{padding-top:18px;padding-bottom:24px}.dash .page-head{margin-bottom:10px}.dash .page-head h1{font-size:23px}}
 
 /* ---------- next-step panel ---------- */
 .next{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;padding:18px 20px;border-radius:var(--r-card);border:1px solid var(--hairline);background:var(--surface);box-shadow:var(--shadow);position:relative;overflow:hidden}
@@ -447,6 +455,7 @@ dialog.dlg::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(2px);b
   .sb-me{justify-content:center}
   .sb-ctl{flex-direction:column}
   .g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}.tasks{grid-template-columns:1fr 1fr}
+  .tasks>.task:nth-child(3){grid-column:1/-1}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis .kpi:nth-child(n+3){border-top:1px solid var(--hairline)}.kpis .kpi:nth-child(odd){border-left:0}
   .split,.split-rev,.split-eq{grid-template-columns:minmax(0,1fr)}
   .inbox{grid-template-columns:280px minmax(0,1fr)}
