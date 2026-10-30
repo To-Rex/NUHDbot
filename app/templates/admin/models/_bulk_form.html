@@ -6,7 +6,7 @@
       {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
     </select></div>
   <div class="field"><label>{{ t('admin.models.lines') }}</label>
-    <textarea class="textarea mono" name="lines" rows="7" placeholder="ST4000VX016 | 4TB | SkyHawk&#10;WD40PURZ | 4TB | Purple&#10;HDWD120&#10;MG08ADA800E 8TB SATA 3.5 MG08" spellcheck="false"></textarea>
+    <textarea class="textarea mono" name="lines" rows="7" placeholder="WD40PURZ&#10;ST4000VX016 4TB&#10;HDWD120" spellcheck="false"></textarea>
     <span class="hint">{{ t('admin.models.lines_hint') }}</span></div>
   <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn btn-primary" type="submit">{{ icon('plus', 15) }}{{ t('admin.models.add') }}</button></div>
 </form>

@@ -689,23 +689,26 @@
       "inactive_note": "Bu brend yashirin — katalog filtrlarida chiqmaydi."
     },
     "models": {
-      "title": "Modellar lug'ati",
+      "title": "Modellar",
       "manage": "Modellar ro'yxati",
       "brand": "Brend",
-      "lines": "Modellar (har birini yangi qatorga)",
-      "lines_hint": "Faqat model nomi yetarli. Qo'shimcha: sig'im, interfeys, form-faktor, seriya — | bilan ajratib yoki bo'sh joy bilan: ST4000VX016 | 4TB | SkyHawk. Takrorlanganlari o'tkazib yuboriladi.",
-      "add": "Ro'yxatga qo'shish",
-      "add_title": "Modellar qo'shish",
+      "lines": "Modellar — har birini yangi qatorga",
+      "lines_hint": "Faqat model nomi yetarli. Xohlasangiz hajmini ham yozing: ST4000VX016 4TB. Ro'yxatda bor modellar qayta qo'shilmaydi.",
+      "add": "Qo'shish",
+      "add_title": "Yangi modellar qo'shish",
       "added": "{n} ta model qo'shildi, {s} ta o'tkazib yuborildi",
       "deleted": "Model ro'yxatdan o'chirildi",
       "delete_q": "Modelni ro'yxatdan o'chiraymi?",
       "pick_brand": "Avval brendni tanlang",
-      "all_brands": "Barcha brendlar",
+      "all_brands": "Hammasi",
       "existing": "Ro'yxatdagi modellar",
-      "help": "Bu lug'at mahsulot formasida «Model» maydoniga taklif sifatida chiqadi. Istagancha modelni bir yo'la kiriting — har birini yangi qatorga. Mahsulotlardagi modellar ham avtomatik taklif qilinadi.",
+      "help": "Bu yerdagi modellar mahsulot qo'shayotganda «Model» maydonida tayyor ro'yxat bo'lib chiqadi. Mahsulotlardagi modellar ham o'zi taklif qilinadi.",
       "dialog_text": "Modellarni ko'plab kiriting — ular darhol «Model» maydonida taklif qilinadi.",
       "empty_title": "Hali model yo'q",
-      "empty_text": "O'ng tomondagi forma orqali brendni tanlab, modellarni har birini yangi qatorga yozing."
+      "empty_text": "Yuqoridagi formada brendni tanlang va modellarni yozing.",
+      "count": "ta model",
+      "search": "Model qidirish",
+      "empty_brand": "Bu brendda hali model yo'q"
     }
   }
 }

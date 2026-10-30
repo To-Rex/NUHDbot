@@ -1,31 +1,58 @@
 {% extends "admin/base.html" %}
-{% block topbar_actions %}<span class="faint small">{{ total }}</span><a class="btn btn-secondary btn-sm" href="/admin/brands">{{ icon('tag', 15) }}{{ t('admin.brands.title') }}</a>{% endblock %}
+{% set here = '/admin/models' ~ ('?brand_id=' ~ brand_id if brand_id else '') %}
+{% block topbar_actions %}<span class="faint small">{{ grand_total }} {{ t('admin.models.count') }}</span>{% endblock %}
 {% block content %}
 <div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.models.help') }}</span></div>
-<div class="split">
-<div class="stack">
-  <div class="toolbar card" style="padding:10px 14px"><form method="get" class="row" style="gap:8px;flex-wrap:wrap">
-    <select class="select sm" name="brand_id" onchange="this.form.submit()"><option value="">{{ t('admin.models.all_brands') }}</option>{% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }} ({{ counts.get(b.id, 0) }})</option>{% endfor %}</select>
-    {% if brand_id %}<a class="btn btn-xs btn-secondary" href="/admin/models">{{ icon('x', 13) }}{{ t('admin.clear') }}</a>{% endif %}
-  </form></div>
-  {% for b in brands if (not brand_id or b.id == brand_id) and by_brand.get(b.id) %}
-  <section class="fsection" id="brand-{{ b.id }}">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><h2 style="margin:0">{{ b.name }} <span class="faint small mono">{{ by_brand[b.id]|length }}</span></h2><a class="btn btn-xs btn-secondary" href="/admin/brands/{{ b.id }}">{{ icon('edit', 13) }}{{ t('admin.edit') }}</a></div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>{{ t('admin.prod.model') }}</th><th>{{ t('admin.prod.capacity') }}</th><th>{{ t('admin.prod.interface') }}</th><th>{{ t('admin.prod.form_factor') }}</th><th>{{ t('admin.prod.series') }}</th><th class="right"></th></tr></thead>
-      <tbody>{% for m in by_brand[b.id] %}
-      <tr><td class="mono bold">{{ m.name }}</td><td class="mono">{{ m.capacity_gb|capacity if m.capacity_gb else '—' }}</td><td>{{ m.interface or '—' }}</td><td>{{ (m.form_factor ~ '"') if m.form_factor else '—' }}</td><td>{{ m.series or '—' }}</td>
-        <td class="right"><form method="post" action="/admin/models/{{ m.id }}/delete" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" data-confirm="{{ t('admin.models.delete_q') }}" data-confirm-text="{{ b.name }} {{ m.name }}" data-confirm-danger="1" title="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form></td></tr>
-      {% endfor %}</tbody></table></div>
-  </section>
-  {% else %}
-  <div class="card empty">{{ icon('layers', 28) }}<b>{{ t('admin.models.empty_title') }}</b><p class="sub" style="max-width:480px;margin:6px auto 0">{{ t('admin.models.empty_text') }}</p></div>
-  {% endfor %}
+
+{# ---------- add: brand + one model per line ---------- #}
+<section class="card mb models-add" id="add">
+  <h2>{{ t('admin.models.add_title') }}</h2>
+  <form method="post" action="/admin/models/bulk" class="models-add-form" data-models-bulk><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="field"><label>{{ t('admin.models.brand') }} <span class="req">*</span></label>
+      <select class="select" name="brand_id" required>
+        <option value="" disabled {{ 'selected' if not brand_id }}>{{ t('admin.brands.select_brand') }}</option>
+        {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label>{{ t('admin.models.lines') }}</label>
+      <textarea class="textarea mono" name="lines" rows="4" required placeholder="WD40PURZ&#10;ST4000VX016 4TB&#10;HDWD120" spellcheck="false"></textarea></div>
+    <div class="models-add-foot"><span class="hint">{{ t('admin.models.lines_hint') }}</span><button class="btn btn-primary" type="submit">{{ icon('plus', 15) }}{{ t('admin.models.add') }}</button></div>
+  </form>
+</section>
+
+{% if grand_total %}
+{# ---------- browse ---------- #}
+<div class="tabs">
+  <a href="/admin/models" class="{{ 'active' if not brand_id }}">{{ t('admin.models.all_brands') }}<span class="cnt">{{ grand_total }}</span></a>
+  {% for b, n in tabs %}<a href="/admin/models?brand_id={{ b.id }}" class="{{ 'active' if brand_id == b.id }}">{{ b.name }}<span class="cnt">{{ n }}</span></a>{% endfor %}
 </div>
-<aside class="stack">
-  <div class="card"><h2>{{ t('admin.models.add_title') }}</h2>
-    {% with form_id='models-bulk', form_class='stack mt-sm' %}{% include "admin/models/_bulk_form.html" %}{% endwith %}
+{% if groups %}
+<div class="toolbar"><label class="search">{{ icon('search', 16) }}<input class="input" type="search" data-model-search placeholder="{{ t('admin.models.search') }}" autocomplete="off"></label></div>
+{% for b, models in groups %}
+<section class="mgroup" data-mgroup>
+  {% if not brand_id %}<h3 class="mgroup-h"><a href="/admin/models?brand_id={{ b.id }}">{{ b.name }}</a><span class="cnt">{{ models|length }}</span></h3>{% endif %}
+  <div class="mgrid">
+    {% for m in models %}{% set meta = [m.capacity_gb|capacity if m.capacity_gb else '', m.interface or '', (m.form_factor ~ '"') if m.form_factor else '', m.series or '']|select|join(' · ') %}
+    <div class="mitem" data-name="{{ (b.name ~ ' ' ~ m.name ~ ' ' ~ (m.series or ''))|lower }}">
+      <div class="mitem-main"><span class="mono bold" title="{{ m.name }}">{{ m.name }}</span>{% if meta %}<span class="mitem-meta">{{ meta }}</span>{% endif %}</div>
+      <form method="post" action="/admin/models/{{ m.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="{{ here }}"><button class="icon-btn sm danger" data-confirm="{{ t('admin.models.delete_q') }}" data-confirm-text="{{ b.name }} {{ m.name }}" data-confirm-danger="1" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>
+    </div>{% endfor %}
   </div>
-</aside>
-</div>
+</section>
+{% endfor %}
+<div class="card empty" data-models-none hidden>{{ icon('search', 22) }}<b>{{ t('admin.nothing_found') }}</b></div>
+{% else %}
+<div class="card empty">{{ icon('layers', 28) }}<b>{{ t('admin.models.empty_brand') }}</b><p class="sub">{{ t('admin.models.empty_text') }}</p></div>
+{% endif %}
+{% else %}
+<div class="card empty">{{ icon('layers', 28) }}<b>{{ t('admin.models.empty_title') }}</b><p class="sub" style="max-width:480px;margin:6px auto 0">{{ t('admin.models.empty_text') }}</p></div>
+{% endif %}
+<script>
+(function(){
+  /* instant filter by model name, series or brand */
+  var q=document.querySelector('[data-model-search]'); if(!q) return; var none=document.querySelector('[data-models-none]');
+  q.addEventListener('input',function(){ var v=q.value.trim().toLowerCase(), any=false;
+    document.querySelectorAll('[data-mgroup]').forEach(function(g){ var n=0; g.querySelectorAll('.mitem').forEach(function(it){ var hit=!v||it.dataset.name.indexOf(v)>=0; it.hidden=!hit; if(hit) n++; }); g.hidden=!n; if(n) any=true; });
+    none.hidden=any; });
+})();
+</script>
 {% endblock %}

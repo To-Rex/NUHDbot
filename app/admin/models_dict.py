@@ -26,11 +26,22 @@ async def _payload(db, brand_id: int | None) -> dict:
 async def models_page(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     brands = await brand_service.list_brands(db, active_only=False)
     bid = f_int(request.query_params, "brand_id", None)
-    models = await model_dict.list_models(db, bid)
     by_brand: dict[int, list] = {}
-    for m in models:
+    for m in await model_dict.list_models(db, bid):
         by_brand.setdefault(m.brand_id, []).append(m)
-    return render(request, staff, "admin/models/list.html", {"page_title": t(_lang(request, staff), "admin.models.title"), "brands": brands, "by_brand": by_brand, "counts": await model_dict.counts(db), "brand_id": bid, "total": len(models)})
+    counts = await model_dict.counts(db)
+    return render(request, staff, "admin/models/list.html", {
+        "page_title": t(_lang(request, staff), "admin.models.title"), "brands": brands, "brand_id": bid,
+        # brand tabs: only brands that already have models, plus the one being viewed
+        "tabs": [(b, counts.get(b.id, 0)) for b in brands if counts.get(b.id) or b.id == bid],
+        "groups": [(b, by_brand[b.id]) for b in brands if by_brand.get(b.id)],
+        "grand_total": sum(counts.values()),
+    })
+
+
+def _next_url(form, fallback: str) -> str:
+    nxt = str(form.get("next") or "")
+    return nxt if nxt.startswith("/admin/models") and "#" not in nxt else fallback
 
 
 @router.get("/models/known")
@@ -69,4 +80,5 @@ async def model_delete(mid: int, request: Request, db: DB, staff: User = Depends
     await db.commit()
     if _wants_json(request):
         return JSONResponse({"ok": True, "msg": t(lang, "admin.models.deleted"), **(await _payload(db, brand_id))})
-    return back(request, f"/admin/models?brand_id={brand_id}", t(lang, "admin.models.deleted"))
+    # stay on the view the user deleted from (all brands or one brand)
+    return back(request, _next_url(await request.form(), f"/admin/models?brand_id={brand_id}"), t(lang, "admin.models.deleted"))

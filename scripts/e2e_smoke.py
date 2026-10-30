@@ -293,8 +293,13 @@ html = adm.get(f"/admin/brands/{bid}").text
 f = form_by(html, id="brand-form")
 ok("brand edit resubmit", adm.post(f"/admin/brands/{bid}", data=multi(f["fields"])).status_code == 303 if f else False)
 ok("brand toggle", adm.post(f"/admin/brands/{bid}/toggle", headers={"HX-Request": "true"}).status_code == 200)
-r = adm.post("/admin/models/bulk", data={"brand_id": bid, "lines": "E2E-M1 | 4TB\nE2E-M2"})
-ok("models bulk add", r.status_code == 303)
+r = adm.post("/admin/models/bulk", data={"brand_id": bid, "lines": "E2E-M1 4TB\nE2E-M2\nE2E-M3"})
+ok("models bulk add", r.status_code == 303 and f"brand_id={bid}" in r.headers.get("location", ""), r.headers.get("location"))
+html = adm.get(f"/admin/models?brand_id={bid}").text
+ok("models page shows added models", "E2E-M1" in html and "E2E-M3" in html and "data-model-search" in html)
+mids = re.findall(r'/admin/models/(\d+)/delete', html)
+r = adm.post(f"/admin/models/{mids[-1]}/delete", data={"next": "/admin/models"}) if mids else None
+ok("model delete stays on the current view", bool(r) and r.status_code == 303 and r.headers.get("location", "").startswith("/admin/models?flash"), r.headers.get("location") if r else "no model")
 r = adm.post("/admin/products/new", data={"brand_id": bid, "model": "E2E-" + UID, "capacity_value": "4", "capacity_unit": "tb", "condition": "new", "price": "50", "currency": "USD", "stock": "10", "interface": "SATA", "form_factor": "3.5", "test_status": "untested", "min_order": "1", "seller_warranty_months": "12", "factory_warranty_months": "36", "sort": "0", "arrived_at": now.strftime("%Y-%m-%d"), "is_active": "on", "sale_allowed": "on"})
 ok("product create", r.status_code == 303 and "/admin/products/" in r.headers.get("location", ""), f"{r.status_code} {r.text[:200]}")
 npid = int(re.search(r"/products/(\d+)", r.headers.get("location", "/products/0")).group(1))

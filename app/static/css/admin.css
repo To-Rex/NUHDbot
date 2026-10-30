@@ -588,3 +588,22 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .stepper li button:disabled{cursor:default}
 .opt.jump:has(input:checked){border-color:var(--warn);background:var(--warn-bg)}.opt.jump:has(input:checked) .opt-dot{border-color:var(--warn)}.opt.jump:has(input:checked) .opt-dot::after{background:var(--warn)}
 #jump-group summary{color:var(--ink-2);font-size:13px}
+/* models dictionary page: add box on top, brand tabs, compact model tiles */
+.models-add h2{margin-bottom:12px}
+.models-add-form{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:12px 16px;align-items:start}
+.models-add-form .field{margin:0}
+.models-add-foot{grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.models-add-foot .hint{flex:1 1 280px;min-width:0}
+@media (max-width:720px){.models-add-form{grid-template-columns:minmax(0,1fr)}.models-add-foot .btn{width:100%;justify-content:center}}
+.mgroup{margin-bottom:20px}
+.mgroup-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;color:var(--ink);margin:0 0 8px;letter-spacing:0}
+.mgroup-h a:hover{color:var(--accent)}
+.mgroup-h .cnt{background:var(--sunken);border-radius:6px;padding:0 6px;font-size:11px;height:18px;display:inline-grid;place-items:center;font-family:var(--font-mono);color:var(--ink-3);font-weight:600}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.mitem{display:flex;align-items:center;gap:8px;padding:9px 8px 9px 14px;background:var(--surface);border:1px solid var(--hairline);border-radius:12px;min-width:0;transition:border-color var(--t-fast)}
+.mitem:hover{border-color:var(--hairline-strong)}
+.mitem-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.mitem-main .mono{font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mitem-meta{font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mitem form{flex:0 0 auto}
+.mitem .icon-btn{border-color:transparent;background:transparent;color:var(--ink-3)}
