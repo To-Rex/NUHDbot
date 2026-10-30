@@ -120,8 +120,8 @@
 <aside class="stack">
   <div class="card">
     <h2>{{ t('admin.status') }}</h2>
-    <label class="check"><input type="checkbox" name="is_active" form="product-form" {{ 'checked' if prod.is_active }} {{ dis }}>{{ t('admin.prod.visible') }}</label>
-    <label class="check"><input type="checkbox" name="sale_allowed" form="product-form" {{ 'checked' if prod.sale_allowed }} {{ dis }}>{{ t('admin.prod.sale_on') }}</label>
+    <div class="check-list"><label class="check"><input type="checkbox" name="is_active" form="product-form" {{ 'checked' if prod.is_active }} {{ dis }}>{{ t('admin.prod.visible') }}</label>
+    <label class="check"><input type="checkbox" name="sale_allowed" form="product-form" {{ 'checked' if prod.sale_allowed }} {{ dis }}>{{ t('admin.prod.sale_on') }}</label></div>
     {% if not is_new %}<div class="hint mt">#{{ prod.id }} · {{ t('admin.updated') }} {{ prod.updated_at|dt }}</div>{% endif %}
   </div>
   <nav class="form-nav card" style="padding:8px">

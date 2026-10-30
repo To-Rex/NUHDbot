@@ -26,13 +26,13 @@
   </div>
 </div>
 <aside class="stack">
-  {% if can_edit %}<div class="card"><h2>{{ t('admin.actions') }}</h2><div class="row">
+  {% if can_edit and st not in ('ended','cancelled') %}<div class="card"><h2>{{ t('admin.actions') }}</h2><div class="row">
     {% if st=='draft' %}<form method="post" action="/admin/auctions/{{ a.id }}/action/publish"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary">{{ icon('bell', 16) }}{{ t('admin.auc.publish') }}</button></form>{% endif %}
     {% if st in ('draft','scheduled') %}<form method="post" action="/admin/auctions/{{ a.id }}/action/start"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok" data-confirm="{{ t('admin.auc.start_now') }}">{{ icon('play', 16) }}{{ t('admin.auc.start_now') }}</button></form>{% endif %}
     {% if st=='live' %}<form method="post" action="/admin/auctions/{{ a.id }}/action/end"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-warn" data-confirm="{{ t('admin.auc.end_now') }}">{{ icon('pause', 16) }}{{ t('admin.auc.end_now') }}</button></form>{% endif %}
     {% if st not in ('ended','cancelled') %}<form method="post" action="/admin/auctions/{{ a.id }}/action/cancel"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger" data-confirm="{{ t('admin.auc.cancel') }}" data-confirm-danger="1">{{ icon('x', 16) }}{{ t('admin.auc.cancel') }}</button></form>{% endif %}
   </div></div>{% endif %}
-  <div class="card"><h2>{{ icon('trophy', 18) }} {{ t('admin.auc.winner') }}</h2>
+  <div class="card"><h2><span class="row-nw">{{ icon('trophy', 18) }}{{ t('admin.auc.winner') }}</span></h2>
     {% if a.winner %}<div class="row-nw mb-sm"><div class="avatar">{{ (a.winner.full_name or '?')[:1]|upper }}</div><div><div class="row-main"><a href="/admin/customers/{{ a.winner_user_id }}">{{ a.winner.full_name }}</a></div><div class="row-sub mono">{{ a.winner.phone or '' }}</div></div></div><div class="big">{{ a.current_price_total|money(a.currency) }}</div>
       {% if result_order %}<a class="btn btn-secondary mt" href="/admin/orders/{{ result_order.id }}">{{ icon('package', 16) }}{{ t('admin.auc.result_order') }}: <span class="mono">{{ result_order.number }}</span></a>
       {% elif can_edit and st=='ended' %}<div class="help mt">{{ icon('info', 16) }}<span>{{ t('admin.auc.create_order_hint') }}</span></div><form method="post" action="/admin/auctions/{{ a.id }}/create-order" class="mt"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary btn-block" data-confirm="{{ t('admin.auc.create_order') }}">{{ icon('package', 16) }}{{ t('admin.auc.create_order') }}</button></form>{% endif %}
