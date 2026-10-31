@@ -532,6 +532,10 @@ button.list-item{width:100%;text-align:left}
 .hs-look-stack .hs-slide{transform-origin:50% 0}
 .hs-look-fan .hs-track{padding-top:26px;padding-bottom:58px;margin-bottom:-26px}
 .hs-look-fan .hs-slide{transform-origin:50% 175%}
+.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.hs-look-spiral .hs-track{padding-top:44px;padding-bottom:40px;margin-bottom:-14px}
+.hs-look-cascade .hs-track{padding-top:30px}
+.hs-look-pile .hs-track{padding-top:26px;padding-bottom:34px;margin-bottom:-18px}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}
 .use-tile:active{transform:scale(.96)}

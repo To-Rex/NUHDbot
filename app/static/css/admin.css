@@ -1182,3 +1182,18 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .dsv-fan .k1{transform:translateY(6px) rotate(-14deg) scale(.95);--dim:.2}.dsv-fan .k3{transform:translateY(6px) rotate(14deg) scale(.95);--dim:.2}
 .dsv-fan .k0{transform:translateY(6px) rotate(-28deg) scale(.9);--dim:.4}.dsv-fan .k4{transform:translateY(6px) rotate(28deg) scale(.9);--dim:.4}
 .dsv-fan .k5{opacity:0}
+
+/* Banners page: the extra slider looks in the Directions manner (same six mini cards k0…k5 as the series page) */
+.dsv-cylinder i,.dsv-spiral i{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.dsv-cylinder .k1{transform:translateZ(-46px) rotateY(-45deg) translateZ(46px);--dim:.3}.dsv-cylinder .k3{transform:translateZ(-46px) rotateY(45deg) translateZ(46px);--dim:.3}
+.dsv-cylinder .k0,.dsv-cylinder .k4,.dsv-cylinder .k5{opacity:0}
+.dsv-spiral .k1{transform:translateY(12px) translateZ(-38px) rotateY(-40deg) translateZ(38px);--dim:.25}.dsv-spiral .k3{transform:translateY(-12px) translateZ(-38px) rotateY(40deg) translateZ(38px);--dim:.25}
+.dsv-spiral .k0{transform:translateY(22px) translateZ(-38px) rotateY(-78deg) translateZ(38px);--dim:.45}.dsv-spiral .k4{transform:translateY(-22px) translateZ(-38px) rotateY(78deg) translateZ(38px);--dim:.45}
+.dsv-spiral .k5{opacity:0}
+.dsv-cascade .k2{transform:translateX(-12px)}
+.dsv-cascade .k3{transform:translate3d(-2px,-4px,-28px) rotateY(-6deg);--dim:.16}.dsv-cascade .k4{transform:translate3d(8px,-8px,-56px) rotateY(-12deg);--dim:.32}
+.dsv-cascade .k5{transform:translate3d(18px,-12px,-84px) rotateY(-18deg);--dim:.48}
+.dsv-cascade .k1{transform:translate(-62px,6px) rotate(-8deg);z-index:10}.dsv-cascade .k0{opacity:0}
+.dsv-pile .k3{transform:translate(5px,-3px) rotate(8deg);--dim:.12}.dsv-pile .k4{transform:translate(-6px,2px) rotate(-9deg);--dim:.22}
+.dsv-pile .k5{transform:translate(9px,4px) rotate(4deg);--dim:.3}
+.dsv-pile .k1{transform:translate(-64px,10px) rotate(-18deg);z-index:10}.dsv-pile .k0{opacity:0}

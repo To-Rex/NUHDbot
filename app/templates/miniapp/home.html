@@ -118,7 +118,7 @@
 (function(){
   /* home slider: the banners turn like the Directions slider below — a ring of compact cards; pos is the (fractional)
      index of the one in front and each card is placed by its distance d from it, in the look picked on the Banners page
-     (data-style: cover flow, orbit, card stack, fan). Each banner stays its own seconds (data-ms); a touch pauses it,
+     (data-style: cover flow, orbit, card stack, fan, drum, spiral, cascade, pile). Each banner stays its own seconds (data-ms); a touch pauses it,
      a drag turns it, a tap on a side card brings it forward, a dot jumps to its banner. */
   var el = document.querySelector('[data-slider]'); if (!el || el._hs) return; el._hs = true;  /* a property: a page restored from history (back) starts fresh */
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
@@ -128,7 +128,7 @@
   function delay(i) { return parseInt(slides[i].dataset.ms, 10) || 7000; }
   dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
   function fade(a, from, to) { from = Math.min(from, n / 2 - 0.5); to = Math.min(to, n / 2); return a <= from ? 1 : Math.max(0, 1 - (a - from) / (to - from)); }
-  var LOOKS = {  /* the Directions slider's looks; step: how far (in card widths) a finger turns it by one card */
+  var LOOKS = {  /* the Directions slider's looks and more in its manner; step: how far (in card widths) a finger turns it by one card */
     coverflow: { step: 0.6, place: function (d, a, s) {  /* the front card faces you, its neighbours turn away into depth */
       var near = Math.min(a, 1), far = Math.max(0, a - 1);
       return { t: 'translate3d(' + s * (near * 0.6 + far * 0.3) * W + 'px,0,' + -(near * 150 + far * 90) + 'px) rotateY(' + -s * near * 50 + 'deg)', dim: Math.min(0.5, a * 0.3), op: fade(a, 2.2, 2.8) };
@@ -143,6 +143,23 @@
     } },
     fan: { step: 0.55, place: function (d, a) {  /* a hand of cards turning round a point below them (lifted a little so the outer ones stay in view) */
       return { t: 'translateY(' + -Math.min(a, 2) * 14 + 'px) rotate(' + d * 13 + 'deg) scale(' + (1 - Math.min(a, 2) * 0.05) + ')', dim: Math.min(0.45, a * 0.22), op: fade(a, 2.2, 2.8) };
+    } },
+    cylinder: { step: 0.8, place: function (d, a) {  /* a drum: the cards are its faces, 45° apart edge to edge, and the drum turns */
+      var r = W / 2 / Math.tan(22.5 * Math.PI / 180);
+      return { t: 'translateZ(' + -r + 'px) rotateY(' + d * 45 + 'deg) translateZ(' + r + 'px)', dim: Math.min(0.5, a * 0.3), op: fade(a, 1.5, 2) };
+    } },
+    spiral: { step: 0.7, place: function (d, a) {  /* a spiral: the cards face outwards round a turning axis, the next ones higher, the passed ones lower */
+      return { t: 'translateY(' + -d * H * 0.1 + 'px) translateZ(' + -W + 'px) rotateY(' + d * 40 + 'deg) translateZ(' + W + 'px)', dim: Math.min(0.5, a * 0.25), op: fade(a, 1.8, 2.2) };
+    } },
+    cascade: { step: 0.5, place: function (d, a) {  /* a cascade: the next cards step back to the right, the front one flies off to the left */
+      if (d < 0) return { t: 'translate3d(' + (d * 1.1 - 0.18) * W + 'px,' + a * 12 + 'px,0) rotate(' + d * 8 + 'deg)', dim: 0, op: fade(a, 0.5, 1), z: 200 - Math.round(a * 10) };
+      return { t: 'translate3d(' + (d * 0.24 - 0.18) * W + 'px,' + -d * 8 + 'px,' + -d * 70 + 'px) rotateY(' + -d * 6 + 'deg)', dim: Math.min(0.5, d * 0.16), op: fade(a, 3, 3.5) };
+    } },
+    pile: { step: 0.9, place: function (d, a, s, k) {  /* a scattered pile: each card lies at its own slight angle, the top one is tossed aside */
+      var rot = (k * 37) % 25 - 12, ox = (k * 53) % 37 - 18, oy = (k * 29) % 21 - 10;
+      if (d < 0) return { t: 'translate3d(' + d * W * 1.2 + 'px,' + a * 30 + 'px,0) rotate(' + (d * 20 + rot * (1 - Math.min(a, 1))) + 'deg)', dim: 0, op: fade(a, 0.5, 1), z: 200 - Math.round(a * 10) };
+      var m = Math.min(d, 1);  /* straightens as it comes to the top */
+      return { t: 'translate3d(' + ox * m + 'px,' + oy * m + 'px,0) rotate(' + rot * m + 'deg) scale(' + (1 - Math.min(d, 3) * 0.03) + ')', dim: Math.min(0.4, d * 0.12), op: fade(a, 3, 3.5) };
     } }
   };
   var look = LOOKS[el.dataset.style] || LOOKS.coverflow;
@@ -151,7 +168,7 @@
   function paint() {
     W = slides[0].offsetWidth || 240; H = slides[0].offsetHeight || 320;
     slides.forEach(function (s, k) {
-      var d = dist(k), a = Math.abs(d), p = look.place(d, a, d < 0 ? -1 : 1);
+      var d = dist(k), a = Math.abs(d), p = look.place(d, a, d < 0 ? -1 : 1, k);
       s.style.transform = p.t; s.style.setProperty('--hs-dim', p.dim.toFixed(3));
       s.style.opacity = p.op.toFixed(3); s.style.visibility = p.op ? '' : 'hidden';
       s.style.zIndex = String(p.z || 100 - Math.round(a * 10));

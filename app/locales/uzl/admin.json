@@ -1079,7 +1079,15 @@
         "stack": "Kartalar to'plami",
         "stack_d": "Bannerlar ustma-ust turadi, oldingisi surib o'tkaziladi",
         "fan": "Yelpig'ich",
-        "fan_d": "Bannerlar qo'ldagi o'yin kartalaridek yoyilib turadi"
+        "fan_d": "Bannerlar qo'ldagi o'yin kartalaridek yoyilib turadi",
+        "cylinder": "3D baraban",
+        "cylinder_d": "Kartalar aylanuvchi barabanning yoqlaridek",
+        "spiral": "Spiral",
+        "spiral_d": "Kartalar spiral bo'ylab aylanadi: keyingilari yuqoriga ko'tariladi",
+        "cascade": "Kaskad",
+        "cascade_d": "Kartalar o'ngga zinadek terilgan, oldingisi chapga uchib ketadi",
+        "pile": "Tarqoq kartalar",
+        "pile_d": "Stol ustida tarqoq yotgan kartalar, ustidagisi chetga otiladi"
       }
     }
   }

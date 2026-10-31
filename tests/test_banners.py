@@ -81,5 +81,5 @@ def test_slide_seconds_stay_in_range():
 
 def test_slider_looks():
     """The slider animation picked on the Banners page: the Directions slider's looks, cover flow by default."""
-    assert svc.STYLES == ("coverflow", "orbit", "stack", "fan")
+    assert svc.STYLES == ("coverflow", "orbit", "stack", "fan", "cylinder", "spiral", "cascade", "pile")
     assert [svc.clean_style(v) for v in ("fan", "orbit", None, "", "parallax", "cube")] == ["fan", "orbit", "coverflow", "coverflow", "coverflow", "coverflow"]

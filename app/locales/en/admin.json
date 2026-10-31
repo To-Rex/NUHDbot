@@ -1079,7 +1079,15 @@
         "stack": "Card stack",
         "stack_d": "Banners lie in a stack, the top one is swiped aside",
         "fan": "Fan",
-        "fan_d": "Banners spread out like a hand of playing cards"
+        "fan_d": "Banners spread out like a hand of playing cards",
+        "cylinder": "3D drum",
+        "cylinder_d": "The cards are the faces of a turning drum",
+        "spiral": "Spiral",
+        "spiral_d": "The cards wind along a spiral, the next ones rising",
+        "cascade": "Cascade",
+        "cascade_d": "Cards step away to the right, the front one flies off to the left",
+        "pile": "Scattered pile",
+        "pile_d": "Cards lie scattered on a table, the top one is tossed aside"
       }
     }
   }

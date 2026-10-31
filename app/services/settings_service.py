@@ -30,9 +30,9 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "seagate_check_url": {"v": "https://www.seagate.com/support/warranty-and-replacements/", "d": "Seagate warranty check"},
     "support_group_id": {"v": None, "d": "Telegram group id where support messages are mirrored"},
     "direction_images": {"v": {}, "d": "Series page: a picture per catalogue direction {colour: {filename, thumb}}"},
-    "dir_slider_style": {"v": "coverflow", "d": "Mini App home: how the directions slider moves (coverflow | orbit | stack | fan)"},
+    "dir_slider_style": {"v": "coverflow", "d": "Mini App home: how the directions slider moves (coverflow | orbit | stack | fan | cylinder | spiral | cascade | pile)"},
     "slider_seconds": {"v": 7, "d": "Mini App home slider: seconds a slide stays (banners can set their own)"},
-    "banner_slider_style": {"v": "coverflow", "d": "Mini App home slider: how the banners turn, like the Directions slider (coverflow | orbit | stack | fan)"},
+    "banner_slider_style": {"v": "coverflow", "d": "Mini App home slider: how the banners turn, like the Directions slider (coverflow | orbit | stack | fan | cylinder | spiral | cascade | pile)"},
     "capacity_presets": {"v": [500, 1000, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000], "d": "Capacity chips (GB) shown in catalogue filters and product form"},
 }
 
