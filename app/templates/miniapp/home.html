@@ -1,58 +1,59 @@
 {% extends "miniapp/base.html" %}
 {% block title %}{{ app_name }}{% endblock %}
 {% block topbar %}
-<header class="topbar glass">
-  <img src="/static/img/logo.svg" alt="" width="30" height="30">
-  <div class="flex-1">
-    <div class="eyebrow">{{ t('home.greeting') }}</div>
-    <h1 style="font-size:16px;margin-top:1px">{% if user and user.first_name %}{{ t('home.greeting_name', name=user.first_name) }}{% else %}{{ app_name }}{% endif %}</h1>
+<header class="home-head">
+  <div class="hello">
+    <small>{{ t('home.greeting') }}</small>
+    <h1>{% if user and user.first_name %}{{ user.first_name }}{% else %}{{ app_name }}{% endif %}</h1>
   </div>
-  <button type="button" class="icon-btn glass" data-theme-cycle aria-label="{{ t('misc.toggle_theme') }}" title="{{ t('misc.toggle_theme') }}"><span class="ic-sun">{{ icon('sun', 20) }}</span><span class="ic-moon">{{ icon('moon', 20) }}</span></button>
-  <button type="button" class="icon-btn glass" data-open-sheet="lang-sheet" aria-label="{{ t('lang.change') }}" title="{{ t('lang.change') }}"><span class="mono lang-short">{{ lang_meta[lang].short }}</span></button>
-  <a class="icon-btn glass" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
+  <a class="icon-btn" href="/app/cart" aria-label="{{ t('nav.cart') }}">{{ icon('cart', 20) }}<span class="badge-count" data-cart-count {% if not cart_count %}hidden{% endif %}>{{ cart_count }}</span></a>
 </header>
 {% endblock %}
 {% block content %}
-<div class="page stack-lg">
+<div class="page stack-lg" style="padding-top:14px">
+  <a class="home-search" href="/app/catalog?focus=1">{{ icon('search', 19) }}<span>{{ t('catalog.search_ph') }}</span></a>
+
   <section class="hero">
     <svg class="platter" viewBox="0 0 220 220" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
       <circle cx="110" cy="110" r="104"/><circle cx="110" cy="110" r="84"/><circle cx="110" cy="110" r="64"/><circle cx="110" cy="110" r="44"/><circle cx="110" cy="110" r="24"/><circle cx="110" cy="110" r="6" fill="currentColor" stroke="none"/><path d="M116 104 L178 46" stroke-width="3" stroke-linecap="round"/>
     </svg>
     <h2>{{ t('home.hero_title') }}</h2>
     <p>{{ t('home.hero_text') }}</p>
-    <div class="facts glass-dark">
+    <div class="facts">
       <div><b>{{ in_stock_models }}</b><span>{{ t('home.fact_models') }}</span></div>
       <div><b>{{ live_auctions }}</b><span>{{ t('home.fact_auctions') }}</span></div>
-      <div><b>≈20 {{ t('home.fact_days_unit') }}</b><span>{{ t('home.fact_delivery') }}</span></div>
+      <div><b>≈20</b><span>{{ t('home.fact_days_unit') }} · {{ t('home.fact_delivery') }}</span></div>
     </div>
     <a class="btn" href="/app/catalog">{{ t('home.hero_cta') }}{{ icon('arrow-right', 18) }}</a>
   </section>
 
-  <section class="quick">
-    <a class="glass" href="/app/catalog" style="--i:0"><span class="q-icon">{{ icon('grid') }}</span>{{ t('home.quick_catalog') }}</a>
-    <a class="glass" href="/app/new" style="--i:1"><span class="q-icon">{{ icon('sparkle') }}</span>{{ t('home.quick_new') }}</a>
-    <a class="glass" href="/app/auctions" style="--i:2"><span class="q-icon">{{ icon('gavel') }}</span>{{ t('home.quick_auction') }}</a>
-    <a class="glass" href="/app/info" style="--i:3"><span class="q-icon">{{ icon('book') }}</span>{{ t('home.quick_info') }}</a>
+  {% if capacities %}
+  <section>
+    <div class="section-title" style="margin-top:0"><h2>{{ t('home.by_capacity') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
+    <div class="cap-grid">
+      {% for gb, n in capacities %}<a class="cap-tile" href="/app/catalog?gb={{ gb }}" style="--i:{{ loop.index0 }}"><b>{{ gb|capacity }}</b><span>{{ t('home.cap_models', n=n) }}</span></a>{% endfor %}
+    </div>
   </section>
+  {% endif %}
 
   {% if lots %}
   {% set lot = lots[0] %}
   <a class="card card-hover teaser" href="/app/auctions/{{ lot.id }}">
-    <div class="teaser-img">{% if lot.cover_url %}<img src="{{ lot.cover_url }}" alt="">{% else %}{{ icon('gavel', 24) }}{% endif %}</div>
+    <div class="teaser-img">{% if lot.cover_url %}<img src="{{ lot.cover_url }}" alt="">{% else %}{{ icon('gavel', 26) }}{% endif %}</div>
     <div class="flex-1">
       {% if lot.status.value == 'live' %}<span class="chip chip-live">{{ t('home.auction_live') }}</span>{% else %}<span class="chip chip-info">{{ t('home.auction_soon') }}</span>{% endif %}
       <div class="semibold mt-1 truncate">{{ lot.brand }} {{ lot.model }} · {{ lot.capacity_gb|capacity }} × {{ lot.qty }}</div>
-      <div class="small muted">{{ t('auction.current') }}: <b class="fg mono">{{ lot.current_price_total|money(lot.currency) }}</b></div>
-      <div class="xs faint mt-1">{% if lot.status.value == 'live' %}{{ t('auction.ends_in') }}{% else %}{{ t('auction.starts_in') }}{% endif %} <span class="mono" data-countdown="{{ (lot.ends_at if lot.status.value=='live' else lot.starts_at)|iso }}"></span></div>
+      <div class="small muted">{{ t('auction.current') }}: <b class="fg num">{{ lot.current_price_total|money(lot.currency) }}</b></div>
+      <div class="xs faint mt-1">{% if lot.status.value == 'live' %}{{ t('auction.ends_in') }}{% else %}{{ t('auction.starts_in') }}{% endif %} <span class="num" data-countdown="{{ (lot.ends_at if lot.status.value=='live' else lot.starts_at)|iso }}"></span></div>
     </div>
-    {{ icon('chevron-right', 18, 'chev') }}
+    {{ icon('chevron-right', 17, 'chev') }}
   </a>
   {% endif %}
 
   <section>
-    <div class="section-title" style="margin-top:0"><div><span class="eyebrow">{{ t('home.new_arrivals_eyebrow') }}</span><h2>{{ t('home.new_arrivals') }}</h2></div><a href="/app/new">{{ t('home.see_all') }}{{ icon('arrow-right', 14) }}</a></div>
+    <div class="section-title" style="margin-top:0"><h2>{{ t('home.new_arrivals') }}</h2><a href="/app/new">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
     {% if arrivals %}
-    <div class="scroller" style="padding-bottom:6px">
+    <div class="scroller" style="padding-bottom:10px">
       {% for p in arrivals %}
       <div style="width:46%;max-width:200px">{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>
       {% endfor %}
@@ -63,18 +64,23 @@
   </section>
 
   <section>
-    <div class="section-title" style="margin-top:0"><div><span class="eyebrow">{{ t('home.conditions_eyebrow') }}</span><h2>{{ t('home.conditions_title') }}</h2></div><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('arrow-right', 14) }}</a></div>
+    <div class="section-title" style="margin-top:0"><h2>{{ t('home.conditions_title') }}</h2><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('chevron-right', 15) }}</a></div>
     <div class="cond-legend stagger">
-      <div class="cond-new"><strong>New</strong>{{ t('condition.new_desc') }}</div>
-      <div class="cond-used"><strong>Used</strong>{{ t('condition.used_desc') }}</div>
-      <div class="cond-refresh"><strong>Refresh</strong><span class="clamp-2">{{ t('condition.refresh_desc') }}</span></div>
+      {% for c, d in [('new', 'condition.new_desc'), ('used', 'condition.used_desc'), ('refresh', 'condition.refresh_desc')] %}
+      <a href="/app/catalog?cond={{ c }}"><span class="chip cond-{{ c }}">{{ t('condition.' ~ c) }}</span><span class="clamp-2" style="-webkit-line-clamp:3">{{ t(d) }}</span></a>
+      {% endfor %}
     </div>
   </section>
 
-  <section class="card">
-    <div class="eyebrow">{{ t('home.terms_title') }}</div>
-    <div class="terms-row mt-3">{{ icon('wallet') }}<p class="small muted">{{ p(payment) }}</p></div>
-    <div class="terms-row mt-3">{{ icon('truck') }}<p class="small muted">{{ p(delivery) }}</p></div>
+  {% set pay_text = p(payment) %}{% set del_text = p(delivery) %}
+  <section>
+    {% if pay_text or del_text %}<span class="group-label">{{ t('home.terms_title') }}</span>{% endif %}
+    <div class="list">
+      {% if pay_text %}<div class="list-item" style="align-items:flex-start"><span class="list-icon green">{{ icon('wallet', 18) }}</span><p class="small muted" style="padding-top:6px">{{ pay_text }}</p></div>{% endif %}
+      {% if del_text %}<div class="list-item" style="align-items:flex-start"><span class="list-icon orange">{{ icon('truck', 18) }}</span><p class="small muted" style="padding-top:6px">{{ del_text }}</p></div>{% endif %}
+      <a class="list-item" href="/app/info"><span class="list-icon indigo">{{ icon('book', 18) }}</span><span class="list-title flex-1">{{ t('profile.info') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
+      <a class="list-item" href="/app/support"><span class="list-icon">{{ icon('message', 18) }}</span><span class="list-title flex-1">{{ t('profile.support') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
+    </div>
   </section>
 </div>
 {% endblock %}

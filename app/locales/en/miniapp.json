@@ -22,7 +22,9 @@
     "fact_days_unit": "days",
     "fact_delivery": "delivery to Uzbekistan",
     "new_arrivals_eyebrow": "Warehouse",
-    "conditions_eyebrow": "Conditions"
+    "conditions_eyebrow": "Conditions",
+    "by_capacity": "By capacity",
+    "cap_models": "{n} models"
   },
   "catalog": {
     "title": "Catalog",

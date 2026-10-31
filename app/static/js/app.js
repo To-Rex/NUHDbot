@@ -24,9 +24,9 @@
     if (tg) {
       try {
         const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
-        tg.setHeaderColor && tg.setHeaderColor(bg || (dark ? '#0E1116' : '#F5F6F8'));
-        tg.setBackgroundColor && tg.setBackgroundColor(bg || (dark ? '#0E1116' : '#F5F6F8'));
-        tg.setBottomBarColor && tg.setBottomBarColor(bg || (dark ? '#0E1116' : '#F5F6F8'));
+        tg.setHeaderColor && tg.setHeaderColor(bg || (dark ? '#000000' : '#F2F2F7'));
+        tg.setBackgroundColor && tg.setBackgroundColor(bg || (dark ? '#000000' : '#F2F2F7'));
+        tg.setBottomBarColor && tg.setBottomBarColor(bg || (dark ? '#000000' : '#F2F2F7'));
       } catch (e) {}
     }
     document.querySelectorAll('[data-theme-opt]').forEach((b) => {

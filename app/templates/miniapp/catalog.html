@@ -34,11 +34,13 @@
 
   <div class="sort-row mb-3">
     <div id="result-count" class="small muted num">{{ t('catalog.found', n=total) }}</div>
-    <div class="segmented" style="padding:2px">
-      {% for s, key in [('default','sort_default'),('price_asc','sort_price_asc'),('price_desc','sort_price_desc'),('newest','sort_newest')] %}
-      <a class="{{ 'active' if f.sort==s }}" href="/app/catalog?{{ f.to_query(sort=s if s!='default' else None)|qs }}" style="padding:0 10px;height:28px;font-size:12px">{{ t('catalog.' ~ key) }}</a>
-      {% endfor %}
-    </div>
+    <label class="sort-select">
+      <select aria-label="{{ t('catalog.sort_default') }}" onchange="location.href=this.value">
+        {% for s, key in [('default','sort_default'),('price_asc','sort_price_asc'),('price_desc','sort_price_desc'),('newest','sort_newest')] %}
+        <option value="/app/catalog?{{ f.to_query(sort=s if s!='default' else None)|qs }}" {{ 'selected' if f.sort==s }}>{{ t('catalog.' ~ key) }}</option>
+        {% endfor %}
+      </select>{{ icon('chevron-down', 15) }}
+    </label>
   </div>
 
   <div id="grid-wrap">
@@ -85,4 +87,9 @@
     <button class="btn btn-primary btn-block btn-lg mt-3" type="submit">{{ t('catalog.show_results') }}</button>
   </form>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){ if (new URLSearchParams(location.search).get('focus')) { var q = document.getElementById('q'); if (q) setTimeout(function(){ q.focus(); }, 150); } })();
+</script>
 {% endblock %}

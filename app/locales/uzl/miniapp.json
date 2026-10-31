@@ -22,7 +22,9 @@
     "fact_days_unit": "kun",
     "fact_delivery": "O'zbekistonga yetkazish",
     "new_arrivals_eyebrow": "Ombor",
-    "conditions_eyebrow": "Holatlar"
+    "conditions_eyebrow": "Holatlar",
+    "by_capacity": "Hajm bo'yicha",
+    "cap_models": "{n} ta model"
   },
   "catalog": {
     "title": "Katalog",

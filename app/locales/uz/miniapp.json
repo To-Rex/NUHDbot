@@ -22,7 +22,9 @@
     "fact_days_unit": "кун",
     "fact_delivery": "Ўзбекистонга етказиш",
     "new_arrivals_eyebrow": "Омбор",
-    "conditions_eyebrow": "Ҳолатлар"
+    "conditions_eyebrow": "Ҳолатлар",
+    "by_capacity": "Ҳажм бўйича",
+    "cap_models": "{n} та модель"
   },
   "catalog": {
     "title": "Каталог",

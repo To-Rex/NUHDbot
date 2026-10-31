@@ -24,9 +24,9 @@
   <div class="thumbs mt-2">{% for img in p.images %}<img src="{{ img.thumb_url }}" alt="" class="{{ 'active' if loop.first }}" data-index="{{ loop.index0 }}" data-kind="{{ img.kind.value }}">{% endfor %}</div>
   {% endif %}
 
-  <div class="mt-4">
-    <div class="pcard-brand row" style="gap:8px"><span>{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</span></div>
-    <h1 style="font-size:24px;margin-top:4px">{{ p.model }} <span class="muted" style="font-weight:600">{{ p.capacity_gb|capacity }}</span></h1>
+  <div class="p-head">
+    <div class="pcard-brand">{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</div>
+    <h1>{{ p.model }} <span class="muted">{{ p.capacity_gb|capacity }}</span></h1>
     <div class="row mt-2" style="flex-wrap:wrap;gap:6px">
       <span class="chip chip-soft">{{ p.interface.value }}</span><span class="chip chip-soft">{{ p.form_factor.value }}″</span>
       {% for u in p.purposes %}<span class="chip chip-soft">{{ t('purpose.' ~ u) }}</span>{% endfor %}
@@ -37,7 +37,7 @@
   <div class="card price-card mt-4">
     <div class="price-row">
       <div>
-        {% if p.price is not none %}<div class="price-big">{{ p.price|money(p.currency) }} <span class="small muted" style="font-family:var(--font-body);font-weight:500;letter-spacing:0">/ {{ t('common.per_unit') }}</span></div>{% else %}<div class="price-big muted" style="font-size:20px">{{ t('common.price_on_request') }}</div>{% endif %}
+        {% if p.price is not none %}<div class="price-big">{{ p.price|money(p.currency) }} <span class="muted" style="font-family:var(--font-body);font-size:15px;font-weight:500;letter-spacing:0">/ {{ t('common.per_unit') }}</span></div>{% else %}<div class="price-big muted" style="font-size:20px">{{ t('common.price_on_request') }}</div>{% endif %}
         <div class="mt-2 stock-pill {{ 'none' if p.available<=0 else ('low' if p.available<10 else '') }}">{% if p.available>0 %}{{ t('common.in_stock') }}: {{ p.available }} {{ t('common.pcs') }}{% else %}{{ t('common.out_of_stock') }}{% endif %}</div>
       </div>
       <div class="minbox">
@@ -99,10 +99,13 @@
   {% if pk(p.description) %}<div class="section-title"><h2>{{ t('product.about') }}</h2></div><p class="prose">{{ pk(p.description)|nl2br }}</p>{% endif %}
   {% if pk(p.compatibility) %}<div class="section-title"><h2>{{ t('product.compat') }}</h2></div><p class="prose small muted">{{ pk(p.compatibility)|nl2br }}</p>{% endif %}
 
+  {% set del_text = pk(p.delivery_note) or pk(delivery) %}{% set pay_text = pk(payment) %}
+  {% if del_text or pay_text %}
   <div class="card mt-6" style="padding:0 16px">
-    <details class="acc"><summary><span class="row">{{ icon('truck') }}{{ t('product.delivery') }}</span></summary><div class="acc-body">{{ pk(p.delivery_note) or pk(delivery) }}</div></details>
-    <details class="acc"><summary><span class="row">{{ icon('wallet') }}{{ t('product.payment') }}</span></summary><div class="acc-body">{{ pk(payment) }}</div></details>
+    {% if del_text %}<details class="acc"><summary><span class="row">{{ icon('truck') }}{{ t('product.delivery') }}</span></summary><div class="acc-body">{{ del_text }}</div></details>{% endif %}
+    {% if pay_text %}<details class="acc"><summary><span class="row">{{ icon('wallet') }}{{ t('product.payment') }}</span></summary><div class="acc-body">{{ pay_text }}</div></details>{% endif %}
   </div>
+  {% endif %}
 
   {% if similar %}
   <div class="section-title"><h2>{{ t('product.similar') }}</h2></div>
@@ -123,7 +126,7 @@
       </div>
       <button class="btn btn-primary btn-lg flex-1" type="submit" style="flex-direction:column;gap:0;line-height:1.15">
         <span class="label">{{ t('product.add_to_cart') }}</span>
-        <span class="xs mono" style="opacity:.85">{{ t('product.per_unit_total') }}: <span id="line-total">{{ (p.price * min_qty)|money(p.currency) }}</span></span>
+        <span class="xs num" style="opacity:.85;font-weight:500">{{ t('product.per_unit_total') }}: <span id="line-total">{{ (p.price * min_qty)|money(p.currency) }}</span></span>
         <span class="spinner"></span>
       </button>
     </form>

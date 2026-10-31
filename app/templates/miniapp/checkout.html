@@ -35,12 +35,15 @@
       <div class="field"><label>{{ t('checkout.note') }}</label><textarea class="textarea" name="note" style="min-height:64px" placeholder="{{ t('checkout.note_ph') }}">{{ form.note }}</textarea></div>
     </div>
 
+    {% set pay_text = p(payment) %}{% set del_text = p(delivery) %}
+    {% if pay_text or del_text %}
     <div class="card">
       <span class="filter-label">{{ t('checkout.terms_title') }}</span>
-      <div class="terms-row">{{ icon('wallet') }}<p class="small muted">{{ p(payment) }}</p></div>
-      <div class="divider"></div>
-      <div class="terms-row">{{ icon('truck') }}<p class="small muted">{{ p(delivery) }}</p></div>
+      {% if pay_text %}<div class="terms-row">{{ icon('wallet') }}<p class="small muted">{{ pay_text }}</p></div>{% endif %}
+      {% if pay_text and del_text %}<div class="divider"></div>{% endif %}
+      {% if del_text %}<div class="terms-row">{{ icon('truck') }}<p class="small muted">{{ del_text }}</p></div>{% endif %}
     </div>
+    {% endif %}
     <div class="notice notice-info">{{ icon('info', 18) }}<span class="small">{{ t('checkout.confirm_note') }}</span></div>
   </form>
 </div>

@@ -22,7 +22,9 @@
     "fact_days_unit": "дней",
     "fact_delivery": "доставка в Узбекистан",
     "new_arrivals_eyebrow": "Склад",
-    "conditions_eyebrow": "Состояния"
+    "conditions_eyebrow": "Состояния",
+    "by_capacity": "По объёму",
+    "cap_models": "моделей: {n}"
   },
   "catalog": {
     "title": "Каталог",

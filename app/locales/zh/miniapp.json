@@ -22,7 +22,9 @@
     "fact_days_unit": "天",
     "fact_delivery": "送达乌兹别克斯坦",
     "new_arrivals_eyebrow": "仓库",
-    "conditions_eyebrow": "成色"
+    "conditions_eyebrow": "成色",
+    "by_capacity": "按容量",
+    "cap_models": "{n} 款"
   },
   "catalog": {
     "title": "商品目录",

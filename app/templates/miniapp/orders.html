@@ -10,13 +10,11 @@
   <div class="stack stagger">
     {% for o in orders %}
     <a class="card card-hover" href="/app/orders/{{ o.id }}" style="display:block">
-      <div class="row-between"><span class="mono semibold">{{ o.number }}</span><span class="xs faint mono">{{ o.created_at|date }}</span></div>
-      <div class="row mt-2" style="gap:6px;flex-wrap:wrap">
-        {% for it in o.items[:3] %}<span class="chip chip-soft">{{ it.brand }} {{ it.model }} ×{{ it.qty }}</span>{% endfor %}{% if o.items|length > 3 %}<span class="chip chip-soft">+{{ o.items|length - 3 }}</span>{% endif %}
-      </div>
+      <div class="row-between"><span class="semibold num" style="font-size:16px;letter-spacing:-.01em">{{ o.number }}</span><span class="xs faint num">{{ o.created_at|date }}</span></div>
+      <div class="small muted mt-1 truncate">{% for it in o.items[:3] %}{{ it.brand }} {{ it.model }} × {{ it.qty }}{% if not loop.last %} · {% endif %}{% endfor %}{% if o.items|length > 3 %} · +{{ o.items|length - 3 }}{% endif %}</div>
       <div class="row-between mt-3">
         <span class="chip {{ 'chip-ok' if o.status.value in ('paid','shipped','delivered','completed') else ('chip-bad' if o.status.value in ('cancelled','disputed','returned') else ('chip-warn' if o.status.value in ('awaiting_advance','awaiting_balance','awaiting_customer') else 'chip-info')) }}">{{ t('order_status.' ~ o.status.value) }}</span>
-        <span class="display bold num">{{ o.total|money(o.currency) }}</span>
+        <span class="display bold num" style="font-size:18px;letter-spacing:-.02em">{{ o.total|money(o.currency) }}</span>
       </div>
       {% if o.status in ORDER_STEPS %}<div class="steps-dots mt-3">{% for s in ORDER_STEPS %}<i class="{{ 'on' if loop.index0 <= ORDER_STEPS.index(o.status) }}"></i>{% endfor %}</div>{% endif %}
     </a>

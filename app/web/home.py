@@ -20,11 +20,21 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.stock - Product.reserved > 0))
     ).scalar_one()
     live_auctions = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE))).scalar_one()
+    # capacity shortcuts: only sizes that are actually in stock
+    capacities = (
+        await db.execute(
+            select(Product.capacity_gb, func.count())
+            .where(Product.is_active.is_(True), Product.stock - Product.reserved > 0)
+            .group_by(Product.capacity_gb)
+            .order_by(Product.capacity_gb)
+            .limit(8)
+        )
+    ).all()
     return render(
         request,
         "miniapp/home.html",
         {
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
-            "in_stock_models": in_stock_models, "live_auctions": live_auctions,
+            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities,
         },
     )
