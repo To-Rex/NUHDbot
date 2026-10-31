@@ -1004,6 +1004,16 @@ dialog.cur-dlg{width:min(580px,calc(100vw - 32px))}
 .dir-ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;color:var(--dc);background:color-mix(in srgb,var(--dc) 15%,transparent)}
 .dir-silver .dir-ic{color:var(--ink-2);background:color-mix(in srgb,var(--dc) 40%,transparent)}
 .dir-black .dir-ic{color:var(--ink);background:var(--sunken)}
+.dir-pic-form{display:contents}
+.dir-pic{position:relative;cursor:pointer;overflow:visible;transition:transform var(--t-fast)}
+.dir-pic:hover{transform:scale(1.04)}
+.dir-pic.has-pic{width:56px;height:56px;padding:0;background:var(--sunken)}
+.dir-pic img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.dir-pic-cam{position:absolute;right:-5px;bottom:-5px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--surface);color:var(--ink-2);box-shadow:0 1px 4px rgba(0,0,0,.25);border:1px solid var(--hairline)}
+.dir-pic:hover .dir-pic-cam{color:var(--accent)}
+.dir-pic-row{display:flex;align-items:center;gap:14px;margin-top:-6px;font-size:12px}
+.dir-pic-row a,.dir-pic-row .link-btn{display:inline-flex;align-items:center;gap:5px}
+.danger-link{color:var(--bad)}
 .dir-pill{display:inline-grid;place-items:center;min-width:92px;height:32px;padding:0 14px;border-radius:10px;background:var(--dc);color:var(--dc-ink);font-size:12.5px;font-weight:700;white-space:nowrap}
 .dir-black .dir-pill{box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
 .dir-series{display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;flex:1}

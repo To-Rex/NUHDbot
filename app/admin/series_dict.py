@@ -1,14 +1,15 @@
 """Series dictionary (Catalog → Series): product lines per brand with a colour the product form picks up."""
-from fastapi import Depends, Request
+from fastapi import Depends, File, HTTPException, Request, UploadFile
 
 from app.admin.common import DB, PRODUCT_EDIT_ROLES, back, f_bool, f_int, render, snapshot, staff_dep
 from app.admin.router import router
 from app.enums import COLOR_DIRECTION, COLOR_EXAMPLES, ProductColor
 from app.i18n import t
 from app.models import Series, User
-from app.services import audit
+from app.services import audit, media, storage
 from app.services import brands as brand_service
 from app.services import series as series_service
+from app.services.settings_service import get_setting, set_setting
 
 FIELDS = ["brand_id", "name", "color"]
 
@@ -35,7 +36,43 @@ async def series_page(request: Request, db: DB, staff: User = Depends(staff_dep(
         "used": used, "uncoloured": await series_service.uncoloured_count(db),
         "unlisted": [(b, names.get(b, "?"), n, c) for b, n, c in await series_service.unlisted(db) if b in names],
         "colors": list(ProductColor), "color_dir": COLOR_DIRECTION, "color_examples": COLOR_EXAMPLES,
+        "dir_images": {c: {"thumb": storage.url(v.get("thumb") or v.get("filename")), "full": storage.url(v.get("filename"))} for c, v in (await get_setting(db, "direction_images") or {}).items() if v},
     })
+
+
+def _direction(color: str) -> ProductColor:
+    try:
+        return ProductColor(color)
+    except ValueError:
+        raise HTTPException(404) from None
+
+
+@router.post("/series/direction/{color}/image")
+async def direction_image(color: str, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES)), image: UploadFile = File(...)):
+    """A picture for a catalogue direction (shown on its card)."""
+    c = _direction(color)
+    lang = _lang(request, staff)
+    try:
+        meta = await media.save_image(image, "dir")
+    except media.MediaError:
+        return back(request, "/admin/series", t(lang, "admin.ser.err.image"), "bad")
+    images = dict(await get_setting(db, "direction_images") or {})
+    images[c.value] = {"filename": meta["filename"], "thumb": meta["thumb"]}
+    await set_setting(db, "direction_images", images)
+    await audit.log(db, staff.id, "series.direction_image", "direction", c.value, None, images[c.value])
+    await db.commit()
+    return back(request, "/admin/series", t(lang, "admin.ser.image_saved", name=COLOR_DIRECTION[c]))
+
+
+@router.post("/series/direction/{color}/image/delete")
+async def direction_image_delete(color: str, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
+    c = _direction(color)
+    images = dict(await get_setting(db, "direction_images") or {})
+    before = images.pop(c.value, None)
+    await set_setting(db, "direction_images", images)
+    await audit.log(db, staff.id, "series.direction_image_delete", "direction", c.value, before, None)
+    await db.commit()
+    return back(request, "/admin/series", t(_lang(request, staff), "admin.ser.image_removed", name=COLOR_DIRECTION[c]))
 
 
 async def _read(request: Request, db, staff: User, s: Series | None):

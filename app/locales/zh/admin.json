@@ -897,7 +897,8 @@
       "err": {
         "brand": "请选择品牌",
         "name": "请输入系列名称",
-        "taken": "{brand} 已有“{name}”系列"
+        "taken": "{brand} 已有“{name}”系列",
+        "image": "图片上传失败（JPG、PNG 或 WebP）"
       },
       "uncoloured": "{n} 个商品未选颜色，但其系列有方向",
       "uncoloured_sub": "一键为它们设置系列颜色。已选颜色的商品保持不变。",
@@ -913,7 +914,15 @@
         "gold": "金色",
         "silver": "银白色",
         "black": "黑色"
-      }
+      },
+      "image_help": "点击方向卡片上的图标即可为其设置图片。",
+      "image_add": "设置图片",
+      "image_change": "更换图片",
+      "image_open": "打开图片",
+      "image_delete": "移除",
+      "image_delete_q": "移除“{name}”的图片？",
+      "image_saved": "已保存“{name}”的图片",
+      "image_removed": "已移除“{name}”的图片"
     },
     "ban": {
       "title": "横幅",

@@ -897,7 +897,8 @@
       "err": {
         "brand": "Pick a brand",
         "name": "Enter the series name",
-        "taken": "{brand} already has a «{name}» series"
+        "taken": "{brand} already has a «{name}» series",
+        "image": "The picture did not upload (JPG, PNG or WebP)"
       },
       "uncoloured": "{n} products have no colour, but their series has a direction",
       "uncoloured_sub": "One click gives them the series colour. Products with a colour stay as they are.",
@@ -913,7 +914,15 @@
         "gold": "Gold",
         "silver": "Silver white",
         "black": "Black"
-      }
+      },
+      "image_help": "To give a direction a picture, tap the icon on its card.",
+      "image_add": "Add a picture",
+      "image_change": "Replace the picture",
+      "image_open": "Open the picture",
+      "image_delete": "Remove",
+      "image_delete_q": "Remove the «{name}» picture?",
+      "image_saved": "«{name}» picture saved",
+      "image_removed": "«{name}» picture removed"
     },
     "ban": {
       "title": "Banners",

@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block topbar_actions %}<span class="faint small">{{ total }} {{ t('admin.ser.count') }}</span><button type="button" class="btn btn-primary btn-sm" data-ser-add>{{ icon('plus', 15) }}{{ t('admin.ser.add_btn') }}</button>{% endblock %}
 {% block content %}
-<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.ser.help') }}</span></div>
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.ser.help') }} {{ t('admin.ser.image_help') }}</span></div>
 {% if uncoloured %}
 <form class="card ser-bulk mb" method="post" action="/admin/series/apply-colours"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <span class="ser-bulk-ic">{{ icon('sparkle', 18) }}</span>
@@ -22,10 +22,19 @@
 {% for d in directions %}{% set c = d.c %}
 <section class="card dir-card dir-{{ c.value }}">
   <div class="dir-head">
-    <span class="dir-ic">{{ icon('dir-' ~ c.value, 24) }}</span>
+    {% set pic = dir_images.get(c.value) %}
+    <form class="dir-pic-form" method="post" action="/admin/series/direction/{{ c.value }}/image" enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
+      <label class="dir-ic dir-pic{{ ' has-pic' if pic }}" title="{{ t('admin.ser.image_change') if pic else t('admin.ser.image_add') }}">
+        {% if pic %}<img src="{{ pic.thumb }}" alt="">{% else %}{{ icon('dir-' ~ c.value, 24) }}{% endif %}
+        <span class="dir-pic-cam">{{ icon('camera', 13) }}</span>
+        <input type="file" name="image" accept="image/*" hidden onchange="this.form.requestSubmit()">
+      </label>
+    </form>
     <div class="flex1"><h2>{{ color_dir[c] }}</h2><p>{{ t('admin.prod.color_' ~ c.value) }}</p></div>
     <span class="dir-pill">{{ t('admin.ser.colorname.' ~ c.value) }}</span>
   </div>
+  {% if pic %}<div class="dir-pic-row"><a href="{{ pic.full }}" target="_blank" rel="noopener" class="hint">{{ icon('image', 13) }}{{ t('admin.ser.image_open') }}</a>
+    <form method="post" action="/admin/series/direction/{{ c.value }}/image/delete" data-confirm="{{ t('admin.ser.image_delete_q', name=color_dir[c]) }}" data-confirm-danger="1"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="link-btn danger-link">{{ icon('trash', 13) }}{{ t('admin.ser.image_delete') }}</button></form></div>{% endif %}
   <div class="dir-series">
     {% for s in d['items'] %}{{ chip(s) }}{% endfor %}
     <button type="button" class="dir-add" data-ser-add data-color="{{ c.value }}">{{ icon('plus', 13) }}{{ t('admin.ser.add_short') }}</button>

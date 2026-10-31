@@ -897,7 +897,8 @@
       "err": {
         "brand": "Brendni tanlang",
         "name": "Seriya nomini kiriting",
-        "taken": "{brand} brendida «{name}» seriyasi allaqachon bor"
+        "taken": "{brand} brendida «{name}» seriyasi allaqachon bor",
+        "image": "Surat yuklanmadi (JPG, PNG yoki WebP)"
       },
       "uncoloured": "{n} ta mahsulotda rang tanlanmagan, lekin seriyasining yo'nalishi bor",
       "uncoloured_sub": "Bir bosishda ularga seriya rangini beramiz. Rangi tanlangan mahsulotlar o'zgarmaydi.",
@@ -913,7 +914,15 @@
         "gold": "Oltin",
         "silver": "Kumushsimon oq",
         "black": "Qora"
-      }
+      },
+      "image_help": "Har bir yo'nalishga surat qo'yish uchun kartadagi ikonkani bosing.",
+      "image_add": "Surat qo'yish",
+      "image_change": "Suratni almashtirish",
+      "image_open": "Suratni ochish",
+      "image_delete": "Olib tashlash",
+      "image_delete_q": "«{name}» surati olib tashlansinmi?",
+      "image_saved": "«{name}» surati saqlandi",
+      "image_removed": "«{name}» surati olib tashlandi"
     },
     "ban": {
       "title": "Bannerlar",
