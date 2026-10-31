@@ -208,7 +208,18 @@
       "min_short": "Min.",
       "box_short": "Box",
       "warranty_short": "Warranty",
-      "reserved_short": "reserved"
+      "reserved_short": "reserved",
+      "color": "Direction colour",
+      "color_none": "No colour",
+      "color_none_desc": "Standard look",
+      "color_blue": "Computer",
+      "color_purple": "Surveillance",
+      "color_red": "Network storage",
+      "color_gold": "Server",
+      "color_silver": "Data centre",
+      "color_black": "Gaming PCs",
+      "color_hint": "The product page in the Mini App takes on this colour. Colours are a catalogue recommendation, not an official standard.",
+      "color_auto": "picked from the series"
     },
     "ord": {
       "title": "Orders",

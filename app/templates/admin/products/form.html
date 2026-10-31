@@ -42,6 +42,12 @@
     </div>
     <div class="field mt"><label>{{ t('admin.prod.condition') }}</label>
       <div class="cond-pick">{% for c in conditions %}<label class="cond-card cond-{{ c.value }}"><input type="radio" name="condition" value="{{ c.value }}" {{ 'checked' if prod.condition==c }} {{ dis }}><b>{{ t('condition.' ~ c.value) }}</b><small>{{ t('condition.' ~ c.value ~ '_desc')|truncate(70) }}</small></label>{% endfor %}</div></div>
+    <div class="field mt"><label>{{ t('admin.prod.color') }} <span class="hint color-auto" data-color-auto hidden>· {{ t('admin.prod.color_auto') }}</span></label>
+      <div class="color-pick" data-color-pick>
+        <label class="color-opt"><input type="radio" name="color" value="" {{ 'checked' if not prod.color }} {{ dis }}><span class="sw sw-none"></span><span class="color-txt"><b>{{ t('admin.prod.color_none') }}</b><small>{{ t('admin.prod.color_none_desc') }}</small></span></label>
+        {% for c in colors %}<label class="color-opt"><input type="radio" name="color" value="{{ c.value }}" {{ 'checked' if prod.color == c.value }} {{ dis }}><span class="sw sw-{{ c.value }}"></span><span class="color-txt"><b>{{ color_dir[c] }}</b><small>{{ t('admin.prod.color_' ~ c.value) }} · {{ color_examples[c] }}</small></span></label>{% endfor %}
+      </div>
+      <span class="hint">{{ t('admin.prod.color_hint') }}</span></div>
     <div class="form-grid mt">
       <div class="field" id="label-model-row" {% if prod.condition.value != 'refresh' %}hidden{% endif %}><label>{{ t('admin.prod.label_model') }}</label><input class="input mono" name="label_model" value="{{ prod.label_model or '' }}" {{ dis }}><span class="hint">{{ t('admin.prod.refresh_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}><input class="input mono" name="currency" value="{{ prod.currency }}" maxlength="3" style="width:72px;flex:0 0 auto;text-transform:uppercase" aria-label="{{ t('admin.prod.currency') }}" {{ dis }}></div></div>

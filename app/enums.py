@@ -45,6 +45,27 @@ class Purpose(StrEnum):
     STORAGE = "storage"
 
 
+class ProductColor(StrEnum):
+    """Catalogue colour by use (a shop recommendation, not an official standard); themes the product page."""
+    BLUE = "blue"  # Desktop
+    PURPLE = "purple"  # Surveillance
+    RED = "red"  # NAS
+    GOLD = "gold"  # Enterprise
+    SILVER = "silver"  # Data Center
+    BLACK = "black"  # Gaming
+
+
+COLOR_DIRECTION = {
+    ProductColor.BLUE: "Desktop", ProductColor.PURPLE: "Surveillance", ProductColor.RED: "NAS",
+    ProductColor.GOLD: "Enterprise", ProductColor.SILVER: "Data Center", ProductColor.BLACK: "Gaming",
+}
+COLOR_EXAMPLES = {
+    ProductColor.BLUE: "WD Blue, Seagate BarraCuda, Toshiba P300", ProductColor.PURPLE: "WD Purple, SkyHawk, Toshiba S300",
+    ProductColor.RED: "WD Red, IronWolf, Toshiba N300", ProductColor.GOLD: "Seagate Exos, Ultrastar, Toshiba MG",
+    ProductColor.SILVER: "WD Gold, Exos, Ultrastar", ProductColor.BLACK: "WD_BLACK, FireCuda HDD",
+}
+
+
 class TestStatus(StrEnum):
     UNTESTED = "untested"
     TESTING = "testing"

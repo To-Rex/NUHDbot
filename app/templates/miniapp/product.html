@@ -2,6 +2,8 @@
 {% set pk = p %}{% set p = p_ %}
 {% block title %}{{ p.title }} · {{ app_name }}{% endblock %}
 {% block content %}
+{# a direction colour picked in the admin themes this page (accent, background, gallery) #}
+<div class="{{ 'tint tint-' ~ p.color if p.color }}" data-tint>
 <div class="page" style="padding-top:8px;padding-bottom:calc(var(--nav-h) + var(--nav-gap) + 100px)">
   <div class="gallery">
     <div class="gallery-track">
@@ -28,6 +30,7 @@
     <div class="pcard-brand">{{ p.brand }}{% if p.series %} · {{ p.series }}{% endif %}</div>
     <h1>{{ p.model }} <span class="muted">{{ p.capacity_gb|capacity }}</span></h1>
     <div class="row mt-2" style="flex-wrap:wrap;gap:6px">
+      {% if p.color %}<span class="chip dir-chip"><i></i>{{ COLOR_DIRECTION[p.color] }}</span>{% endif %}
       <span class="chip chip-soft">{{ p.interface.value }}</span><span class="chip chip-soft">{{ p.form_factor.value }}″</span>
       {% for u in p.purposes %}<span class="chip chip-soft">{{ t('purpose.' ~ u) }}</span>{% endfor %}
       <span class="chip {{ TEST_CLASS[p.test_status] }}">{{ t('test.' ~ p.test_status.value) }}</span>
@@ -136,9 +139,11 @@
     {% endif %}
   </div>
 </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
+(function(){ var w = document.querySelector('[data-tint].tint'); var tg = window.Telegram && Telegram.WebApp; if (!w || !tg) return; var bg = getComputedStyle(w).getPropertyValue('--tint-bg').trim(); try { tg.setHeaderColor && tg.setHeaderColor(bg); tg.setBackgroundColor && tg.setBackgroundColor(bg); } catch (e) {} })();
 document.addEventListener('scroll', function (e) {
   var tr = e.target; if (!(tr instanceof Element) || !tr.classList.contains('gallery-track')) return;
   var i = Math.round(tr.scrollLeft / tr.clientWidth); var th = document.querySelectorAll('.thumbs img')[i]; var k = document.getElementById('img-kind');

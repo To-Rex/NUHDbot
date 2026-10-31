@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 
 from app.config import APP_DIR, settings
-from app.enums import Condition, OrderStatus, TestStatus
+from app.enums import COLOR_DIRECTION, Condition, OrderStatus, TestStatus
 from app.i18n import pick, t
 from app.services.cart import get_cart
 
@@ -97,6 +97,7 @@ env.globals.update(
     OrderStatus=OrderStatus,
     CONDITION_CLASS=CONDITION_CLASS,
     TEST_CLASS=TEST_CLASS,
+    COLOR_DIRECTION={c.value: name for c, name in COLOR_DIRECTION.items()},
     ORDER_STEPS=ORDER_STEPS,
     now=lambda: datetime.now(UTC),
 )

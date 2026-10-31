@@ -208,7 +208,18 @@
       "min_short": "起订",
       "box_short": "整箱",
       "warranty_short": "保修",
-      "reserved_short": "已预留"
+      "reserved_short": "已预留",
+      "color": "用途颜色",
+      "color_none": "无颜色",
+      "color_none_desc": "默认样式",
+      "color_blue": "电脑",
+      "color_purple": "监控",
+      "color_red": "网络存储",
+      "color_gold": "服务器",
+      "color_silver": "数据中心",
+      "color_black": "游戏电脑",
+      "color_hint": "Mini App 中的商品页面会使用此颜色。颜色仅为目录建议，并非官方标准。",
+      "color_auto": "按系列自动选择"
     },
     "ord": {
       "title": "订单",

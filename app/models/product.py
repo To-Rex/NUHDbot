@@ -23,6 +23,7 @@ class Product(Base, TimestampMixin):
     form_factor: Mapped[FormFactor] = mapped_column(str_enum(FormFactor, 4), default=FormFactor.F35)
     condition: Mapped[Condition] = mapped_column(str_enum(Condition, 10), index=True)
     purposes: Mapped[list[str]] = mapped_column(JSON, default=list)
+    color: Mapped[str | None] = mapped_column(String(16))  # ProductColor value; themes the product page
     rpm: Mapped[int | None] = mapped_column(Integer)
     cache_mb: Mapped[int | None] = mapped_column(Integer)
 

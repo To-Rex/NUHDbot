@@ -30,19 +30,31 @@ from app.admin.common import (
 )
 from app.admin.router import router
 from app.config import settings
-from app.enums import Condition, FormFactor, ImageKind, Interface, Purpose, Role, TestStatus
+from app.enums import (
+    COLOR_DIRECTION,
+    COLOR_EXAMPLES,
+    Condition,
+    FormFactor,
+    ImageKind,
+    Interface,
+    ProductColor,
+    Purpose,
+    Role,
+    TestStatus,
+)
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
 from app.services import audit, media, model_dict
 from app.services import brands as brand_service
 from app.services.catalog import capacity_presets
 
-PRODUCT_FIELDS = ["brand", "brand_id", "model", "label_model", "series", "capacity_gb", "interface", "form_factor", "condition", "price", "currency", "cost_price", "stock", "min_order", "box_qty", "full_box_only", "seller_warranty_months", "factory_warranty_months", "test_status", "hours_used", "health", "is_active", "sale_allowed", "arrived_at", "sort", "rpm", "cache_mb"]
+PRODUCT_FIELDS = ["brand", "brand_id", "model", "label_model", "series", "capacity_gb", "interface", "form_factor", "condition", "color", "price", "currency", "cost_price", "stock", "min_order", "box_qty", "full_box_only", "seller_warranty_months", "factory_warranty_months", "test_status", "hours_used", "health", "is_active", "sale_allowed", "arrived_at", "sort", "rpm", "cache_mb"]
 WARRANTY_DEFAULTS = {Condition.NEW: (12, 36), Condition.USED: (6, 0), Condition.REFRESH: (6, 0)}
 
 
 def _ctx_lists():
-    return {"conditions": list(Condition), "interfaces": list(Interface), "form_factors": list(FormFactor), "tests": list(TestStatus), "purposes": list(Purpose)}
+    return {"conditions": list(Condition), "interfaces": list(Interface), "form_factors": list(FormFactor), "tests": list(TestStatus), "purposes": list(Purpose),
+            "colors": list(ProductColor), "color_dir": COLOR_DIRECTION, "color_examples": COLOR_EXAMPLES}
 
 
 async def _form_ctx(db, p: Product | None = None) -> dict:
@@ -131,6 +143,7 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
     if p.condition == Condition.REFRESH and not p.label_model:
         errors.append("label_model")
     p.purposes = [x for x in form.getlist("purposes") if x in [e.value for e in Purpose]]
+    p.color = form.get("color") if form.get("color") in [c.value for c in ProductColor] else None
     p.rpm = f_int(form, "rpm", None)
     p.cache_mb = f_int(form, "cache_mb", None)
     old_price = p.price

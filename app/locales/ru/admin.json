@@ -208,7 +208,18 @@
       "min_short": "Мин.",
       "box_short": "Коробка",
       "warranty_short": "Гарантия",
-      "reserved_short": "в резерве"
+      "reserved_short": "в резерве",
+      "color": "Цвет направления",
+      "color_none": "Без цвета",
+      "color_none_desc": "Обычный вид",
+      "color_blue": "Компьютер",
+      "color_purple": "Видеонаблюдение",
+      "color_red": "Сетевое хранилище",
+      "color_gold": "Сервер",
+      "color_silver": "Дата-центр",
+      "color_black": "Игровые ПК",
+      "color_hint": "В Mini App страница товара окрашивается в этот цвет. Цвета — рекомендация для каталога, не официальный стандарт.",
+      "color_auto": "подобран по серии"
     },
     "ord": {
       "title": "Заказы",

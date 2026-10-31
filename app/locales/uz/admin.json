@@ -208,7 +208,18 @@
       "min_short": "Мин.",
       "box_short": "Қути",
       "warranty_short": "Кафолат",
-      "reserved_short": "банд"
+      "reserved_short": "банд",
+      "color": "Йўналиш ранги",
+      "color_none": "Рангсиз",
+      "color_none_desc": "Одатий кўриниш",
+      "color_blue": "Компьютер",
+      "color_purple": "Видеокузатув",
+      "color_red": "Тармоқ хотираси",
+      "color_gold": "Сервер",
+      "color_silver": "Маълумотлар маркази",
+      "color_black": "Ўйин компьютерлари",
+      "color_hint": "Mini App'да товар саҳифаси шу рангга мосланади. Ранглар — каталог учун тавсия, расмий стандарт эмас.",
+      "color_auto": "сериядан танланди"
     },
     "ord": {
       "title": "Буюртмалар",

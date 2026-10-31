@@ -353,6 +353,31 @@
   bindAdForm(document);
   document.addEventListener('htmx:afterSettle', (e) => bindAdForm(e.target));
 
+  // ---------- product colour: suggested from the series / model until someone picks one by hand ----------
+  const COLOR_HINTS = [[/\b(wd\s*)?gold\b/i, 'silver'], [/\b(purple|skyhawk|s300)\b/i, 'purple'], [/\b(red|ironwolf|n300)\b/i, 'red'],
+    [/\b(exos|ultrastar|mg\d{2})/i, 'gold'], [/\b(black|wd_black|firecuda)\b/i, 'black'], [/\b(blue|barracuda|p300)\b/i, 'blue']];
+  function bindColorPick(scope) {
+    (scope.querySelectorAll ? scope : document).querySelectorAll('[data-color-pick]:not([data-bound])').forEach((pick) => {
+      pick.dataset.bound = '1';
+      const form = pick.closest('form'); if (!form) return;
+      const auto = form.querySelector('[data-color-auto]');
+      const radios = () => Array.from(pick.querySelectorAll('input[name=color]'));
+      let touched = radios().some((r) => r.checked && r.value); // a colour already saved counts as a choice
+      pick.addEventListener('change', (e) => { if (e.isTrusted) { touched = true; if (auto) auto.hidden = true; } });
+      const suggest = () => {
+        if (touched) return;
+        const text = ['series', 'model'].map((n) => (form.querySelector('[name="' + n + '"]') || {}).value || '').join(' ');
+        const hit = COLOR_HINTS.find(([re]) => re.test(text));
+        const r = radios().find((x) => x.value === (hit ? hit[1] : ''));
+        if (r && !r.disabled) r.checked = true;
+        if (auto) auto.hidden = !hit;
+      };
+      ['series', 'model'].forEach((n) => { const el = form.querySelector('[name="' + n + '"]'); if (el) { el.addEventListener('input', suggest); el.addEventListener('change', suggest); } });
+    });
+  }
+  bindColorPick(document);
+  document.addEventListener('htmx:afterSettle', (e) => bindColorPick(e.target));
+
   // ---------- file input counters ----------
   document.querySelectorAll('input[type=file][multiple]').forEach((i) => i.addEventListener('change', () => { const l = i.closest('label'); const c = l && l.querySelector('[data-count]'); if (c) c.textContent = i.files.length ? '(' + i.files.length + ')' : ''; }));
 })();

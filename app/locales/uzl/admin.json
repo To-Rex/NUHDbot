@@ -208,7 +208,18 @@
       "min_short": "Min.",
       "box_short": "Quti",
       "warranty_short": "Kafolat",
-      "reserved_short": "band"
+      "reserved_short": "band",
+      "color": "Yo'nalish rangi",
+      "color_none": "Rangsiz",
+      "color_none_desc": "Odatiy ko'rinish",
+      "color_blue": "Kompyuter",
+      "color_purple": "Videokuzatuv",
+      "color_red": "Tarmoq xotirasi",
+      "color_gold": "Server",
+      "color_silver": "Ma'lumotlar markazi",
+      "color_black": "O'yin kompyuterlari",
+      "color_hint": "Mini App'da tovar sahifasi shu rangga moslashadi. Ranglar — katalog uchun tavsiya, rasmiy standart emas.",
+      "color_auto": "seriyadan tanlandi"
     },
     "ord": {
       "title": "Buyurtmalar",

@@ -578,6 +578,36 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 .minbox .eyebrow{text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:500;color:var(--ink-2)}
 .minbox .v{font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 
+/* ===== product page colour themes (direction colour set in the admin) ===== */
+.tint-blue{--accent:#0071E3;--accent-press:#0062C4;--accent-ink:#FFFFFF;--accent-soft:#E3EEFC;--tint-text:#0062C4;--tint-bg:#EEF4FD}
+.tint-purple{--accent:#7A3EE6;--accent-press:#6A30D0;--accent-ink:#FFFFFF;--accent-soft:#ECE3FC;--tint-text:#6A30D0;--tint-bg:#F4EFFD}
+.tint-red{--accent:#E03A2F;--accent-press:#C62E24;--accent-ink:#FFFFFF;--accent-soft:#FCE5E2;--tint-text:#C62E24;--tint-bg:#FDF1EF}
+.tint-gold{--accent:#F2B400;--accent-press:#DCA200;--accent-ink:#1A1300;--accent-soft:#FBEFC6;--tint-text:#946600;--tint-bg:#FCF7E6}
+.tint-silver{--accent:#D5DAE1;--accent-press:#C3C9D1;--accent-ink:#0B0B0F;--accent-soft:#E6E9EE;--tint-text:#4B5563;--tint-bg:#F0F2F5}
+.tint-black{--accent:#111114;--accent-press:#2A2A2E;--accent-ink:#FFFFFF;--accent-soft:#E4E4E7;--tint-text:#111114;--tint-bg:#EDEDEF}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .tint-blue{--accent:#0A84FF;--accent-press:#409CFF;--accent-ink:#FFFFFF;--accent-soft:#0E2A49;--tint-text:#5AACFF;--tint-bg:#060E18}
+  :root:not([data-theme="light"]) .tint-purple{--accent:#9B6BFF;--accent-press:#B08CFF;--accent-ink:#FFFFFF;--accent-soft:#271A45;--tint-text:#B794FF;--tint-bg:#0E0919}
+  :root:not([data-theme="light"]) .tint-red{--accent:#FF5A4F;--accent-press:#FF776E;--accent-ink:#FFFFFF;--accent-soft:#3A1513;--tint-text:#FF847B;--tint-bg:#170908}
+  :root:not([data-theme="light"]) .tint-gold{--accent:#FFC21A;--accent-press:#FFCF4D;--accent-ink:#1A1300;--accent-soft:#3A2D07;--tint-text:#FFD45C;--tint-bg:#141004}
+  :root:not([data-theme="light"]) .tint-silver{--accent:#D1D5DB;--accent-press:#E5E7EB;--accent-ink:#0B0B0F;--accent-soft:#2A2D33;--tint-text:#D1D5DB;--tint-bg:#0C0D10}
+  :root:not([data-theme="light"]) .tint-black{--accent:#F5F5F7;--accent-press:#FFFFFF;--accent-ink:#000000;--accent-soft:#2C2C2E;--tint-text:#F5F5F7;--tint-bg:#000000}
+}
+:root[data-theme="dark"] .tint-blue,:root.tg-dark .tint-blue{--accent:#0A84FF;--accent-press:#409CFF;--accent-ink:#FFFFFF;--accent-soft:#0E2A49;--tint-text:#5AACFF;--tint-bg:#060E18}
+:root[data-theme="dark"] .tint-purple,:root.tg-dark .tint-purple{--accent:#9B6BFF;--accent-press:#B08CFF;--accent-ink:#FFFFFF;--accent-soft:#271A45;--tint-text:#B794FF;--tint-bg:#0E0919}
+:root[data-theme="dark"] .tint-red,:root.tg-dark .tint-red{--accent:#FF5A4F;--accent-press:#FF776E;--accent-ink:#FFFFFF;--accent-soft:#3A1513;--tint-text:#FF847B;--tint-bg:#170908}
+:root[data-theme="dark"] .tint-gold,:root.tg-dark .tint-gold{--accent:#FFC21A;--accent-press:#FFCF4D;--accent-ink:#1A1300;--accent-soft:#3A2D07;--tint-text:#FFD45C;--tint-bg:#141004}
+:root[data-theme="dark"] .tint-silver,:root.tg-dark .tint-silver{--accent:#D1D5DB;--accent-press:#E5E7EB;--accent-ink:#0B0B0F;--accent-soft:#2A2D33;--tint-text:#D1D5DB;--tint-bg:#0C0D10}
+:root[data-theme="dark"] .tint-black,:root.tg-dark .tint-black{--accent:#F5F5F7;--accent-press:#FFFFFF;--accent-ink:#000000;--accent-soft:#2C2C2E;--tint-text:#F5F5F7;--tint-bg:#000000}
+/* the whole page sits on a soft wash of the colour; cards stay white / graphite */
+.tint::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--tint-bg);pointer-events:none}
+.tint .gallery{background:var(--accent-soft)}
+.tint .thumbs img{background:var(--accent-soft)}
+.tint .list-icon{background:var(--accent);color:var(--accent-ink)}
+.tint .link,.tint .chip-info{color:var(--tint-text)}
+.dir-chip{gap:6px;background:var(--accent-soft);color:var(--tint-text,var(--accent))}
+.dir-chip i{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+
 /* ===== cart ===== */
 .cart-line{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--sep);animation:card-in var(--t-med) var(--ease-out)}
 .cart-line:last-child{border-bottom:0}
