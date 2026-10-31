@@ -1085,7 +1085,7 @@
         "peek": "Panorama",
         "peek_d": "The neighbouring banners peek in at the edges",
         "coverflow": "Cover Flow",
-        "coverflow_d": "The front banner faces you, its neighbours turn away into depth",
+        "coverflow_d": "Like Directions: the front banner faces you, its neighbours turn away into depth",
         "cylinder": "3D drum",
         "cylinder_d": "The banners are the faces of a turning drum",
         "tunnel": "Depth",
@@ -1095,7 +1095,11 @@
         "roll": "Vertical cube",
         "roll_d": "A cube turning top over bottom: the next banner rolls down from above",
         "spiral": "Spiral",
-        "spiral_d": "Banners on a spiral stair: each next one higher and deeper"
+        "spiral_d": "Banners on a spiral stair: each next one higher and deeper",
+        "orbit": "Orbit carousel",
+        "orbit_d": "Like Directions: banners ride a 3D ring, the far ones smaller",
+        "fan": "Fan",
+        "fan_d": "Like Directions: banners spread out like a hand of cards"
       },
       "design_title": "Banner design",
       "design_hint": "How the banners look — colour, glass, a light showcase… Pick one, it is saved right away.",
@@ -1113,7 +1117,8 @@
         "neon_d": "A black card with a coloured glow and rings",
         "poster": "Poster",
         "poster_d": "Big type, the discount as a huge outlined number"
-      }
+      },
+      "dir_like": "Like Directions"
     }
   }
 }

@@ -1203,10 +1203,18 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .bsv-fade .k2{opacity:.75;transform:translateX(10px)}
 .bsv-peek i{width:70px}
 .bsv-peek .k0{opacity:1;transform:translateX(-78px) scale(.88);--dim:.3}.bsv-peek .k2{opacity:1;transform:translateX(78px) scale(.88);--dim:.3}
-.bsv-coverflow i,.bsv-cylinder i,.bsv-spiral i{width:66px}
-.bsv-coverflow .k0{opacity:1;transform:translateX(-56px) translateZ(-46px) rotateY(45deg);--dim:.3}
-.bsv-coverflow .k2{opacity:1;transform:translateX(56px) translateZ(-46px) rotateY(-45deg);--dim:.3}
-.bsv-coverflow .k3{opacity:1;transform:translateX(84px) translateZ(-80px) rotateY(-45deg);--dim:.5;z-index:6}
+.bsv-coverflow i,.bsv-cylinder i,.bsv-spiral i,.bsv-orbit i,.bsv-fan i{width:66px}
+.bsv-coverflow .k0{opacity:1;transform:translateX(-40px) translateZ(-40px) rotateY(50deg);--dim:.3}
+.bsv-coverflow .k2{opacity:1;transform:translateX(40px) translateZ(-40px) rotateY(-50deg);--dim:.3}
+.bsv-coverflow .k3{opacity:1;transform:translateX(62px) translateZ(-70px) rotateY(-50deg);--dim:.5;z-index:6}
+.bsv-orbit .k1{transform:translateY(10px)}
+.bsv-orbit .k0{opacity:1;transform:translate3d(-44px,2px,-40px);--dim:.2}.bsv-orbit .k2{opacity:1;transform:translate3d(44px,2px,-40px);--dim:.2}
+.bsv-orbit .k3{opacity:1;transform:translate3d(0,-22px,-140px);--dim:.45;z-index:5}
+.bsv-fan i{transform-origin:50% 230%}
+.bsv-fan .k1{transform:translateY(8px)}
+.bsv-fan .k0{opacity:1;transform:translateY(6px) rotate(-12deg) scale(.95);--dim:.22}.bsv-fan .k2{opacity:1;transform:translateY(6px) rotate(12deg) scale(.95);--dim:.22}
+.bsv-fan .k3{opacity:1;transform:translateY(4px) rotate(24deg) scale(.9);--dim:.42;z-index:6}
+.ds-tag{display:inline-block;margin-left:4px;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:10.5px;font-weight:700;vertical-align:1px}
 .bsv-cylinder i{-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .bsv-cylinder .k0{opacity:1;transform:translateZ(-91px) rotateY(-40deg) translateZ(91px);--dim:.28}
 .bsv-cylinder .k2{opacity:1;transform:translateZ(-91px) rotateY(40deg) translateZ(91px);--dim:.28}

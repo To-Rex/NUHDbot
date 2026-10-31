@@ -33,7 +33,7 @@
     <label class="ds-opt"><input type="radio" name="style" value="{{ st }}" {{ 'checked' if slider_style == st }} onchange="this.form.requestSubmit()">
       <span class="ds-box">
         <span class="dsv bsv bsv-{{ st }}" aria-hidden="true">{% for c in ('green', 'red', 'blue', 'gold') %}<i class="k{{ loop.index0 }} c-{{ c }}"></i>{% endfor %}</span>
-        <span class="ds-txt"><b>{{ t('admin.ban.style.' ~ st) }}</b><small>{{ t('admin.ban.style.' ~ st ~ '_d') }}</small></span>
+        <span class="ds-txt"><b>{{ t('admin.ban.style.' ~ st) }}{% if st in dir_like %} <span class="ds-tag">{{ t('admin.ban.dir_like') }}</span>{% endif %}</b><small>{{ t('admin.ban.style.' ~ st ~ '_d') }}</small></span>
         <span class="ds-check">{{ icon('check', 12) }}</span>
       </span>
     </label>

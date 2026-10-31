@@ -83,7 +83,7 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "page_title": t(staff.lang, "admin.ban.title"), "rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": offers,
         "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
         "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
-        "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
+        "styles": svc.STYLES, "dir_like": svc.DIR_LIKE, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
         "designs": svc.DESIGNS, "banner_design": svc.clean_design(await get_setting(db, "banner_design")),
     })
 

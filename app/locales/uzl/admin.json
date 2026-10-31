@@ -1085,7 +1085,7 @@
         "peek": "Panorama",
         "peek_d": "Yonidagi bannerlar chetlardan ko'rinib turadi",
         "coverflow": "Cover Flow",
-        "coverflow_d": "O'rtadagi banner oldinda, yonidagilari chuqurlikka burilgan",
+        "coverflow_d": "Yo'nalishlar kabi: o'rtadagi banner oldinda, yonidagilari chuqurlikka buriladi",
         "cylinder": "3D baraban",
         "cylinder_d": "Bannerlar aylanuvchi barabanning yoqlari",
         "tunnel": "Chuqurlik",
@@ -1095,7 +1095,11 @@
         "roll": "Vertikal kub",
         "roll_d": "Kub yuqoridan pastga aylanadi, keyingi banner tepadan tushadi",
         "spiral": "Spiral",
-        "spiral_d": "Bannerlar spiral zinadek: har keyingisi balandroq va chuqurroq"
+        "spiral_d": "Bannerlar spiral zinadek: har keyingisi balandroq va chuqurroq",
+        "orbit": "Aylana karusel",
+        "orbit_d": "Yo'nalishlar kabi: bannerlar 3D aylana bo'ylab aylanadi, orqadagilari kichikroq",
+        "fan": "Yelpig'ich",
+        "fan_d": "Yo'nalishlar kabi: bannerlar o'yin kartalaridek yoyilib turadi"
       },
       "design_title": "Banner dizayni",
       "design_hint": "Bannerlar qanday ko'rinadi — rang, shisha, yorug' vitrina… Birini tanlang, darhol saqlanadi.",
@@ -1113,7 +1117,8 @@
         "neon_d": "Qora karta, rangli nur va halqalar",
         "poster": "Poster",
         "poster_d": "Katta shrift, chegirma ulkan konturli raqam bilan"
-      }
+      },
+      "dir_like": "Yo'nalishlar kabi"
     }
   }
 }

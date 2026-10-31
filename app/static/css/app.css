@@ -575,11 +575,27 @@ button.list-item{width:100%;text-align:left}
 .hs-look-stack .hs-track{padding-bottom:34px;margin-bottom:-14px}
 .hs-look-stack .hs-slide{transform-origin:50% 100%}
 /* looks that show the neighbours: narrower slides centred across the full width */
-.hs-look-peek .hs-track,.hs-look-coverflow .hs-track,.hs-look-cylinder .hs-track,.hs-look-spiral .hs-track{padding-left:0;padding-right:0}
-.hs-look-peek .hs-slide,.hs-look-coverflow .hs-slide,.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{width:calc(100% - 60px);justify-self:center}
-.hs-look-coverflow .hs-slide,.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{width:calc(100% - 72px)}
-:is(.hs-look-peek,.hs-look-coverflow,.hs-look-cylinder,.hs-look-spiral) .hs-slide h2{font-size:21px}
-:is(.hs-look-peek,.hs-look-coverflow,.hs-look-cylinder,.hs-look-spiral) .hs-media{flex-basis:36%}
+.hs-look-peek .hs-track,.hs-look-cylinder .hs-track,.hs-look-spiral .hs-track{padding-left:0;padding-right:0}
+.hs-look-peek .hs-slide,.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{width:calc(100% - 60px);justify-self:center}
+.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{width:calc(100% - 72px)}
+:is(.hs-look-peek,.hs-look-cylinder,.hs-look-spiral) .hs-slide h2{font-size:21px}
+:is(.hs-look-peek,.hs-look-cylinder,.hs-look-spiral) .hs-media{flex-basis:36%}
+/* the Directions slider's looks: compact banner cards with a shadow, the neighbours turning in depth beside them */
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-track{padding-left:0;padding-right:0;padding-bottom:26px;margin-bottom:-24px;perspective:1000px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-slide{width:min(76vw,330px);min-height:180px;justify-self:center;box-shadow:0 10px 24px rgba(0,0,0,.18)}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-body{padding:16px 12px 14px 16px;gap:5px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-slide h2{font-size:19px;-webkit-line-clamp:3}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-kicker{font-size:12px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-sub{font-size:12.5px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-price b{font-size:17px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-cta{height:32px;padding:0 12px;font-size:13px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-media{flex-basis:38%;padding:12px 12px 12px 0}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-badge{top:10px;right:10px;padding:4px 9px;font-size:14px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-art svg{width:64px;height:64px}
+:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-slide.has-img .hs-body{max-width:90%;padding:12px 14px}
+.hs-look-orbit .hs-track{padding-top:48px}
+.hs-look-fan .hs-track{padding-top:20px;padding-bottom:58px;margin-bottom:-18px}
+.hs-look-fan .hs-slide{transform-origin:50% 260%}
 .hs-look-spiral .hs-track{padding-top:30px;padding-bottom:24px;margin-top:-14px;margin-bottom:-14px}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}

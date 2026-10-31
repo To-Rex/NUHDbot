@@ -80,7 +80,7 @@ def test_slide_seconds_stay_in_range():
 
 def test_slider_looks():
     """The slider look picked on the Banners page: parallax by default, anything unknown falls back to it."""
-    assert svc.STYLES[:6] == ("parallax", "cube", "flip", "stack", "fade", "peek") and len(set(svc.STYLES)) == 12
+    assert svc.STYLES[:5] == ("parallax", "coverflow", "orbit", "stack", "fan") and len(set(svc.STYLES)) == 14 and set(svc.DIR_LIKE) <= set(svc.STYLES)
     assert [svc.clean_style(v) for v in ("cube", "peek", "fade", None, "", "spin")] == ["cube", "peek", "fade", "parallax", "parallax", "parallax"]
 
 

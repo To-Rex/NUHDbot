@@ -211,9 +211,17 @@
       peek: { step: 0.9, ms: 750, place: function (d, a) {  /* panorama: the neighbours peek in at the edges, a little smaller and darker */
         return { t: 'translate3d(' + d * (W * 0.96 + 10) + 'px,0,0) scale(' + (1 - Math.min(a, 1) * 0.08) + ')', dim: Math.min(0.35, a * 0.3), op: fade(a, 1.6, 2.2) };
       } },
-      coverflow: { step: 0.62, ms: 800, place: function (d, a, s) {  /* cover flow: the front banner faces you, its neighbours turn away into depth */
+      /* the Directions slider's looks (cover flow, orbit, stack, fan) on compact banner cards */
+      coverflow: { step: 0.6, ms: 800, place: function (d, a, s) {  /* the front banner faces you, its neighbours turn away into depth and darken */
         var near = Math.min(a, 1), far = Math.max(0, a - 1);
-        return { t: 'translate3d(' + s * (near * 0.62 + far * 0.3) * W + 'px,0,' + -(near * 190 + far * 110) + 'px) rotateY(' + -s * near * 42 + 'deg)', dim: Math.min(0.5, a * 0.3), op: fade(a, 2.2, 2.8) };
+        return { t: 'translate3d(' + s * (near * 0.6 + far * 0.3) * W + 'px,0,' + -(near * 150 + far * 90) + 'px) rotateY(' + -s * near * 50 + 'deg)', dim: Math.min(0.5, a * 0.3), op: fade(a, 2.2, 2.8) };
+      } },
+      orbit: { step: 0.8, ms: 900, place: function (d) {  /* banners ride a ring seen from a little above: the far side is smaller, higher, darker */
+        var th = d * 2 * Math.PI / n, c = Math.cos(th);
+        return { t: 'translate3d(' + Math.sin(th) * W * 0.8 + 'px,' + -(1 - c) * H * 0.32 + 'px,' + -(1 - c) * W * 1.1 + 'px)', dim: Math.min(0.5, (1 - c) * 0.3), op: 1 };
+      } },
+      fan: { step: 0.55, ms: 800, place: function (d, a) {  /* a hand of banners turning round a point below them (lifted a little so the outer ones stay in view) */
+        return { t: 'translateY(' + -Math.min(a, 2) * 10 + 'px) rotate(' + d * 10 + 'deg) scale(' + (1 - Math.min(a, 2) * 0.05) + ')', dim: Math.min(0.45, a * 0.22), op: fade(a, 2.2, 2.8) };
       } },
       cylinder: { step: 0.75, ms: 900, place: function (d, a) {  /* a drum: the banners are its faces, 40° apart edge to edge, and the drum turns */
         var r = W / 2 / Math.tan(20 * Math.PI / 180);
