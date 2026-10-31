@@ -143,6 +143,7 @@ def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | 
     ctx.setdefault("user", user)
     ctx.setdefault("lang", lang)
     ctx.setdefault("cart_count", sum(cart.values()))
+    ctx.setdefault("chat_unread", getattr(request.state, "chat_unread", 0))
     ctx.setdefault("is_htmx", request.headers.get("HX-Request") == "true")
     ctx.setdefault("path", request.url.path)
     ctx["t"] = lambda key, **kw: t(lang, key, **kw)

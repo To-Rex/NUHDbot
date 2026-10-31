@@ -8,7 +8,7 @@ from app.models import Order, Product, SupportMessage, User
 from app.services import chat_events
 from app.services.media import ALLOWED_TYPES, MediaError, save_document
 from app.services.settings_service import get_setting
-from app.services.support import add_message, get_or_create_thread, mark_read, user_threads
+from app.services.support import add_message, general_thread, get_or_create_thread, mark_read, user_threads
 from app.templating import render
 from app.web.common import hx_trigger, toast
 from app.web.router import router
@@ -21,10 +21,25 @@ async def _thread_for(db, thread_id: int, user: User):
     return th if th and th.user_id == user.id else None
 
 
+@router.get("/chat")
+async def chat_tab(request: Request, db: DB, lang: Lang, user: User = Depends(require_user)):
+    """The Chat tab: straight into the conversation with the admin (the latest general one); the first message starts it."""
+    th = await general_thread(db, user.id)
+    if th is not None:
+        await mark_read(db, th, by_staff=False)
+        await db.commit()
+    others = [x for x in await user_threads(db, user.id) if th is None or x.id != th.id]  # order conversations, listed under the header
+    request.state.chat_unread = sum(x.unread_for_customer for x in others)  # this one is read now: the badge counts the rest
+    return render(request, "miniapp/chat.html", {
+        "lang": lang, "th": th, "messages": th.messages if th else [], "others": others, "page_title": t(lang, "chat.title"),
+        "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time"),
+    })
+
+
 @router.get("/support")
 async def support_list(request: Request, db: DB, lang: Lang, user: User = Depends(require_user)):
     threads = await user_threads(db, user.id)
-    return render(request, "miniapp/support_list.html", {"lang": lang, "threads": threads, "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time"), "page_title": t(lang, "support.title"), "back_url": "/app/profile"})
+    return render(request, "miniapp/support_list.html", {"lang": lang, "threads": threads, "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time"), "page_title": t(lang, "support.title"), "back_url": "/app/chat"})
 
 
 @router.get("/support/new")
@@ -45,7 +60,7 @@ async def _store_attachment(file: UploadFile | None):
 
 
 @router.post("/support/new")
-async def support_create(request: Request, db: DB, lang: Lang, user: User = Depends(require_user), text: str = Form(""), order_id: int | None = Form(None), product_id: int | None = Form(None), attachment: UploadFile | None = File(None)):
+async def support_create(request: Request, db: DB, lang: Lang, user: User = Depends(require_user), text: str = Form(""), order_id: int | None = Form(None), product_id: int | None = Form(None), attachment: UploadFile | None = File(None), to: str = Form("")):
     text = text.strip()
     if product_id and not order_id:
         p = await db.get(Product, product_id)
@@ -63,7 +78,8 @@ async def support_create(request: Request, db: DB, lang: Lang, user: User = Depe
         th.subject = o.number if o else None
     await add_message(db, th, sender=user, from_staff=False, text=text, kind=kind, attachment=att)
     await db.commit()
-    return hx_trigger(redirect(request, f"/app/support/{th.id}"), toast={"msg": t(lang, "support.sent"), "type": "ok"}, haptic="success")
+    back_to = "/app/chat" if to == "chat" and not order_id else f"/app/support/{th.id}"  # the first message from the Chat tab stays in the tab
+    return hx_trigger(redirect(request, back_to), toast={"msg": t(lang, "support.sent"), "type": "ok"}, haptic="success")
 
 
 @router.get("/support/{thread_id}")

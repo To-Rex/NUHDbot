@@ -73,6 +73,10 @@ async def current_user(request: Request, db: DB) -> User | None:
     request.state.user = user
     request.state.user_loaded = True
     request.state.session = sess
+    if user is not None:  # the Chat tab badge: admin replies not seen yet
+        from app.services.support import unread_total
+
+        request.state.chat_unread = await unread_total(db, user.id)
     return user
 
 

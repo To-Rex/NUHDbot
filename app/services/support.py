@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums import MessageKind, ThreadStatus
@@ -60,6 +60,18 @@ async def add_message(
 def thread_changed(db: AsyncSession, thread: SupportThread) -> None:
     """Status / assignee changed: live inboxes refresh after the commit."""
     chat_events.queue(db, {"type": "thread", "thread_id": thread.id})
+
+
+async def general_thread(db: AsyncSession, user_id: int) -> SupportThread | None:
+    """The customer's latest general (not order) conversation, open or closed — what the Chat tab shows; None before the first message."""
+    stmt = select(SupportThread).where(SupportThread.user_id == user_id, SupportThread.order_id.is_(None)).order_by(SupportThread.id.desc())
+    return (await db.execute(stmt)).scalars().first()
+
+
+async def unread_total(db: AsyncSession, user_id: int) -> int:
+    """Admin replies the customer has not seen yet, over all their conversations (the Chat tab badge)."""
+    stmt = select(func.coalesce(func.sum(SupportThread.unread_for_customer), 0)).where(SupportThread.user_id == user_id)
+    return int((await db.execute(stmt)).scalar_one())
 
 
 async def user_threads(db: AsyncSession, user_id: int) -> list[SupportThread]:

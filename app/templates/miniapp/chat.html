@@ -1,0 +1,37 @@
+{% extends "miniapp/support_thread.html" %}
+{#- The Chat tab: the conversation with the admin straight away (the same live chat as a support thread).
+    Before the first message: a greeting with quick questions; order conversations are a tap away. -#}
+{% block title %}{{ t('nav.chat') }} · {{ app_name }}{% endblock %}
+{% block topbar %}
+<header class="home-head chat-head">
+  <span class="chat-av">{{ icon('message-fill', 22) }}</span>
+  <div class="hello"><h1>{{ t('chat.title') }}</h1><small>{{ p(reply_time) or p(working_hours) or t('chat.sub') }}</small></div>
+  <a class="icon-btn" href="/app/support" aria-label="{{ t('chat.all') }}">{{ icon('list', 20) }}{% if chat_unread %}<span class="badge-count">{{ chat_unread }}</span>{% endif %}</a>
+</header>
+{% endblock %}
+{% block chat_head %}
+{% if others %}
+<a class="chat-others" href="/app/support"><span class="list-icon">{{ icon('package', 17) }}</span><span class="flex-1">{{ t('chat.others') }}</span>{% if chat_unread %}<span class="badge-count">{{ chat_unread }}</span>{% else %}<span class="xs faint num">{{ others|length }}</span>{% endif %}{{ icon('chevron-right', 16, 'chev') }}</a>
+{% endif %}
+{% if not messages %}
+<section class="chat-hello">
+  <span class="chat-hello-ic">{{ icon('message', 30) }}</span>
+  <h2>{{ t('chat.hello') }}</h2>
+  <p>{{ t('chat.hello_text') }}</p>
+  <div class="chat-quick">{% for q in ('q1', 'q2', 'q3') %}<button type="button" class="fchip" data-quick="{{ t('chat.' ~ q) }}">{{ t('chat.' ~ q) }}</button>{% endfor %}</div>
+</section>
+{% endif %}
+<p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+(function(){
+  /* a quick question goes into the message box (still the customer's to send); Enter sends on a computer */
+  var form = document.getElementById('chat-form') || document.getElementById('chat-start'); if (!form) return;
+  var ta = form.querySelector('textarea');
+  document.querySelectorAll('[data-quick]').forEach(function (b) { b.addEventListener('click', function () { ta.value = b.dataset.quick; ta.focus(); }); });
+  if (form.id === 'chat-start') ta.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && window.innerWidth > 600) { e.preventDefault(); form.requestSubmit(); } });
+})();
+</script>
+{% endblock %}

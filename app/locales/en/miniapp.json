@@ -415,5 +415,16 @@
     "choose_language": "Choose language",
     "choose_currency": "Choose currency",
     "currency_note": "Prices are converted at the store's rate. Orders and payments are made in the product's currency."
+  },
+  "chat": {
+    "title": "Chat with the admin",
+    "sub": "Write your question — we answer right here",
+    "hello": "Hello! How can we help?",
+    "hello_text": "Choosing a drive, prices, an order or delivery — ask anything, the admin answers in this chat.",
+    "q1": "Help me choose a drive",
+    "q2": "I'd like to know price and stock",
+    "q3": "How long does delivery take?",
+    "others": "Order conversations",
+    "all": "All conversations"
   }
 }

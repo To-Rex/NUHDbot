@@ -23,7 +23,8 @@
     "profile": "Kabinet",
     "cart": "Savat",
     "back": "Ortga",
-    "menu": "Menyu"
+    "menu": "Menyu",
+    "chat": "Chat"
   },
   "condition": {
     "new": "New",

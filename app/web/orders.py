@@ -16,7 +16,7 @@ from app.web.router import router
 async def orders_page(request: Request, db: DB, lang: Lang, user: User = Depends(require_user), tab: str = "active"):
     active = tab != "history"
     orders = await user_orders(db, user.id, active=active)
-    return render(request, "miniapp/orders.html", {"lang": lang, "orders": orders, "tab": "active" if active else "history", "page_title": t(lang, "orders.title")})
+    return render(request, "miniapp/orders.html", {"lang": lang, "orders": orders, "tab": "active" if active else "history", "page_title": t(lang, "orders.title"), "back_url": "/app/profile"})
 
 
 def _progress(order) -> tuple[int, int]:

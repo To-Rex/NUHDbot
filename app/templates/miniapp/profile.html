@@ -40,7 +40,7 @@
 
   <section class="list stagger">
     <a class="list-item" href="/app/orders"><span class="list-icon">{{ icon('package', 18) }}</span><span class="list-title flex-1">{{ t('profile.my_orders') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
-    <a class="list-item" href="/app/support"><span class="list-icon green">{{ icon('message', 18) }}</span><span class="list-title flex-1">{{ t('profile.support') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
+    <a class="list-item" href="/app/chat"><span class="list-icon green">{{ icon('message', 18) }}</span><span class="list-title flex-1">{{ t('profile.support') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
     <a class="list-item" href="/app/info"><span class="list-icon indigo">{{ icon('book', 18) }}</span><span class="list-title flex-1">{{ t('profile.info') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
     <details class="acc" style="padding:0 16px"><summary><span class="row" style="gap:14px"><span class="list-icon orange">{{ icon('building', 18) }}</span><span class="list-title">{{ t('profile.about') }}</span></span></summary><div class="acc-body"><p>{{ t('profile.about_text') }}</p>{% if working_hours %}<p class="mt-2"><b>{{ t('profile.working_hours') }}:</b> {{ p(working_hours) }}</p><p><b>{{ t('profile.reply_time') }}:</b> {{ p(reply_time) }}</p>{% endif %}<p class="mt-2 xs faint mono">@{{ bot_username }}</p></div></details>
   </section>

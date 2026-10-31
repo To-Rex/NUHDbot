@@ -415,5 +415,16 @@
     "choose_language": "Tilni tanlang",
     "choose_currency": "Valyutani tanlang",
     "currency_note": "Narxlar do'kon belgilagan kurs bo'yicha hisoblanadi. Buyurtma va to'lov mahsulot valyutasida rasmiylashtiriladi."
+  },
+  "chat": {
+    "title": "Admin bilan chat",
+    "sub": "Savolingizni yozing — shu yerda javob beramiz",
+    "hello": "Salom! Qanday yordam bera olamiz?",
+    "hello_text": "Disk tanlash, narx, buyurtma yoki yetkazish — istalgan savolni yozing, admin shu chatda javob beradi.",
+    "q1": "Disk tanlashda yordam kerak",
+    "q2": "Narx va mavjudlikni bilmoqchiman",
+    "q3": "Yetkazish qancha vaqt oladi?",
+    "others": "Buyurtmalar bo'yicha suhbatlar",
+    "all": "Barcha murojaatlar"
   }
 }

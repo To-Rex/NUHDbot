@@ -23,7 +23,8 @@
     "profile": "Кабинет",
     "cart": "Корзина",
     "back": "Назад",
-    "menu": "Меню"
+    "menu": "Меню",
+    "chat": "Чат"
   },
   "condition": {
     "new": "New",

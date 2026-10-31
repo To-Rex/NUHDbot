@@ -23,7 +23,8 @@
     "profile": "Account",
     "cart": "Cart",
     "back": "Back",
-    "menu": "Menu"
+    "menu": "Menu",
+    "chat": "Chat"
   },
   "condition": {
     "new": "New",

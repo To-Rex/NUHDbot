@@ -3,18 +3,30 @@
 {% block topbar_actions %}{% endblock %}
 {% block content %}
 <div class="page" style="padding-bottom:calc(var(--nav-h) + var(--nav-gap) + 90px)">
-  <p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>
+  {% block chat_head %}<p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>{% endblock %}
+  {% if th %}
   <div class="chat" id="chat" data-thread="{{ th.id }}">
     {% include "miniapp/partials/messages.html" %}
   </div>
+  {% endif %}
 </div>
+{% if th %}
 <form class="chat-bar" id="chat-form" hx-boost="false" data-retry="{{ t('support.retry') }}" data-failed="{{ t('support.failed') }}">
   <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only">{{ icon('paperclip', 20) }}</label>
   <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
   <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}">{{ icon('send', 18) }}</button>
 </form>
+{% else %}{# no conversation yet (the Chat tab before the first message): a plain form starts it and comes back here #}
+<form class="chat-bar" id="chat-start" method="post" action="/app/support/new" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data">
+  <input type="hidden" name="to" value="chat">
+  <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only" onchange="if(this.files.length)this.form.requestSubmit()">{{ icon('paperclip', 20) }}</label>
+  <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
+  <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}">{{ icon('send', 18) }}</button>
+</form>
+{% endif %}
 {% endblock %}
 {% block scripts %}
+{% if th %}
 <script>
 (function(){
   /* live chat: the stream says "something changed", we fetch only messages newer than the last one on screen */
@@ -106,4 +118,5 @@
   });
 })();
 </script>
+{% endif %}
 {% endblock %}
