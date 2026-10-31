@@ -22,6 +22,7 @@ from app.i18n import t
 from app.models import Banner, Product, User
 from app.services import audit, discounts, media
 from app.services import banners as svc
+from app.services import series as series_service
 from app.services.settings_service import get_setting, set_setting
 
 FIELDS = ["kind", "title", "subtitle", "badge", "color", "product_id", "product_ids", "auto_sale", "link", "old_price", "starts_at", "ends_at", "is_active", "sort"]
@@ -85,6 +86,8 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
         "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
+        "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
+        "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
     })
 
 
@@ -119,6 +122,28 @@ async def banners_style(request: Request, db: DB, staff: User = Depends(staff_de
     await audit.log(db, staff.id, "settings.update", "settings", None, {"banner_slider_style": before}, {"banner_slider_style": style})
     await db.commit()
     return back(request, "/admin/banners", t(staff.lang, "admin.ban.style_saved", name=t(staff.lang, "admin.ban.style." + style)))
+
+
+@router.post("/banners/dir-style")
+async def directions_style(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """How the Directions slider on the Mini App home moves (cover-flow, orbit, card stack, fan)."""
+    before = await get_setting(db, "dir_slider_style")
+    style = series_service.clean_style((await request.form()).get("style"))
+    await set_setting(db, "dir_slider_style", style)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"dir_slider_style": before}, {"dir_slider_style": style})
+    await db.commit()
+    return back(request, "/admin/banners", t(staff.lang, "admin.ser.style_saved", name=t(staff.lang, "admin.ser.style." + style)))
+
+
+@router.post("/banners/dir-shape")
+async def directions_shape(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """The Directions slider's card shape on the Mini App home: tall portrait cards or wide landscape ones."""
+    before = await get_setting(db, "dir_slider_shape")
+    shape = svc.clean_shape((await request.form()).get("shape"))
+    await set_setting(db, "dir_slider_shape", shape)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"dir_slider_shape": before}, {"dir_slider_shape": shape})
+    await db.commit()
+    return back(request, "/admin/banners", t(staff.lang, "admin.shape.saved", name=t(staff.lang, "admin.shape." + shape)))
 
 
 @router.get("/banners/new")

@@ -923,7 +923,7 @@
       "image_delete_q": "移除“{name}”的图片？",
       "image_saved": "已保存“{name}”的图片",
       "image_removed": "已移除“{name}”的图片",
-      "style_title": "迷你应用中的样式",
+      "style_title": "「产品方向」滑块",
       "style_hint": "首页「产品方向」滑块的动效——选择一种，立即保存。",
       "style_saved": "样式已保存：{name}",
       "style": {

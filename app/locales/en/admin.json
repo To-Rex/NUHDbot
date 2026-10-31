@@ -923,7 +923,7 @@
       "image_delete_q": "Remove the «{name}» picture?",
       "image_saved": "«{name}» picture saved",
       "image_removed": "«{name}» picture removed",
-      "style_title": "Mini App view",
+      "style_title": "Directions slider",
       "style_hint": "How the Directions slider moves on the home page — pick one, it is saved right away.",
       "style_saved": "View saved: {name}",
       "style": {
