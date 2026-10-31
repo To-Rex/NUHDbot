@@ -147,6 +147,8 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
         errors.append("label_model")
     p.purposes = [x for x in form.getlist("purposes") if x in [e.value for e in Purpose]]
     p.color = form.get("color") if form.get("color") in [c.value for c in ProductColor] else None
+    if p.color is None and is_new:  # the new-product form has no colour picker: the series gives it
+        p.color = await series_service.colour_for(db, p.brand_id, p.series, p.model)
     p.rpm = f_int(form, "rpm", None)
     p.cache_mb = f_int(form, "cache_mb", None)
     old_price = p.price

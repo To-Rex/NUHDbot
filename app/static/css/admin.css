@@ -746,8 +746,26 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .color-txt b{font-size:13px}
 .color-txt small{font-size:11.5px;color:var(--ink-3);line-height:1.3}
 .color-auto{color:var(--accent);font-weight:600}
-.series-hint .series-dot{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
-.series-hint.on{color:var(--ink-2)}
+/* product form: series chips right after the brand; the colour follows the series */
+.series-chips{display:flex;flex-wrap:wrap;gap:6px;min-height:38px;align-items:center}
+.series-chip{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 11px;border-radius:9px;border:1px solid var(--hairline-strong);background:var(--surface);color:var(--ink-2);font-size:12.5px;font-weight:600;transition:border-color var(--t-fast),background var(--t-fast),color var(--t-fast)}
+.series-chip:hover:not(:disabled){border-color:var(--accent);color:var(--ink)}
+.series-chip.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);box-shadow:0 0 0 1px var(--accent)}
+.series-chip:disabled{opacity:.6;cursor:default}
+.series-chip .series-dot,.series-out .series-dot,.color-now .series-dot{display:inline-block;width:10px;height:10px;flex:0 0 auto;vertical-align:-1px}
+.series-out .series-dot{margin-right:6px}
+.series-other{border-style:dashed}
+.series-field .input{margin-top:6px}
+.series-out.on{color:var(--ink-2)}
+.color-more{border:1px solid var(--hairline);border-radius:12px;padding:0 14px}
+.color-more>summary{display:flex;align-items:center;gap:10px;min-height:46px;cursor:pointer;list-style:none;font-size:13px}
+.color-more>summary::-webkit-details-marker{display:none}
+.color-more-lbl{font-weight:600}
+.color-now{display:inline-flex;align-items:center;gap:7px;color:var(--ink-2)}
+.color-more-act{margin-left:auto;display:inline-flex;align-items:center;gap:4px;color:var(--accent);font-weight:600;font-size:12.5px}
+.color-more-act svg{transition:transform var(--t-fast)}
+.color-more[open] .color-more-act svg{transform:rotate(180deg)}
+.color-more[open]{padding-bottom:12px}
 .series-apply{margin-left:4px;padding:1px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:11.5px;font-weight:700}
 .series-apply:hover{background:var(--accent);color:var(--accent-ink)}
 

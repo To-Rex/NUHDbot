@@ -47,3 +47,12 @@ async def test_apply_all_and_dictionary_shape(db):
     assert await svc.uncoloured_count(db) == 0
     assert svc.as_dict(s) == {"b": b.id, "n": "SkyHawk", "k": "SKYHAWK", "c": "purple"}
     assert svc.clean_color("pink") is None and svc.norm_name("  Iron   Wolf ") == "Iron Wolf"
+
+
+async def test_colour_for_new_products(db):
+    b, s, *_ = await _setup(db)
+    assert await svc.colour_for(db, b.id, " skyhawk ") == "purple"  # this brand's series
+    assert await svc.colour_for(db, None, "SkyHawk") == "purple"  # no brand: the only colour any brand gives it
+    assert await svc.colour_for(db, b.id, "IronWolf Pro") == "red"  # not in the list: the name says NAS
+    assert await svc.colour_for(db, b.id, "WD White") == "silver" and await svc.colour_for(db, b.id, "Gold") == "gold"
+    assert await svc.colour_for(db, b.id, "Some line", "XYZ123") is None

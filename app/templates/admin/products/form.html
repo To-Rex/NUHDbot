@@ -9,7 +9,7 @@
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ t('admin.required') }}: {{ errors|join(', ') }}</span></div>{% endif %}
 <div class="split form-split prod-edit">
 <div class="prod-main">
-<form method="post" id="product-form" class="prod-form" data-track enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
+<form method="post" id="product-form" class="prod-form" data-track data-colour-form enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection" id="s-basic"><h2 data-n="01">{{ t('admin.prod.sec_basic') }}</h2>
     <div class="form-grid mt">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
@@ -21,6 +21,16 @@
         </select>
         <input class="input mt-sm" name="brand_other" id="brand-other" value="{{ prod.brand if (prod.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not prod.brand %}hidden{% endif %} {{ dis }}>
         <span class="hint"><a href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></span></div>
+      {% set dirs = {} %}{% for c in colors %}{% set _ = dirs.update({c.value: [color_dir[c], t('admin.ser.colorname.' ~ c.value)]}) %}{% endfor %}
+      <div class="field series-field"><label>{{ t('admin.prod.series') }}</label>
+        <div class="series-chips" data-series-chips data-l-other="{{ t('admin.prod.series_other') }}" data-l-pick-brand="{{ t('admin.prod.series_pick_brand') }}" data-l-none="{{ t('admin.prod.series_none_brand') }}"></div>
+        <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" list="series-list" autocomplete="off" data-series-input {{ dis }}>
+        <datalist id="series-list"></datalist>
+        <span class="hint series-out" data-series-out data-dirs="{{ dirs|tojson|forceescape }}" data-t-series="{{ t('admin.prod.dir_from_series') }}" data-t-guess="{{ t('admin.prod.dir_guess') }}" data-t-own="{{ t('admin.prod.dir_own') }}" data-t-none="{{ t('admin.prod.dir_none') }}" data-t-diff="{{ t('admin.prod.series_color_diff') }}" data-apply="{{ t('admin.prod.series_apply') }}">{{ t('admin.prod.dir_none') }}</span>
+        {% if is_new %}<input type="hidden" name="color" value="{{ prod.color or '' }}" data-color-hidden>{% endif %}
+        <script type="application/json" id="series-data">{{ series|tojson }}</script></div>
+    </div>
+    <div class="form-grid mt">
       <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label>
         <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-other="{{ t('admin.prod.model_other_brands') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
           <input class="input mono" name="model" id="model-input" value="{{ prod.model }}" placeholder="{{ t('admin.prod.model_placeholder') }}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="model-pop" required {{ dis }}>
@@ -43,12 +53,16 @@
     </div>
     <div class="field mt"><label>{{ t('admin.prod.condition') }}</label>
       <div class="cond-pick">{% for c in conditions %}<label class="cond-card cond-{{ c.value }}"><input type="radio" name="condition" value="{{ c.value }}" {{ 'checked' if prod.condition==c }} {{ dis }}><b>{{ t('condition.' ~ c.value) }}</b><small>{{ t('condition.' ~ c.value ~ '_desc')|truncate(70) }}</small></label>{% endfor %}</div></div>
-    <div class="field mt"><label>{{ t('admin.prod.color') }} <span class="hint color-auto" data-color-auto hidden>· {{ t('admin.prod.color_auto') }}</span></label>
+    {% if not is_new %}
+    <details class="color-more mt" {{ 'open' if errors }}>
+      <summary><span class="color-more-lbl">{{ t('admin.prod.color') }}</span><span class="color-now" data-color-now data-none="{{ t('admin.prod.color_none') }}"><span class="series-dot sw sw-{{ prod.color or 'none' }}"></span>{{ color_dir[prod.color] if prod.color else t('admin.prod.color_none') }}</span><span class="color-more-act">{{ t('admin.prod.color_change') }}{{ icon('chevron-down', 14) }}</span></summary>
       <div class="color-pick" data-color-pick>
         <label class="color-opt"><input type="radio" name="color" value="" {{ 'checked' if not prod.color }} {{ dis }}><span class="sw sw-none"></span><span class="color-txt"><b>{{ t('admin.prod.color_none') }}</b><small>{{ t('admin.prod.color_none_desc') }}</small></span></label>
         {% for c in colors %}<label class="color-opt"><input type="radio" name="color" value="{{ c.value }}" {{ 'checked' if prod.color == c.value }} {{ dis }}><span class="sw sw-{{ c.value }}"></span><span class="color-txt"><b>{{ color_dir[c] }}</b><small>{{ t('admin.prod.color_' ~ c.value) }} · {{ color_examples[c] }}</small></span></label>{% endfor %}
       </div>
-      <span class="hint">{{ t('admin.prod.color_hint') }}</span></div>
+      <span class="hint">{{ t('admin.prod.color_hint') }}</span>
+    </details>
+    {% endif %}
     <div class="form-grid mt">
       <div class="field" id="label-model-row" {% if prod.condition.value != 'refresh' %}hidden{% endif %}><label>{{ t('admin.prod.label_model') }}</label><input class="input mono" name="label_model" value="{{ prod.label_model or '' }}" {{ dis }}><span class="hint">{{ t('admin.prod.refresh_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}>{% set curs = currency_list() %}<select class="select mono" name="currency" style="width:96px;flex:0 0 auto" aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ dis }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == prod.currency }}>{{ c.code }}</option>{% endfor %}{% if prod.currency not in curs|map(attribute='code')|list %}<option value="{{ prod.currency }}" selected>{{ prod.currency }}</option>{% endif %}</select></div></div>
@@ -90,11 +104,6 @@
 
   <details class="fsection" id="s-tech" {{ 'open' if errors or tester }}><summary data-n="{{ n_tech }}"><span class="ttl">{{ t('admin.prod.sec_tech') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_tech_hint') }}{% else %}{{ prod.interface.value }} · {{ prod.form_factor.value }}″{% if prod.rpm %} · {{ prod.rpm }} rpm{% endif %}{% if prod.series %} · {{ prod.series }}{% endif %} · {{ t('test.' ~ prod.test_status.value) }}{% endif %}</span></summary>
     <div class="form-grid mt">
-      <div class="field"><label>{{ t('admin.prod.series') }}</label>
-        <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" list="series-list" autocomplete="off" data-series-input {{ dis }}>
-        <datalist id="series-list"></datalist>
-        <span class="hint series-hint" data-series-hint data-tpl-same="{{ t('admin.prod.series_color') }}" data-tpl-diff="{{ t('admin.prod.series_color_diff') }}" data-apply="{{ t('admin.prod.series_apply') }}">{{ t('admin.prod.series_hint') }} <a href="/admin/series" target="_blank" rel="noopener">{{ t('admin.nav.series') }} →</a></span>
-        <script type="application/json" id="series-data">{{ series|tojson }}</script></div>
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
       {% if is_new %}<input type="hidden" name="form_factor" value="{{ prod.form_factor.value if prod.form_factor else '3.5' }}"><input type="hidden" name="rpm" value="{{ prod.rpm or '' }}"><input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% else %}
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
@@ -277,7 +286,7 @@
   function cap(){ var v=parseFloat(String(val('capacity_value')).replace(',','.')); if(!v) return ''; return checked('capacity_unit')==='gb'?(v>=1000&&v%1000===0?(v/1000)+'TB':v+'GB'):(v+'TB'); }
   function money(){ var p=parseFloat(String(val('price')).replace(',','.')); if(isNaN(p)) return '—'; var c=(val('currency')||'USD').toUpperCase(); return (c==='USD'?'$':c+' ')+(p%1?p.toFixed(2):p.toFixed(0)); }
   function draw(){
-    var b=brand(), m=val('model'), c=cap(), cond=checked('condition')||'new', col=checked('color');
+    var b=brand(), m=val('model'), c=cap(), cond=checked('condition')||'new', col=checked('color')||((document.querySelector('#product-form [data-color-hidden]')||{}).value||'');  /* new product: the colour comes from the series */
     pp.querySelector('[data-pp-price]').textContent=money();
     pp.querySelector('[data-pp-title]').textContent=((b+' '+m).trim())||'—';
     var spec=[c, val('interface'), val('form_factor')?val('form_factor')+'″':'', val('series')].filter(Boolean).join(' · ');

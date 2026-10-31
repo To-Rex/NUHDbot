@@ -8,6 +8,10 @@ from app.enums import ProductColor
 from app.models import Product, Series
 
 COLORS = {c.value for c in ProductColor}
+# a series / model name that says its direction (same rules as the product form)
+HINTS = [(r"\b(wd\s*)?white\b", "silver"), (r"\b(purple|skyhawk|s300)\b", "purple"), (r"\b(red|ironwolf|n300)\b", "red"),
+         (r"\b(gold|exos|ultrastar|mg\d{2})", "gold"), (r"\b(black|wd_black|firecuda)\b", "black"), (r"\b(blue|barracuda|p300)\b", "blue"),
+         (r"\bsurveillance\b", "purple"), (r"\bnas\b", "red"), (r"\benterprise\b", "gold"), (r"\bdata\s*cent(er|re)\b", "silver"), (r"\bgaming\b", "black"), (r"\bdesktop\b", "blue")]
 
 
 def norm_name(name: str | None) -> str:
@@ -85,6 +89,25 @@ async def apply_all(db: AsyncSession) -> int:
         update(Product).where(Product.color.is_(None), exists(_series_colour_for_product())).values(color=_series_colour_for_product().scalar_subquery()).execution_options(synchronize_session=False)
     )
     return res.rowcount or 0
+
+
+def guess_color(*texts: str | None) -> str | None:
+    text = " ".join(t for t in texts if t)
+    return next((c for rx, c in HINTS if re.search(rx, text, re.I)), None)
+
+
+async def colour_for(db: AsyncSession, brand_id: int | None, series: str | None, model: str | None = None) -> str | None:
+    """The colour a product gets from its series: the dictionary entry (this brand's, else one every brand agrees on),
+    else what the series / model name says."""
+    key = norm_key(series)
+    if key:
+        rows = (await db.execute(select(Series.brand_id, Series.color).where(Series.key == key, Series.color.is_not(None)))).all()
+        own = next((c for b, c in rows if b == brand_id), None)
+        if own:
+            return own
+        if rows and len({c for _, c in rows}) == 1:
+            return rows[0][1]
+    return guess_color(series, model)
 
 
 def as_dict(s: Series) -> dict:
