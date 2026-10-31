@@ -228,13 +228,17 @@
       "series_color_diff": "Series direction: {name}; the product has another.",
       "series_apply": "Use the series direction",
       "series_other": "Other",
-      "series_pick_brand": "Pick the brand first — its series show up here",
-      "series_none_brand": "This brand has no series yet — type the name or add it on the Series page",
+      "series_none_brand": "This brand has no series — type the name below",
       "dir_from_series": "Colour from the series: {dir}",
       "dir_guess": "Colour guessed from the name: {dir}",
       "dir_own": "Product colour: {dir}",
       "dir_none": "Pick a series and its direction colour is set",
-      "color_change": "Change"
+      "color_change": "Change",
+      "series_pick_brand_short": "Pick the brand first",
+      "series_choose": "Choose a series",
+      "series_typed": "typed by hand",
+      "series_clear": "No series",
+      "series_other_long": "Other — type it"
     },
     "ord": {
       "title": "Orders",

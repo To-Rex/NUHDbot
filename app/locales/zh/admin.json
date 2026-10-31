@@ -228,13 +228,17 @@
       "series_color_diff": "系列方向：{name}，商品为其他方向。",
       "series_apply": "使用系列方向",
       "series_other": "其他",
-      "series_pick_brand": "请先选择品牌——其系列会显示在这里",
-      "series_none_brand": "该品牌还没有系列——输入名称或在“系列”页面添加",
+      "series_none_brand": "该品牌没有系列——请在下方输入名称",
       "dir_from_series": "颜色来自系列：{dir}",
       "dir_guess": "根据名称推测的颜色：{dir}",
       "dir_own": "商品颜色：{dir}",
       "dir_none": "选择系列后会自动设置方向颜色",
-      "color_change": "更改"
+      "color_change": "更改",
+      "series_pick_brand_short": "请先选择品牌",
+      "series_choose": "选择系列",
+      "series_typed": "手动输入",
+      "series_clear": "无系列",
+      "series_other_long": "其他——手动输入"
     },
     "ord": {
       "title": "订单",

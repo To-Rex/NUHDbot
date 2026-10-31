@@ -23,7 +23,16 @@
         <span class="hint"><a href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></span></div>
       {% set dirs = {} %}{% for c in colors %}{% set _ = dirs.update({c.value: [color_dir[c], t('admin.ser.colorname.' ~ c.value)]}) %}{% endfor %}
       <div class="field series-field"><label>{{ t('admin.prod.series') }}</label>
-        <div class="series-chips" data-series-chips data-l-other="{{ t('admin.prod.series_other') }}" data-l-pick-brand="{{ t('admin.prod.series_pick_brand') }}" data-l-none="{{ t('admin.prod.series_none_brand') }}"></div>
+        <div class="series-select" data-series-select data-l-pick-brand="{{ t('admin.prod.series_pick_brand_short') }}" data-l-choose="{{ t('admin.prod.series_choose') }}" data-l-none="{{ t('admin.prod.series_none_brand') }}" data-l-typed="{{ t('admin.prod.series_typed') }}" data-l-no-dir="{{ t('admin.ser.no_color') }}">
+          <button type="button" class="select series-trigger" data-series-trigger aria-haspopup="listbox" aria-expanded="false" {{ dis }}><span class="series-value" data-series-value></span></button>
+          <div class="series-pop" data-series-pop role="listbox" hidden></div>
+          <template data-series-extra>
+            <div class="series-sep" role="separator"></div>
+            <div class="series-opt series-act" role="option" data-act="clear">{{ icon('x', 14) }}<span class="so-name">{{ t('admin.prod.series_clear') }}</span></div>
+            <div class="series-opt series-act" role="option" data-act="other">{{ icon('edit', 14) }}<span class="so-name">{{ t('admin.prod.series_other_long') }}</span></div>
+            <a class="series-manage" href="/admin/series" target="_blank" rel="noopener">{{ icon('grid', 13) }}{{ t('admin.ser.title') }} →</a>
+          </template>
+        </div>
         <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" list="series-list" autocomplete="off" data-series-input {{ dis }}>
         <datalist id="series-list"></datalist>
         <span class="hint series-out" data-series-out data-dirs="{{ dirs|tojson|forceescape }}" data-t-series="{{ t('admin.prod.dir_from_series') }}" data-t-guess="{{ t('admin.prod.dir_guess') }}" data-t-own="{{ t('admin.prod.dir_own') }}" data-t-none="{{ t('admin.prod.dir_none') }}" data-t-diff="{{ t('admin.prod.series_color_diff') }}" data-apply="{{ t('admin.prod.series_apply') }}">{{ t('admin.prod.dir_none') }}</span>

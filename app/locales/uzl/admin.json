@@ -228,13 +228,17 @@
       "series_color_diff": "Seriya yo'nalishi: {name}, mahsulotniki boshqa.",
       "series_apply": "Seriya yo'nalishini qo'yish",
       "series_other": "Boshqa",
-      "series_pick_brand": "Avval brendni tanlang — uning seriyalari shu yerda chiqadi",
-      "series_none_brand": "Bu brendda hali seriya yo'q — nomini yozing yoki «Seriyalar» sahifasida qo'shing",
+      "series_none_brand": "Bu brendda seriya yo'q — pastda nomini yozing",
       "dir_from_series": "Rang seriyadan: {dir}",
       "dir_guess": "Rang nomdan taxmin qilindi: {dir}",
       "dir_own": "Mahsulot rangi: {dir}",
       "dir_none": "Seriya tanlansa, yo'nalish rangi avtomatik qo'yiladi",
-      "color_change": "O'zgartirish"
+      "color_change": "O'zgartirish",
+      "series_pick_brand_short": "Avval brendni tanlang",
+      "series_choose": "Seriyani tanlang",
+      "series_typed": "qo'lda yozilgan",
+      "series_clear": "Seriyasiz",
+      "series_other_long": "Boshqa — qo'lda yozish"
     },
     "ord": {
       "title": "Buyurtmalar",

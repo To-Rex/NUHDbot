@@ -562,7 +562,7 @@
   document.addEventListener('htmx:afterSettle', (e) => bindAdForm(e.target));
 
   // ---------- product colour: it comes from the series' direction ----------
-  // The series is picked right after the brand (chips of that brand's series, or typed by hand). New product: no
+  // The series is picked right after the brand (a menu of that brand's series, or typed by hand). New product: no
   // colour picker, the colour is the series' (else guessed from the name). Edit: the colour can still be changed in
   // the folded "Direction colour" section; a hand pick stays until the series changes again.
   const COLOR_HINTS = [[/\b(wd\s*)?white\b/i, 'silver'], [/\b(purple|skyhawk|s300)\b/i, 'purple'], [/\b(red|ironwolf|n300)\b/i, 'red'],
@@ -576,10 +576,11 @@
       const field = (n) => form.querySelector('[name="' + n + '"]');
       const radios = () => Array.from(form.querySelectorAll('input[type=radio][name=color]'));
       const hidden = form.querySelector('input[data-color-hidden]'), pick = form.querySelector('[data-color-pick]'), now = form.querySelector('[data-color-now]');
-      const input = form.querySelector('[data-series-input]'), chips = form.querySelector('[data-series-chips]'), out = form.querySelector('[data-series-out]'), list = document.getElementById('series-list');
+      const input = form.querySelector('[data-series-input]'), out = form.querySelector('[data-series-out]'), list = document.getElementById('series-list');
+      const sel = form.querySelector('[data-series-select]'), trigger = sel && sel.querySelector('[data-series-trigger]'), valueEl = sel && sel.querySelector('[data-series-value]'), pop = sel && sel.querySelector('[data-series-pop]'), extra = sel && sel.querySelector('[data-series-extra]');
       if (!input) return;
       let series = []; try { series = JSON.parse((document.getElementById('series-data') || {}).textContent || '[]'); } catch (e) {}
-      const O = out ? out.dataset : {}, C = chips ? chips.dataset : {};
+      const O = out ? out.dataset : {}, C = sel ? sel.dataset : {};
       let dirs = {}; try { dirs = JSON.parse(O.dirs || '{}'); } catch (e) {}
       const brandId = () => (field('brand_id') || {}).value || '';
       const current = () => (hidden ? hidden.value : ((radios().find((r) => r.checked) || {}).value || ''));
@@ -600,23 +601,63 @@
       let touched = !hidden && radios().some((r) => r.checked && r.value); // on edit a saved colour counts as a choice
       let fromSeries = false, other = false, lastKey = normKey(input.value);
 
-      function renderChips() {
-        const b = brandId(), own = series.filter((x) => b && String(x.b) === b), k = normKey(input.value), hit = own.some((x) => x.k === k);
+      const ownSeries = () => { const b = brandId(); return series.filter((x) => b && String(x.b) === b); };
+      // the series menu: looks like the brand select; the list shows each series with its direction colour
+      function renderSelect() {
+        const b = brandId(), own = ownSeries(), k = normKey(input.value), hit = own.find((x) => x.k === k);
         if (list) { list.textContent = ''; own.forEach((x) => { const o = document.createElement('option'); o.value = x.n; list.appendChild(o); }); }
-        if (!chips) return;
-        chips.textContent = '';
-        if (!b) { chips.innerHTML = '<span class="hint">' + escHtml(C.lPickBrand) + '</span>'; input.hidden = !input.value; return; }
+        if (!sel) return;
+        let html;
+        if (!b && !k) html = '<span class="series-ph">' + escHtml(C.lPickBrand) + '</span>';
+        else if (hit) html = dot(hit.c) + '<span class="sv-name">' + escHtml(hit.n) + '</span>' + (hit.c ? '<span class="sv-dir">' + escHtml(dirName(hit.c)) + '</span>' : '');
+        else if (k) { const c = (known() || {}).c || guess(); html = dot(c) + '<span class="sv-name">' + escHtml(input.value.trim()) + '</span><span class="sv-dir">' + escHtml(C.lTyped) + '</span>'; }
+        else html = '<span class="series-ph">' + escHtml(own.length ? C.lChoose : C.lNone) + '</span>';
+        valueEl.innerHTML = html;
+        trigger.disabled = input.disabled || !b;
+        input.hidden = !(other || (b && !own.length && b !== '') || (!b && k));
+      }
+      let active = -1;
+      const opts = () => Array.from(pop.querySelectorAll('.series-opt'));
+      const setActive = (i) => { const o = opts(); if (!o.length) return; active = (i + o.length) % o.length; o.forEach((x, j) => x.classList.toggle('active', j === active)); o[active].scrollIntoView({ block: 'nearest' }); };
+      function openPop() {
+        if (!sel || trigger.disabled) return;
+        const own = ownSeries(), k = normKey(input.value);
+        pop.textContent = '';
         own.forEach((x) => {
-          const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'series-chip' + (x.k === k ? ' on' : ''); btn.dataset.series = x.n; btn.disabled = input.disabled;
-          btn.innerHTML = dot(x.c) + escHtml(x.n); btn.title = x.c ? dirText(x.c) : ''; chips.appendChild(btn);
+          const o = document.createElement('div'); o.className = 'series-opt' + (x.k === k ? ' chosen' : ''); o.setAttribute('role', 'option'); o.setAttribute('aria-selected', x.k === k ? 'true' : 'false'); o.dataset.value = x.n;
+          o.innerHTML = dot(x.c) + '<span class="so-name">' + escHtml(x.n) + '</span><span class="so-dir">' + escHtml(x.c ? dirName(x.c) : C.lNoDir) + '</span>' + (x.k === k ? ICONS.ok.replace('<svg', '<svg class="so-check"') : '');
+          pop.appendChild(o);
         });
-        if (own.length) {
-          const o = document.createElement('button'); o.type = 'button'; o.className = 'series-chip series-other' + (other || (k && !hit) ? ' on' : ''); o.dataset.seriesOther = '1'; o.disabled = input.disabled;
-          o.textContent = C.lOther; chips.appendChild(o);
-        } else if (b !== '__other__') {
-          chips.innerHTML = '<span class="hint">' + escHtml(C.lNone) + ' <a href="/admin/series" target="_blank" rel="noopener">→</a></span>';
+        if (extra) {
+          pop.appendChild(extra.content.cloneNode(true));
+          if (!k) { const c = pop.querySelector('[data-act=clear]'); if (c) c.remove(); }
+          if (!own.length) { const sp = pop.querySelector('.series-sep'); if (sp) sp.remove(); }
         }
-        input.hidden = own.length > 0 && !other && !(k && !hit);
+        pop.hidden = false; trigger.setAttribute('aria-expanded', 'true'); sel.classList.add('open');
+        const o = opts(); setActive(Math.max(0, o.findIndex((x) => x.classList.contains('chosen'))));
+        pop.scrollIntoView({ block: 'nearest' });  // the whole menu in view, above the sticky save bar
+      }
+      function closePop(focus) { if (!sel || pop.hidden) return; pop.hidden = true; trigger.setAttribute('aria-expanded', 'false'); sel.classList.remove('open'); active = -1; if (focus) trigger.focus(); }
+      function choose(o) {
+        if (!o) return;
+        if (o.dataset.act === 'other') { other = true; if (ownSeries().some((x) => x.k === normKey(input.value))) input.value = ''; closePop(false); render(); input.hidden = false; input.focus(); input.dispatchEvent(new Event('input', { bubbles: true })); return; }
+        other = false; input.value = o.dataset.act === 'clear' ? '' : o.dataset.value;
+        closePop(true); input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (sel) {
+        trigger.addEventListener('click', () => (pop.hidden ? openPop() : closePop(true)));
+        trigger.addEventListener('keydown', (e) => {
+          if (pop.hidden) { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); openPop(); } return; }
+          if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+          else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(opts()[active]); }
+          else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePop(true); }
+          else if (e.key === 'Tab') closePop(false);
+        });
+        pop.addEventListener('mousedown', (e) => e.preventDefault());  // keep focus on the trigger
+        pop.addEventListener('click', (e) => { const o = e.target.closest('.series-opt'); if (o) choose(o); });
+        pop.addEventListener('mousemove', (e) => { const o = e.target.closest('.series-opt'); if (o) setActive(opts().indexOf(o)); });
+        document.addEventListener('click', (e) => { if (!sel.contains(e.target)) closePop(false); });
       }
       function renderOut() {
         const s = known(), c = current();
@@ -630,7 +671,7 @@
         }
         if (now) now.innerHTML = dot(c) + escHtml(c ? dirName(c) : now.dataset.none);
       }
-      const render = () => { renderChips(); renderOut(); };
+      const render = () => { renderSelect(); renderOut(); };
       // the series (or the brand) changed: take its colour; nothing known → guess from the name
       function apply() {
         const s = known();
@@ -641,16 +682,10 @@
       }
       const onSeries = () => { const k = normKey(input.value); if (k !== lastKey) { lastKey = k; apply(); } render(); };
       input.addEventListener('input', onSeries); input.addEventListener('change', onSeries);
-      if (chips) chips.addEventListener('click', (e) => {
-        const btn = e.target.closest('button'); if (!btn || btn.disabled) return;
-        if (btn.dataset.seriesOther) { other = true; if (known() && known().b && String(known().b) === brandId()) input.value = ''; render(); input.hidden = false; input.focus(); input.dispatchEvent(new Event('input', { bubbles: true })); return; }
-        other = false; input.value = normKey(input.value) === normKey(btn.dataset.series) ? '' : btn.dataset.series;  // a second tap clears it
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      });
       if (out) out.addEventListener('click', (e) => { const s = known(); if (e.target.closest('[data-series-apply]') && s && s.c) { setColor(s.c); touched = false; fromSeries = true; renderOut(); } });
       if (pick) pick.addEventListener('change', (e) => { if (e.isTrusted) touched = true; renderOut(); });
       const model = field('model'); if (model) { const onModel = () => { if (!known() && (hidden || !touched)) { const g = guess(); if (hidden || g || !fromSeries) setColor(g); } renderOut(); }; model.addEventListener('input', onModel); model.addEventListener('change', onModel); }
-      const brand = field('brand_id'); if (brand) brand.addEventListener('change', () => { other = false; lastKey = ''; if (input.value.trim()) onSeries(); else render(); });
+      const brand = field('brand_id'); if (brand) brand.addEventListener('change', () => { closePop(false); other = false; lastKey = ''; if (input.value.trim()) onSeries(); else render(); });
       if (hidden && !hidden.value) apply();
       render();
     });
