@@ -984,6 +984,10 @@
       "f_image_pick": "选择图片",
       "f_image_remove": "移除图片",
       "f_image_hint": "图片会铺满整个幻灯片；建议横图 1200×600。",
+      "f_image_replace": "更换",
+      "f_image_removed": "图片已移除——背景为颜色。",
+      "f_image_restore": "撤销",
+      "f_color_over_image": "当前背景为图片，颜色不可见。选择颜色将移除图片。",
       "target": {
         "product": "单个商品",
         "link": "页面",

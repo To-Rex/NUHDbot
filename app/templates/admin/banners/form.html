@@ -17,12 +17,19 @@
 
   <section class="fsection"><h2 data-n="03">{{ t('admin.ban.sec_look') }}</h2>
     <div class="field mt"><label>{{ t('admin.ban.f_color') }}</label>
-      <div class="bn-colors">{% for c in colors %}<label class="bn-color c-{{ c }}" title="{{ t('admin.ban.color.' ~ c) }}"><input type="radio" name="color" value="{{ c }}" {{ 'checked' if b.color == c }}><span></span></label>{% endfor %}</div></div>
+      <div class="bn-colors">{% for c in colors %}<label class="bn-color c-{{ c }}" title="{{ t('admin.ban.color.' ~ c) }}"><input type="radio" name="color" value="{{ c }}" {{ 'checked' if b.color == c }}><span></span></label>{% endfor %}</div>
+      <span class="hint" data-bn-color-note {% if not b.image %}hidden{% endif %}>{{ t('admin.ban.f_color_over_image') }}</span></div>
     <div class="field mt"><label>{{ t('admin.ban.f_image') }}</label>
-      <div class="bn-image">
-        {% if b.image %}<img src="{{ b.image_url }}" alt="" class="bn-image-now">{% endif %}
-        <label class="btn btn-secondary btn-sm">{{ icon('upload', 15) }}{{ t('admin.ban.f_image_pick') }}<input type="file" name="image" accept="image/*" hidden data-bn-image></label>
-        {% if b.image %}<label class="check"><input type="checkbox" name="remove_image" value="1" data-bn-remove>{{ t('admin.ban.f_image_remove') }}</label>{% endif %}
+      {# the background is the colour or the image: the image can be replaced or removed (and the removal undone) until saved #}
+      <div class="bn-image" data-bn-image-box data-saved="{{ b.image_url if b.image else '' }}">
+        <img src="{{ b.image_url if b.image else '' }}" alt="" class="bn-image-now" data-bn-thumb {% if not b.image %}hidden{% endif %}>
+        <div class="bn-image-acts">
+          <button type="button" class="btn btn-secondary btn-sm" data-bn-pick data-l-pick="{{ t('admin.ban.f_image_pick') }}" data-l-replace="{{ t('admin.ban.f_image_replace') }}">{{ icon('upload', 15) }}<span>{{ t('admin.ban.f_image_replace') if b.image else t('admin.ban.f_image_pick') }}</span></button>
+          <button type="button" class="btn btn-secondary btn-sm bn-image-drop" data-bn-drop {% if not b.image %}hidden{% endif %}>{{ icon('x', 15) }}{{ t('admin.ban.f_image_remove') }}</button>
+          <span class="bn-image-undo" data-bn-undo hidden>{{ t('admin.ban.f_image_removed') }}<button type="button" class="link-btn" data-bn-restore>{{ icon('refresh', 13) }}{{ t('admin.ban.f_image_restore') }}</button></span>
+        </div>
+        <input type="file" name="image" accept="image/*" hidden data-bn-image>
+        <input type="hidden" name="remove_image" value="" data-bn-remove>
       </div>
       <span class="hint">{{ t('admin.ban.f_image_hint') }}</span></div>
   </section>
@@ -95,7 +102,10 @@
   var q=function(s){ return slide.querySelector(s); }, F=function(n){ return form.querySelector('[name="'+n+'"]'); };
   var lang={{ (staff.lang or 'uz')|tojson }}, langs={{ langs|tojson }}, ph={{ t('admin.ban.title_ph')|tojson }}, tN={{ t('admin.ban.n_products')|tojson }}, tFrom={{ t('admin.ban.from')|tojson }};
   var iconSvg={}; form.querySelectorAll('.bn-kind').forEach(function(k){ iconSvg[k.querySelector('input').value]=k.querySelector('svg').outerHTML; });
-  var imageUrl=slide.querySelector('.bn-bg') ? slide.querySelector('.bn-bg').src : '';
+  /* background image: the saved one, a newly picked file, or none (removed → the colour shows) */
+  var box=form.querySelector('[data-bn-image-box]'), fileIn=form.querySelector('[data-bn-image]'), rm=form.querySelector('[data-bn-remove]');
+  var savedUrl=box.dataset.saved||'', pickedUrl='', undo=null;
+  function imageUrl(){ return (!fileIn.disabled&&pickedUrl)||(rm.value!=='1'&&savedUrl)||''; }
   var picks=[].slice.call(form.querySelectorAll('[name=product_ids]')), auto=form.querySelector('[data-bn-auto]'), picker=form.querySelector('[data-bn-picker]');
   function pickText(name){ var own=F(name+'_'+lang); if(own&&own.value.trim()) return own.value.trim(); for(var i=0;i<langs.length;i++){ var el=F(name+'_'+langs[i]); if(el&&el.value.trim()) return el.value.trim(); } return ''; }
   function checked(n){ var r=form.querySelector('[name="'+n+'"]:checked'); return r?r.value:''; }
@@ -109,7 +119,12 @@
     if(picker) picker.hidden=!!(auto&&auto.checked);
     var opt=target==='product'?F('product_id').selectedOptions[0]:null; if(opt&&!opt.value) opt=null;
     var items=target==='products'?offerItems():[];
-    var removing=form.querySelector('[data-bn-remove]')&&form.querySelector('[data-bn-remove]').checked, img=removing?'':imageUrl;
+    var img=imageUrl();
+    var th=box.querySelector('[data-bn-thumb]'), pk=box.querySelector('[data-bn-pick]');
+    th.hidden=!img; if(img&&th.getAttribute('src')!==img) th.src=img;
+    box.querySelector('[data-bn-drop]').hidden=!img; box.querySelector('[data-bn-undo]').hidden=!(undo&&!img);
+    pk.querySelector('span').textContent=img?pk.dataset.lReplace:pk.dataset.lPick;
+    form.querySelector('[data-bn-color-note]').hidden=!img;
     slide.className='bn-slide c-'+color+(img?' has-img':'')+((opt||items.length)&&!img?' has-product':'');
     var bg=slide.querySelector('.bn-bg'); if(img){ if(!bg){ bg=document.createElement('img'); bg.className='bn-bg'; bg.alt=''; slide.insertBefore(bg, slide.firstChild); } bg.src=img; } else if(bg) bg.remove();
     if(kind){ q('.bn-kicker').innerHTML=iconSvg[kind.value]+'<span data-bn-kind>'+esc(kind.dataset.label)+'</span>'; }
@@ -147,7 +162,13 @@
     render();
   }); });
   form.addEventListener('input',render); form.addEventListener('change',render);
-  form.querySelector('[data-bn-image]').addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; if(f){ imageUrl=URL.createObjectURL(f); var r=form.querySelector('[data-bn-remove]'); if(r) r.checked=false; } render(); });
+  function dropImage(){ if(!imageUrl()) return; undo={disabled:fileIn.disabled, rm:rm.value}; fileIn.disabled=true; rm.value=savedUrl?'1':''; render(); }
+  box.querySelector('[data-bn-drop]').addEventListener('click',function(){ dropImage(); form.dispatchEvent(new Event('change',{bubbles:true})); });
+  box.querySelector('[data-bn-restore]').addEventListener('click',function(){ if(!undo) return; fileIn.disabled=undo.disabled; rm.value=undo.rm; undo=null; render(); form.dispatchEvent(new Event('change',{bubbles:true})); });
+  box.querySelector('[data-bn-pick]').addEventListener('click',function(){ if(fileIn.disabled){ fileIn.value=''; if(pickedUrl){ URL.revokeObjectURL(pickedUrl); pickedUrl=''; } fileIn.disabled=false; } fileIn.click(); });
+  fileIn.addEventListener('change',function(){ var f=fileIn.files&&fileIn.files[0]; if(pickedUrl) URL.revokeObjectURL(pickedUrl); pickedUrl=f?URL.createObjectURL(f):''; if(f) rm.value=''; undo=null; render(); });
+  /* picking a colour while an image is the background switches to the colour (undo brings the image back) */
+  form.querySelectorAll('[name=color]').forEach(function(r){ r.addEventListener('click',function(){ dropImage(); }); });
   form.querySelectorAll('[data-link]').forEach(function(b){ b.addEventListener('click',function(){ var l=F('link'); l.value=b.dataset.link; l.dispatchEvent(new Event('input',{bubbles:true})); }); });
   render();
 })();

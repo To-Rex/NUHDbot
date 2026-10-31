@@ -984,6 +984,10 @@
       "f_image_pick": "Choose image",
       "f_image_remove": "Remove image",
       "f_image_hint": "An image fills the whole slide; landscape works best, 1200×600.",
+      "f_image_replace": "Replace",
+      "f_image_removed": "Image removed — the colour is the background.",
+      "f_image_restore": "Undo",
+      "f_color_over_image": "The image is the background now, so the colour is hidden. Pick a colour to remove the image.",
       "target": {
         "product": "One product",
         "link": "Page",

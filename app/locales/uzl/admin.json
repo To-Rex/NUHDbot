@@ -984,6 +984,10 @@
       "f_image_pick": "Rasm tanlash",
       "f_image_remove": "Rasmni olib tashlash",
       "f_image_hint": "Rasm bo'lsa, butun slayd foni bo'ladi; yaxshisi gorizontal, 1200×600.",
+      "f_image_replace": "Boshqa rasm",
+      "f_image_removed": "Rasm olib tashlandi — fonda rang ko'rinadi.",
+      "f_image_restore": "Qaytarish",
+      "f_color_over_image": "Hozir fon — rasm, rang ko'rinmaydi. Rangni tanlasangiz, rasm olib tashlanadi.",
       "target": {
         "product": "Bitta mahsulot",
         "link": "Sahifa",

@@ -1076,6 +1076,10 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .bn-color input:checked+span{box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--accent);transform:scale(1.04)}
 .bn-image{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .bn-image-now{width:120px;height:68px;object-fit:cover;border-radius:10px;border:1px solid var(--hairline)}
+.bn-image-now[hidden]{display:none}
+.bn-image-acts{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bn-image-undo{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-3)}
+.bn-image-undo .link-btn{align-self:center;margin-left:0}
 .bn-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .bn-targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .bn-target{position:relative;cursor:pointer}
