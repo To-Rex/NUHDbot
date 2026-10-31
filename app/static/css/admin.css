@@ -1140,3 +1140,45 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .bn-phone{padding:12px;border-radius:26px;background:var(--sunken);border:1px solid var(--hairline)}
 @media (max-width:1100px){.bn-edit{grid-template-columns:minmax(0,1fr)}.bn-side{position:static;order:-1}}
 @media (max-width:640px){.bn-targets{grid-template-columns:repeat(2,minmax(0,1fr))}.bn-kinds{grid-template-columns:repeat(2,minmax(0,1fr))}.bn-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Series page: how the directions slider moves on the Mini App home. Each tile holds a tiny model of the motion:
+   six mini cards k0…k5 = distance -2, -1, 0 (middle), +1, +2 and the far one (+3) */
+.ds-card{padding:14px 16px}
+.ds-head{display:flex;align-items:center;gap:14px}
+.ds-head b{font-size:14.5px}.ds-head p{margin:2px 0 0;font-size:12.5px;color:var(--ink-3)}
+.ds-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px}
+.ds-opt{position:relative;cursor:pointer}
+.ds-opt input{position:absolute;opacity:0;width:1px;height:1px}
+.ds-box{position:relative;display:flex;flex-direction:column;height:100%;border-radius:14px;border:1px solid var(--hairline);background:var(--surface);overflow:hidden;transition:border-color var(--t-fast),box-shadow var(--t-fast),transform var(--t-fast)}
+.ds-opt:hover .ds-box{transform:translateY(-1px);box-shadow:var(--shadow)}
+.ds-opt input:checked+.ds-box{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.ds-opt input:focus-visible+.ds-box{box-shadow:var(--ring)}
+.ds-txt{display:flex;flex-direction:column;gap:2px;padding:10px 12px 12px}
+.ds-txt b{font-size:13.5px}.ds-txt small{font-size:12px;line-height:1.35;color:var(--ink-3)}
+.ds-check{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;opacity:0;transform:scale(.6);transition:opacity var(--t-fast),transform var(--t-fast)}
+.ds-check svg{width:12px;height:12px}
+.ds-opt input:checked+.ds-box .ds-check{opacity:1;transform:none}
+.dsv{position:relative;display:grid;place-items:center;height:104px;background:var(--fill);perspective:260px;overflow:hidden}
+.dsv i{position:relative;grid-area:1/1;width:38px;height:52px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.18)}
+.dsv i::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#000;opacity:var(--dim,0)}
+.dsv .k2{z-index:9}.dsv .k1,.dsv .k3{z-index:8}.dsv .k0,.dsv .k4{z-index:7}.dsv .k5{z-index:6}
+.dsv-coverflow .k5{opacity:0}
+.dsv-coverflow .k1{transform:translateX(-25px) translateZ(-34px) rotateY(50deg);--dim:.25}
+.dsv-coverflow .k3{transform:translateX(25px) translateZ(-34px) rotateY(-50deg);--dim:.25}
+.dsv-coverflow .k0{transform:translateX(-44px) translateZ(-60px) rotateY(50deg);--dim:.45}
+.dsv-coverflow .k4{transform:translateX(44px) translateZ(-60px) rotateY(-50deg);--dim:.45}
+.dsv-orbit i{width:32px;height:44px}
+.dsv-orbit .k2{transform:translateY(8px)}
+.dsv-orbit .k1{transform:translate3d(-30px,0,-30px);--dim:.15}.dsv-orbit .k3{transform:translate3d(30px,0,-30px);--dim:.15}
+.dsv-orbit .k0{transform:translate3d(-30px,-16px,-95px);--dim:.35}.dsv-orbit .k4{transform:translate3d(30px,-16px,-95px);--dim:.35}
+.dsv-orbit .k5{transform:translate3d(0,-24px,-130px);--dim:.45}
+.dsv-stack i{transform-origin:50% 0}
+.dsv-stack .k2{transform:translateY(6px)}
+.dsv-stack .k3{transform:translateY(-1px) scale(.9);--dim:.15}.dsv-stack .k4{transform:translateY(-8px) scale(.8);--dim:.3}
+.dsv-stack .k1{transform:translate(-46px,10px) rotate(-14deg);z-index:10}
+.dsv-stack .k0,.dsv-stack .k5{opacity:0}
+.dsv-fan i{transform-origin:50% 190%}
+.dsv-fan .k2{transform:translateY(6px)}
+.dsv-fan .k1{transform:translateY(6px) rotate(-14deg) scale(.95);--dim:.2}.dsv-fan .k3{transform:translateY(6px) rotate(14deg) scale(.95);--dim:.2}
+.dsv-fan .k0{transform:translateY(6px) rotate(-28deg) scale(.9);--dim:.4}.dsv-fan .k4{transform:translateY(6px) rotate(28deg) scale(.9);--dim:.4}
+.dsv-fan .k5{opacity:0}

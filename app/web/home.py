@@ -9,6 +9,7 @@ from app.enums import COLOR_DIRECTION, AuctionStatus, ProductColor, Purpose
 from app.models import Auction, Banner, Product
 from app.services import auctions, catalog, discounts, storage
 from app.services import banners as banner_service
+from app.services import series as series_service
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.router import router
@@ -42,7 +43,8 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         {
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
-            "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db), **(await _slider(db)),
+            "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db),
+            "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")), **(await _slider(db)),
         },
     )
 

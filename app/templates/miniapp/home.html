@@ -17,11 +17,11 @@
   {# auto slider: staff banners (hot offers, sales, news), the live auction, new arrivals #}
   {% include "miniapp/partials/home_slider.html" %}
 
-  {# directions (Series page pictures) as a 3D cover-flow; the middle card opens the catalogue of that direction #}
+  {# directions (Series page pictures) as a 3D slider in the look picked on the Series page; the front card opens the catalogue of that direction #}
   {% if directions %}
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.dirs_title') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
-    <div class="cf" data-coverflow aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
+    <div class="cf cf-{{ dir_style }}" data-coverflow data-style="{{ dir_style }}" aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
       <div class="cf-stage" data-cf-stage>
         {% for d in directions %}
         <a class="cf-card c-{{ d.color }}" href="/app/catalog?dir={{ d.color }}" draggable="false" aria-roledescription="slide" aria-label="{{ t('home.dir_open', name=d.name) }}">
@@ -180,27 +180,43 @@
   paint(); mark(0); schedule();
 })();
 (function(){
-  /* directions cover-flow: an endless ring of cards. pos is the (fractional) index of the card in the middle;
-     every card is placed by its distance d from it: turned away (rotateY), pushed back (translateZ), darkened.
-     Drag to spin it, tap a side card to bring it forward, tap the middle one to open it; it turns by itself
+  /* directions slider: an endless ring of cards. pos is the (fractional) index of the card in front; every card is
+     placed by its distance d from it (-n/2 … n/2) in the look picked on the Series page (data-style).
+     Drag to turn it, tap a side card to bring it forward, tap the front one to open it; it turns by itself
      every few seconds until touched. */
   var root = document.querySelector('[data-coverflow]'); if (!root || root._cf) return; root._cf = true;  /* a property, not an attribute: a page restored from history starts fresh */
   var stage = root.querySelector('[data-cf-stage]'), cards = [].slice.call(stage.children), dots = [].slice.call(root.querySelectorAll('[data-cf-dots] button'));
   var n = cards.length; if (!n) return;
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var pos = 0, shown = -1, anim = null, drag = null, dragged = false, auto = null, idleUntil = 0, visible = true, W = 0;
-  var fadeFrom = Math.min(2.2, n / 2 - 0.5), fadeTo = Math.min(2.8, n / 2);
+  var pos = 0, shown = -1, anim = null, drag = null, dragged = false, auto = null, idleUntil = 0, visible = true, W = 0, H = 0;
+  function fade(a, from, to) { from = Math.min(from, n / 2 - 0.5); to = Math.min(to, n / 2); return a <= from ? 1 : Math.max(0, 1 - (a - from) / (to - from)); }
+  var LOOKS = {  /* step: how far (in card widths) a finger moves the ring by one card */
+    coverflow: { step: 0.6, place: function (d, a, s) {  /* the front card faces you, its neighbours turn away into depth */
+      var near = Math.min(a, 1), far = Math.max(0, a - 1);
+      return { t: 'translate3d(' + s * (near * 0.6 + far * 0.3) * W + 'px,0,' + -(near * 150 + far * 90) + 'px) rotateY(' + -s * near * 50 + 'deg)', dim: Math.min(0.5, a * 0.3), op: fade(a, 2.2, 2.8) };
+    } },
+    orbit: { step: 0.8, place: function (d) {  /* cards ride a ring seen from a little above: the far side is smaller, higher, darker */
+      var th = d * 2 * Math.PI / n, c = Math.cos(th);
+      return { t: 'translate3d(' + Math.sin(th) * W * 0.95 + 'px,' + -(1 - c) * W * 0.3 + 'px,' + -(1 - c) * W * 1.1 + 'px)', dim: Math.min(0.5, (1 - c) * 0.3), op: 1 };
+    } },
+    stack: { step: 0.9, place: function (d, a) {  /* a deck: the front card is swiped aside (turning on its bottom edge), the next ones wait behind */
+      if (d < 0) return { t: 'translate3d(' + d * W * 1.15 + 'px,' + a * 14 + 'px,0) translateY(' + H + 'px) rotate(' + d * 14 + 'deg) translateY(' + -H + 'px)', dim: 0, op: fade(a, 0.55, 1), z: 200 - Math.round(a * 10) };
+      return { t: 'translate3d(0,' + -d * 16 + 'px,0) scale(' + (1 - d * 0.075) + ')', dim: Math.min(0.45, d * 0.16), op: fade(a, 2.3, 2.9) };
+    } },
+    fan: { step: 0.55, place: function (d, a) {  /* a hand of cards turning round a point below them (lifted a little so the outer ones stay in view) */
+      return { t: 'translateY(' + -Math.min(a, 2) * 14 + 'px) rotate(' + d * 13 + 'deg) scale(' + (1 - Math.min(a, 2) * 0.05) + ')', dim: Math.min(0.45, a * 0.22), op: fade(a, 2.2, 2.8) };
+    } }
+  };
+  var look = LOOKS[root.dataset.style] || LOOKS.coverflow;
   function dist(k) { var d = ((k - pos) % n + n) % n; return d >= n / 2 ? d - n : d; }  /* -n/2 … n/2 */
   function paint() {
-    W = cards[0].offsetWidth || 220;
+    W = cards[0].offsetWidth || 220; H = cards[0].offsetHeight || 320;
     cards.forEach(function (c, k) {
-      var d = dist(k), a = Math.abs(d), s = d < 0 ? -1 : 1, near = Math.min(a, 1), far = Math.max(0, a - 1);
-      var x = s * (near * 0.6 + far * 0.3) * W, z = -(near * 150 + far * 90), r = -s * near * 50;
-      var fade = a <= fadeFrom ? 1 : Math.max(0, 1 - (a - fadeFrom) / (fadeTo - fadeFrom));
-      c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,' + z.toFixed(1) + 'px) rotateY(' + r.toFixed(2) + 'deg)';
-      c.style.setProperty('--cf-dim', Math.min(0.5, a * 0.3).toFixed(3));
-      c.style.opacity = fade.toFixed(3); c.style.visibility = fade ? '' : 'hidden';
-      c.style.zIndex = String(100 - Math.round(a * 10));
+      var d = dist(k), a = Math.abs(d), p = look.place(d, a, d < 0 ? -1 : 1);
+      c.style.transform = p.t;
+      c.style.setProperty('--cf-dim', p.dim.toFixed(3));
+      c.style.opacity = p.op.toFixed(3); c.style.visibility = p.op ? '' : 'hidden';
+      c.style.zIndex = String(p.z || 100 - Math.round(a * 10));
       c.setAttribute('aria-hidden', a < 0.5 ? 'false' : 'true'); c.tabIndex = a < 0.5 ? 0 : -1;
     });
     var i = ((Math.round(pos) % n) + n) % n;
@@ -239,13 +255,13 @@
     if (!dragged) { if (Math.abs(dx) < 6) return; dragged = true; stage.classList.add('dragging'); try { stage.setPointerCapture(e.pointerId); } catch (_) {} }
     var dt = e.timeStamp - drag.lt; if (dt > 0) drag.v = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.v;  /* px per ms, smoothed */
     drag.lx = e.clientX; drag.lt = e.timeStamp;
-    pos = drag.p - dx / (W * 0.6); paint();
+    pos = drag.p - dx / (W * look.step); paint();
   });
   function release(e) {
     if (!drag || (e && e.pointerId !== drag.id)) return;
     var v = drag.v; drag = null; stage.classList.remove('dragging'); rest();
     if (!dragged) { to(Math.round(pos), 300); return; }  /* a tap (the click below decides) or a page scroll: settle */
-    var fling = Math.max(-2, Math.min(2, -v * 240 / (W * 0.6)));  /* a quick flick carries on a card or two */
+    var fling = Math.max(-2, Math.min(2, -v * 240 / (W * look.step)));  /* a quick flick carries on a card or two */
     to(Math.round(pos + fling), 560);
   }
   stage.addEventListener('pointerup', release); stage.addEventListener('pointercancel', release);

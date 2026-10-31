@@ -37,7 +37,20 @@ async def series_page(request: Request, db: DB, staff: User = Depends(staff_dep(
         "unlisted": [(b, names.get(b, "?"), n, c) for b, n, c in await series_service.unlisted(db) if b in names],
         "colors": list(ProductColor), "color_dir": COLOR_DIRECTION, "color_examples": COLOR_EXAMPLES,
         "dir_images": {c: {"thumb": storage.url(v.get("thumb") or v.get("filename")), "full": storage.url(v.get("filename"))} for c, v in (await get_setting(db, "direction_images") or {}).items() if v},
+        "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
     })
+
+
+@router.post("/series/slider-style")
+async def slider_style(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
+    """How the directions slider moves on the Mini App home (cover-flow, orbit, card stack, fan)."""
+    before = await get_setting(db, "dir_slider_style")
+    style = series_service.clean_style((await request.form()).get("style"))
+    await set_setting(db, "dir_slider_style", style)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"dir_slider_style": before}, {"dir_slider_style": style})
+    await db.commit()
+    lang = _lang(request, staff)
+    return back(request, "/admin/series", t(lang, "admin.ser.style_saved", name=t(lang, "admin.ser.style." + style)))
 
 
 def _direction(color: str) -> ProductColor:

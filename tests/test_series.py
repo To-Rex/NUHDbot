@@ -78,3 +78,9 @@ async def test_home_directions_and_catalog_filter(db):
     assert list(cards) == ["blue", "purple", "red", "gold", "silver", "black"]
     assert cards["red"]["n"] == 1 and cards["red"]["name"] == "NAS" and cards["red"]["img"].endswith("dir_a_t.webp")
     assert cards["blue"]["n"] == 0 and cards["blue"]["img"] is None
+
+
+def test_slider_style_choices():
+    """The directions slider look picked on the Series page: cover-flow by default, anything unknown falls back to it."""
+    assert svc.DIR_STYLES == ("coverflow", "orbit", "stack", "fan")
+    assert [svc.clean_style(v) for v in ("fan", "orbit", "stack", None, "", "cube")] == ["fan", "orbit", "stack", "coverflow", "coverflow", "coverflow"]

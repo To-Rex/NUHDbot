@@ -473,8 +473,8 @@ button.list-item{width:100%;text-align:left}
 .hs-slide,.hs-body,.hs-media,.hs-badge,.hs-art{will-change:transform}
 .hs-slide{transform-origin:50% 50%}
 .hs-slide:active{transform:scale(.985)}
-/* home: directions as a 3D cover-flow (home.html script). The middle card faces you, its neighbours turn away
-   into depth and darken; drag or tap a side card to bring it forward, tap the middle one to open its catalogue */
+/* home: directions as a 3D slider (home.html script). Cover-flow by default: the middle card faces you, its neighbours
+   turn away into depth and darken; drag or tap a side card to bring it forward, tap the middle one to open its catalogue */
 .cf{margin:-14px calc(-1 * var(--sp-4)) 0;overflow:hidden;padding:18px 0 14px}  /* room for the card shadow inside the clip */
 .cf-stage{display:grid;justify-items:center;padding-bottom:22px;perspective:1000px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;outline:0}
 .cf-stage.dragging{cursor:grabbing}
@@ -497,6 +497,13 @@ button.list-item{width:100%;text-align:left}
 .cf-dots button{width:7px;height:7px;padding:0;margin:0;border:0;border-radius:4px;background:var(--fill-2);transition:width var(--t-med) var(--spring),background var(--t-med)}
 .cf-dots button.on{width:22px;background:var(--bc)}
 .cf-dots button.on.c-silver{box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+/* the other looks (Series page → Mini App view): only the card size, its pivot and the room around the stage change */
+.cf-orbit .cf-stage{padding-top:48px}
+.cf-orbit .cf-card{width:min(46vw,190px)}
+.cf-stack .cf-stage{padding-top:34px}
+.cf-stack .cf-card{transform-origin:50% 0}
+.cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
+.cf-fan .cf-stage{padding-top:22px;padding-bottom:54px}
 .dir-dot{display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bc);box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}

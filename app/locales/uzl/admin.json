@@ -922,7 +922,20 @@
       "image_delete": "Olib tashlash",
       "image_delete_q": "«{name}» surati olib tashlansinmi?",
       "image_saved": "«{name}» surati saqlandi",
-      "image_removed": "«{name}» surati olib tashlandi"
+      "image_removed": "«{name}» surati olib tashlandi",
+      "style_title": "Mini ilovada ko'rinishi",
+      "style_hint": "Bosh sahifadagi «Yo'nalishlar» slayderi qanday harakatlanadi — birini tanlang, darhol saqlanadi.",
+      "style_saved": "Ko'rinish saqlandi: {name}",
+      "style": {
+        "coverflow": "Cover Flow",
+        "coverflow_d": "O'rtadagi karta oldinda, yonidagilar chuqurlikka buriladi",
+        "orbit": "Aylana karusel",
+        "orbit_d": "Kartalar 3D aylana bo'ylab aylanadi, orqadagilari kichikroq",
+        "stack": "Kartalar to'plami",
+        "stack_d": "Kartalar ustma-ust turadi, oldingisi surib o'tkaziladi",
+        "fan": "Yelpig'ich",
+        "fan_d": "Kartalar qo'ldagi o'yin kartalaridek yoyilib turadi"
+      }
     },
     "ban": {
       "title": "Bannerlar",

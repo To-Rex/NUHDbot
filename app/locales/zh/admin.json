@@ -922,7 +922,20 @@
       "image_delete": "移除",
       "image_delete_q": "移除“{name}”的图片？",
       "image_saved": "已保存“{name}”的图片",
-      "image_removed": "已移除“{name}”的图片"
+      "image_removed": "已移除“{name}”的图片",
+      "style_title": "迷你应用中的样式",
+      "style_hint": "首页「产品方向」滑块的动效——选择一种，立即保存。",
+      "style_saved": "样式已保存：{name}",
+      "style": {
+        "coverflow": "Cover Flow",
+        "coverflow_d": "中间卡片朝前，两侧卡片向纵深转开",
+        "orbit": "环形轮播",
+        "orbit_d": "卡片沿 3D 圆环旋转，远处的更小",
+        "stack": "卡片堆叠",
+        "stack_d": "卡片叠放，滑开最上面一张",
+        "fan": "扇形",
+        "fan_d": "卡片像手中的扑克牌一样展开"
+      }
     },
     "ban": {
       "title": "横幅",

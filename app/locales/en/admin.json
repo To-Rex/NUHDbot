@@ -922,7 +922,20 @@
       "image_delete": "Remove",
       "image_delete_q": "Remove the «{name}» picture?",
       "image_saved": "«{name}» picture saved",
-      "image_removed": "«{name}» picture removed"
+      "image_removed": "«{name}» picture removed",
+      "style_title": "Mini App view",
+      "style_hint": "How the Directions slider moves on the home page — pick one, it is saved right away.",
+      "style_saved": "View saved: {name}",
+      "style": {
+        "coverflow": "Cover Flow",
+        "coverflow_d": "The middle card faces you, its neighbours turn away into depth",
+        "orbit": "Orbit carousel",
+        "orbit_d": "Cards ride a 3D ring; the far ones are smaller",
+        "stack": "Card stack",
+        "stack_d": "Cards lie in a stack; the top one is swiped aside",
+        "fan": "Fan",
+        "fan_d": "Cards spread out like a hand of playing cards"
+      }
     },
     "ban": {
       "title": "Banners",

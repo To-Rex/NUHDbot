@@ -22,6 +22,14 @@ def norm_key(name: str | None) -> str:
     return norm_name(name).upper()
 
 
+# how the directions slider on the Mini App home moves (Series page → Mini App view); the first is the default
+DIR_STYLES = ("coverflow", "orbit", "stack", "fan")
+
+
+def clean_style(value: str | None) -> str:
+    return value if value in DIR_STYLES else DIR_STYLES[0]
+
+
 def clean_color(value: str | None) -> str | None:
     return value if value in COLORS else None
 
