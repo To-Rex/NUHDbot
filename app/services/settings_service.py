@@ -29,6 +29,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "wd_check_url": {"v": "https://support-en.wd.com/app/warrantystatusweb", "d": "WD warranty check"},
     "seagate_check_url": {"v": "https://www.seagate.com/support/warranty-and-replacements/", "d": "Seagate warranty check"},
     "support_group_id": {"v": None, "d": "Telegram group id where support messages are mirrored"},
+    "chat_notify_delay": {"v": 10, "d": "Seconds an admin reply waits before its bot notification; seen in the open Mini App chat by then = no notification"},
     "direction_images": {"v": {}, "d": "Series page: a picture per catalogue direction {colour: {filename, thumb}}"},
     "dir_slider_shape": {"v": "tall", "d": "Mini App home: directions slider card shape (tall | wide)"},
     "banner_slider_shape": {"v": "tall", "d": "Mini App home: banner slider card shape (tall | wide)"},

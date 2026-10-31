@@ -1,8 +1,7 @@
-import asyncio
+import functools
 import html
-from collections import defaultdict
 
-from fastapi import BackgroundTasks, Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from starlette.datastructures import UploadFile
@@ -10,11 +9,10 @@ from starlette.datastructures import UploadFile
 from app.admin.common import DB, SUPPORT_ROLES, back, f_opt, nav_badges, render, staff_dep
 from app.admin.router import router
 from app.bot.instance import get_bot
-from app.db import session_scope
 from app.enums import MessageKind, ThreadStatus
 from app.i18n import t
 from app.models import SupportThread, User
-from app.services import audit, chat_events, media, notifications
+from app.services import audit, chat_events, media, notifications, support_delivery
 from app.services import support as ssvc
 
 
@@ -74,36 +72,29 @@ async def support_thread(tid: int, request: Request, db: DB, staff: User = Depen
     return render(request, staff, "admin/support/thread.html", {"page_title": th.user.full_name, "th": th, "assignee": assignee, "threads": threads, "status": "open", "badges": await nav_badges(db)})
 
 
-_tg_locks: dict[int, asyncio.Lock] = defaultdict(asyncio.Lock)
+async def _telegram_copies(db, th: SupportThread, *, text: str | None, attachment: str | None, kind: MessageKind) -> None:
+    """Telegram copies of a staff reply (notification + the message in the bot chat). Sent by support_delivery a few
+    seconds later, and only if the customer has not seen the reply in the open Mini App chat by then."""
+    await notifications.notify_support_reply(db, th.user, th.id, text or "📎")
+    bot = get_bot()  # the customer also sees the reply in the bot chat (anonymous "Admin")
+    if bot and th.user.tg_id:
+        try:
+            if attachment and kind == MessageKind.PHOTO:
+                from aiogram.types import BufferedInputFile
 
+                from app.services import storage
 
-async def _telegram_copies(thread_id: int, text: str | None, attachment: str | None, kind: MessageKind) -> None:
-    """Telegram copies of a staff reply (notification + the message in the bot chat). Runs after the
-    response, so the live chat never waits on the Bot API; one thread's copies keep their order."""
-    async with _tg_locks[thread_id], session_scope() as db:
-        th = await db.get(SupportThread, thread_id)
-        if th is None:
-            return
-        await notifications.notify_support_reply(db, th.user, th.id, text or "📎")
-        bot = get_bot()  # the customer also sees the reply in the bot chat (anonymous "Admin")
-        if bot and th.user.tg_id:
-            try:
-                if attachment and kind == MessageKind.PHOTO:
-                    from aiogram.types import BufferedInputFile
-
-                    from app.services import storage
-
-                    blob = await storage.get(attachment)
-                    if blob:
-                        await bot.send_photo(th.user.tg_id, BufferedInputFile(blob[0], filename=attachment), caption=text or None)
-                elif text:
-                    await bot.send_message(th.user.tg_id, f"💬 <b>Admin</b>:\n{html.escape(text)}")
-            except Exception:  # noqa: BLE001
-                pass
+                blob = await storage.get(attachment)
+                if blob:
+                    await bot.send_photo(th.user.tg_id, BufferedInputFile(blob[0], filename=attachment), caption=text or None)
+            elif text:
+                await bot.send_message(th.user.tg_id, f"💬 <b>Admin</b>:\n{html.escape(text)}")
+        except Exception:  # noqa: BLE001
+            pass
 
 
 @router.post("/support/{tid}/reply")
-async def support_reply(tid: int, request: Request, db: DB, background: BackgroundTasks, staff: User = Depends(staff_dep(*SUPPORT_ROLES))):
+async def support_reply(tid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*SUPPORT_ROLES))):
     th = await db.get(SupportThread, tid)
     if not th:
         raise HTTPException(404)
@@ -124,7 +115,7 @@ async def support_reply(tid: int, request: Request, db: DB, background: Backgrou
         th.assigned_to = staff.id
     await audit.log(db, staff.id, "support.reply", "thread", th.id, None, {"message": msg.id})
     await db.commit()  # the live chat gets the message now
-    background.add_task(_telegram_copies, th.id, text, attachment, kind)
+    support_delivery.schedule(th.id, msg.id, functools.partial(_telegram_copies, text=text, attachment=attachment, kind=kind))
     if request.headers.get("HX-Request"):  # the composer appends just this message (the live stream dedupes by id)
         return render(request, staff, "admin/support/_msg_items.html", {"th": th, "items": [msg]})
     return back(request, f"/admin/support/{tid}", t(staff.lang, "admin.sup.sent"))

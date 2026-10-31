@@ -38,8 +38,12 @@
     });
     return added;
   }
+  /* fetching new messages marks the admin's replies read (and the bot then stays quiet about them), so it happens
+     only while the chat is really on screen: not in a hidden tab or a minimised Mini App */
+  var tg = window.Telegram && Telegram.WebApp;
+  function onScreen(){ return document.visibilityState !== 'hidden' && !(tg && tg.isActive === false); }
   function catchUp(){
-    if (!base) return;  // nothing to follow before the first message
+    if (!base || !onScreen()) return;  // nothing to follow before the first message; off screen: on return
     if (busy) { again = true; return; }
     busy = true; var stick = nearEnd();
     fetch(base + '/messages?after=' + lastId(), {credentials: 'same-origin', headers: {'HX-Request': 'true'}})
@@ -59,11 +63,13 @@
   connect();
   function onVisible(){ if (document.visibilityState === 'visible') catchUp(); }
   document.addEventListener('visibilitychange', onVisible);
+  if (tg && tg.onEvent) tg.onEvent('activated', catchUp);  // the Mini App brought back from minimised
   var safety = setInterval(catchUp, 30000);  // safety net if a proxy ever blocks the stream
   // leaving the chat (boosted navigation swaps the body): stop the stream and timers
   document.body.addEventListener('htmx:beforeSwap', function leave(e){
     if (e.detail.target !== document.body) return;
     if (es) es.close(); clearInterval(safety); document.removeEventListener('visibilitychange', onVisible); document.body.removeEventListener('htmx:beforeSwap', leave);
+    if (tg && tg.offEvent) tg.offEvent('activated', catchUp);
   });
 
   toEnd(false);

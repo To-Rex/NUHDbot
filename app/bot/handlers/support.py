@@ -15,7 +15,7 @@ from app.config import settings
 from app.enums import MessageKind
 from app.i18n import pick, t
 from app.models import SupportThread, User
-from app.services import media, notifications, support
+from app.services import media, notifications, support, support_delivery
 from app.services import orders as order_service
 from app.services.notifications import esc
 from app.services.settings_service import get_setting
@@ -170,15 +170,20 @@ async def staff_reply(message: Message, user: User | None, db: AsyncSession, bot
         kind, file_id = MessageKind.PHOTO, message.photo[-1].file_id
     elif message.document:
         kind, file_id = MessageKind.DOCUMENT, message.document.file_id
-    await support.add_message(db, th, sender=user, from_staff=True, text=text, kind=kind, tg_file_id=file_id)
-    customer = th.user
-    try:
+    msg = await support.add_message(db, th, sender=user, from_staff=True, text=text, kind=kind, tg_file_id=file_id)
+
+    async def deliver(db2: AsyncSession, th2: SupportThread) -> None:
+        """The customer's copy, a few seconds later and only if the reply was not seen in the open Mini App chat."""
+        customer = th2.user
         if kind == MessageKind.PHOTO and file_id:
             await bot.send_photo(customer.tg_id, file_id, caption=f"💬 {esc(text or '')}"[:1000])
         elif kind == MessageKind.DOCUMENT and file_id:
             await bot.send_document(customer.tg_id, file_id, caption=f"💬 {esc(text or '')}"[:1000])
         else:
-            await notifications.notify_support_reply(db, customer, th.id, text or "")
+            await notifications.notify_support_reply(db2, customer, th2.id, text or "")
+
+    support_delivery.schedule(th.id, msg.id, deliver)
+    try:
         await message.reply(t(user.lang, "bot.support_staff_reply_ok", id=th.id))
     except Exception:  # noqa: BLE001
-        log.exception("staff reply delivery failed")
+        log.exception("staff reply confirmation failed")
