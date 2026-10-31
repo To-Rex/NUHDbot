@@ -102,7 +102,9 @@
     "min_order_hint": "起订量 {n} 个。如需更少数量，请与客服协商。",
     "not_found": "未找到商品",
     "warranty_check": "官方保修查询",
-    "warranty_check_note": "官方网站查询不能 100% 证明正品；查询无结果也不代表硬盘是假货。"
+    "warranty_check_note": "官方网站查询不能 100% 证明正品；查询无结果也不代表硬盘是假货。",
+    "prices_in": "各币种价格",
+    "rate": "汇率"
   },
   "cart": {
     "title": "购物车",

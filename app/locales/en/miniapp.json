@@ -102,7 +102,9 @@
     "min_order_hint": "Minimum order {n} pcs. Need fewer? Agree with the admin.",
     "not_found": "Product not found",
     "warranty_check": "Official warranty check",
-    "warranty_check_note": "An official lookup does not prove authenticity 100%; a missing result does not mean the drive is fake."
+    "warranty_check_note": "An official lookup does not prove authenticity 100%; a missing result does not mean the drive is fake.",
+    "prices_in": "Price in currencies",
+    "rate": "Rate"
   },
   "cart": {
     "title": "Cart",

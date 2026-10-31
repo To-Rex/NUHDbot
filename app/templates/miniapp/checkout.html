@@ -14,6 +14,7 @@
       </div>
       {% endfor %}
       <div class="cart-summary"><span class="muted">{{ t('orders.total') }}</span><strong>{{ price(total, currency) }}</strong></div>
+      {% set alt = price.others(total, currency) %}{% if alt %}<p class="cart-alt">{{ alt }}</p>{% endif %}
       <dl class="kv small mt-2"><dt>{{ t('orders.advance') }}</dt><dd class="mono">{{ price(total * advance_percent / 100, currency) }}</dd><dt>{{ t('orders.balance') }}</dt><dd class="mono">{{ price(total - total * advance_percent / 100, currency) }}</dd></dl>
       {% if price.converts(currency) %}<div class="notice notice-info mt-3">{{ icon('info', 16) }}<span class="xs">{{ t('checkout.currency_note', amount=price.original(total, currency), rate=price.rate_line(currency)) }}</span></div>{% endif %}
       <a class="link small mt-3 row" style="gap:4px;display:inline-flex" href="/app/cart">{{ icon('edit', 14) }}{{ t('checkout.edit') }}</a>

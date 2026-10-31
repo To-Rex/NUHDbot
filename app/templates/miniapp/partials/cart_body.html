@@ -24,7 +24,7 @@
   {% endfor %}
 </div>
 <div class="cart-summary"><span class="muted">{{ t('cart.items', n=lines|length) }}</span><strong>{{ price(total, currency) }}</strong></div>
-{% if price.converts(currency) %}<p class="xs muted right mono" style="margin-top:2px">= {{ price.original(total, currency) }} · {{ price.rate_line(currency) }}</p>{% endif %}
+{% set alt = price.others(total, currency) %}{% if alt %}<p class="cart-alt">{{ alt }}</p>{% endif %}
 <p class="xs faint mt-1">{{ t('cart.note') }}</p>
 <div class="row mt-4" style="gap:10px">
   <button class="btn btn-secondary" hx-post="/app/cart/clear" hx-target="#cart-body" hx-swap="outerHTML" hx-confirm="{{ t('cart.clear') }}?" aria-label="{{ t('cart.clear') }}" style="width:46px;padding:0">{{ icon('trash', 18) }}</button>

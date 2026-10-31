@@ -1,0 +1,10 @@
+{# The price in every currency at once; tapping one makes it the main (big) price across the app #}
+{% set in_all = price.all(p.price, p.currency) %}
+{% if in_all %}
+<div class="cur-prices mt-3" role="radiogroup" aria-label="{{ t('product.prices_in') }}" data-currency-group>
+  {% for x in in_all %}
+  <a class="cur-price{{ ' active' if x.on }}" role="radio" aria-checked="{{ 'true' if x.on else 'false' }}" href="/app/currency/{{ x.code }}?next={{ full_path|urlencode }}" hx-boost="false" data-currency="{{ x.code }}"><span class="cp-n">{{ x.name }}<small>{{ x.code }}</small></span><span class="cp-v">{{ x.text }}</span>{{ icon('check', 15, 'cp-check') }}</a>
+  {% endfor %}
+</div>
+{% set rl = price.rates(p.currency) %}{% if rl %}<div class="cur-rates">{{ t('product.rate') }}: {{ rl }}</div>{% endif %}
+{% endif %}

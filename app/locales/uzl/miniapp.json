@@ -102,7 +102,9 @@
     "min_order_hint": "Minimal buyurtma {n} dona. Kamroq kerak bo'lsa — admin bilan kelishing.",
     "not_found": "Mahsulot topilmadi",
     "warranty_check": "Rasmiy kafolat tekshiruvi",
-    "warranty_check_note": "Rasmiy saytdagi tekshirish originallikni 100% isbotlamaydi; natija chiqmasligi disk soxta degani emas."
+    "warranty_check_note": "Rasmiy saytdagi tekshirish originallikni 100% isbotlamaydi; natija chiqmasligi disk soxta degani emas.",
+    "prices_in": "Narxi valyutalarda",
+    "rate": "Kurs"
   },
   "cart": {
     "title": "Savat",

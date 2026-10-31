@@ -41,7 +41,6 @@
     <div class="price-row">
       <div>
         {% if p.price is not none %}{% set pb = price(p.price, p.currency) %}<div class="price-big{{ ' long' if pb|length > 9 }}">{{ pb }} <span class="muted" style="font-family:var(--font-body);font-size:15px;font-weight:500;letter-spacing:0">/ {{ t('common.per_unit') }}</span></div>{% else %}<div class="price-big muted" style="font-size:20px">{{ t('common.price_on_request') }}</div>{% endif %}
-        {% if p.price is not none and price.converts(p.currency) %}<div class="price-alt xs muted mono">{{ price.original(p.price, p.currency) }} · {{ price.rate_line(p.currency) }}</div>{% endif %}
         <div class="mt-2 stock-pill {{ 'none' if p.available<=0 else ('low' if p.available<10 else '') }}">{% if p.available>0 %}{{ t('common.in_stock') }}: {{ p.available }} {{ t('common.pcs') }}{% else %}{{ t('common.out_of_stock') }}{% endif %}</div>
       </div>
       <div class="minbox">
@@ -49,7 +48,7 @@
         <div class="v">{{ p.min_order }} <span class="small muted" style="font-family:var(--font-body);font-weight:500">{{ t('common.pcs') }}</span></div>
       </div>
     </div>
-    {% if p.price is not none and price.choices|length > 1 %}{% include "miniapp/partials/currency_seg.html" %}{% endif %}
+    {% if p.price is not none and price.choices|length > 1 %}{% include "miniapp/partials/currency_prices.html" %}{% endif %}
     <div class="divider"></div>
     <div class="small muted">
       {% if p.box_qty %}{{ t('common.box_qty') }}: <b class="fg">{{ p.box_qty }}</b> {{ t('common.pcs') }} · {% endif %}

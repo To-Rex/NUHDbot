@@ -135,6 +135,33 @@ class Prices:
     def __call__(self, value, from_code: str | None, *, dash: str = "—") -> str:
         return display(value, from_code, self.cur.code if self.cur else None, dash=dash)
 
+    def main_code(self, from_code: str | None) -> str:
+        """The currency the big price is shown in: the visitor's pick when it converts, else as priced."""
+        return self.cur.code if self.converts(from_code) else (from_code or "").upper()
+
+    def all(self, value, from_code: str | None) -> list[dict]:
+        """The price in every currency customers can pick, the main one marked — [] when there is only one."""
+        if value is None or get(from_code) is None:
+            return []
+        main = self.main_code(from_code)
+        out = []
+        for c in self.choices:
+            v = convert(value, from_code, c.code)
+            if v is not None:
+                out.append({"code": c.code, "name": c.name, "text": fmt(v, c), "on": c.code == main})
+        return out if len(out) > 1 else []
+
+    def others(self, value, from_code: str | None) -> str:
+        """ "$68 · ¥490" — the same price in the other currencies, for a line under the main price."""
+        return " · ".join(x["text"] for x in self.all(value, from_code) if not x["on"])
+
+    def rates(self, from_code: str | None) -> str:
+        """ "$1 = ¥7.2 · $1 = 12 800 so'm" — the rates behind those prices."""
+        src = get(from_code)
+        if src is None:
+            return ""
+        return " · ".join(r for c in self.choices if c.code != src.code and (r := self.rate_line(src.code, c.code)))
+
     def converts(self, from_code: str | None) -> bool:
         return self.cur is not None and get(from_code) is not None and self.cur.code != (from_code or "").upper()
 

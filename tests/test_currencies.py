@@ -57,3 +57,14 @@ def test_parse_rate():
     assert parse_rate("0.0001") == Decimal("0.0001")
     for bad in ("", "abc", "0", "-5", "1e20"):
         assert parse_rate(bad) is None
+
+
+async def test_price_in_every_currency(rates):
+    p = cur.Prices("UZS")
+    got = [(x["code"], x["text"], x["on"]) for x in p.all(68, "USD")]
+    assert got == [("USD", "$68", False), ("UZS", f"870{NB}400{NB}so'm", True), ("RUB", f"6{NB}562{NB}₽", False)]  # hidden EUR left out
+    assert p.others(68, "USD") == f"$68 · 6{NB}562{NB}₽"
+    assert p.rates("USD") == f"$1 = 12{NB}800{NB}so'm · $1 = 96.5{NB}₽"
+    plain = cur.Prices(None)  # nothing picked: the main price stays as priced
+    assert plain.others(68, "USD") == f"870{NB}400{NB}so'm · 6{NB}562{NB}₽"
+    assert plain.all(68, "CNY") == [] and p.all(None, "USD") == []  # no rate for it / price on request

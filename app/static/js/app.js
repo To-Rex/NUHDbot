@@ -49,7 +49,7 @@
     const a = e.target.closest('a[data-currency]'); if (!a) return;
     e.preventDefault(); if (a.classList.contains('active')) return;
     try { haptic.select(); } catch (err) {}
-    a.closest('.segmented, .lang-grid')?.querySelectorAll('.active').forEach((x) => x.classList.remove('active')); a.classList.add('active');
+    a.closest('[data-currency-group], .lang-grid')?.querySelectorAll('.active').forEach((x) => x.classList.remove('active')); a.classList.add('active');
     const go = () => location.reload();
     fetch('/app/currency/' + encodeURIComponent(a.dataset.currency), { method: 'POST', credentials: 'same-origin' }).then(go, go);
   });

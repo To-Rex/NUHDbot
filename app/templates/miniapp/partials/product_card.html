@@ -18,6 +18,7 @@
     <div class="pcard-price">
       {% if p.price is not none %}<strong>{{ price(p.price, p.currency) }}</strong><span class="per">/ {{ t('common.per_unit') }}</span>{% else %}<strong class="ask">{{ t('common.price_on_request') }}</strong>{% endif %}
     </div>
+    {% set alt = price.others(p.price, p.currency) if p.price is not none else '' %}{% if alt %}<div class="pcard-alt">{{ alt }}</div>{% endif %}
     <div class="pcard-title">{{ p.brand }} {{ p.model }}</div>
     <div class="pcard-spec">{{ p.capacity_gb|capacity }} · {{ p.interface.value }} · {{ p.form_factor.value }}″{% if p.series %} · {{ p.series }}{% endif %}</div>
     <div class="pcard-foot">
