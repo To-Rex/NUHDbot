@@ -1038,7 +1038,15 @@
       "pick_clear": "Clear",
       "picked": "{n} picked",
       "n_products": "{n} products",
-      "from": "from {price}"
+      "from": "from {price}",
+      "seconds_default": "Slide time (default)",
+      "seconds_default_hint": "How many seconds each slide stays. For banners without their own time and for the auction and new-arrivals slides.",
+      "seconds_saved": "Default slide time: {n} s",
+      "sec_short": "{n} s",
+      "sec_other": "Other",
+      "sec_default": "Default ({n} s)",
+      "f_seconds": "Slide time",
+      "f_seconds_hint": "How many seconds this banner stays in the slider (3–60). Default uses the time set on the Banners page."
     }
   }
 }

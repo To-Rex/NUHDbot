@@ -2,6 +2,13 @@
 {% block topbar_actions %}<a class="btn btn-primary btn-sm" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a>{% endblock %}
 {% block content %}
 <div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.ban.help') }}</span></div>
+<form class="card bn-timing mb" method="post" action="/admin/banners/settings"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <span class="bn-timing-ic">{{ icon('timer', 18) }}</span>
+  <div class="flex1"><b>{{ t('admin.ban.seconds_default') }}</b><p>{{ t('admin.ban.seconds_default_hint') }}</p></div>
+  <div class="bn-secs" role="radiogroup">{% for s in seconds_choices %}<label class="seg-opt"><input type="radio" name="slider_seconds" value="{{ s }}" {{ 'checked' if slider_seconds == s }}><span>{{ t('admin.ban.sec_short', n=s) }}</span></label>{% endfor %}
+    <label class="bn-secs-own"><input class="input mono" type="number" name="slider_seconds" min="{{ seconds_min }}" max="{{ seconds_max }}" value="{{ slider_seconds if slider_seconds not in seconds_choices else '' }}" placeholder="{{ t('admin.ban.sec_other') }}" data-secs-own {{ 'disabled' if slider_seconds in seconds_choices }}></label></div>
+  <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
+</form>
 {% if rows %}
 <div class="bn-grid">
   {% for b in rows %}{% set st = status(b) %}

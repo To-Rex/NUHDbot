@@ -52,7 +52,8 @@ async def _slider(db) -> dict:
     banners = await banner_service.live(db)
     offers = {b.id: await banner_service.offer(db, b) for b in banners if banner_service.is_offer(b)}
     singles = await discounts.price_drops(db, [b.product_id for b in banners if b.product_id and not banner_service.is_offer(b)])
-    return {"banners": banners, "offers": offers, "single_drops": singles}
+    seconds = banner_service.clean_seconds(await get_setting(db, "slider_seconds"), banner_service.SECONDS_DEFAULT)
+    return {"banners": banners, "offers": offers, "single_drops": singles, "slider_seconds": seconds}
 
 
 @router.get("/offers/{bid}")

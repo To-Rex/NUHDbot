@@ -94,15 +94,16 @@
 {% block scripts %}
 <script>
 (function(){
-  /* home slider: a slide every 5 s, swipeable; a touch pauses it, a dot jumps to its slide */
+  /* home slider: each slide stays its own seconds (data-ms), swipeable; a touch pauses it, a dot jumps to its slide */
   var el = document.querySelector('[data-slider]'); if (!el || el.dataset.ready) return; el.dataset.ready = '1';
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
   if (slides.length < 2) return;
-  var DELAY = 5000, still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null;
-  el.style.setProperty('--hs-delay', DELAY + 'ms'); if (still) el.classList.add('still');
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null;
+  function delay(i) { return parseInt(slides[i].dataset.ms, 10) || 7000; }
+  dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
   function left(i) { return slides[i].offsetLeft - slides[0].offsetLeft; }
   function mark(i) { dots.forEach(function (d, k) { d.classList.remove('on'); d.setAttribute('aria-current', k === i ? 'true' : 'false'); if (k === i) { void d.offsetWidth; d.classList.add('on'); } }); }
-  function schedule() { clearTimeout(timer); if (still || hold || document.hidden || !document.body.contains(el)) return; timer = setTimeout(function () { go(idx + 1); }, DELAY); }
+  function schedule() { clearTimeout(timer); if (still || hold || document.hidden || !document.body.contains(el)) return; timer = setTimeout(function () { go(idx + 1); }, delay(idx)); }
   function go(i) { idx = (i + slides.length) % slides.length; track.scrollTo({ left: left(idx), behavior: still ? 'auto' : 'smooth' }); mark(idx); schedule(); }
   track.addEventListener('scroll', function () {  /* a swipe by hand: follow it */
     clearTimeout(settle); settle = setTimeout(function () {

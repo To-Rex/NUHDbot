@@ -1038,7 +1038,15 @@
       "pick_clear": "清空",
       "picked": "已选 {n} 个",
       "n_products": "{n} 个商品",
-      "from": "{price} 起"
+      "from": "{price} 起",
+      "seconds_default": "幻灯片时长（默认）",
+      "seconds_default_hint": "每张幻灯片停留的秒数。适用于未单独设置时长的横幅，以及拍卖和新品幻灯片。",
+      "seconds_saved": "默认幻灯片时长：{n} 秒",
+      "sec_short": "{n} 秒",
+      "sec_other": "其他",
+      "sec_default": "默认（{n} 秒）",
+      "f_seconds": "幻灯片时长",
+      "f_seconds_hint": "此横幅在轮播中停留的秒数（3–60）。默认使用“横幅”页面设置的时长。"
     }
   }
 }

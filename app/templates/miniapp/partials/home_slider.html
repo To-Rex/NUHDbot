@@ -1,11 +1,11 @@
 {# Home auto slider. Staff banners first (System → Banners), then the live / next auction and new arrivals.
-   Swipe, tap a dot, or let it run (5 s a slide, paused while touched). #}
+   Swipe, tap a dot, or let it run: each slide stays its banner's seconds, else the slider default (paused while touched). #}
 {% set lot = lots[0] if lots else None %}
 {% set n = banners|length + (1 if lot else 0) + (1 if new_count else 0) %}
 <div class="hs" data-slider aria-roledescription="carousel" aria-label="{{ t('home.slider') }}">
   <div class="hs-track" data-slider-track>
     {% for b in banners %}{% set multi = b.id in offers %}{% set prod = None if multi else b.product %}{% set items = offers[b.id][0] if multi else [] %}{% set go = (multi and items) or b.product_id or b.link %}
-    <{{ 'a' if go else 'div' }} class="hs-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or items) and not b.image }}"{% if go %} href="/app/promo/{{ b.id }}"{% endif %} aria-roledescription="slide">
+    <{{ 'a' if go else 'div' }} class="hs-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or items) and not b.image }}"{% if go %} href="/app/promo/{{ b.id }}"{% endif %} data-ms="{{ (b.seconds or slider_seconds) * 1000 }}" aria-roledescription="slide">
       {% if b.image %}<img class="hs-bg" src="{{ b.image_url }}" alt="" {{ 'loading="lazy"' if not loop.first }} decoding="async">{% endif %}
       <div class="hs-body">
         <span class="hs-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 14) }}{{ t('home.slide.' ~ b.kind) }}</span>
@@ -22,7 +22,7 @@
     </{{ 'a' if go else 'div' }}>
     {% endfor %}
     {% if lot %}
-    <a class="hs-slide c-orange" href="/app/auctions/{{ lot.id }}" aria-roledescription="slide">
+    <a class="hs-slide c-orange" href="/app/auctions/{{ lot.id }}" data-ms="{{ slider_seconds * 1000 }}" aria-roledescription="slide">
       <div class="hs-body">
         <span class="hs-kicker">{% if lot.status.value == 'live' %}<i class="live-dot"></i>{{ t('home.auction_live') }}{% else %}{{ icon('clock', 14) }}{{ t('home.auction_soon') }}{% endif %}</span>
         <h2 class="truncate">{{ lot.brand }} {{ lot.model }}</h2>
@@ -33,7 +33,7 @@
     </a>
     {% endif %}
     {% if new_count %}
-    <a class="hs-slide c-green" href="/app/new" aria-roledescription="slide">
+    <a class="hs-slide c-green" href="/app/new" data-ms="{{ slider_seconds * 1000 }}" aria-roledescription="slide">
       <div class="hs-body">
         <span class="hs-kicker">{{ icon('sparkle', 14) }}{{ t('home.new_arrivals') }}</span>
         <h2>{{ t('home.promo_new_text', n=new_count) }}</h2>

@@ -701,6 +701,13 @@
     });
   }
   bindProductColour(document); bindSeriesMenus(document);
+  // seconds pickers (banners): chips or an own number; a click on the number box frees it, a chip disables it again
+  document.querySelectorAll('.bn-secs').forEach((box) => {
+    const own = box.querySelector('[data-secs-own]'); if (!own) return;
+    const chips = () => Array.from(box.querySelectorAll('input[type=radio]'));
+    box.querySelector('.bn-secs-own').addEventListener('click', () => { if (own.disabled) { own.disabled = false; chips().forEach((r) => { r.checked = false; }); own.focus(); } });
+    chips().forEach((r) => r.addEventListener('change', () => { own.disabled = true; own.value = ''; }));
+  });
   document.addEventListener('htmx:afterSettle', (e) => { bindProductColour(e.target); bindSeriesMenus(e.target); });
 
   // ---------- file input counters ----------

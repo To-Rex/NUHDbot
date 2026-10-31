@@ -28,6 +28,7 @@ class Banner(Base, TimestampMixin):
     old_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))  # shown struck through next to the product price
     starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    seconds: Mapped[int | None] = mapped_column(Integer)  # how long the slide stays; empty = the slider's default
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort: Mapped[int] = mapped_column(Integer, default=100)
     clicks: Mapped[int] = mapped_column(Integer, default=0)
