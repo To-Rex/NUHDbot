@@ -195,7 +195,8 @@
     "success_next": "管理员将核实库存、价格和条款并发送最终报价。请在「订单」中关注进度。",
     "open_order": "查看订单",
     "back_home": "返回首页",
-    "edit": "修改"
+    "edit": "修改",
+    "currency_note": "订单金额为 {amount}（{rate}）。管理员会在聊天中发送付款信息。"
   },
   "orders": {
     "title": "我的订单",
@@ -343,7 +344,8 @@
     "theme_auto": "自动",
     "theme_light": "日间",
     "theme_dark": "夜间",
-    "theme_hint": "「自动」跟随您的 Telegram 主题"
+    "theme_hint": "「自动」跟随您的 Telegram 主题",
+    "currency": "货币"
   },
   "support": {
     "title": "联系客服",
@@ -381,6 +383,8 @@
     "today": "今天",
     "yesterday": "昨天",
     "toggle_theme": "切换主题",
-    "choose_language": "请选择语言"
+    "choose_language": "请选择语言",
+    "choose_currency": "选择货币",
+    "currency_note": "价格按商店设定的汇率换算。订单和付款以商品原币种结算。"
   }
 }

@@ -1,0 +1,6 @@
+{# Quick currency switch (prices on the page are converted at the rate staff entered) #}
+<div class="segmented cur-seg mt-3" role="radiogroup" aria-label="{{ t('profile.currency') }}">
+  {% for c in price.choices %}{% set on = price.shown and price.shown.code == c.code %}
+  <a role="radio" aria-checked="{{ 'true' if on else 'false' }}" class="{{ 'active' if on }}" href="/app/currency/{{ c.code }}?next={{ full_path|urlencode }}" hx-boost="false" data-currency="{{ c.code }}">{{ c.name }}</a>
+  {% endfor %}
+</div>

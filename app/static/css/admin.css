@@ -813,3 +813,27 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 #cap-value{-moz-appearance:textfield;appearance:textfield}
 #cap-value::-webkit-inner-spin-button,#cap-value::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 #cap-value::-webkit-calendar-picker-indicator{display:none!important;opacity:0}
+
+/* ---------- currencies ---------- */
+.cur-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px;align-items:start}
+.cur-card{display:flex;flex-direction:column;gap:12px;min-width:0}
+.cur-card.off .cur-head{opacity:.6}
+.cur-new{border-style:dashed;box-shadow:none;background:transparent}
+.cur-head{display:flex;align-items:center;gap:12px;min-width:0}
+.cur-sym{min-width:42px;max-width:72px;height:42px;padding:0 8px;border-radius:12px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:15px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cur-new .cur-sym{background:var(--sunken);color:var(--ink-2)}
+.cur-title{font-weight:700;font-size:14.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cur-base{background:var(--accent-soft);color:var(--accent)}
+.cur-active{margin-right:auto;padding:0;font-size:12.5px;white-space:nowrap}
+.cur-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cur-new .f-rate{grid-column:1/-1;order:5}
+.cur-fields .f-first{grid-column:1/-1;order:6}
+.cur-fields .check{padding:0;font-size:12.5px}
+.cur-rate{display:flex;align-items:center;gap:8px}
+.cur-rate>span{color:var(--ink-2);font-size:13px;white-space:nowrap}
+.cur-rate .input{flex:1;min-width:0}
+.cur-rate .input[readonly]{background:var(--sunken);color:var(--ink-3)}
+.cur-preview{font-size:12.5px;background:var(--sunken);border-radius:10px;padding:9px 12px}
+.cur-foot{display:flex;justify-content:flex-end;gap:8px}
+.cur-foot{align-items:center}
+@media (max-width:760px){.cur-grid{grid-template-columns:minmax(0,1fr)}}

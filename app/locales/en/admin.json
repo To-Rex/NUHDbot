@@ -22,7 +22,8 @@
       "settings": "Settings",
       "geo": "Countries & cities",
       "brands": "Brands",
-      "models": "Models"
+      "models": "Models",
+      "currencies": "Currencies"
     },
     "actions": "Actions",
     "search": "Search…",
@@ -489,7 +490,7 @@
       "key_seagate_check_url": "Seagate warranty check link",
       "key_support_group_id": "Telegram group ID (support)",
       "help_advance_percent": "The 30/70 rule. Does not affect existing orders.",
-      "help_currency": "Currency of catalog prices, usually USD.",
+      "help_currency": "Prices are entered in this currency. Other currencies and rates live under «Currencies».",
       "help_working_hours": "Shown to the customer in chat.",
       "help_reply_time": "Shown to the customer in chat.",
       "help_delivery_text": "Shown on the product card and order page.",
@@ -762,6 +763,40 @@
       "reset": "Reset",
       "drop": "Drop here",
       "error": "Order was not saved"
+    },
+    "cur": {
+      "title": "Currencies",
+      "count": "currencies",
+      "help": "Product prices are entered in {base}. Add other currencies and their rate by hand here — customers see prices in the currency they pick in the Mini App. Orders and payments stay in the product's currency, as before.",
+      "name": "Name",
+      "code": "Code",
+      "code_hint": "3 Latin letters: UZS, RUB, CNY",
+      "symbol": "Symbol",
+      "symbol_first": "Symbol before the price ($40)",
+      "rate": "Rate",
+      "base_rate": "base, always 1",
+      "decimals": "Decimal places",
+      "preview": "Sample",
+      "base": "Base",
+      "used_by": "used by {n} products",
+      "updated": "Updated",
+      "active": "Visible to customers",
+      "active_hint": "When off, it cannot be picked in the Mini App",
+      "delete": "Delete",
+      "delete_q": "Delete currency {code}?",
+      "add_title": "New currency",
+      "add_hint": "For example: Sum · UZS · so'm · 12 800",
+      "add": "Add",
+      "added": "{code} added",
+      "deleted": "{code} deleted",
+      "err": {
+        "code_invalid": "The code must be 3 Latin letters (e.g. UZS)",
+        "code_taken": "{code} already exists",
+        "name_required": "Enter a name",
+        "rate_invalid": "Enter the rate: a number above zero",
+        "base_locked": "The base currency cannot be deleted",
+        "in_use": "{n} products are priced in it. Untick «Visible to customers» instead of deleting."
+      }
     }
   }
 }

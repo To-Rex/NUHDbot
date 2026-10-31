@@ -1,0 +1,18 @@
+{# Currency picker bottom sheet — opened with data-open-sheet="cur-sheet" #}
+<div id="cur-sheet" hidden>
+  <div class="sheet-backdrop" data-close-sheet="cur-sheet"></div>
+  <div class="sheet" role="dialog" aria-modal="true" aria-label="{{ t('misc.choose_currency') }}">
+    <div class="grab"></div>
+    <div class="row-between mb-3"><h3 style="font-size:17px">{{ t('misc.choose_currency') }}</h3><button type="button" class="icon-btn" data-close-sheet="cur-sheet" aria-label="{{ t('common.close') }}">{{ icon('x', 18) }}</button></div>
+    <div class="lang-grid">
+      {% for c in price.choices %}{% set on = price.shown and price.shown.code == c.code %}
+      <a class="lang-opt {{ 'active' if on }}" href="/app/currency/{{ c.code }}?next={{ full_path|urlencode }}" hx-boost="false" data-currency="{{ c.code }}">
+        <span class="lang-badge">{{ c.symbol }}</span>
+        <span class="lang-name">{{ c.name }}<small class="cur-opt-rate">{{ c.code }}{% if not c.is_base %} · {{ price.rate_line(price.base_code, c.code) }}{% endif %}</small></span>
+        {% if on %}{{ icon('check', 16, 'lang-check') }}{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    <p class="group-note mt-3">{{ t('misc.currency_note') }}</p>
+  </div>
+</div>

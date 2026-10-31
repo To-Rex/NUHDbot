@@ -1,0 +1,110 @@
+"""Currencies: staff type in each currency with its rate; the Mini App shows prices in the one a customer picks."""
+import re
+from decimal import Decimal, InvalidOperation
+
+from fastapi import Depends, Request
+from sqlalchemy import func, select
+
+from app.admin.common import ADMIN, DB, back, f_bool, f_int, f_str, render, snapshot, staff_dep
+from app.admin.router import router
+from app.i18n import t
+from app.models import Currency, Product, User
+from app.services import audit, currencies
+
+FIELDS = ["code", "name", "symbol", "symbol_first", "rate", "decimals", "is_active"]
+MAX_RATE = Decimal("1000000000000")
+
+
+def parse_rate(raw: str | None) -> Decimal | None:
+    """ "12 800,5" → 12800.5; None unless 0 < rate < 10^12."""
+    v = re.sub(r"[\s  ']", "", raw or "").replace(",", ".")
+    try:
+        d = Decimal(v).quantize(Decimal("0.000001"))
+    except InvalidOperation:
+        return None
+    return d if Decimal(0) < d < MAX_RATE else None
+
+
+def _apply(c: Currency, form) -> str | None:
+    """Copy the form onto the currency; returns an error key or None."""
+    name = f_str(form, "name", maxlen=40)
+    if not name:
+        return "name_required"
+    c.name = name
+    c.symbol = f_str(form, "symbol", maxlen=8) or c.code
+    c.symbol_first = f_bool(form, "symbol_first")
+    c.decimals = max(0, min(4, f_int(form, "decimals", 2) or 0))
+    if c.is_base:
+        c.rate, c.is_active = Decimal(1), True
+        return None
+    rate = parse_rate(form.get("rate"))
+    if rate is None:
+        return "rate_invalid"
+    c.rate = rate
+    return None
+
+
+async def _usage(db) -> dict[str, int]:
+    rows = await db.execute(select(Product.currency, func.count()).group_by(Product.currency))
+    return {code: n for code, n in rows.all()}
+
+
+@router.get("/currencies")
+async def currencies_page(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    rows = (await db.execute(select(Currency).order_by(Currency.is_base.desc(), Currency.sort, Currency.id))).scalars().all()
+    base = next((c for c in rows if c.is_base), None)
+    return render(request, staff, "admin/currencies/list.html", {"page_title": t(staff.lang, "admin.cur.title"), "rows": rows, "base": base, "usage": await _usage(db)})
+
+
+@router.post("/currencies")
+async def currency_add(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    form = await request.form()
+    code = f_str(form, "code", maxlen=3).upper()
+    if not re.fullmatch(r"[A-Z]{3}", code):
+        return back(request, "/admin/currencies", t(staff.lang, "admin.cur.err.code_invalid"), "bad")
+    if await db.scalar(select(Currency.id).where(Currency.code == code)):
+        return back(request, "/admin/currencies", t(staff.lang, "admin.cur.err.code_taken", code=code), "bad")
+    c = Currency(code=code, is_base=False, is_active=True, sort=100)
+    err = _apply(c, form)
+    if err:
+        return back(request, "/admin/currencies", t(staff.lang, f"admin.cur.err.{err}"), "bad")
+    db.add(c)
+    await db.flush()
+    await audit.log(db, staff.id, "currency.create", "currency", c.id, None, snapshot(c, FIELDS))
+    await db.commit()
+    await currencies.load(db)
+    return back(request, "/admin/currencies", t(staff.lang, "admin.cur.added", code=code))
+
+
+@router.post("/currencies/{cid}")
+async def currency_save(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    c = await db.get(Currency, cid)
+    if c is None:
+        return back(request, "/admin/currencies", t(staff.lang, "admin.flash.error"), "bad")
+    form = await request.form()
+    before = snapshot(c, FIELDS)
+    err = _apply(c, form)
+    if err:
+        await db.rollback()
+        return back(request, "/admin/currencies", t(staff.lang, f"admin.cur.err.{err}"), "bad")
+    if not c.is_base:
+        c.is_active = f_bool(form, "is_active")
+    await audit.log(db, staff.id, "currency.update", "currency", c.id, before, snapshot(c, FIELDS))
+    await db.commit()
+    await currencies.load(db)
+    return back(request, "/admin/currencies", t(staff.lang, "admin.flash.saved"))
+
+
+@router.post("/currencies/{cid}/delete")
+async def currency_delete(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    c = await db.get(Currency, cid)
+    if c is None or c.is_base:
+        return back(request, "/admin/currencies", t(staff.lang, "admin.cur.err.base_locked"), "bad")
+    used = (await _usage(db)).get(c.code, 0)
+    if used:  # products are priced in it: hide it instead
+        return back(request, "/admin/currencies", t(staff.lang, "admin.cur.err.in_use", n=used), "warn")
+    await audit.log(db, staff.id, "currency.delete", "currency", c.id, snapshot(c, FIELDS), None)
+    await db.delete(c)
+    await db.commit()
+    await currencies.load(db)
+    return back(request, "/admin/currencies", t(staff.lang, "admin.cur.deleted", code=c.code))

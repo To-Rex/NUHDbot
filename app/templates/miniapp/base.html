@@ -40,6 +40,7 @@
 {% include "miniapp/partials/bottom_nav.html" %}
 {% endif %}
 {% include "miniapp/partials/lang_sheet.html" %}
+{% if price.choices|length > 1 %}{% include "miniapp/partials/currency_sheet.html" %}{% endif %}
 <div class="toasts"></div>
 <script src="{{ asset('js/app.js') }}" defer></script>
 {% block scripts %}{% endblock %}

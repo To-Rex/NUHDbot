@@ -1,0 +1,66 @@
+{% extends "admin/base.html" %}
+{% set bsym = base.symbol if base else '$' %}{% set bfirst = base.symbol_first if base else true %}
+{% macro fields(c, is_new=false) %}
+  <div class="cur-fields">
+    {% if is_new %}
+    <div class="field"><label>{{ t('admin.cur.name') }} <span class="req">*</span></label><input class="input" name="name" maxlength="40" required placeholder="So'm" data-cur="name"></div>
+    <div class="field"><label>{{ t('admin.cur.code') }} <span class="req">*</span></label><input class="input mono" name="code" maxlength="3" required placeholder="UZS" pattern="[A-Za-z]{3}" style="text-transform:uppercase" data-cur="code"><span class="hint">{{ t('admin.cur.code_hint') }}</span></div>
+    {% else %}
+    <div class="field"><label>{{ t('admin.cur.name') }}</label><input class="input" name="name" maxlength="40" required value="{{ c.name }}" data-cur="name"></div>
+    {% endif %}
+    <div class="field"><label>{{ t('admin.cur.symbol') }}</label><input class="input" name="symbol" maxlength="8" value="{{ c.symbol if c else '' }}" placeholder="so'm" data-cur="symbol"></div>
+    <div class="field f-rate"><label>{{ t('admin.cur.rate') }}{% if not is_new and c.is_base %} <span class="hint">({{ t('admin.cur.base_rate') }})</span>{% elif is_new %} <span class="req">*</span>{% endif %}</label>
+      <div class="cur-rate"><span class="mono">{{ '%s1'|format(bsym) if bfirst else '1 %s'|format(bsym) }} =</span><input class="input mono" name="rate" inputmode="decimal" value="{{ ('%f'|format(c.rate)).rstrip('0').rstrip('.') if c else '' }}" placeholder="12 800" {{ 'readonly' if c and c.is_base }} {{ 'required' if is_new }} data-cur="rate"></div></div>
+    <div class="field f-dec"><label>{{ t('admin.cur.decimals') }}</label><select class="select" name="decimals" data-cur="dec">{% for d in range(0, 5) %}<option value="{{ d }}" {{ 'selected' if (c.decimals if c else 0) == d }}>{{ d }}{% if d == 0 %} · 1 280 000{% elif d == 2 %} · 40.50{% endif %}</option>{% endfor %}</select></div>
+    <label class="check f-first"><input type="checkbox" name="symbol_first" {{ 'checked' if c and c.symbol_first }} data-cur="first">{{ t('admin.cur.symbol_first') }}</label>
+  </div>
+  <div class="cur-preview" data-cur-preview><span class="faint">{{ t('admin.cur.preview') }}:</span> <b class="mono" data-out></b></div>
+{% endmacro %}
+{% block topbar_actions %}<span class="faint small">{{ rows|length }} {{ t('admin.cur.count') }}</span>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.cur.help', base=base.code if base else 'USD') }}</span></div>
+<div class="cur-grid" data-base-sym="{{ bsym }}" data-base-first="{{ '1' if bfirst else '0' }}">
+  {% for c in rows %}
+  <form class="card cur-card{{ ' off' if not c.is_active }}" id="cur-{{ c.id }}" method="post" action="/admin/currencies/{{ c.id }}" data-cur-form><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="cur-head">
+      <span class="cur-sym">{{ c.symbol }}</span>
+      <div class="flex1"><div class="cur-title">{{ c.name }} <span class="mono faint">{{ c.code }}</span>{% if c.is_base %}<span class="chip cur-base">{{ t('admin.cur.base') }}</span>{% endif %}</div>
+        <div class="hint">{% if usage.get(c.code) %}{{ t('admin.cur.used_by', n=usage[c.code]) }} · {% endif %}{{ t('admin.cur.updated') }} {{ c.updated_at|dt }}</div></div>
+    </div>
+    {{ fields(c) }}
+    <div class="cur-foot">
+      {% if not c.is_base %}<label class="check cur-active" title="{{ t('admin.cur.active_hint') }}"><input type="checkbox" name="is_active" {{ 'checked' if c.is_active }}>{{ t('admin.cur.active') }}</label>{% endif %}
+      {% if not c.is_base %}<button class="icon-btn sm danger" type="submit" form="cur-del-{{ c.id }}" title="{{ t('admin.cur.delete') }}" aria-label="{{ t('admin.cur.delete') }}" data-confirm="{{ t('admin.cur.delete_q', code=c.code) }}" data-confirm-danger="1">{{ icon('trash', 15) }}</button>{% endif %}
+      <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
+    </div>
+  </form>
+  {% if not c.is_base %}<form id="cur-del-{{ c.id }}" method="post" action="/admin/currencies/{{ c.id }}/delete" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endif %}
+  {% endfor %}
+  <form class="card cur-card cur-new" id="add" method="post" action="/admin/currencies" data-cur-form><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="cur-head"><span class="cur-sym">{{ icon('plus', 18) }}</span><div class="flex1"><div class="cur-title">{{ t('admin.cur.add_title') }}</div><div class="hint">{{ t('admin.cur.add_hint') }}</div></div></div>
+    {{ fields(none, true) }}
+    <div class="cur-foot"><button class="btn btn-primary btn-sm" type="submit">{{ icon('plus', 15) }}{{ t('admin.cur.add') }}</button></div>
+  </form>
+</div>
+<script>
+(function(){
+  /* live sample: a $40 drive shown in this currency, same formatting as the Mini App */
+  var grid=document.querySelector('.cur-grid'); if(!grid) return;
+  var bsym=grid.dataset.baseSym, bfirst=grid.dataset.baseFirst==='1', NB=' ';
+  function fmt(v, sym, first, dec){
+    var r=Math.round(v*Math.pow(10,dec))/Math.pow(10,dec), whole=r===Math.round(r);
+    var s=r.toLocaleString('en-US',{minimumFractionDigits:whole?0:dec,maximumFractionDigits:whole?0:dec});
+    return first ? sym+s : s.replace(/,/g,NB)+NB+sym;
+  }
+  function q(f,k){ return f.querySelector('[data-cur="'+k+'"]'); }
+  function upd(f){
+    var out=f.querySelector('[data-out]'); if(!out) return;
+    var rate=parseFloat(String(q(f,'rate').value).replace(/[\s ']/g,'').replace(',','.'));
+    var sym=q(f,'symbol').value.trim()||(q(f,'code')?q(f,'code').value.trim().toUpperCase():'')||'?';
+    if(!(rate>0)){ out.textContent='—'; return; }
+    out.textContent=fmt(40,bsym,bfirst,2)+' = '+fmt(40*rate,sym,q(f,'first').checked,parseInt(q(f,'dec').value,10)||0);
+  }
+  grid.querySelectorAll('[data-cur-form]').forEach(function(f){ upd(f); f.addEventListener('input',function(){ upd(f); }); f.addEventListener('change',function(){ upd(f); }); });
+})();
+</script>
+{% endblock %}

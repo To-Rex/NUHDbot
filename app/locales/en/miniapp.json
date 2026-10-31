@@ -195,7 +195,8 @@
     "success_next": "The admin will check availability, price and terms and send a final offer. Track the status under “Orders”.",
     "open_order": "Open order",
     "back_home": "Back home",
-    "edit": "Edit"
+    "edit": "Edit",
+    "currency_note": "The order is placed for {amount} ({rate}). The admin sends payment details in the chat."
   },
   "orders": {
     "title": "My orders",
@@ -343,7 +344,8 @@
     "theme_auto": "Auto",
     "theme_light": "Day",
     "theme_dark": "Night",
-    "theme_hint": "Auto follows your Telegram theme"
+    "theme_hint": "Auto follows your Telegram theme",
+    "currency": "Currency"
   },
   "support": {
     "title": "Contact admin",
@@ -381,6 +383,8 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "toggle_theme": "Toggle theme",
-    "choose_language": "Choose language"
+    "choose_language": "Choose language",
+    "choose_currency": "Choose currency",
+    "currency_note": "Prices are converted at the store's rate. Orders and payments are made in the product's currency."
   }
 }

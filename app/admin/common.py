@@ -54,6 +54,7 @@ NAV_GROUPS = [
     ]),
     ("system", [
         ("settings", "/admin/settings", "settings", ADMIN),
+        ("currencies", "/admin/currencies", "money", ADMIN),
         ("geo", "/admin/settings/geo", "globe", ADMIN),
         ("ads", "/admin/ads", "flag", ADS_ROLES),
         ("reports", "/admin/reports", "chart", REPORT_ROLES),

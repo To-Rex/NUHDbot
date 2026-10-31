@@ -34,6 +34,7 @@
 
   <section class="list">
     <button type="button" class="list-item" data-open-sheet="lang-sheet"><span class="list-icon purple">{{ icon('globe', 18) }}</span><span class="list-title flex-1">{{ t('profile.language') }}</span><span class="val">{{ t('lang.' ~ lang) }}</span>{{ icon('chevron-right', 17, 'chev') }}</button>
+    {% if price.choices|length > 1 %}<button type="button" class="list-item" data-open-sheet="cur-sheet"><span class="list-icon green">{{ icon('money', 18) }}</span><span class="list-title flex-1">{{ t('profile.currency') }}</span><span class="val">{{ price.shown.name if price.shown else '' }}</span>{{ icon('chevron-right', 17, 'chev') }}</button>{% endif %}
     {% if user %}<a class="list-item" href="/app/profile/edit"><span class="list-icon gray">{{ icon('person', 18) }}</span><span class="list-title flex-1">{{ t('profile.edit') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>{% endif %}
   </section>
 

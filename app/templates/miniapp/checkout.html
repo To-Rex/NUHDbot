@@ -10,11 +10,12 @@
       {% for l in lines %}
       <div class="row-between small hr-dashed" style="padding:8px 0">
         <div class="flex-1 truncate"><b>{{ l.p.brand }} {{ l.p.model }}</b> <span class="muted">{{ l.p.capacity_gb|capacity }}</span> {% with cond=l.p.condition %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
-        <div class="mono muted" style="white-space:nowrap">{{ l.qty }} × {{ l.p.price|money(l.p.currency) }}</div>
+        <div class="mono muted" style="white-space:nowrap">{{ l.qty }} × {{ price(l.p.price, l.p.currency) }}</div>
       </div>
       {% endfor %}
-      <div class="cart-summary"><span class="muted">{{ t('orders.total') }}</span><strong>{{ total|money(currency) }}</strong></div>
-      <dl class="kv small mt-2"><dt>{{ t('orders.advance') }}</dt><dd class="mono">{{ (total * advance_percent / 100)|money(currency) }}</dd><dt>{{ t('orders.balance') }}</dt><dd class="mono">{{ (total - total * advance_percent / 100)|money(currency) }}</dd></dl>
+      <div class="cart-summary"><span class="muted">{{ t('orders.total') }}</span><strong>{{ price(total, currency) }}</strong></div>
+      <dl class="kv small mt-2"><dt>{{ t('orders.advance') }}</dt><dd class="mono">{{ price(total * advance_percent / 100, currency) }}</dd><dt>{{ t('orders.balance') }}</dt><dd class="mono">{{ price(total - total * advance_percent / 100, currency) }}</dd></dl>
+      {% if price.converts(currency) %}<div class="notice notice-info mt-3">{{ icon('info', 16) }}<span class="xs">{{ t('checkout.currency_note', amount=price.original(total, currency), rate=price.rate_line(currency)) }}</span></div>{% endif %}
       <a class="link small mt-3 row" style="gap:4px;display:inline-flex" href="/app/cart">{{ icon('edit', 14) }}{{ t('checkout.edit') }}</a>
     </div>
 
@@ -47,5 +48,5 @@
     <div class="notice notice-info">{{ icon('info', 18) }}<span class="small">{{ t('checkout.confirm_note') }}</span></div>
   </form>
 </div>
-<div class="sticky-cta"><div class="inner"><button class="btn btn-primary btn-lg btn-block" type="submit" form="co-form"><span class="label">{{ t('checkout.place_order') }} · <span class="mono">{{ total|money(currency) }}</span></span><span class="spinner"></span></button></div></div>
+<div class="sticky-cta"><div class="inner"><button class="btn btn-primary btn-lg btn-block" type="submit" form="co-form"><span class="label">{{ t('checkout.place_order') }} · <span class="mono">{{ price(total, currency) }}</span></span><span class="spinner"></span></button></div></div>
 {% endblock %}

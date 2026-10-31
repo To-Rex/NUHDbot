@@ -6,7 +6,7 @@
     <a href="/app/products/{{ l.p.id }}"><img src="{{ l.p.cover.thumb_url if l.p.cover else '/static/img/placeholder.svg' }}" alt=""></a>
     <div class="flex-1">
       <div class="row-between"><a class="semibold truncate" href="/app/products/{{ l.p.id }}">{{ l.p.brand }} {{ l.p.model }}</a>{% with cond=l.p.condition %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
-      <div class="xs muted mt-1">{{ l.p.capacity_gb|capacity }} · {{ l.p.interface.value }} · <span class="mono">{{ l.p.price|money(l.p.currency) }}</span> / {{ t('common.per_unit') }}</div>
+      <div class="xs muted mt-1">{{ l.p.capacity_gb|capacity }} · {{ l.p.interface.value }} · <span class="mono">{{ price(l.p.price, l.p.currency) }}</span> / {{ t('common.per_unit') }}</div>
       <div class="row-between mt-2">
         <form class="stepper" hx-post="/app/cart/update" hx-trigger="change delay:200ms" hx-target="#cart-body" hx-swap="outerHTML" style="height:36px">
           <input type="hidden" name="product_id" value="{{ l.p.id }}">
@@ -16,14 +16,15 @@
           <input type="number" name="qty" value="{{ l.qty }}" min="{{ l.p.min_order }}" max="{{ l.max }}" step="{{ l.step }}" inputmode="numeric" style="width:46px;height:34px;font-size:14px">
           <button type="button" data-step="{{ l.step }}" style="width:34px;height:34px" aria-label="+">{{ icon('plus', 14) }}</button>
         </form>
-        <div class="right"><div class="mono semibold">{{ l.total|money(l.p.currency) }}</div>
+        <div class="right"><div class="mono semibold">{{ price(l.total, l.p.currency) }}</div>
           <button class="remove" hx-post="/app/cart/remove" hx-vals='{"product_id": {{ l.p.id }}}' hx-target="#cart-body" hx-swap="outerHTML">{{ t('cart.remove') }}</button></div>
       </div>
     </div>
   </div>
   {% endfor %}
 </div>
-<div class="cart-summary"><span class="muted">{{ t('cart.items', n=lines|length) }}</span><strong>{{ total|money(currency) }}</strong></div>
+<div class="cart-summary"><span class="muted">{{ t('cart.items', n=lines|length) }}</span><strong>{{ price(total, currency) }}</strong></div>
+{% if price.converts(currency) %}<p class="xs muted right mono" style="margin-top:2px">= {{ price.original(total, currency) }} · {{ price.rate_line(currency) }}</p>{% endif %}
 <p class="xs faint mt-1">{{ t('cart.note') }}</p>
 <div class="row mt-4" style="gap:10px">
   <button class="btn btn-secondary" hx-post="/app/cart/clear" hx-target="#cart-body" hx-swap="outerHTML" hx-confirm="{{ t('cart.clear') }}?" aria-label="{{ t('cart.clear') }}" style="width:46px;padding:0">{{ icon('trash', 18) }}</button>

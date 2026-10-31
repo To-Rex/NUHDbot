@@ -22,7 +22,8 @@
       "settings": "Sozlamalar",
       "geo": "Mamlakat va shaharlar",
       "brands": "Brendlar",
-      "models": "Modellar"
+      "models": "Modellar",
+      "currencies": "Valyutalar"
     },
     "actions": "Amallar",
     "search": "Qidirish…",
@@ -489,7 +490,7 @@
       "key_seagate_check_url": "Seagate kafolat tekshirish havolasi",
       "key_support_group_id": "Telegram guruh ID (murojaatlar)",
       "help_advance_percent": "30/70 qoidasi. Mavjud buyurtmalarga ta'sir qilmaydi.",
-      "help_currency": "Katalogdagi narx valyutasi, odatda USD.",
+      "help_currency": "Narxlar shu valyutada kiritiladi. Boshqa valyutalar va kurslar — «Valyutalar» bo'limida.",
       "help_working_hours": "Mijozga chatda ko'rsatiladi.",
       "help_reply_time": "Mijozga chatda ko'rsatiladi.",
       "help_delivery_text": "Mahsulot kartochkasi va buyurtma sahifasida chiqadi.",
@@ -762,6 +763,40 @@
       "reset": "Asl holiga",
       "drop": "Shu yerga suring",
       "error": "Tartib saqlanmadi"
+    },
+    "cur": {
+      "title": "Valyutalar",
+      "count": "ta valyuta",
+      "help": "Mahsulot narxlari {base} da kiritiladi. Bu yerda boshqa valyutalarni va kursini qo'lda kiriting — mijoz Mini App'da narxlarni o'zi tanlagan valyutada ko'radi. Buyurtma va to'lovlar avvalgidek mahsulot valyutasida qoladi.",
+      "name": "Nomi",
+      "code": "Kod",
+      "code_hint": "3 ta lotin harf: UZS, RUB, CNY",
+      "symbol": "Belgi",
+      "symbol_first": "Belgi narxdan oldin ($40)",
+      "rate": "Kurs",
+      "base_rate": "asosiy, doim 1",
+      "decimals": "Kasr xonalari",
+      "preview": "Namuna",
+      "base": "Asosiy",
+      "used_by": "{n} ta mahsulot narxida",
+      "updated": "Yangilandi",
+      "active": "Mijozlarga ko'rinadi",
+      "active_hint": "O'chirilsa, Mini App'da tanlab bo'lmaydi",
+      "delete": "O'chirish",
+      "delete_q": "{code} valyutasi o'chirilsinmi?",
+      "add_title": "Yangi valyuta",
+      "add_hint": "Masalan: So'm · UZS · so'm · 12 800",
+      "add": "Qo'shish",
+      "added": "{code} qo'shildi",
+      "deleted": "{code} o'chirildi",
+      "err": {
+        "code_invalid": "Kod 3 ta lotin harfdan iborat bo'lishi kerak (masalan UZS)",
+        "code_taken": "{code} allaqachon bor",
+        "name_required": "Nomini kiriting",
+        "rate_invalid": "Kursni to'g'ri kiriting: noldan katta son",
+        "base_locked": "Asosiy valyutani o'chirib bo'lmaydi",
+        "in_use": "{n} ta mahsulot narxi shu valyutada. O'chirish o'rniga «Mijozlarga ko'rinadi» belgisini olib tashlang."
+      }
     }
   }
 }

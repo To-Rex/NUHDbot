@@ -22,7 +22,7 @@ def test_saved_order_and_new_items():
     # items the layout does not mention (e.g. added in a later release) go back to their usual group
     assert got["sales"] == ["support", "orders", "auctions"]
     assert got["people"] == ["customers", "staff"]
-    assert got["system"] == ["settings", "geo", "ads", "reports"]
+    assert got["system"] == ["settings", "currencies", "geo", "ads", "reports"]
     assert sorted(k for ks in got.values() for k in ks) == sorted(k for ks in DEFAULT.values() for k in ks)
 
 

@@ -43,6 +43,16 @@
     try { haptic.select(); } catch (e) {}
     try { fetch('/app/theme/' + mode, { method: 'POST', credentials: 'same-origin' }); } catch (e) {}
   }
+
+  // currency switch: save the choice, then reload in place (scroll kept) so every price on the page converts
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[data-currency]'); if (!a) return;
+    e.preventDefault(); if (a.classList.contains('active')) return;
+    try { haptic.select(); } catch (err) {}
+    a.closest('.segmented, .lang-grid')?.querySelectorAll('.active').forEach((x) => x.classList.remove('active')); a.classList.add('active');
+    const go = () => location.reload();
+    fetch('/app/currency/' + encodeURIComponent(a.dataset.currency), { method: 'POST', credentials: 'same-origin' }).then(go, go);
+  });
   if (tg) {
     try { tg.ready(); tg.expand(); } catch (e) {}
     try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}

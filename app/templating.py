@@ -147,6 +147,11 @@ def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | 
     ctx.setdefault("path", request.url.path)
     ctx["t"] = lambda key, **kw: t(lang, key, **kw)
     ctx["p"] = lambda value: pick(value, lang)
+    if "price" not in ctx:
+        from app.services import currencies
+
+        ctx["price"] = currencies.Prices(currencies.viewer_code(request, user))
+    ctx.setdefault("full_path", request.url.path + (f"?{request.url.query}" if request.url.query else ""))
     return templates.TemplateResponse(request, name, ctx, status_code=status_code, headers=headers)
 
 
@@ -166,3 +171,12 @@ def asset(path: str) -> str:
 
 
 env.globals["asset"] = asset
+
+
+def _currency_list():
+    from app.services import currencies
+
+    return currencies.all_()
+
+
+env.globals["currency_list"] = _currency_list

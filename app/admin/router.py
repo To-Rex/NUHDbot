@@ -9,6 +9,7 @@ from app.admin import (  # noqa: E402,F401
     auctions,
     auth,
     brands,
+    currencies,
     customers,
     dashboard,
     models_dict,

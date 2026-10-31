@@ -11,7 +11,7 @@ from app.services.settings_service import DEFAULTS, get_all_settings, set_settin
 
 I18N_KEYS = ("working_hours", "reply_time", "delivery_text", "payment_text")
 NUM_KEYS = ("advance_percent", "auction_deposit_default", "auction_extension_seconds")
-STR_KEYS = ("currency", "warehouse_address", "wd_check_url", "seagate_check_url")
+STR_KEYS = ("warehouse_address", "wd_check_url", "seagate_check_url")  # currencies: /admin/currencies
 
 
 @router.get("/settings")

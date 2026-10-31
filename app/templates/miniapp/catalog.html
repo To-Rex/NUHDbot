@@ -79,7 +79,7 @@
     <div class="filter-group"><span class="filter-label">{{ t('catalog.test_status') }}</span><div class="chips-wrap">
       {% for s in tests %}<label class="check-chip"><input type="checkbox" name="test" value="{{ s.value }}" {{ 'checked' if s.value in f.tests }}><span class="chip chip-lg {{ TEST_CLASS[s] }}">{{ t('test.' ~ s.value) }}</span></label>{% endfor %}
     </div></div>
-    <div class="filter-group"><span class="filter-label">{{ t('catalog.price_range') }} <span class="mono" style="text-transform:none;letter-spacing:0">${{ facets.price_min|int }}–${{ facets.price_max|int }}</span></span>
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.price_range') }} <span class="mono" style="text-transform:none;letter-spacing:0">{{ price.range(facets.price_min, facets.price_max, price.base_code) }}</span></span>
       <div class="grid-2"><input class="input mono" type="number" inputmode="decimal" name="price_min" placeholder="{{ t('catalog.price_from') }}" value="{{ f.price_min|int if f.price_min is not none }}" min="0"><input class="input mono" type="number" inputmode="decimal" name="price_max" placeholder="{{ t('catalog.price_to') }}" value="{{ f.price_max|int if f.price_max is not none }}" min="0"></div>
     </div>
     <label class="row-between" style="padding:12px 0;border-bottom:1px solid var(--hairline)"><span class="semibold">{{ t('catalog.in_stock_only') }}</span><input type="checkbox" name="in_stock" value="1" class="sr-only" {{ 'checked' if f.in_stock }}><span class="toggle"></span></label>

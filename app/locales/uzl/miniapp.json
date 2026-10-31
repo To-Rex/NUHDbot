@@ -195,7 +195,8 @@
     "success_next": "Admin tovar mavjudligi, narx va shartlarni tekshirib, yakuniy taklifni yuboradi. Holatni «Buyurtmalar» bo'limida kuzating.",
     "open_order": "Buyurtmani ochish",
     "back_home": "Asosiyga qaytish",
-    "edit": "O'zgartirish"
+    "edit": "O'zgartirish",
+    "currency_note": "Buyurtma {amount} miqdorida rasmiylashtiriladi ({rate}). To'lov tafsilotlarini admin chatda yuboradi."
   },
   "orders": {
     "title": "Buyurtmalarim",
@@ -343,7 +344,8 @@
     "theme_auto": "Avto",
     "theme_light": "Kun",
     "theme_dark": "Tun",
-    "theme_hint": "«Avto» rejimida Telegram mavzusiga moslashadi"
+    "theme_hint": "«Avto» rejimida Telegram mavzusiga moslashadi",
+    "currency": "Valyuta"
   },
   "support": {
     "title": "Admin bilan bog'lanish",
@@ -381,6 +383,8 @@
     "today": "Bugun",
     "yesterday": "Kecha",
     "toggle_theme": "Mavzuni almashtirish",
-    "choose_language": "Tilni tanlang"
+    "choose_language": "Tilni tanlang",
+    "choose_currency": "Valyutani tanlang",
+    "currency_note": "Narxlar do'kon belgilagan kurs bo'yicha hisoblanadi. Buyurtma va to'lov mahsulot valyutasida rasmiylashtiriladi."
   }
 }

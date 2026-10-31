@@ -22,7 +22,8 @@
       "settings": "设置",
       "geo": "国家与城市",
       "brands": "品牌",
-      "models": "型号"
+      "models": "型号",
+      "currencies": "货币"
     },
     "actions": "操作",
     "search": "搜索…",
@@ -489,7 +490,7 @@
       "key_seagate_check_url": "Seagate 保修查询链接",
       "key_support_group_id": "Telegram 群组 ID（客服）",
       "help_advance_percent": "30/70 规则。不影响已有订单。",
-      "help_currency": "目录价格货币，通常为 USD。",
+      "help_currency": "价格以此货币录入。其他货币和汇率请在“货币”中设置。",
       "help_working_hours": "在聊天中向客户显示。",
       "help_reply_time": "在聊天中向客户显示。",
       "help_delivery_text": "显示在商品页和订单页。",
@@ -762,6 +763,40 @@
       "reset": "恢复默认",
       "drop": "拖到这里",
       "error": "顺序未保存"
+    },
+    "cur": {
+      "title": "货币",
+      "count": "种货币",
+      "help": "商品价格以 {base} 录入。在这里手动添加其他货币及汇率——客户可在小程序中选择货币查看价格。订单和付款仍按商品原币种计算。",
+      "name": "名称",
+      "code": "代码",
+      "code_hint": "3 个拉丁字母：UZS、RUB、CNY",
+      "symbol": "符号",
+      "symbol_first": "符号在价格前（$40）",
+      "rate": "汇率",
+      "base_rate": "基准货币，始终为 1",
+      "decimals": "小数位",
+      "preview": "示例",
+      "base": "基准",
+      "used_by": "{n} 个商品使用",
+      "updated": "更新于",
+      "active": "对客户可见",
+      "active_hint": "关闭后，小程序中无法选择",
+      "delete": "删除",
+      "delete_q": "删除货币 {code}？",
+      "add_title": "新货币",
+      "add_hint": "例如：苏姆 · UZS · so'm · 12 800",
+      "add": "添加",
+      "added": "已添加 {code}",
+      "deleted": "已删除 {code}",
+      "err": {
+        "code_invalid": "代码须为 3 个拉丁字母（如 UZS）",
+        "code_taken": "{code} 已存在",
+        "name_required": "请输入名称",
+        "rate_invalid": "请输入大于零的汇率",
+        "base_locked": "基准货币不能删除",
+        "in_use": "{n} 个商品以此货币定价。请取消“对客户可见”，而不是删除。"
+      }
     }
   }
 }
