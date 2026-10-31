@@ -412,7 +412,7 @@ button.list-item{width:100%;text-align:left}
 .promo{position:relative;overflow:hidden;flex:0 0 86%;max-width:420px;scroll-snap-align:start;min-height:190px;border-radius:26px;padding:20px 20px 18px;display:flex;flex-direction:column;gap:8px;color:#fff;transition:transform var(--t-fast) var(--ease)}
 .promo:only-child{flex-basis:100%;max-width:none}
 .promo:active{transform:scale(.98)}
-.promo.ink{background:var(--panel);color:var(--panel-ink)}
+.promo.indigo{background:#5146D9}
 .promo.blue{background:#0071E3}
 .promo.green{background:#1C8C4E}
 .promo h2{position:relative;font-size:24px;line-height:1.12;letter-spacing:-.03em;max-width:15ch;color:inherit}
@@ -420,7 +420,7 @@ button.list-item{width:100%;text-align:left}
 .promo-kicker svg{width:15px;height:15px}
 .promo-sub{position:relative;font-size:14px;opacity:.88}
 .promo-cta{position:relative;margin-top:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 16px;border-radius:var(--r-pill);background:rgba(255,255,255,.2);font-size:14.5px;font-weight:600}
-.promo.ink .promo-cta{background:var(--panel-ink);color:var(--panel)}
+.promo.indigo .promo-cta{background:#fff;color:#3F35C2}
 .promo-cta svg{width:16px;height:16px}
 .promo .platter{position:absolute;right:-56px;bottom:-64px;width:210px;height:210px;opacity:.14;pointer-events:none}
 .live-dot{width:8px;height:8px;border-radius:50%;background:currentColor;animation:blink 1.4s ease-in-out infinite}

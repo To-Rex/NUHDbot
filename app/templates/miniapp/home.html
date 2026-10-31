@@ -17,7 +17,7 @@
   {# swipeable banners: store, live auction, new arrivals #}
   {% set lot = lots[0] if lots else None %}
   <div class="promo-track" data-promo>
-    <a class="promo ink" href="/app/catalog">
+    <a class="promo indigo" href="/app/catalog">
       <svg class="platter" viewBox="0 0 220 220" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><circle cx="110" cy="110" r="104"/><circle cx="110" cy="110" r="80"/><circle cx="110" cy="110" r="56"/><circle cx="110" cy="110" r="32"/><circle cx="110" cy="110" r="6" fill="currentColor" stroke="none"/><path d="M116 104 L178 46" stroke-width="3" stroke-linecap="round"/></svg>
       <span class="promo-kicker">{{ icon('drive', 15) }}{{ in_stock_models }} {{ t('home.fact_models') }}</span>
       <h2>{{ t('home.hero_title') }}</h2>
