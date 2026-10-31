@@ -313,6 +313,46 @@
   bindTokens(document);
   document.addEventListener('htmx:afterSettle', (e) => bindTokens(e.target));
 
+  // ---------- ad post form: pick 3–5 products (search, counter) + live Telegram preview ----------
+  function bindAdForm(scope) {
+    (scope.querySelectorAll ? scope : document).querySelectorAll('form:not([data-ad-bound])').forEach((form) => {
+      const picks = form.querySelector('[data-ad-picks]'); if (!picks) return;
+      form.dataset.adBound = '1';
+      const boxes = () => Array.from(picks.querySelectorAll('input[type=checkbox]'));
+      const count = form.querySelector('[data-ad-count]'), search = form.querySelector('[data-ad-search]'), text = form.querySelector('[data-ad-text]');
+      const preview = document.querySelector('[data-ad-preview]');
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      function refresh() {
+        const on = boxes().filter((b) => b.checked), n = on.length;
+        boxes().forEach((b) => { b.disabled = !b.checked && n >= 5; b.closest('.ad-pick').classList.toggle('is-on', b.checked); });
+        if (count) { count.textContent = (count.dataset.tpl || '{n} / 5').replace('{n}', n); count.classList.toggle('ok', n >= 3 && n <= 5); }
+        if (!preview) return;
+        const body = ((text && text.value) || '').trim();
+        if (!body && !n) { preview.innerHTML = '<span class="faint">' + esc(preview.dataset.empty || '') + '</span>'; return; }
+        // same shape as the message the bot sends (app/admin/ads.py: render_post)
+        const lines = [esc(body), ''];
+        on.forEach((b) => lines.push('• <b>' + esc(b.dataset.lineName) + '</b> ' + esc(b.dataset.lineRest)));
+        lines.push('', '🛒 <a>' + esc(preview.dataset.app || '') + '</a>');
+        preview.innerHTML = lines.join('\n');
+      }
+      picks.addEventListener('change', refresh);
+      text && text.addEventListener('input', refresh);
+      if (search) {
+        search.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+        search.addEventListener('input', () => { const q = search.value.trim().toLowerCase(); picks.querySelectorAll('.ad-pick').forEach((l) => { l.hidden = !!q && !l.dataset.name.includes(q) && !l.querySelector('input').checked; }); });
+      }
+      form.addEventListener('submit', (e) => {
+        const n = boxes().filter((b) => b.checked).length; if (n >= 3 && n <= 5) return;
+        e.preventDefault(); e.stopImmediatePropagation();
+        const sec = form.querySelector('#s-products'); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (count) { count.classList.add('bad'); setTimeout(() => count.classList.remove('bad'), 1600); }
+      }, true);
+      refresh();
+    });
+  }
+  bindAdForm(document);
+  document.addEventListener('htmx:afterSettle', (e) => bindAdForm(e.target));
+
   // ---------- file input counters ----------
   document.querySelectorAll('input[type=file][multiple]').forEach((i) => i.addEventListener('change', () => { const l = i.closest('label'); const c = l && l.querySelector('[data-count]'); if (c) c.textContent = i.files.length ? '(' + i.files.length + ')' : ''; }));
 })();

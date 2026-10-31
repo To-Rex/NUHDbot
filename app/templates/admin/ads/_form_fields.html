@@ -1,4 +1,30 @@
-<div class="field"><label>{{ t('admin.prod.title') }} <span class="req">*</span></label><input class="input" name="title" value="{{ post.title }}" required></div>
-<div class="field"><label>{{ t('admin.ads.text') }} <span class="req">*</span></label><textarea class="textarea" name="text" rows="5" required>{{ post.text }}</textarea></div>
-<div class="form-grid"><div class="field"><label>{{ t('admin.ads.campaign') }}</label><input class="input mono" name="campaign" value="{{ post.campaign }}" pattern="[A-Za-z0-9_-]+"><span class="hint">?startapp=src_…</span></div><div class="field"><label>{{ t('admin.ads.targets') }}</label><input class="input mono" name="targets" value="{{ post.target_chat_ids|join(', ') }}" placeholder="-1001234567890, -100987654321"></div></div>
-<div class="field"><label>{{ t('admin.ads.products') }}</label><select class="select" name="product_ids" multiple size="8" style="height:auto;padding:6px">{% for p in products %}<option value="{{ p.id }}" {{ 'selected' if p.id in post.product_ids }}>{{ p.brand }} {{ p.model }} · {{ p.capacity_gb|capacity }} · {{ p.condition.value|upper }} · {{ p.price|money(p.currency) }}</option>{% endfor %}</select><span class="hint">{{ t('admin.ads.need_products') }}</span></div>
+{# Ad post fields, shared by "new" and the edit form on the post page. Expects: post, products. admin.js wires
+   the product picker (3–5, search, counter) and the live preview ([data-ad-preview]) when it is on the page. #}
+<section class="fsection" id="s-post"><h2>{{ t('admin.ads.sec_post') }}</h2>
+  <div class="stack mt">
+    <div class="field"><label>{{ t('admin.ads.name_label') }} <span class="req">*</span></label><input class="input" name="title" value="{{ post.title }}" maxlength="120" required data-ad-title><span class="hint">{{ t('admin.ads.name_hint') }}</span></div>
+    <div class="field"><label>{{ t('admin.ads.text') }} <span class="req">*</span></label><textarea class="textarea" name="text" rows="6" required data-ad-text>{{ post.text }}</textarea><span class="hint">{{ t('admin.ads.text_hint') }}</span></div>
+  </div>
+</section>
+
+<section class="fsection" id="s-products"><h2>{{ t('admin.ads.sec_products') }} <span class="ad-count" data-ad-count data-tpl="{{ t('admin.ads.picked') }}"></span></h2>
+  <div class="help">{{ icon('info', 16) }}<span>{{ t('admin.ads.products_help') }}</span></div>
+  <label class="ad-search">{{ icon('search', 16) }}<input class="input" type="search" placeholder="{{ t('admin.ads.search_products') }}" autocomplete="off" data-ad-search></label>
+  <div class="ad-picks" data-ad-picks>
+    {% for p in products %}
+    <label class="ad-pick" data-name="{{ (p.brand ~ ' ' ~ p.model ~ ' ' ~ (p.capacity_gb|capacity))|lower }}">
+      <input type="checkbox" name="product_ids" value="{{ p.id }}" {{ 'checked' if p.id in post.product_ids }} data-line-name="{{ p.brand }} {{ p.model }}" data-line-rest="{{ p.capacity_gb|capacity }} · {{ p.condition.value|upper }} · {{ p.price|money(p.currency) if p.price is not none else '—' }}/pc">
+      <img class="th" src="{{ p.cover.thumb_url if p.cover else '/static/img/placeholder.svg' }}" alt="" loading="lazy">
+      <span class="ad-pick-main"><b>{{ p.brand }} {{ p.model }}</b><small>{{ p.capacity_gb|capacity }} · <span class="chip cond-{{ p.condition.value }}">{{ p.condition.value|upper }}</span> · {{ p.price|money(p.currency) if p.price is not none else '—' }}</small></span>
+      <span class="ad-pick-tick">{{ icon('check', 14) }}</span>
+    </label>
+    {% else %}<div class="empty">{{ icon('drive', 22) }}<b>{{ t('admin.prod.empty_title') }}</b></div>{% endfor %}
+  </div>
+</section>
+
+<section class="fsection" id="s-where"><h2>{{ t('admin.ads.sec_where') }}</h2>
+  <div class="form-grid mt">
+    <div class="field"><label>{{ t('admin.ads.targets') }}</label><input class="input mono" name="targets" value="{{ post.target_chat_ids|join(', ') }}" placeholder="-1001234567890"><span class="hint">{{ t('admin.ads.targets_hint') }}</span></div>
+    <div class="field"><label>{{ t('admin.ads.campaign') }}</label><input class="input mono" name="campaign" value="{{ post.campaign }}" pattern="[A-Za-z0-9_-]+" data-ad-campaign><span class="hint">{{ t('admin.ads.campaign_hint') }}</span></div>
+  </div>
+</section>

@@ -556,7 +556,21 @@
       "bot_off": "机器人未启用（缺少 BOT_TOKEN），无法发送",
       "send_result": "已发送：{ok}，失败：{bad}",
       "need_products": "请选择 3 到 5 个商品",
-      "deep_link": "深度链接"
+      "deep_link": "深度链接",
+      "sec_post": "帖子",
+      "name_label": "名称",
+      "name_hint": "仅在后台列表中显示",
+      "text_hint": "客户看到的文字，下方会自动加上所选商品和商店链接。",
+      "sec_products": "商品",
+      "products_help": "选择3到5个商品，它们会以列表形式出现在帖子中。",
+      "search_products": "搜索商品",
+      "picked": "已选：{n} / 5",
+      "sec_where": "发送到",
+      "targets_hint": "例如 -1001234567890，多个用逗号分隔。机器人需是该频道或群组的管理员。",
+      "campaign_hint": "用于统计：通过此代码来的客户和订单会被计数。",
+      "preview_hint": "帖子审核通过后发送。",
+      "preview_empty": "填写文字并选择商品，帖子会显示在这里",
+      "need_text": "请填写名称和文字"
     },
     "flash": {
       "saved": "已保存",

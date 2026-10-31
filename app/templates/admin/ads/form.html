@@ -1,6 +1,16 @@
 {% extends "admin/base.html" %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
-{% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ errors|join(', ') }}</span></div>{% endif %}
-<form method="post" class="fsection stack" style="max-width:760px" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">{% include "admin/ads/_form_fields.html" %}<div><button class="btn btn-primary">{{ icon('plus', 16) }}{{ t('admin.create') }}</button></div></form>
+{% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{% for e in errors %}{{ t('admin.ads.need_products') if e == 'products' else t('admin.ads.need_text') }}{% if not loop.last %} · {% endif %}{% endfor %}</span></div>{% endif %}
+<form method="post" id="ad-form" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
+<div class="split form-split">
+  <div class="stack">{% include "admin/ads/_form_fields.html" %}</div>
+  <aside class="stack ad-side">
+    <div class="card"><h2>{{ t('admin.ads.preview') }}</h2>
+      <div class="tgpost" data-ad-preview data-app="{{ app_name }}" data-empty="{{ t('admin.ads.preview_empty') }}"></div>
+      <p class="hint mt">{{ t('admin.ads.preview_hint') }}</p></div>
+  </aside>
+</div>
+<div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.ads.preview_hint') }}</span></span><span class="spacer"></span><a class="btn btn-secondary" href="/admin/ads">{{ t('admin.cancel') }}</a><button class="btn btn-primary" type="submit">{{ icon('plus', 16) }}{{ t('admin.create') }}</button></div>
+</form>
 {% endblock %}

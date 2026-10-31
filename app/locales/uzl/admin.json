@@ -556,7 +556,21 @@
       "bot_off": "Bot o'chirilgan (BOT_TOKEN yo'q) — yuborib bo'lmaydi",
       "send_result": "Yuborildi: {ok}, xato: {bad}",
       "need_products": "3 tadan 5 tagacha mahsulot tanlang",
-      "deep_link": "Chuqur havola"
+      "deep_link": "Chuqur havola",
+      "sec_post": "Post",
+      "name_label": "Nomi",
+      "name_hint": "Faqat admin ro'yxatida ko'rinadi",
+      "text_hint": "Mijozlar ko'radigan matn. Ostiga tanlangan tovarlar va do'kon havolasi o'zi qo'shiladi.",
+      "sec_products": "Tovarlar",
+      "products_help": "3 tadan 5 tagacha tovar tanlang — ular postda ro'yxat bo'lib chiqadi.",
+      "search_products": "Tovar qidirish",
+      "picked": "Tanlandi: {n} / 5",
+      "sec_where": "Qayerga yuboriladi",
+      "targets_hint": "Masalan: -1001234567890. Bir nechtasini vergul bilan yozing. Bot o'sha kanal yoki guruhda admin bo'lishi kerak.",
+      "campaign_hint": "Statistika uchun: shu kod orqali kelgan mijoz va buyurtmalar sanaladi.",
+      "preview_hint": "Post tasdiqlangandan keyin yuboriladi.",
+      "preview_empty": "Matn yozing va tovar tanlang — post shu yerda ko'rinadi",
+      "need_text": "Nomi va matnini yozing"
     },
     "flash": {
       "saved": "Saqlandi",

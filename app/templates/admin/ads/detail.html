@@ -4,7 +4,7 @@
 {% block content %}
 <div class="split-eq">
 <div class="stack">
-  <div class="card"><h2>{{ t('admin.ads.preview') }}</h2><div class="tgpost">{{ preview|safe }}</div>
+  <div class="card"><h2>{{ t('admin.ads.preview') }}</h2><div class="tgpost" data-ad-preview data-app="{{ app_name }}" data-empty="{{ t('admin.ads.preview_empty') }}">{{ preview|safe }}</div>
     <dl class="kv mt"><dt>{{ t('admin.ads.deep_link') }}</dt><dd><span class="copyable" data-copy="{{ links.app }}">{{ links.app }}{{ icon('copy', 12) }}</span><br><span class="copyable mt-sm" data-copy="{{ links.start }}">{{ links.start }}{{ icon('copy', 12) }}</span></dd></dl>
     <div class="row mt">
       {% if post.status.value=='draft' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok" name="action" value="approve">{{ icon('check', 16) }}{{ t('admin.ads.approve') }}</button></form>{% endif %}
@@ -15,6 +15,6 @@
   </div>
   <div class="card"><h2>{{ t('admin.ads.stats') }}</h2><div class="grid g3"><div class="kpi"><span class="l">{{ t('admin.ads.clicks') }}</span><span class="v">{{ post.clicks }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.users') }}</span><span class="v">{{ users_n }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.orders') }}</span><span class="v">{{ orders_n }}</span></div></div><div class="hint mt">source = <span class="mono">src_{{ post.campaign }}</span> · {{ t('admin.ads.sent') }}: {{ post.sent_at|dt }}</div></div>
 </div>
-<form method="post" class="fsection stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">{% with products=all_products %}{% include "admin/ads/_form_fields.html" %}{% endwith %}<div><button class="btn btn-secondary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div></form>
+<form method="post" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">{% with products=all_products %}{% include "admin/ads/_form_fields.html" %}{% endwith %}<div class="row" style="justify-content:flex-end"><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div></form>
 </div>
 {% endblock %}

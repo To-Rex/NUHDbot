@@ -664,6 +664,32 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .models-add-foot{grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .models-add-foot .hint{flex:1 1 280px;min-width:0}
 @media (max-width:720px){.models-add-form{grid-template-columns:minmax(0,1fr)}.models-add-foot .btn{width:100%;justify-content:center}}
+/* ad post form: product picker cards + sticky live preview */
+.ad-search{position:relative;display:block;margin:12px 0 10px}
+.ad-search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--ink-3);pointer-events:none}
+.ad-search .input{padding-left:34px}
+.ad-picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;max-height:440px;overflow:auto;padding:2px}
+.ad-pick{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;border:1px solid var(--hairline);background:var(--surface);cursor:pointer;transition:border-color var(--t-fast),background var(--t-fast)}
+.ad-pick:hover{border-color:var(--hairline-strong);background:var(--sunken)}
+.ad-pick input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.ad-pick img.th{width:40px;height:40px;border-radius:9px;object-fit:cover;flex:0 0 auto;background:var(--sunken);border:1px solid var(--hairline)}
+.ad-pick-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ad-pick-main b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-pick-main small{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.ad-pick-main .chip{height:18px;padding:0 5px;font-size:10px}
+.ad-pick-tick{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--hairline-strong);display:grid;place-items:center;color:transparent;flex:0 0 auto;transition:background var(--t-fast),border-color var(--t-fast),color var(--t-fast)}
+.ad-pick-tick svg{width:13px;height:13px}
+.ad-pick.is-on{border-color:var(--accent);background:var(--accent-soft)}
+.ad-pick.is-on .ad-pick-tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ad-pick:has(input:disabled){opacity:.45;cursor:not-allowed}
+.ad-pick:has(input:focus-visible){box-shadow:var(--ring)}
+.ad-count{margin-left:auto;font-size:12px;font-weight:700;font-family:var(--font-mono);padding:3px 10px;border-radius:999px;background:var(--sunken);color:var(--ink-2);transition:background var(--t-fast),color var(--t-fast)}
+.ad-count.ok{background:var(--ok-bg);color:var(--ok)}
+.ad-count.bad{background:var(--bad-bg);color:var(--bad)}
+.ad-side{align-self:stretch}
+.ad-side>.card{position:sticky;top:76px}
+.ad-side .tgpost{max-width:none;min-height:140px}
+
 /* model chips input */
 .tokens{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:40px;padding:5px 6px;border-radius:10px;background:var(--surface);border:1px solid var(--hairline-strong);box-shadow:var(--shadow);cursor:text;transition:border-color var(--t-fast),box-shadow var(--t-fast)}
 .tokens:hover{border-color:var(--ink-3)}

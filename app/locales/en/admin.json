@@ -556,7 +556,21 @@
       "bot_off": "Bot disabled (no BOT_TOKEN) — cannot send",
       "send_result": "Sent: {ok}, failed: {bad}",
       "need_products": "Pick 3 to 5 products",
-      "deep_link": "Deep link"
+      "deep_link": "Deep link",
+      "sec_post": "Post",
+      "name_label": "Name",
+      "name_hint": "Only shown in the admin list",
+      "text_hint": "What customers will read. The chosen products and a shop link are added below it.",
+      "sec_products": "Products",
+      "products_help": "Pick 3 to 5 products — they appear in the post as a list.",
+      "search_products": "Search products",
+      "picked": "Selected: {n} / 5",
+      "sec_where": "Where to send",
+      "targets_hint": "For example -1001234567890; separate several with commas. The bot must be an admin there.",
+      "campaign_hint": "For stats: customers and orders that come through this code are counted.",
+      "preview_hint": "The post is sent after approval.",
+      "preview_empty": "Write the text and pick products — the post shows up here",
+      "need_text": "Fill in the name and text"
     },
     "flash": {
       "saved": "Saved",
