@@ -190,7 +190,6 @@
       "model_hint": "选择或输入新型号",
       "model_new": "新型号",
       "model_same_brand": "本品牌",
-      "model_other_brands": "其他品牌",
       "model_none": "无匹配 — 将作为新型号保存",
       "prefilled": "已按上次 {m} 商品填充：容量、接口、尺寸。如需请修改。",
       "images_new_hint": "现在选择图片，将与商品一起保存。第一张为封面，之后可调整顺序。",
@@ -240,8 +239,7 @@
       "series_clear": "无系列",
       "series_other_long": "其他——手动输入",
       "model_in_series": "{s} 系列型号",
-      "model_brand_rest": "该品牌的其他型号",
-      "model_series_empty": "{s} 系列暂无型号——输入新型号或从下方选择"
+      "model_series_empty": "{s} 系列暂无型号——请输入新型号名称"
     },
     "ord": {
       "title": "订单",
