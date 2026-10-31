@@ -193,8 +193,6 @@
       "prefilled": "Filled from the previous {m} product: capacity, interface, form factor. Adjust if needed.",
       "images_new_hint": "Pick photos now — they are saved together with the product. The first one becomes the cover; reorder later.",
       "kind": "Type",
-      "sec_more": "More details",
-      "sec_more_hint": "Interface, testing, warranty, minimum order — open when needed",
       "tab_all": "All",
       "tab_sale": "On sale",
       "tab_out": "Out of stock",
@@ -219,7 +217,13 @@
       "color_silver": "Data centre",
       "color_black": "Gaming PCs",
       "color_hint": "The product page in the Mini App takes on this colour. Colours are a catalogue recommendation, not an official standard.",
-      "color_auto": "picked from the series"
+      "color_auto": "picked from the series",
+      "preview": "Preview",
+      "views": "Views",
+      "sec_terms": "Sales terms",
+      "sec_terms_hint": "Minimum order, box, warranty",
+      "sec_tech": "Specs and testing",
+      "sec_tech_hint": "Interface, speed, use, test results"
     },
     "ord": {
       "title": "Orders",

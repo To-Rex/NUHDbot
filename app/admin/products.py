@@ -121,7 +121,8 @@ async def products_list(request: Request, db: DB, staff: User = Depends(staff_de
 
 @router.get("/products/new")
 async def product_new(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
-    p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, currency=settings.default_currency, seller_warranty_months=12, factory_warranty_months=36, min_order=1, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC))
+    # model defaults only apply on insert, so spell out what the empty form should show
+    p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, interface=Interface.SATA, form_factor=FormFactor.F35, is_active=True, sale_allowed=True, currency=settings.default_currency, seller_warranty_months=12, factory_warranty_months=36, min_order=1, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC))
     return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "history": [], **(await _form_ctx(db, p))})
 
 

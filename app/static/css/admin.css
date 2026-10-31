@@ -664,6 +664,42 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .models-add-foot{grid-column:1/-1;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .models-add-foot .hint{flex:1 1 280px;min-width:0}
 @media (max-width:720px){.models-add-form{grid-template-columns:minmax(0,1fr)}.models-add-foot .btn{width:100%;justify-content:center}}
+/* product edit page: photos second, sticky sidebar with a live Mini App card preview */
+.prod-main{display:flex;flex-direction:column;gap:12px;min-width:0}
+.prod-form{display:contents}
+.prod-main #s-basic{order:1}.prod-main #s-media{order:2}.prod-main #s-terms{order:3}.prod-main #s-tech{order:4}.prod-main #s-texts{order:5}
+.prod-main .fsection>h2[data-n]::before,.prod-main details.fsection>summary[data-n]::before{content:attr(data-n)}
+.prod-aside{position:sticky;top:76px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 170px);overflow:auto;scrollbar-width:none}
+.prod-aside::-webkit-scrollbar{display:none}
+.prod-aside .form-nav{position:static}
+.dir-badge{gap:6px}.dir-badge .sw{width:10px;height:10px}
+.bad-text{color:var(--bad)}
+.sw-row{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;font-size:13.5px;font-weight:500;cursor:pointer}
+.sw-row+.sw-row{border-top:1px solid var(--hairline)}
+.sw-row input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.sw-row input:checked+.switch{background:var(--ok)}
+.sw-row input:checked+.switch::after{transform:translateX(16px)}
+.sw-row input:focus-visible+.switch{box-shadow:var(--ring)}
+.sw-row input:disabled+.switch{opacity:.55}
+.pp-card{border-radius:18px;overflow:hidden;background:var(--surface);border:1px solid var(--hairline);max-width:220px;margin:0 auto;box-shadow:var(--shadow)}
+.pp-media{position:relative;aspect-ratio:1/1;background:var(--pp-soft,var(--sunken))}
+.pp-media img{width:100%;height:100%;object-fit:cover;display:block}
+.pp-ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.pp-ph b{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.03em}
+.pp-ph span{font-size:12px;color:var(--ink-3)}
+.pp-media .chip{position:absolute;top:10px;left:10px}
+.pp-body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.pp-price{display:flex;align-items:baseline;gap:4px}
+.pp-price b{font-family:var(--font-display);font-size:19px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.pp-price span{font-size:12px;color:var(--ink-3)}
+.pp-title{font-size:13.5px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.pp-spec{font-size:12px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-dir{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;margin-top:5px;height:22px;padding:0 8px;border-radius:6px;font-size:11px;font-weight:700;background:var(--pp-soft);color:var(--pp-text)}
+.pp-dir i{width:8px;height:8px;border-radius:50%;background:var(--pp-accent)}
+@media (max-width:1100px){.prod-aside{position:static;max-height:none;overflow:visible;order:-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}.prod-aside .form-nav{display:none}}
+@media (max-width:760px){.prod-aside{grid-template-columns:minmax(0,1fr)}}
+.pp-blue{--pp-accent:#0A84FF;--pp-text:#0A84FF;--pp-soft:rgba(10,132,255,0.16)}.pp-purple{--pp-accent:#8E4FE8;--pp-text:#8E4FE8;--pp-soft:rgba(142,79,232,0.16)}.pp-red{--pp-accent:#E5392F;--pp-text:#E5392F;--pp-soft:rgba(229,57,47,0.16)}.pp-gold{--pp-accent:#F2B400;--pp-text:#B07F00;--pp-soft:rgba(242,180,0,0.16)}.pp-silver{--pp-accent:#A7AEB8;--pp-text:#7B8490;--pp-soft:rgba(167,174,184,0.16)}.pp-black{--pp-accent:#3A3A3E;--pp-text:var(--ink);--pp-soft:rgba(58,58,62,0.16)}
+
 /* product colour picker (themes the Mini App product page) */
 .color-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .color-opt{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--hairline);background:var(--surface);cursor:pointer;transition:border-color var(--t-fast),background var(--t-fast),box-shadow var(--t-fast)}

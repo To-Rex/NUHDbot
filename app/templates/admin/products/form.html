@@ -1,15 +1,16 @@
 {% extends "admin/base.html" %}
 {% set tester = staff.role.value == 'tester' %}
 {% set dis = 'disabled' if tester else '' %}
-{% block heading %}{% if is_new %}{{ t('admin.prod.new') }}{% else %}{{ prod.brand }} {{ prod.model }} <span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span>{% endif %}{% endblock %}
+{% set n_media, n_terms, n_tech, n_texts = ('02', '03', '04', '05') if not tester else ('', '02', '03', '') %}
+{% block heading %}{% if is_new %}{{ t('admin.prod.new') }}{% else %}{{ prod.brand }} {{ prod.model }} <span class="chip cond-{{ prod.condition.value }}">{{ prod.condition.value|upper }}</span>{% if prod.color %}<span class="chip chip-soft dir-badge"><span class="sw sw-{{ prod.color }}"></span>{{ COLOR_DIRECTION[prod.color] }}</span>{% endif %}{% endif %}{% endblock %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/products">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% if not is_new %}<a class="btn btn-secondary btn-sm" href="/app/products/{{ prod.id }}" target="_blank">{{ icon('external', 15) }}{{ t('admin.prod.in_app') }}</a>{% if can(roles.AUCTION_EDIT_ROLES) %}<a class="btn btn-secondary btn-sm" href="/admin/auctions/new?product_id={{ prod.id }}">{{ icon('gavel', 15) }}{{ t('admin.auc.new') }}</a>{% endif %}{% endif %}{% endblock %}
 {% block content %}
 <div class="notice notice-info mb" id="prefill-note" hidden>{{ icon('info', 18) }}<span data-tpl="{{ t('admin.prod.prefilled') }}"></span></div>
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ t('admin.required') }}: {{ errors|join(', ') }}</span></div>{% endif %}
-<div class="split form-split">
-<div class="stack">
-<form method="post" id="product-form" class="stack" data-track enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
-  <section class="fsection" id="s-basic"><h2>{{ t('admin.prod.sec_basic') }}</h2>
+<div class="split form-split prod-edit">
+<div class="prod-main">
+<form method="post" id="product-form" class="prod-form" data-track enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <section class="fsection" id="s-basic"><h2 data-n="01">{{ t('admin.prod.sec_basic') }}</h2>
     <div class="form-grid mt">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
       <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label>
@@ -57,7 +58,7 @@
   </section>
 
   {% if is_new and not tester %}
-  <section class="fsection" id="s-media"><h2>{{ t('admin.prod.sec_media') }} <span class="sub">{{ t('admin.prod.images_new_hint') }}</span></h2>
+  <section class="fsection" id="s-media"><h2 data-n="{{ n_media }}">{{ t('admin.prod.sec_media') }} <span class="sub">{{ t('admin.prod.images_new_hint') }}</span></h2>
     <div class="imgs mb mt" id="new-previews" hidden></div>
     <div class="drop" data-for="new-images" data-no-submit>{{ icon('upload', 26) }}<span>{{ t('admin.prod.drop_here') }}</span><span class="hint">JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</span></div>
     <div class="row mt-sm"><input id="new-images" type="file" name="images" accept="image/*" multiple hidden>
@@ -66,7 +67,26 @@
   </section>
   {% endif %}
 
-  <details class="fsection" id="s-more" {{ 'open' if errors }}><summary><span class="ttl">{{ t('admin.prod.sec_more') }}</span><span class="sub">{{ t('admin.prod.sec_more_hint') }}</span></summary>
+  <details class="fsection" id="s-terms" {{ 'open' if errors }}><summary data-n="{{ n_terms }}"><span class="ttl">{{ t('admin.prod.sec_terms') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_terms_hint') }}{% else %}{{ t('admin.prod.min_short') }} {{ prod.min_order }}{% if prod.box_qty %} · {{ t('admin.prod.box_short') }} {{ prod.box_qty }}{% endif %} · {{ t('admin.prod.warranty_short') }} {{ prod.seller_warranty_months }} / {{ prod.factory_warranty_months }} {{ t('common.months') }}{% endif %}</span></summary>
+    <div class="form-grid mt">
+      <div class="field"><label>{{ t('admin.prod.min_order') }}</label><input class="input mono" type="number" name="min_order" value="{{ prod.min_order }}" min="1" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.box_qty') }}</label><input class="input mono" type="number" name="box_qty" value="{{ prod.box_qty or '' }}" min="1" {{ dis }}></div>
+      <div class="field"><label>&nbsp;</label><label class="check" style="min-height:40px"><input type="checkbox" name="full_box_only" {{ 'checked' if prod.full_box_only }} {{ dis }}>{{ t('admin.prod.full_box_only') }}</label></div>
+    </div>
+    <div class="form-grid mt">
+      <div class="field"><label>{{ t('admin.prod.seller_warranty') }}</label><input class="input mono" type="number" name="seller_warranty_months" value="{{ prod.seller_warranty_months }}" min="0" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><input class="input mono" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="hint">{{ t('admin.prod.warranty_hint') }}</span></div>
+    </div>
+    <div class="notice notice-info mt" id="warranty-autofill" hidden>{{ icon('info', 18) }}<span>{{ t('admin.prod.warranty_autofill') }}</span></div>
+    <div class="divider"></div>
+    <div class="form-grid">
+      {% if can_finance %}<div class="field"><label>{{ t('admin.prod.cost_price') }}</label><input class="input mono" name="cost_price" inputmode="decimal" value="{{ prod.cost_price if prod.cost_price is not none else '' }}" {{ dis }}></div>{% endif %}
+      <div class="field"><label>{{ t('admin.prod.arrived_at') }}</label><input class="input" type="date" name="arrived_at" value="{{ prod.arrived_at.strftime('%Y-%m-%d') if prod.arrived_at else '' }}" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ prod.sort }}" {{ dis }}></div>
+    </div>
+  </details>
+
+  <details class="fsection" id="s-tech" {{ 'open' if errors or tester }}><summary data-n="{{ n_tech }}"><span class="ttl">{{ t('admin.prod.sec_tech') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_tech_hint') }}{% else %}{{ prod.interface.value }} · {{ prod.form_factor.value }}″{% if prod.rpm %} · {{ prod.rpm }} rpm{% endif %}{% if prod.series %} · {{ prod.series }}{% endif %} · {{ t('test.' ~ prod.test_status.value) }}{% endif %}</span></summary>
     <div class="form-grid mt">
       <div class="field"><label>{{ t('admin.prod.series') }}</label>
         <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" {{ dis }}></div>
@@ -83,25 +103,10 @@
       <div class="field"><label>{{ t('admin.prod.health') }}</label><input class="input" name="health" value="{{ prod.health or '' }}" placeholder="Good / 98%"></div>
     </div>
     <div class="mt">{% with name='test_summary', value=prod.test_summary, kind='textarea', label=t('admin.prod.test_summary'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
-    <div class="divider"></div>
-    <div class="form-grid">
-      {% if can_finance %}<div class="field"><label>{{ t('admin.prod.cost_price') }}</label><input class="input mono" name="cost_price" inputmode="decimal" value="{{ prod.cost_price if prod.cost_price is not none else '' }}" {{ dis }}></div>{% endif %}
-      <div class="field"><label>{{ t('admin.prod.min_order') }}</label><input class="input mono" type="number" name="min_order" value="{{ prod.min_order }}" min="1" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.box_qty') }}</label><input class="input mono" type="number" name="box_qty" value="{{ prod.box_qty or '' }}" min="1" {{ dis }}></div>
-      <div class="field"><label>&nbsp;</label><label class="check"><input type="checkbox" name="full_box_only" {{ 'checked' if prod.full_box_only }} {{ dis }}>{{ t('admin.prod.full_box_only') }}</label></div>
-    </div>
-    <div class="divider"></div>
-    <div class="form-grid">
-      <div class="field"><label>{{ t('admin.prod.seller_warranty') }}</label><input class="input mono" type="number" name="seller_warranty_months" value="{{ prod.seller_warranty_months }}" min="0" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><input class="input mono" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="hint">{{ t('admin.prod.warranty_hint') }}</span></div>
-      <div class="field"><label>{{ t('admin.prod.arrived_at') }}</label><input class="input" type="date" name="arrived_at" value="{{ prod.arrived_at.strftime('%Y-%m-%d') if prod.arrived_at else '' }}" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ prod.sort }}" {{ dis }}></div>
-    </div>
-    <div class="notice notice-info mt" id="warranty-autofill" hidden>{{ icon('info', 18) }}<span>{{ t('admin.prod.warranty_autofill') }}</span></div>
   </details>
 
   {% if not tester %}
-  <details class="fsection" id="s-texts"><summary><span class="ttl">{{ t('admin.prod.sec_texts') }}</span><span class="sub">{{ t('admin.prod.help_texts') }}</span></summary>
+  <details class="fsection" id="s-texts"><summary data-n="{{ n_texts }}"><span class="ttl">{{ t('admin.prod.sec_texts') }}</span><span class="sub">{{ t('admin.prod.help_texts') }}</span></summary>
     <div class="stack mt">
       {% with name='description', value=prod.description, kind='textarea', label=t('admin.prod.description'), rows=4 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
       {% with name='compatibility', value=prod.compatibility, kind='textarea', label=t('admin.prod.compatibility'), rows=2 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
@@ -117,22 +122,36 @@
 </form>
 
 {% if not is_new and not tester %}
-<section class="fsection" id="s-media"><h2>{{ t('admin.prod.sec_media') }} <span class="sub">{{ t('admin.prod.help_media') }}</span></h2>
+<section class="fsection" id="s-media"><h2 data-n="{{ n_media }}">{{ t('admin.prod.sec_media') }} <span class="sub">{{ t('admin.prod.help_media') }}</span></h2>
   {% include "admin/products/_images.html" %}
 </section>
 {% endif %}
 </div>
 
-<aside class="stack">
+<aside class="prod-aside">
+  <div class="card pp-wrap">
+    <h2>{{ t('admin.prod.preview') }} <span class="sub">Mini App</span></h2>
+    <div class="pp-card" data-pp>
+      <div class="pp-media">{% if prod.cover %}<img src="{{ prod.cover.thumb_url }}" alt="">{% endif %}<div class="pp-ph" {% if prod.cover %}hidden{% endif %}><b data-pp-cap></b><span data-pp-brand></span></div><span class="chip" data-pp-cond></span></div>
+      <div class="pp-body">
+        <div class="pp-price"><b data-pp-price></b><span>/ {{ t('common.pcs') }}</span></div>
+        <div class="pp-title" data-pp-title></div>
+        <div class="pp-spec" data-pp-spec></div>
+        <div class="pp-dir" data-pp-dir hidden><i></i><span></span></div>
+      </div>
+    </div>
+  </div>
   <div class="card">
     <h2>{{ t('admin.status') }}</h2>
-    <div class="check-list"><label class="check"><input type="checkbox" name="is_active" form="product-form" {{ 'checked' if prod.is_active }} {{ dis }}>{{ t('admin.prod.visible') }}</label>
-    <label class="check"><input type="checkbox" name="sale_allowed" form="product-form" {{ 'checked' if prod.sale_allowed }} {{ dis }}>{{ t('admin.prod.sale_on') }}</label></div>
-    {% if not is_new %}<div class="hint mt">#{{ prod.id }} · {{ t('admin.updated') }} {{ prod.updated_at|dt }}</div>{% endif %}
+    <label class="sw-row"><span>{{ t('admin.prod.visible') }}</span><input type="checkbox" name="is_active" form="product-form" {{ 'checked' if prod.is_active }} {{ dis }}><span class="switch" aria-hidden="true"></span></label>
+    <label class="sw-row"><span>{{ t('admin.prod.sale_on') }}</span><input type="checkbox" name="sale_allowed" form="product-form" {{ 'checked' if prod.sale_allowed }} {{ dis }}><span class="switch" aria-hidden="true"></span></label>
+    {% if not is_new %}<dl class="kv vals-right mt">
+      <dt>{{ t('admin.prod.available') }}</dt><dd class="mono {{ 'bad-text' if prod.available <= 0 }}">{{ prod.available }} {{ t('common.pcs') }}</dd>
+      <dt>{{ t('admin.prod.reserved') }}</dt><dd class="mono">{{ prod.reserved }}</dd>
+      <dt>{{ t('admin.prod.views') }}</dt><dd class="mono">{{ prod.views }}</dd>
+      <dt>{{ t('admin.updated') }}</dt><dd class="small">{{ prod.updated_at|dt }}</dd>
+    </dl>{% endif %}
   </div>
-  <nav class="form-nav card" style="padding:8px">
-    <a href="#s-basic">{{ t('admin.prod.sec_basic') }}</a>{% if is_new and not tester %}<a href="#s-media">{{ t('admin.prod.sec_media') }}</a>{% endif %}<a href="#s-more">{{ t('admin.prod.sec_more') }}</a>{% if not tester %}<a href="#s-texts">{{ t('admin.prod.sec_texts') }}</a>{% endif %}{% if not is_new and not tester %}<a href="#s-media">{{ t('admin.prod.sec_media') }}</a>{% endif %}
-  </nav>
 </aside>
 </div>
 
@@ -241,6 +260,28 @@
     fetch(form.action,{method:'POST',headers:{'X-Requested-With':'fetch','X-CSRF':csrf},body:new FormData(form),credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){ if(d.error){ window.toast&&toast(d.error,'bad'); return; } ta.value=''; ta.dispatchEvent(new Event('tokens:clear')); window.toast&&toast(d.msg,d.added?'ok':'warn'); models=d.models||[]; if(d.known&&window.__setKnownModels) window.__setKnownModels(d.known); draw(); if(bs&&!/^\d+$/.test(bs.value)){ bs.value=sel.value; bs.dispatchEvent(new Event('change')); } }).catch(function(){ window.toast&&toast('Error','bad'); }); });
   chips.addEventListener('click',function(e){ var x=e.target.closest('[data-del]'); if(!x) return; var id=x.dataset.del;
     fetch('/admin/models/'+id+'/delete',{method:'POST',headers:{'X-Requested-With':'fetch','X-CSRF':csrf},credentials:'same-origin'}).then(function(r){return r.json();}).then(function(d){ window.toast&&toast(d.msg,'ok'); models=d.models||[]; if(d.known&&window.__setKnownModels) window.__setKnownModels(d.known); draw(); }).catch(function(){ window.toast&&toast('Error','bad'); }); });
+})();
+(function(){
+  /* live Mini App card preview in the sidebar */
+  var pp=document.querySelector('[data-pp]'), form=document.getElementById('product-form'); if(!pp||!form) return;
+  var DIR={{ COLOR_DIRECTION|tojson }}, COND={new:'NEW',used:'USED',refresh:'REFRESH'};
+  function val(n){ var el=form.querySelector('[name="'+n+'"]'); return el?(el.value||'').trim():''; }
+  function checked(n){ var el=form.querySelector('[name="'+n+'"]:checked'); return el?el.value:''; }
+  function brand(){ var bs=document.getElementById('brand-select'); if(!bs) return ''; if(bs.value==='__other__') return val('brand_other'); var o=bs.options[bs.selectedIndex]; return bs.value&&o?o.text.split(' · ')[0]:''; }
+  function cap(){ var v=parseFloat(String(val('capacity_value')).replace(',','.')); if(!v) return ''; return checked('capacity_unit')==='gb'?(v>=1000&&v%1000===0?(v/1000)+'TB':v+'GB'):(v+'TB'); }
+  function money(){ var p=parseFloat(String(val('price')).replace(',','.')); if(isNaN(p)) return '—'; var c=(val('currency')||'USD').toUpperCase(); return (c==='USD'?'$':c+' ')+(p%1?p.toFixed(2):p.toFixed(0)); }
+  function draw(){
+    var b=brand(), m=val('model'), c=cap(), cond=checked('condition')||'new', col=checked('color');
+    pp.querySelector('[data-pp-price]').textContent=money();
+    pp.querySelector('[data-pp-title]').textContent=((b+' '+m).trim())||'—';
+    var spec=[c, val('interface'), val('form_factor')?val('form_factor')+'″':'', val('series')].filter(Boolean).join(' · ');
+    pp.querySelector('[data-pp-spec]').textContent=spec;
+    pp.querySelector('[data-pp-cap]').textContent=c||'—'; pp.querySelector('[data-pp-brand]').textContent=b;
+    var ch=pp.querySelector('[data-pp-cond]'); ch.className='chip cond-'+cond; ch.textContent=COND[cond]||cond;
+    var dir=pp.querySelector('[data-pp-dir]'); dir.hidden=!col; if(col){ dir.querySelector('span').textContent=DIR[col]||col; }
+    pp.className='pp-card'+(col?' pp-'+col:'');
+  }
+  form.addEventListener('input',draw); form.addEventListener('change',draw); draw();
 })();
 </script>
 {% endblock %}

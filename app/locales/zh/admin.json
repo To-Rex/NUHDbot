@@ -193,8 +193,6 @@
       "prefilled": "已按上次 {m} 商品填充：容量、接口、尺寸。如需请修改。",
       "images_new_hint": "现在选择图片，将与商品一起保存。第一张为封面，之后可调整顺序。",
       "kind": "类型",
-      "sec_more": "更多信息",
-      "sec_more_hint": "接口、测试、保修、最小订购量 — 需要时展开",
       "tab_all": "全部",
       "tab_sale": "在售",
       "tab_out": "缺货",
@@ -219,7 +217,13 @@
       "color_silver": "数据中心",
       "color_black": "游戏电脑",
       "color_hint": "Mini App 中的商品页面会使用此颜色。颜色仅为目录建议，并非官方标准。",
-      "color_auto": "按系列自动选择"
+      "color_auto": "按系列自动选择",
+      "preview": "预览",
+      "views": "浏览量",
+      "sec_terms": "销售条件",
+      "sec_terms_hint": "起订量、整箱、质保",
+      "sec_tech": "参数与检测",
+      "sec_tech_hint": "接口、转速、用途、检测结果"
     },
     "ord": {
       "title": "订单",

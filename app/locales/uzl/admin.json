@@ -193,8 +193,6 @@
       "prefilled": "{m} bo'yicha oldingi mahsulotdan to'ldirildi: sig'im, interfeys, form-faktor. Kerak bo'lsa o'zgartiring.",
       "images_new_hint": "Rasmlarni hoziroq tanlang — mahsulot bilan birga saqlanadi. Birinchi rasm muqova bo'ladi, keyin tartibni o'zgartirish mumkin.",
       "kind": "Tur",
-      "sec_more": "Qo'shimcha ma'lumotlar",
-      "sec_more_hint": "Interfeys, test, kafolat, minimal buyurtma — kerak bo'lsa oching",
       "tab_all": "Hammasi",
       "tab_sale": "Sotuvda",
       "tab_out": "Tugagan",
@@ -219,7 +217,13 @@
       "color_silver": "Ma'lumotlar markazi",
       "color_black": "O'yin kompyuterlari",
       "color_hint": "Mini App'da tovar sahifasi shu rangga moslashadi. Ranglar — katalog uchun tavsiya, rasmiy standart emas.",
-      "color_auto": "seriyadan tanlandi"
+      "color_auto": "seriyadan tanlandi",
+      "preview": "Ko'rinishi",
+      "views": "Ko'rishlar",
+      "sec_terms": "Sotuv shartlari",
+      "sec_terms_hint": "Minimal buyurtma, quti, kafolat",
+      "sec_tech": "Texnik ma'lumotlar va test",
+      "sec_tech_hint": "Interfeys, tezlik, maqsad, test natijalari"
     },
     "ord": {
       "title": "Buyurtmalar",
