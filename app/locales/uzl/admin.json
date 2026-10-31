@@ -774,7 +774,11 @@
       "series": "Seriya (yo'nalish)",
       "series_hint": "Barcha qo'shiladigan modellarga yoziladi",
       "no_series": "Seriyasiz",
-      "add_flow": "Brend → seriya → modellar"
+      "add_flow": "Brend → seriya → modellar",
+      "dir_change": "Yo'nalishni o'zgartirish",
+      "dir_pick": "{m} — seriya (yo'nalish)",
+      "dir_empty": "Bu brendda hali seriya yo'q — Seriyalar sahifasida qo'shing",
+      "dir_saved": "{m}: yo'nalish o'zgardi — {s}"
     },
     "nav_edit": {
       "hint": "Bo'limni ushlab, kerakli joyga suring",

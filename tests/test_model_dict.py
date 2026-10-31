@@ -59,3 +59,20 @@ async def test_bulk_add_series_from_the_form(db):
     assert (len(added), skipped) == (2, 1)
     # the picked series goes to new lines and fills an empty one; a line naming its own series keeps it
     assert got == {"ST8000VN004": "IronWolf", "ST4000VX016": "IronWolf", "ST16000NM001G": "Exos"}
+
+
+async def test_set_series_changes_the_direction(db):
+    from app.models import Series
+    from app.services import series as series_service
+
+    b = await brands.create_brand(db, name="Seagate")
+    db.add(Series(brand_id=b.id, name="IronWolf", key=series_service.norm_key("IronWolf"), color="red", sort=0))
+    await model_dict.bulk_add(db, b, "ST4000VX016 | 4TB | SkyHawk")
+    m = (await model_dict.list_models(db, b.id))[0]
+    await model_dict.set_series(db, m, "  ironwolf ")  # a dictionary series keeps its own spelling
+    assert m.series == "IronWolf" and m.capacity_gb == 4000
+    await model_dict.set_series(db, m, "Exos  X18")  # not in the dictionary: stored as typed (spaces folded)
+    assert m.series == "Exos X18"
+    await model_dict.set_series(db, m, "")  # no series
+    await db.commit()
+    assert (await model_dict.list_models(db, b.id))[0].series is None

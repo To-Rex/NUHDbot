@@ -774,7 +774,11 @@
       "series": "系列（方向）",
       "series_hint": "会写入所有新增型号",
       "no_series": "无系列",
-      "add_flow": "品牌 → 系列 → 型号"
+      "add_flow": "品牌 → 系列 → 型号",
+      "dir_change": "更改方向",
+      "dir_pick": "{m} — 系列（方向）",
+      "dir_empty": "该品牌暂无系列——请在“系列”页面添加",
+      "dir_saved": "{m}：方向已更改 — {s}"
     },
     "nav_edit": {
       "hint": "拖动栏目到任意位置",

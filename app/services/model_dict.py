@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums import FormFactor, Interface
 from app.models import Brand, BrandModel, Product
+from app.services import series as series_service
 
 MAX_LINES = 500
 _SEP = re.compile(r"\s*[|;,\t]\s*")
@@ -99,6 +100,15 @@ async def bulk_add(db: AsyncSession, brand: Brand, text: str, series: str | None
 
 async def get_model(db: AsyncSession, mid: int) -> BrandModel | None:
     return await db.get(BrandModel, mid)
+
+
+async def set_series(db: AsyncSession, m: BrandModel, name: str | None) -> None:
+    """Move a model to another series of its brand — the direction (colour) comes from the series; empty = no series.
+    A series from the dictionary is stored in its dictionary spelling."""
+    name = series_service.norm_name(name)
+    listed = await series_service.find(db, m.brand_id, name) if name else None
+    m.series = (listed.name if listed else name) or None
+    await db.flush()
 
 
 async def delete_model(db: AsyncSession, m: BrandModel) -> None:

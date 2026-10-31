@@ -40,8 +40,9 @@
     <div class="msub-h"><span class="sw sw-{{ sub.color or 'none' }}"></span><b>{{ sub.name or t('admin.models.no_series') }}</b>{% if sub.color %}<span class="msub-dir">{{ color_dir[sub.color] }}</span>{% endif %}<span class="cnt">{{ sub.models|length }}</span></div>
     <div class="msub-items">
       {% for m in sub.models %}{% set meta = [m.capacity_gb|capacity if m.capacity_gb else '', m.interface or '', (m.form_factor ~ '"') if m.form_factor else '']|select|join(' · ') %}
-      <div class="mitem" data-name="{{ (b.name ~ ' ' ~ m.name ~ ' ' ~ (m.series or ''))|lower }}">
+      <div class="mitem" data-mid="{{ m.id }}" data-b="{{ b.id }}" data-model="{{ m.name }}" data-series="{{ m.series or '' }}" data-name="{{ (b.name ~ ' ' ~ m.name ~ ' ' ~ (m.series or ''))|lower }}">
         <div class="mitem-main"><span class="mono bold" title="{{ m.name }}">{{ m.name }}</span>{% if meta %}<span class="mitem-meta">{{ meta }}</span>{% endif %}</div>
+        <button type="button" class="mdir-btn" data-mdir title="{{ t('admin.models.dir_change') }}" aria-label="{{ t('admin.models.dir_change') }}" aria-haspopup="listbox" aria-expanded="false"><span class="sw sw-{{ sub.color or 'none' }}"></span>{{ icon('chevron-down', 12) }}</button>
         <form method="post" action="/admin/models/{{ m.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="{{ here }}"><button class="icon-btn sm danger" data-confirm="{{ t('admin.models.delete_q') }}" data-confirm-text="{{ b.name }} {{ m.name }}" data-confirm-danger="1" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>
       </div>{% endfor %}
     </div>
@@ -51,6 +52,12 @@
 </section>
 {% endfor %}
 <div class="card empty" data-models-none hidden>{{ icon('search', 22) }}<b>{{ t('admin.nothing_found') }}</b></div>
+{# direction menu: the brand's series with their colour; picking one posts this form #}
+<form method="post" id="mdir-form" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="series"><input type="hidden" name="next" value="{{ here }}"></form>
+{% set mdirs = {} %}{% for c in colors %}{% set _ = mdirs.update({c.value: color_dir[c]}) %}{% endfor %}
+<div hidden data-mdir-src data-series="{{ series|tojson|forceescape }}" data-dirs="{{ mdirs|tojson|forceescape }}" data-order="{{ colors|map(attribute='value')|list|tojson|forceescape }}" data-l-pick="{{ t('admin.models.dir_pick') }}" data-l-empty="{{ t('admin.models.dir_empty') }}" data-l-clear="{{ t('admin.prod.series_clear') }}" data-l-no-dir="{{ t('admin.ser.no_color') }}" data-l-manage="{{ t('admin.ser.title') }}">
+  <template data-ico-check>{{ icon('check', 15, 'so-check') }}</template><template data-ico-x>{{ icon('x', 14) }}</template><template data-ico-grid>{{ icon('grid', 13) }}</template>
+</div>
 {% else %}
 <div class="card empty">{{ icon('layers', 28) }}<b>{{ t('admin.models.empty_brand') }}</b><p class="sub">{{ t('admin.models.empty_text') }}</p></div>
 {% endif %}
@@ -66,6 +73,60 @@
       g.querySelectorAll('[data-msub]').forEach(function(sub){ var k=0; sub.querySelectorAll('.mitem').forEach(function(it){ var hit=!v||it.dataset.name.indexOf(v)>=0; it.hidden=!hit; if(hit) k++; }); sub.hidden=!k; n+=k; });
       g.hidden=!n; if(n) any=true; });
     none.hidden=any; });
+})();
+(function(){
+  /* model direction: a model takes its colour from its series, so a new direction = another series of the brand */
+  var src=document.querySelector('[data-mdir-src]'), form=document.getElementById('mdir-form'); if(!src||!form) return;
+  var D=src.dataset, series=[], dirs={}, order=[]; try{ series=JSON.parse(D.series||'[]'); dirs=JSON.parse(D.dirs||'{}'); order=JSON.parse(D.order||'[]'); }catch(e){}
+  function ico(n){ var t=src.querySelector('[data-ico-'+n+']'); return t?t.innerHTML:''; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function norm(v){ return String(v||'').trim().replace(/\s+/g,' ').toUpperCase(); }
+  function rank(c){ var i=order.indexOf(c); return i<0?order.length:i; }
+  var pop=document.createElement('div'); pop.className='series-pop mdir-pop'; pop.setAttribute('role','listbox'); pop.hidden=true;
+  var cur=null, active=-1;
+  function opts(){ return Array.from(pop.querySelectorAll('.series-opt')); }
+  function setActive(i){ var o=opts(); if(!o.length) return; active=(i+o.length)%o.length; o.forEach(function(x,j){ x.classList.toggle('active',j===active); }); o[active].scrollIntoView({block:'nearest'}); }
+  function close(focus){ if(!cur) return; var bt=cur.querySelector('[data-mdir]'); pop.hidden=true; cur.classList.remove('open'); bt.setAttribute('aria-expanded','false'); if(focus) bt.focus(); cur=null; active=-1; }
+  function open(item){
+    close(false); cur=item; var b=item.dataset.b, k=norm(item.dataset.series);
+    /* grouped by direction (the Series page order inside one direction) */
+    var mine=series.filter(function(x){ return String(x.b)===b; }).map(function(x,i){ return [x,i]; }).sort(function(p,q){ return rank(p[0].c)-rank(q[0].c)||p[1]-q[1]; }).map(function(p){ return p[0]; });
+    var h='<div class="mdir-head">'+esc(D.lPick.replace('{m}',item.dataset.model))+'</div>';
+    if(!mine.length) h+='<div class="mdir-empty">'+esc(D.lEmpty)+'</div>';
+    mine.forEach(function(x){ var on=x.k===k; h+='<div class="series-opt'+(on?' chosen':'')+'" role="option" aria-selected="'+on+'" data-value="'+esc(x.n)+'"><span class="series-dot sw sw-'+(x.c||'none')+'"></span><span class="so-name">'+esc(x.n)+'</span><span class="so-dir">'+esc(x.c?(dirs[x.c]||x.c):D.lNoDir)+'</span>'+(on?ico('check'):'')+'</div>'; });
+    if(k) h+=(mine.length?'<div class="series-sep" role="separator"></div>':'')+'<div class="series-opt series-act" role="option" data-value="">'+ico('x')+'<span class="so-name">'+esc(D.lClear)+'</span></div>';
+    h+='<a class="series-manage" href="/admin/series" target="_blank" rel="noopener">'+ico('grid')+esc(D.lManage)+' →</a>';
+    pop.innerHTML=h; item.appendChild(pop); pop.hidden=false; item.classList.add('open'); item.querySelector('[data-mdir]').setAttribute('aria-expanded','true');
+    /* opens upwards when there is no room below (bottom rows, short pages) */
+    var r=item.getBoundingClientRect(), below=innerHeight-r.bottom-16, above=r.top-76, need=Math.min(pop.scrollHeight,460), up=below<need&&above>below;
+    pop.classList.toggle('up',up); pop.style.maxHeight=Math.max(180,Math.min(460,up?above:below))+'px';
+    setActive(Math.max(0,opts().findIndex(function(x){ return x.classList.contains('chosen'); })));
+    pop.scrollIntoView({block:'nearest'});
+  }
+  function choose(o){
+    if(!o||!cur) return;
+    if(norm(o.dataset.value)===norm(cur.dataset.series)){ close(true); return; }
+    form.action='/admin/models/'+cur.dataset.mid+'/series'; form.elements.series.value=o.dataset.value; form.submit();
+  }
+  document.addEventListener('click',function(e){
+    var bt=e.target.closest('[data-mdir]');
+    if(bt){ var it=bt.closest('.mitem'); if(cur===it) close(true); else open(it); return; }
+    if(cur&&!pop.contains(e.target)) close(false);
+  });
+  pop.addEventListener('click',function(e){ var o=e.target.closest('.series-opt'); if(o) choose(o); });
+  pop.addEventListener('mousemove',function(e){ var o=e.target.closest('.series-opt'); if(o) setActive(opts().indexOf(o)); });
+  document.addEventListener('keydown',function(e){
+    if(!cur) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); setActive(active+1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); setActive(active-1); }
+    else if(e.key==='Enter'||e.key===' '){ if(active>=0){ e.preventDefault(); choose(opts()[active]); } }
+    else if(e.key==='Escape'){ e.preventDefault(); close(true); }
+    else if(e.key==='Tab') close(false);
+  });
+  /* after a change: the moved model comes into view and lights up once */
+  var u=new URL(location.href), mv=u.searchParams.get('moved');
+  if(mv){ var it=document.querySelector('.mitem[data-mid="'+mv.replace(/\D/g,'')+'"]'); if(it){ it.scrollIntoView({block:'center'}); it.classList.add('mitem-hl'); }
+    u.searchParams.delete('moved'); history.replaceState({},'',u.pathname+u.search+u.hash); }
 })();
 </script>
 {% endblock %}

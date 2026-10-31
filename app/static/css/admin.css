@@ -847,6 +847,19 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .mitem-meta{font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mitem form{flex:0 0 auto}
 .mitem .icon-btn{border-color:transparent;background:transparent;color:var(--ink-3)}
+/* model direction: colour dot + menu of the brand's series */
+.mitem{position:relative}
+.mdir-btn{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 6px 0 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--ink-3);cursor:pointer;flex:0 0 auto;transition:background var(--t-fast),border-color var(--t-fast)}
+.mdir-btn:hover,.mitem.open .mdir-btn{background:var(--sunken);border-color:var(--hairline)}
+.mdir-btn:focus-visible{outline:none;box-shadow:var(--ring)}
+.mdir-btn .sw{width:11px;height:11px}
+.mdir-btn svg{width:12px;height:12px}
+.mdir-pop{min-width:260px;animation:pop-in var(--t-fast) ease-out}
+.mdir-pop.up{top:auto;bottom:calc(100% + 6px)}
+.mdir-head{padding:6px 10px 8px;font-size:11.5px;font-weight:600;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdir-empty{padding:8px 10px 10px;font-size:12.5px;color:var(--ink-3)}
+.mitem-hl{animation:mitem-hl 2.2s ease-out}
+@keyframes mitem-hl{0%,40%{border-color:var(--accent);box-shadow:var(--ring)}100%{border-color:var(--hairline);box-shadow:none}}
 /* support chat read ticks: one check = delivered, two = read by the customer */
 .chat .msg time{display:flex;align-items:center;gap:4px}
 .chat .msg.staff time{justify-content:flex-end}

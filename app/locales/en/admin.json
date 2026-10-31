@@ -774,7 +774,11 @@
       "series": "Series (direction)",
       "series_hint": "Goes to every model you add",
       "no_series": "No series",
-      "add_flow": "Brand → series → models"
+      "add_flow": "Brand → series → models",
+      "dir_change": "Change direction",
+      "dir_pick": "{m} — series (direction)",
+      "dir_empty": "This brand has no series yet — add them on the Series page",
+      "dir_saved": "{m}: direction changed — {s}"
     },
     "nav_edit": {
       "hint": "Drag a section to any place",

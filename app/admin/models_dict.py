@@ -87,6 +87,25 @@ async def models_bulk(request: Request, db: DB, staff: User = Depends(staff_dep(
     return back(request, f"/admin/models?brand_id={brand.id}", msg, "ok" if added else "warn")
 
 
+@router.post("/models/{mid}/series")
+async def model_series(mid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
+    """Change a model's direction: it moves to another series of its brand (or to no series)."""
+    m = await model_dict.get_model(db, mid)
+    if not m:
+        raise HTTPException(404)
+    form = await request.form()
+    lang = _lang(request, staff)
+    before = model_dict.as_dict(m)
+    await model_dict.set_series(db, m, form.get("series"))
+    await audit.log(db, staff.id, "model.series", "brand_model", m.id, before, model_dict.as_dict(m))
+    await db.commit()
+    listed = await series_service.find(db, m.brand_id, m.series) if m.series else None
+    label = " · ".join(filter(None, [m.series, COLOR_DIRECTION.get(listed.color) if listed and listed.color else None])) or t(lang, "admin.models.no_series")
+    # back to the same view; `moved` scrolls to the model and highlights it
+    url = _next_url(form, f"/admin/models?brand_id={m.brand_id}")
+    return back(request, url + ("&" if "?" in url else "?") + f"moved={m.id}", t(lang, "admin.models.dir_saved", m=m.name, s=label))
+
+
 @router.post("/models/{mid}/delete")
 async def model_delete(mid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     m = await model_dict.get_model(db, mid)
