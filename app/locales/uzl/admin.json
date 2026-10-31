@@ -704,8 +704,8 @@
       "title": "Modellar",
       "manage": "Modellar ro'yxati",
       "brand": "Brend",
-      "lines": "Modellar — har birini yangi qatorga",
-      "lines_hint": "Faqat model nomi yetarli. Xohlasangiz hajmini ham yozing: ST4000VX016 4TB. Ro'yxatda bor modellar qayta qo'shilmaydi.",
+      "lines": "Modellar",
+      "lines_hint": "Bir nechtasini vergul bilan yozish yoki ro'yxatdan nusxalab qo'yish mumkin. Hajmni ham yozsa bo'ladi: ST4000VX016 4TB. Bor modellar qayta qo'shilmaydi.",
       "add": "Qo'shish",
       "add_title": "Yangi modellar qo'shish",
       "added": "{n} ta model qo'shildi, {s} ta o'tkazib yuborildi",
@@ -720,7 +720,9 @@
       "empty_text": "Yuqoridagi formada brendni tanlang va modellarni yozing.",
       "count": "ta model",
       "search": "Model qidirish",
-      "empty_brand": "Bu brendda hali model yo'q"
+      "empty_brand": "Bu brendda hali model yo'q",
+      "tokens_ph": "Model nomini yozing va Enter bosing",
+      "will_add": "Qo'shiladi: {n}"
     }
   }
 }

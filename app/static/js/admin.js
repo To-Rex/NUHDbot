@@ -261,6 +261,58 @@
   const chat = document.getElementById('chat'); if (chat) chat.scrollTop = chat.scrollHeight;
   document.addEventListener('htmx:afterSettle', (e) => { if (e.target.id === 'chat') e.target.scrollTop = e.target.scrollHeight; });
 
+  // ---------- model chips: type a model + Enter (or paste a list); keeps the hidden `lines` textarea in sync ----------
+  const CAP_RE = /^(\d+(?:[.,]\d+)?)\s*(tb|gb|тб|гб)$/i;
+  function bindTokens(scope) {
+    (scope.querySelectorAll ? scope : document).querySelectorAll('[data-model-tokens]:not([data-bound])').forEach((box) => {
+      box.dataset.bound = '1';
+      const input = box.querySelector('[data-token-input]'), ta = box.querySelector('textarea'), form = box.closest('form');
+      const count = form && form.querySelector('[data-token-count]');
+      let items = [];
+      const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const capOf = (raw) => { const w = raw.split(/\s+/); const m = w.length > 1 && CAP_RE.exec(w[w.length - 1]); return m ? m[1].replace(',', '.') + ' ' + (/[tт]/i.test(m[2]) ? 'TB' : 'GB') : ''; };
+      const keyOf = (raw) => raw.split(/\s+/)[0].toUpperCase();
+      function sync() {
+        const pending = input.value.trim();
+        ta.value = items.concat(pending ? [pending] : []).join('\n');
+        if (count) { const n = items.length + (pending ? 1 : 0); count.textContent = n ? (count.dataset.tpl || '{n}').replace('{n}', n) : ''; }
+      }
+      function draw() {
+        box.querySelectorAll('.tok').forEach((el) => el.remove());
+        items.forEach((raw, i) => {
+          const cap = capOf(raw), name = cap ? raw.split(/\s+/).slice(0, -1).join(' ') : raw;
+          const el = document.createElement('span'); el.className = 'tok';
+          el.innerHTML = '<b>' + esc(name) + '</b>' + (cap ? '<i>' + cap + '</i>' : '') + '<button type="button" aria-label="×" data-i="' + i + '">&times;</button>';
+          input.before(el);
+        });
+        sync();
+      }
+      function add(text) {
+        text.split(/[\n,;]+/).map((s) => s.trim().replace(/^[-•*·]\s*/, '')).filter(Boolean).forEach((t) => {
+          // a bare "4TB" belongs to the model typed just before it
+          if (CAP_RE.test(t)) { const k = items.length - 1; if (k >= 0 && !capOf(items[k])) items[k] += ' ' + t; return; }
+          if (!items.some((x) => keyOf(x) === keyOf(t))) items.push(t);
+        });
+        draw();
+      }
+      const commit = () => { if (input.value.trim()) { add(input.value); input.value = ''; sync(); } };
+      input.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ',' || e.key === ';') && input.value.trim()) { e.preventDefault(); commit(); }
+        else if (e.key === 'Backspace' && !input.value && items.length) { items.pop(); draw(); }
+      });
+      input.addEventListener('input', sync);
+      input.addEventListener('blur', commit);
+      input.addEventListener('paste', (e) => { const t = (e.clipboardData || window.clipboardData).getData('text'); if (/[\n,;]/.test(t)) { e.preventDefault(); add(t); } });
+      box.addEventListener('click', (e) => { const x = e.target.closest('[data-i]'); if (x) { items.splice(+x.dataset.i, 1); draw(); input.focus(); } else if (e.target === box) input.focus(); });
+      ta.addEventListener('tokens:clear', () => { items = []; input.value = ''; draw(); });
+      // nothing entered: stop the submit (also before any other submit handler on the form)
+      form && form.addEventListener('submit', (e) => { commit(); if (!ta.value.trim()) { e.preventDefault(); e.stopImmediatePropagation(); box.classList.add('invalid'); input.focus(); setTimeout(() => box.classList.remove('invalid'), 600); } }, true);
+      draw();
+    });
+  }
+  bindTokens(document);
+  document.addEventListener('htmx:afterSettle', (e) => bindTokens(e.target));
+
   // ---------- file input counters ----------
   document.querySelectorAll('input[type=file][multiple]').forEach((i) => i.addEventListener('change', () => { const l = i.closest('label'); const c = l && l.querySelector('[data-count]'); if (c) c.textContent = i.files.length ? '(' + i.files.length + ')' : ''; }));
 })();

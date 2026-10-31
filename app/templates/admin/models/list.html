@@ -14,8 +14,8 @@
         {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
       </select></div>
     <div class="field"><label>{{ t('admin.models.lines') }}</label>
-      <textarea class="textarea mono" name="lines" rows="4" required placeholder="WD40PURZ&#10;ST4000VX016 4TB&#10;HDWD120" spellcheck="false"></textarea></div>
-    <div class="models-add-foot"><span class="hint">{{ t('admin.models.lines_hint') }}</span><button class="btn btn-primary" type="submit">{{ icon('plus', 15) }}{{ t('admin.models.add') }}</button></div>
+      {% include "admin/models/_tokens.html" %}</div>
+    <div class="models-add-foot"><span class="hint">{{ t('admin.models.lines_hint') }}</span><span class="tok-count" data-token-count data-tpl="{{ t('admin.models.will_add') }}"></span><button class="btn btn-primary" type="submit">{{ icon('plus', 15) }}{{ t('admin.models.add') }}</button></div>
   </form>
 </section>
 

@@ -704,8 +704,8 @@
       "title": "Models",
       "manage": "Model list",
       "brand": "Brand",
-      "lines": "Models — one per line",
-      "lines_hint": "The model name is enough. You can add the capacity too: ST4000VX016 4TB. Models already in the list are not added twice.",
+      "lines": "Models",
+      "lines_hint": "Add several at once with commas or paste a list. You can include the capacity: ST4000VX016 4TB. Models already in the list are skipped.",
       "add": "Add",
       "add_title": "Add models",
       "added": "{n} models added, {s} skipped",
@@ -720,7 +720,9 @@
       "empty_text": "Pick a brand in the form above and type the models.",
       "count": "models",
       "search": "Find a model",
-      "empty_brand": "This brand has no models yet"
+      "empty_brand": "This brand has no models yet",
+      "tokens_ph": "Type a model and press Enter",
+      "will_add": "To add: {n}"
     }
   }
 }
