@@ -22,6 +22,8 @@ class Banner(Base, TimestampMixin):
     image: Mapped[str | None] = mapped_column(String(255))
     image_thumb: Mapped[str | None] = mapped_column(String(255))
     product_id: Mapped[int | None] = mapped_column(ForeignKey("products.id", ondelete="SET NULL"))
+    product_ids: Mapped[list[int]] = mapped_column(JSON, default=list)  # several products → an offers page
+    auto_sale: Mapped[bool] = mapped_column(Boolean, default=False)  # the offers page lists every discounted product
     link: Mapped[str | None] = mapped_column(String(255))  # a Mini App path (/app/...) when no product
     old_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2))  # shown struck through next to the product price
     starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

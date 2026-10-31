@@ -10,13 +10,13 @@
     {% else %}<div class="ph" aria-hidden="true">{{ icon('drive', 22) }}<b>{{ p.capacity_gb|capacity }}</b><span>{{ p.brand }}</span></div>{% endif %}
     <div class="pcard-tags">
       {% with cond=p.condition %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}
-      {% if p.available > 0 and p.available <= 5 %}<span class="chip chip-warn">{{ t('catalog.left', n=p.available) }}</span>{% endif %}
+      {% set old_price = (drops or {}).get(p.id) %}{% if old_price %}<span class="chip chip-sale">−{{ percent(old_price, p.price) }}%</span>{% elif p.available > 0 and p.available <= 5 %}<span class="chip chip-warn">{{ t('catalog.left', n=p.available) }}</span>{% endif %}
     </div>
     {% if p.available <= 0 %}<div class="pcard-sold"><span class="chip chip-lg chip-ink">{{ t('common.sold_out') }}</span></div>{% endif %}
   </div>
   <div class="pcard-body">
     <div class="pcard-price">
-      {% if p.price is not none %}<strong>{{ price(p.price, p.currency) }}</strong><span class="per">/ {{ t('common.per_unit') }}</span>{% else %}<strong class="ask">{{ t('common.price_on_request') }}</strong>{% endif %}
+      {% if p.price is not none %}<strong>{{ price(p.price, p.currency) }}</strong>{% if old_price %}<s class="pcard-old">{{ price(old_price, p.currency) }}</s>{% else %}<span class="per">/ {{ t('common.per_unit') }}</span>{% endif %}{% else %}<strong class="ask">{{ t('common.price_on_request') }}</strong>{% endif %}
     </div>
     {% set alt = price.others(p.price, p.currency) if p.price is not none else '' %}{% if alt %}<div class="pcard-alt">{{ alt }}</div>{% endif %}
     <div class="pcard-title">{{ p.brand }} {{ p.model }}</div>

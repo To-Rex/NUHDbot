@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 from app.deps import DB, CurrentUser, Lang, redirect
 from app.enums import AuctionStatus, Purpose
 from app.models import Auction, Banner, Product
-from app.services import auctions, catalog
+from app.services import auctions, catalog, discounts
 from app.services import banners as banner_service
 from app.services.settings_service import get_setting
 from app.templating import render
@@ -42,9 +42,31 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         {
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
-            "banners": await banner_service.live(db), "kind_icons": banner_service.KIND_ICONS,
+            "kind_icons": banner_service.KIND_ICONS, **(await _slider(db)),
         },
     )
+
+
+async def _slider(db) -> dict:
+    """Live banners, the products of offer banners, and old prices for single-product ones."""
+    banners = await banner_service.live(db)
+    offers = {b.id: await banner_service.offer(db, b) for b in banners if banner_service.is_offer(b)}
+    singles = await discounts.price_drops(db, [b.product_id for b in banners if b.product_id and not banner_service.is_offer(b)])
+    return {"banners": banners, "offers": offers, "single_drops": singles}
+
+
+@router.get("/offers/{bid}")
+async def offers_page(bid: int, request: Request, db: DB, user: CurrentUser, lang: Lang):
+    """What a banner with several products opens: those products (or every discounted one), with their old prices."""
+    b = await db.get(Banner, bid)
+    if b is None or not banner_service.is_offer(b):
+        return redirect(request, "/app/home")
+    live = banner_service.status(b) == "live"
+    products, drops = await banner_service.offer(db, b) if live else ([], {})
+    return render(request, "miniapp/offers.html", {
+        "lang": lang, "b": b, "live": live, "products": products, "drops": drops, "percent": discounts.percent,
+        "kind_icons": banner_service.KIND_ICONS, "back_url": "/app/home",
+    })
 
 
 @router.get("/promo/{bid}")

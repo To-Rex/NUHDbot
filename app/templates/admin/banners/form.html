@@ -1,12 +1,12 @@
 {% extends "admin/base.html" %}
-{% set target = 'product' if b.product_id else ('link' if b.link else ('product' if is_new and b.kind in ('hot', 'sale') and not errors else 'none')) %}
+{% set target = 'products' if (b.auto_sale or b.product_ids) else ('product' if b.product_id else ('link' if b.link else ('product' if is_new and b.kind == 'hot' and not errors else ('products' if is_new and b.kind == 'sale' and not errors else 'none')))) %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/banners">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{% for e in errors %}{{ t('admin.ban.err.' ~ e) }}{% if not loop.last %} · {% endif %}{% endfor %}</span></div>{% endif %}
 <div class="split bn-edit">
 <form method="post" enctype="multipart/form-data" id="banner-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection"><h2 data-n="01">{{ t('admin.ban.sec_kind') }}</h2>
-    <div class="bn-kinds mt">{% for k in kinds %}<label class="bn-kind"><input type="radio" name="kind" value="{{ k }}" {{ 'checked' if b.kind == k }} data-label="{{ t('admin.ban.kind.' ~ k) }}" data-icon="{{ kind_icons[k] }}" data-link="{{ kind_defaults[k][0] or '' }}" data-target="{{ 'link' if kind_defaults[k][0] else ('product' if k in ('hot', 'sale') else 'none') }}" data-color="{{ kind_defaults[k][1] }}"><span>{{ icon(kind_icons[k], 18) }}<b>{{ t('admin.ban.kind.' ~ k) }}</b><small>{{ t('admin.ban.kind_hint.' ~ k) }}</small></span></label>{% endfor %}</div>
+    <div class="bn-kinds mt">{% for k in kinds %}<label class="bn-kind"><input type="radio" name="kind" value="{{ k }}" {{ 'checked' if b.kind == k }} data-label="{{ t('admin.ban.kind.' ~ k) }}" data-icon="{{ kind_icons[k] }}" data-link="{{ kind_defaults[k][0] or '' }}" data-target="{{ 'link' if kind_defaults[k][0] else ('product' if k == 'hot' else ('products' if k == 'sale' else 'none')) }}" data-color="{{ kind_defaults[k][1] }}"><span>{{ icon(kind_icons[k], 18) }}<b>{{ t('admin.ban.kind.' ~ k) }}</b><small>{{ t('admin.ban.kind_hint.' ~ k) }}</small></span></label>{% endfor %}</div>
   </section>
 
   <section class="fsection"><h2 data-n="02">{{ t('admin.ban.sec_text') }}</h2>
@@ -28,14 +28,40 @@
   </section>
 
   <section class="fsection"><h2 data-n="04">{{ t('admin.ban.sec_link') }}</h2>
-    <div class="seg mt" role="radiogroup">{% for v in ('product', 'link', 'none') %}<label class="seg-opt"><input type="radio" name="target" value="{{ v }}" {{ 'checked' if target == v }}><span>{{ t('admin.ban.target.' ~ v) }}</span></label>{% endfor %}</div>
+    <p class="hint">{{ t('admin.ban.sec_link_hint') }}</p>
+    <div class="bn-targets mt" role="radiogroup">{% for v, ic in (('product', 'drive'), ('products', 'grid'), ('link', 'link'), ('none', 'x')) %}<label class="bn-target"><input type="radio" name="target" value="{{ v }}" {{ 'checked' if target == v }}><span>{{ icon(ic, 16) }}<b>{{ t('admin.ban.target.' ~ v) }}</b><small>{{ t('admin.ban.target_hint.' ~ v) }}</small></span></label>{% endfor %}</div>
+
     <div class="form-grid mt" data-target-pane="product" {% if target != 'product' %}hidden{% endif %}>
       <div class="field"><label>{{ t('admin.ban.f_product') }}</label>
         <select class="select" name="product_id" data-bn-product><option value="">{{ t('admin.ban.f_product_pick') }}</option>
-          {% for pr in products %}<option value="{{ pr.id }}" {{ 'selected' if b.product_id == pr.id }} data-thumb="{{ pr.cover.thumb_url if pr.cover else '' }}" data-cap="{{ pr.capacity_gb|capacity }}" data-price="{{ cur_display(pr.price, pr.currency) if pr.price is not none else '' }}" data-cur="{{ pr.currency }}">{{ pr.brand }} {{ pr.model }} · {{ pr.capacity_gb|capacity }}{% if pr.price is not none %} · {{ cur_display(pr.price, pr.currency) }}{% endif %}</option>{% endfor %}
+          {% for pr in products %}{% set dr = drops.get(pr.id) %}<option value="{{ pr.id }}" {{ 'selected' if b.product_id == pr.id }} data-thumb="{{ pr.cover.thumb_url if pr.cover else '' }}" data-cap="{{ pr.capacity_gb|capacity }}" data-price="{{ cur_display(pr.price, pr.currency) if pr.price is not none else '' }}" data-old="{{ cur_display(dr, pr.currency) if dr else '' }}" data-cur="{{ pr.currency }}">{{ pr.brand }} {{ pr.model }} · {{ pr.capacity_gb|capacity }}{% if pr.price is not none %} · {{ cur_display(pr.price, pr.currency) }}{% endif %}{% if dr %} (−{{ percent(dr, pr.price) }}%){% endif %}</option>{% endfor %}
         </select><span class="hint">{{ t('admin.ban.f_product_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.ban.f_old_price') }}</label><input class="input mono" name="old_price" inputmode="decimal" value="{{ b.old_price if b.old_price is not none else '' }}" placeholder="80" data-bn-old><span class="hint">{{ t('admin.ban.f_old_price_hint') }}</span></div>
     </div>
+
+    <div class="mt" data-target-pane="products" {% if target != 'products' %}hidden{% endif %}>
+      <label class="sw-row bn-auto"><span><b>{{ t('admin.ban.auto_sale') }}</b><small>{{ t('admin.ban.auto_sale_hint', n=on_sale|length) }}</small></span><input type="checkbox" name="auto_sale" value="1" {{ 'checked' if b.auto_sale }} data-bn-auto><span class="switch"></span></label>
+      <div class="bn-picker" data-bn-picker {% if b.auto_sale %}hidden{% endif %}>
+        <div class="bn-picker-bar">
+          <label class="search">{{ icon('search', 15) }}<input class="input" type="search" placeholder="{{ t('admin.ban.pick_search') }}" data-pick-q autocomplete="off"></label>
+          {% if on_sale %}<button type="button" class="btn btn-secondary btn-sm" data-pick-sale>{{ icon('percent', 14) }}{{ t('admin.ban.pick_sale', n=on_sale|length) }}</button>{% endif %}
+          <button type="button" class="btn btn-ghost btn-sm" data-pick-clear>{{ t('admin.ban.pick_clear') }}</button>
+          <span class="bn-pick-count" data-pick-count data-tpl="{{ t('admin.ban.picked') }}"></span>
+        </div>
+        <div class="bn-picker-list">
+          {% for pr in products %}{% set dr = drops.get(pr.id) %}
+          <label class="bn-pick" data-q="{{ (pr.brand ~ ' ' ~ pr.model ~ ' ' ~ (pr.series or '') ~ ' ' ~ (pr.capacity_gb|capacity))|lower }}">
+            <input type="checkbox" name="product_ids" value="{{ pr.id }}" {{ 'checked' if pr.id in (b.product_ids or []) }} data-sale="{{ '1' if dr else '0' }}" data-thumb="{{ pr.cover.thumb_url if pr.cover else '' }}" data-cap="{{ pr.capacity_gb|capacity }}" data-price="{{ pr.price if pr.price is not none else '' }}" data-price-text="{{ cur_display(pr.price, pr.currency) if pr.price is not none else '' }}">
+            <span class="bn-pick-img">{% if pr.cover %}<img src="{{ pr.cover.thumb_url }}" alt="" loading="lazy">{% else %}{{ pr.capacity_gb|capacity }}{% endif %}</span>
+            <span class="bn-pick-name"><b>{{ pr.brand }} {{ pr.model }}</b><small>{{ pr.capacity_gb|capacity }}{% if pr.series %} · {{ pr.series }}{% endif %}</small></span>
+            <span class="bn-pick-price">{% if pr.price is not none %}<b>{{ cur_display(pr.price, pr.currency) }}</b>{% endif %}{% if dr %}<s>{{ cur_display(dr, pr.currency) }}</s><span class="chip bn-off">−{{ percent(dr, pr.price) }}%</span>{% endif %}</span>
+          </label>
+          {% endfor %}
+          <div class="bn-pick-none hint" data-pick-none hidden>{{ t('admin.nothing_found') }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="field mt" data-target-pane="link" {% if target != 'link' %}hidden{% endif %}>
       <label>{{ t('admin.ban.f_link') }}</label><input class="input mono" name="link" value="{{ b.link or '' }}" placeholder="/app/catalog?use=nas" data-bn-link>
       <div class="bn-presets">{% for key, url in (('catalog', '/app/catalog'), ('new', '/app/new'), ('auctions', '/app/auctions'), ('tips', '/app/info'), ('cctv', '/app/catalog?use=cctv'), ('nas', '/app/catalog?use=nas'), ('used', '/app/catalog?cond=used')) %}<button type="button" class="fchip" data-link="{{ url }}">{{ t('admin.ban.preset.' ~ key) }}</button>{% endfor %}</div>
@@ -52,7 +78,7 @@
     <label class="sw-row mt"><span>{{ t('admin.ban.f_active') }}</span><input type="checkbox" name="is_active" value="1" {{ 'checked' if b.is_active }}><span class="switch"></span></label>
   </section>
 
-  <div class="savebar"><span class="hint" data-state>{{ t('admin.ban.save_hint') }}</span><span class="flex1"></span><a class="btn btn-secondary" href="/admin/banners">{{ t('admin.cancel') }}</a><button class="btn btn-primary" type="submit">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+  <div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.ban.save_hint') }}</span></span><span class="spacer"></span><a class="btn btn-secondary" href="/admin/banners">{{ t('admin.cancel') }}</a><button class="btn btn-primary" type="submit">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
 </form>
 
 <aside class="bn-side">
@@ -67,29 +93,48 @@
 (function(){
   var form=document.getElementById('banner-form'), slide=document.querySelector('[data-bn-slide]'); if(!form||!slide) return;
   var q=function(s){ return slide.querySelector(s); }, F=function(n){ return form.querySelector('[name="'+n+'"]'); };
-  var lang={{ (staff.lang or 'uz')|tojson }}, langs={{ langs|tojson }}, ph={{ t('admin.ban.title_ph')|tojson }};
-  var icons={{ kind_icons|tojson }}, iconSvg={}; form.querySelectorAll('.bn-kind').forEach(function(k){ iconSvg[k.querySelector('input').value]=k.querySelector('svg').outerHTML; });
+  var lang={{ (staff.lang or 'uz')|tojson }}, langs={{ langs|tojson }}, ph={{ t('admin.ban.title_ph')|tojson }}, tN={{ t('admin.ban.n_products')|tojson }}, tFrom={{ t('admin.ban.from')|tojson }};
+  var iconSvg={}; form.querySelectorAll('.bn-kind').forEach(function(k){ iconSvg[k.querySelector('input').value]=k.querySelector('svg').outerHTML; });
   var imageUrl=slide.querySelector('.bn-bg') ? slide.querySelector('.bn-bg').src : '';
+  var picks=[].slice.call(form.querySelectorAll('[name=product_ids]')), auto=form.querySelector('[data-bn-auto]'), picker=form.querySelector('[data-bn-picker]');
   function pickText(name){ var own=F(name+'_'+lang); if(own&&own.value.trim()) return own.value.trim(); for(var i=0;i<langs.length;i++){ var el=F(name+'_'+langs[i]); if(el&&el.value.trim()) return el.value.trim(); } return ''; }
   function checked(n){ var r=form.querySelector('[name="'+n+'"]:checked'); return r?r.value:''; }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function thumb(d){ return d.thumb?'<img src="'+esc(d.thumb)+'" alt="">':'<span class="bn-cap">'+esc(d.cap)+'</span>'; }
+  /* the products an offers banner shows: every discounted one, or the ones ticked */
+  function offerItems(){ return picks.filter(function(c){ return auto&&auto.checked ? c.dataset.sale==='1' : c.checked; }).map(function(c){ return c.dataset; }); }
   function render(){
     var kind=form.querySelector('[name=kind]:checked'), color=checked('color')||'red', target=checked('target');
     form.querySelectorAll('[data-target-pane]').forEach(function(p){ p.hidden=p.dataset.targetPane!==target; });
+    if(picker) picker.hidden=!!(auto&&auto.checked);
     var opt=target==='product'?F('product_id').selectedOptions[0]:null; if(opt&&!opt.value) opt=null;
+    var items=target==='products'?offerItems():[];
     var removing=form.querySelector('[data-bn-remove]')&&form.querySelector('[data-bn-remove]').checked, img=removing?'':imageUrl;
-    slide.className='bn-slide c-'+color+(img?' has-img':'')+(opt&&!img?' has-product':'');
+    slide.className='bn-slide c-'+color+(img?' has-img':'')+((opt||items.length)&&!img?' has-product':'');
     var bg=slide.querySelector('.bn-bg'); if(img){ if(!bg){ bg=document.createElement('img'); bg.className='bn-bg'; bg.alt=''; slide.insertBefore(bg, slide.firstChild); } bg.src=img; } else if(bg) bg.remove();
     if(kind){ q('.bn-kicker').innerHTML=iconSvg[kind.value]+'<span data-bn-kind>'+esc(kind.dataset.label)+'</span>'; }
     q('[data-bn-title]').textContent=pickText('title')||ph; q('[data-bn-sub]').textContent=pickText('subtitle');
     var badge=F('badge').value.trim(), bd=q('[data-bn-badge]'); bd.textContent=badge; bd.hidden=!badge;
-    var old=F('old_price').value.trim(), o=parseFloat(old.replace(',','.').replace(/\s/g,'')), price=opt?opt.dataset.price:'';
-    if(!isNaN(o)) old=o%1?o.toFixed(2):String(o);
-    q('[data-bn-price]').innerHTML=price?'<b>'+esc(price)+'</b>'+(old?'<s>'+esc((opt.dataset.cur==='USD'?'$':'')+old+(opt.dataset.cur==='USD'?'':' '+opt.dataset.cur))+'</s>':''):'';
-    q('[data-bn-cta]').hidden=target==='none'||(target==='product'&&!opt)||(target==='link'&&!F('link').value.trim());
-    var art=q('[data-bn-art]'); art.hidden=!!(opt||img); if(kind) art.innerHTML=iconSvg[kind.value].replace(/width="\d+"/,'width="54"').replace(/height="\d+"/,'height="54"');
-    var media=q('[data-bn-media]'); media.innerHTML=opt&&!img?(opt.dataset.thumb?'<img src="'+esc(opt.dataset.thumb)+'" alt="">':'<span class="bn-cap">'+esc(opt.dataset.cap)+'</span>'):'';
+    var priceHtml='';
+    if(opt&&opt.dataset.price){
+      var old=F('old_price').value.trim(), o=parseFloat(old.replace(',','.').replace(/\s/g,''));
+      var oldText=!isNaN(o)?(opt.dataset.cur==='USD'?'$':'')+(o%1?o.toFixed(2):String(o))+(opt.dataset.cur==='USD'?'':' '+opt.dataset.cur):opt.dataset.old;  /* empty: the price before the last cut */
+      priceHtml='<b>'+esc(opt.dataset.price)+'</b>'+(oldText?'<s>'+esc(oldText)+'</s>':'');
+    } else if(items.length){
+      var cheap=items.filter(function(d){ return d.price!==''; }).sort(function(a,b){ return parseFloat(a.price)-parseFloat(b.price); })[0];
+      priceHtml='<span class="bn-count">'+esc(tN.replace('{n}',items.length))+'</span>'+(cheap?'<b>'+esc(tFrom.replace('{price}',cheap.priceText))+'</b>':'');
+    }
+    q('[data-bn-price]').innerHTML=priceHtml;
+    q('[data-bn-cta]').hidden=target==='none'||(target==='product'&&!opt)||(target==='products'&&!items.length)||(target==='link'&&!F('link').value.trim());
+    var art=q('[data-bn-art]'); art.hidden=!!(opt||items.length||img); if(kind) art.innerHTML=iconSvg[kind.value].replace(/width="\d+"/,'width="54"').replace(/height="\d+"/,'height="54"');
+    q('[data-bn-media]').innerHTML=img?'':(opt?thumb(opt.dataset):(items.length?'<span class="bn-stack">'+items.slice(0,3).map(thumb).join('')+'</span>':''));
+    var cnt=form.querySelector('[data-pick-count]'); if(cnt){ var n=picks.filter(function(c){ return c.checked; }).length; cnt.textContent=n?cnt.dataset.tpl.replace('{n}',n):''; }
   }
+  /* picker: search, tick every discounted product, clear */
+  var pq=form.querySelector('[data-pick-q]');
+  if(pq) pq.addEventListener('input',function(){ var v=pq.value.trim().toLowerCase(), any=false; picks.forEach(function(c){ var row=c.closest('.bn-pick'), hit=!v||row.dataset.q.indexOf(v)>=0; row.hidden=!hit; if(hit) any=true; }); form.querySelector('[data-pick-none]').hidden=any; });
+  var ps=form.querySelector('[data-pick-sale]'); if(ps) ps.addEventListener('click',function(){ picks.forEach(function(c){ if(c.dataset.sale==='1') c.checked=true; }); render(); });
+  var pc=form.querySelector('[data-pick-clear]'); if(pc) pc.addEventListener('click',function(){ picks.forEach(function(c){ c.checked=false; }); render(); });
   /* a new banner: picking a kind fills in its usual page and colour until those are set by hand */
   var isNew={{ 'true' if is_new else 'false' }}, linkTouched=!!F('link').value.trim(), colorTouched=!isNew;
   form.querySelectorAll('[name=color]').forEach(function(r){ r.addEventListener('change',function(e){ if(e.isTrusted) colorTouched=true; }); });
@@ -98,7 +143,7 @@
   form.querySelectorAll('[name=kind]').forEach(function(r){ r.addEventListener('change',function(){
     if(!isNew) return;
     if(!colorTouched&&r.dataset.color){ var c=form.querySelector('[name=color][value="'+r.dataset.color+'"]'); if(c) c.checked=true; }
-    if(!linkTouched){ var tr=form.querySelector('[name=target][value="'+r.dataset.target+'"]'); if(tr) tr.checked=true; F('link').value=r.dataset.link||''; }
+    if(!linkTouched){ var tr=form.querySelector('[name=target][value="'+r.dataset.target+'"]'); if(tr) tr.checked=true; F('link').value=r.dataset.link||''; if(r.value==='sale'&&auto&&!picks.some(function(c){ return c.checked; })) auto.checked=true; }
     render();
   }); });
   form.addEventListener('input',render); form.addEventListener('change',render);

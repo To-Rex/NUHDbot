@@ -20,17 +20,19 @@ from app.admin.common import (
 from app.admin.router import router
 from app.i18n import t
 from app.models import Banner, Product, User
-from app.services import audit, media
+from app.services import audit, discounts, media
 from app.services import banners as svc
 
-FIELDS = ["kind", "title", "subtitle", "badge", "color", "product_id", "link", "old_price", "starts_at", "ends_at", "is_active", "sort"]
+FIELDS = ["kind", "title", "subtitle", "badge", "color", "product_id", "product_ids", "auto_sale", "link", "old_price", "starts_at", "ends_at", "is_active", "sort"]
 
 
 async def _ctx(db, staff: User, b: Banner, is_new: bool, errors: list[str] | None = None) -> dict:
     products = (await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.brand, Product.model))).scalars().unique().all()
     if b.product_id and all(p.id != b.product_id for p in products) and b.product:
         products = [b.product, *products]
+    drops = await discounts.price_drops(db)
     return {
+        "drops": drops, "percent": discounts.percent, "on_sale": [p for p in products if p.id in drops],
         "page_title": t(staff.lang, "admin.ban.new" if is_new else "admin.ban.edit"), "b": b, "is_new": is_new, "errors": errors or [],
         "products": products, "kinds": svc.KINDS, "kind_icons": svc.KIND_ICONS, "kind_defaults": svc.KIND_DEFAULTS, "colors": svc.COLORS, "dt_local": dt_local,
     }
@@ -45,9 +47,16 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
         errors.append("title")
     b.badge = f_str(form, "badge", maxlen=24) or None
     b.color = form.get("color") if form.get("color") in svc.COLORS else "red"
-    pid = f_int(form, "product_id", None) if form.get("target") == "product" else None
+    target = form.get("target")
+    pid = f_int(form, "product_id", None) if target == "product" else None
     b.product_id = pid if pid and await db.get(Product, pid) else None
-    b.link = svc.clean_link(form.get("link")) if form.get("target") == "link" else None
+    b.auto_sale = target == "products" and f_bool(form, "auto_sale")
+    picked = [int(v) for v in form.getlist("product_ids") if str(v).isdigit()] if target == "products" and not b.auto_sale else []
+    known = set((await db.execute(select(Product.id).where(Product.id.in_(picked)))).scalars()) if picked else set()
+    b.product_ids = list(dict.fromkeys(i for i in picked if i in known))
+    if target == "products" and not b.auto_sale and not b.product_ids:
+        errors.append("products")
+    b.link = svc.clean_link(form.get("link")) if target == "link" else None
     b.old_price = f_dec(form, "old_price") if b.product_id else None
     b.starts_at, b.ends_at = f_dt(form, "starts_at"), f_dt(form, "ends_at")
     if b.starts_at and b.ends_at and b.ends_at <= b.starts_at:
@@ -67,7 +76,8 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
 @router.get("/banners")
 async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
     rows = await svc.all_banners(db)
-    return render(request, staff, "admin/banners/list.html", {"page_title": t(staff.lang, "admin.ban.title"), "rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS})
+    offers = {b.id: await svc.offer(db, b) for b in rows if svc.is_offer(b)}
+    return render(request, staff, "admin/banners/list.html", {"page_title": t(staff.lang, "admin.ban.title"), "rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": offers})
 
 
 @router.get("/banners/new")

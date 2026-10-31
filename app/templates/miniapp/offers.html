@@ -1,0 +1,24 @@
+{% extends "miniapp/base.html" %}
+{% set page_title = p(b.title) %}
+{% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page">
+  <section class="offer-head c-{{ b.color }}">
+    {% if b.image %}<img class="hs-bg" src="{{ b.image_url }}" alt="">{% endif %}
+    <div class="offer-body">
+      <span class="hs-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 14) }}{{ t('home.slide.' ~ b.kind) }}</span>
+      <h1>{{ p(b.title) }}</h1>
+      {% if p(b.subtitle) %}<p>{{ p(b.subtitle) }}</p>{% endif %}
+      {% if live and products %}<span class="offer-count">{{ t('home.offer_n', n=products|length) }}</span>{% endif %}
+    </div>
+    {% if b.badge %}<span class="hs-badge">{{ b.badge }}</span>{% endif %}
+  </section>
+  {% if live and products %}
+  <div class="product-grid mt-4">{% for p in products %}{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}{% endfor %}</div>
+  {% elif live %}
+  {% with glyph='percent', title=t('home.offer_empty'), cta_url='/app/catalog', cta_text=t('nav.catalog') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% else %}
+  {% with glyph='clock', title=t('home.offer_ended'), cta_url='/app/catalog', cta_text=t('nav.catalog') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% endif %}
+</div>
+{% endblock %}

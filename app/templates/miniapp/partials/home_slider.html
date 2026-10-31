@@ -4,17 +4,19 @@
 {% set n = banners|length + (1 if lot else 0) + (1 if new_count else 0) %}
 <div class="hs" data-slider aria-roledescription="carousel" aria-label="{{ t('home.slider') }}">
   <div class="hs-track" data-slider-track>
-    {% for b in banners %}{% set prod = b.product %}{% set go = b.product_id or b.link %}
-    <{{ 'a' if go else 'div' }} class="hs-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if prod and not b.image }}"{% if go %} href="/app/promo/{{ b.id }}"{% endif %} aria-roledescription="slide">
+    {% for b in banners %}{% set multi = b.id in offers %}{% set prod = None if multi else b.product %}{% set items = offers[b.id][0] if multi else [] %}{% set go = (multi and items) or b.product_id or b.link %}
+    <{{ 'a' if go else 'div' }} class="hs-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or items) and not b.image }}"{% if go %} href="/app/promo/{{ b.id }}"{% endif %} aria-roledescription="slide">
       {% if b.image %}<img class="hs-bg" src="{{ b.image_url }}" alt="" {{ 'loading="lazy"' if not loop.first }} decoding="async">{% endif %}
       <div class="hs-body">
         <span class="hs-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 14) }}{{ t('home.slide.' ~ b.kind) }}</span>
         <h2>{{ p(b.title) }}</h2>
         {% if p(b.subtitle) %}<p class="hs-sub">{{ p(b.subtitle) }}</p>{% endif %}
-        {% if prod and prod.price is not none %}<div class="hs-price"><b>{{ price(prod.price, prod.currency) }}</b>{% if b.old_price %}<s>{{ price(b.old_price, prod.currency) }}</s>{% endif %}</div>{% endif %}
+        {% if prod and prod.price is not none %}{% set old = b.old_price or single_drops.get(prod.id) %}<div class="hs-price"><b>{{ price(prod.price, prod.currency) }}</b>{% if old %}<s>{{ price(old, prod.currency) }}</s>{% endif %}</div>{% endif %}
+        {% if items %}{% set cheapest = items|selectattr('price')|sort(attribute='price')|first %}<div class="hs-price"><span class="hs-count">{{ t('home.offer_n', n=items|length) }}</span>{% if cheapest %}<b>{{ t('home.offer_from', price=price(cheapest.price, cheapest.currency)) }}</b>{% endif %}</div>{% endif %}
         {% if go %}<span class="hs-cta">{{ t('home.slide_cta') }}{{ icon('arrow-right', 15) }}</span>{% endif %}
       </div>
-      {% if not prod and not b.image %}<span class="hs-art">{{ icon(kind_icons.get(b.kind, 'fire'), 64) }}</span>{% endif %}
+      {% if not prod and not items and not b.image %}<span class="hs-art">{{ icon(kind_icons.get(b.kind, 'fire'), 64) }}</span>{% endif %}
+      {% if items and not b.image %}<div class="hs-media"><span class="hs-stack">{% for it in items[:3] %}{% if it.cover %}<img src="{{ it.cover.thumb_url }}" alt="" loading="lazy" decoding="async">{% else %}<span class="hs-cap">{{ it.capacity_gb|capacity }}</span>{% endif %}{% endfor %}</span></div>{% endif %}
       {% if prod and not b.image %}<div class="hs-media">{% if prod.cover %}<img src="{{ prod.cover.thumb_url }}" alt="" loading="lazy" decoding="async">{% else %}<span class="hs-cap">{{ prod.capacity_gb|capacity }}</span>{% endif %}</div>{% endif %}
       {% if b.badge %}<span class="hs-badge">{{ b.badge }}</span>{% endif %}
     </{{ 'a' if go else 'div' }}>

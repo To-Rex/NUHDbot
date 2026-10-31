@@ -1,15 +1,17 @@
-{# The slide as the Mini App shows it (admin preview). Expects b (Banner); kind_icons. #}
-{% set prod = b.product %}
-<div class="bn-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if prod and not b.image }}" data-bn-slide>
+{# The slide as the Mini App shows it (admin preview). Expects b (Banner), kind_icons; optional offers {banner id: (products, old prices)}. #}
+{% set prod = b.product %}{% set multi = b.auto_sale or b.product_ids %}
+{% set off = (offers or {}).get(b.id) if multi else None %}{% set items = off[0] if off else [] %}
+{% set cheapest = items|selectattr('price')|sort(attribute='price')|first if items else None %}
+<div class="bn-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or multi) and not b.image }}" data-bn-slide>
   {% if b.image %}<img class="bn-bg" src="{{ b.image_url }}" alt="">{% endif %}
   <div class="bn-body">
     <span class="bn-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 13) }}<span data-bn-kind>{{ t('admin.ban.kind.' ~ b.kind) }}</span></span>
     <b class="bn-title" data-bn-title>{{ p(b.title) or t('admin.ban.title_ph') }}</b>
     <span class="bn-sub" data-bn-sub>{{ p(b.subtitle) }}</span>
-    <span class="bn-price" data-bn-price>{% if prod and prod.price is not none %}<b>{{ cur_display(prod.price, prod.currency) }}</b>{% if b.old_price %}<s>{{ cur_display(b.old_price, prod.currency) }}</s>{% endif %}{% endif %}</span>
-    <span class="bn-cta" data-bn-cta {% if not (b.product_id or b.link) %}hidden{% endif %}>{{ t('admin.ban.cta') }}{{ icon('arrow-right', 13) }}</span>
+    <span class="bn-price" data-bn-price>{% if multi %}{% if items %}<span class="bn-count">{{ t('admin.ban.n_products', n=items|length) }}</span>{% if cheapest %}<b>{{ t('admin.ban.from', price=cur_display(cheapest.price, cheapest.currency)) }}</b>{% endif %}{% endif %}{% elif prod and prod.price is not none %}<b>{{ cur_display(prod.price, prod.currency) }}</b>{% if b.old_price %}<s>{{ cur_display(b.old_price, prod.currency) }}</s>{% endif %}{% endif %}</span>
+    <span class="bn-cta" data-bn-cta {% if not (b.product_id or b.link or multi) %}hidden{% endif %}>{{ t('admin.ban.cta') }}{{ icon('arrow-right', 13) }}</span>
   </div>
-  <div class="bn-media" data-bn-media>{% if prod and not b.image %}{% if prod.cover %}<img src="{{ prod.cover.thumb_url }}" alt="">{% else %}<span class="bn-cap">{{ prod.capacity_gb|capacity }}</span>{% endif %}{% endif %}</div>
-  <span class="bn-art" data-bn-art {% if prod or b.image %}hidden{% endif %}>{{ icon(kind_icons.get(b.kind, 'fire'), 54) }}</span>
+  <div class="bn-media" data-bn-media>{% if not b.image %}{% if multi %}<span class="bn-stack">{% for pr in items[:3] %}{% if pr.cover %}<img src="{{ pr.cover.thumb_url }}" alt="">{% else %}<span class="bn-cap">{{ pr.capacity_gb|capacity }}</span>{% endif %}{% endfor %}</span>{% elif prod %}{% if prod.cover %}<img src="{{ prod.cover.thumb_url }}" alt="">{% else %}<span class="bn-cap">{{ prod.capacity_gb|capacity }}</span>{% endif %}{% endif %}{% endif %}</div>
+  <span class="bn-art" data-bn-art {% if prod or multi or b.image %}hidden{% endif %}>{{ icon(kind_icons.get(b.kind, 'fire'), 54) }}</span>
   <span class="bn-badge" data-bn-badge {% if not b.badge %}hidden{% endif %}>{{ b.badge or '' }}</span>
 </div>

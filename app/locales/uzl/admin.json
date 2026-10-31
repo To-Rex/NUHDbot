@@ -985,15 +985,16 @@
       "f_image_remove": "Rasmni olib tashlash",
       "f_image_hint": "Rasm bo'lsa, butun slayd foni bo'ladi; yaxshisi gorizontal, 1200×600.",
       "target": {
-        "product": "Mahsulot",
+        "product": "Bitta mahsulot",
         "link": "Sahifa",
-        "none": "Hech qayer"
+        "none": "Hech qayer",
+        "products": "Bir nechta mahsulot"
       },
       "f_product": "Mahsulot",
       "f_product_pick": "Mahsulotni tanlang",
       "f_product_hint": "Slaydda mahsulot surati va narxi (mijoz valyutasida) chiqadi.",
       "f_old_price": "Eski narx",
-      "f_old_price_hint": "Chegirmani ko'rsatish uchun: ustidan chizilgan holda chiqadi.",
+      "f_old_price_hint": "Bo'sh qoldirilsa va narx yaqinda tushirilgan bo'lsa, eski narx o'zi olinadi.",
       "f_link": "Mini App sahifasi",
       "preset": {
         "catalog": "Katalog",
@@ -1016,8 +1017,24 @@
       "err": {
         "title": "Sarlavhani kiriting",
         "ends_at": "Tugash vaqti boshlanishidan keyin bo'lishi kerak",
-        "image": "Rasm yuklanmadi (JPG, PNG yoki WebP)"
-      }
+        "image": "Rasm yuklanmadi (JPG, PNG yoki WebP)",
+        "products": "Kamida bitta mahsulot tanlang yoki «Barcha chegirmali mahsulotlar»ni yoqing"
+      },
+      "target_hint": {
+        "product": "Mahsulot sahifasi ochiladi",
+        "products": "Takliflar sahifasi: tanlanganlar yoki barcha chegirmalilar",
+        "link": "Katalog, auksionlar va boshqalar",
+        "none": "Faqat ko'rsatiladi"
+      },
+      "sec_link_hint": "Mijoz slaydni bosganda nima ochilishini tanlang.",
+      "auto_sale": "Barcha chegirmali mahsulotlar",
+      "auto_sale_hint": "Narxi tushirilgan mahsulotlar o'zi qo'shiladi va o'zi yangilanib turadi. Hozir: {n} ta.",
+      "pick_search": "Mahsulot qidirish",
+      "pick_sale": "Chegirmalilarni belgilash ({n})",
+      "pick_clear": "Tozalash",
+      "picked": "{n} ta tanlandi",
+      "n_products": "{n} ta mahsulot",
+      "from": "{price} dan"
     }
   }
 }

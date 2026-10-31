@@ -50,7 +50,11 @@
       "info": "Notice"
     },
     "slide_cta": "View",
-    "slide_n": "Slide {n}"
+    "slide_n": "Slide {n}",
+    "offer_n": "{n} products",
+    "offer_from": "from {price}",
+    "offer_empty": "No products in this offer right now",
+    "offer_ended": "This offer has ended"
   },
   "catalog": {
     "title": "Catalog",

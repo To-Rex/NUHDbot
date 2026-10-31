@@ -47,3 +47,25 @@ def test_every_kind_has_an_icon_and_a_valid_default_page():
     assert {"new", "hot", "sale", "auction", "tips", "catalog", "info"} == set(svc.KINDS)
     for link, color in svc.KIND_DEFAULTS.values():
         assert color in svc.COLORS and (link is None or svc.clean_link(link) == link)
+
+
+async def test_offer_banners(db):
+    from decimal import Decimal
+
+    from app.models import PriceHistory
+    from app.services import discounts
+
+    cut, same, picked = await make_product(db, price="40"), await make_product(db, price="50"), await make_product(db, price="60")
+    db.add_all([PriceHistory(product_id=cut.id, old_price=Decimal("50"), new_price=Decimal("40"), currency="USD"),
+                PriceHistory(product_id=same.id, old_price=Decimal("45"), new_price=Decimal("55"), currency="USD")])  # a rise, and the price moved on
+    await db.flush()
+    assert await discounts.price_drops(db) == {cut.id: Decimal("50")} and discounts.percent(Decimal("50"), Decimal("40")) == 20
+    sale = Banner(title={"uz": "s"}, auto_sale=True)
+    hand = Banner(title={"uz": "h"}, product_ids=[picked.id, cut.id, 999999])
+    db.add_all([sale, hand])
+    await db.flush()
+    assert svc.is_offer(sale) and svc.target(sale) == f"/app/offers/{sale.id}"
+    rows, drops = await svc.offer(db, sale)
+    assert [p.id for p in rows] == [cut.id] and drops == {cut.id: Decimal("50")}
+    rows, drops = await svc.offer(db, hand)  # the order picked; unknown ids dropped
+    assert [p.id for p in rows] == [picked.id, cut.id] and set(drops) == {cut.id}

@@ -985,15 +985,16 @@
       "f_image_remove": "Remove image",
       "f_image_hint": "An image fills the whole slide; landscape works best, 1200×600.",
       "target": {
-        "product": "Product",
+        "product": "One product",
         "link": "Page",
-        "none": "Nowhere"
+        "none": "Nowhere",
+        "products": "Several products"
       },
       "f_product": "Product",
       "f_product_pick": "Choose a product",
       "f_product_hint": "The slide shows the product photo and price (in the customer's currency).",
       "f_old_price": "Old price",
-      "f_old_price_hint": "To show a discount: it appears struck through.",
+      "f_old_price_hint": "If empty and the price was cut recently, the old price is filled in for you.",
       "f_link": "Mini App page",
       "preset": {
         "catalog": "Catalogue",
@@ -1016,8 +1017,24 @@
       "err": {
         "title": "Enter a title",
         "ends_at": "The end must be after the start",
-        "image": "The image did not upload (JPG, PNG or WebP)"
-      }
+        "image": "The image did not upload (JPG, PNG or WebP)",
+        "products": "Pick at least one product or turn on «Every discounted product»"
+      },
+      "target_hint": {
+        "product": "Opens the product page",
+        "products": "An offers page: the ones picked or every discounted one",
+        "link": "Catalogue, auctions and more",
+        "none": "Just shown"
+      },
+      "sec_link_hint": "Pick what opens when a customer taps the slide.",
+      "auto_sale": "Every discounted product",
+      "auto_sale_hint": "Products whose price was cut are added and kept up to date on their own. Now: {n}.",
+      "pick_search": "Search products",
+      "pick_sale": "Tick discounted ({n})",
+      "pick_clear": "Clear",
+      "picked": "{n} picked",
+      "n_products": "{n} products",
+      "from": "from {price}"
     }
   }
 }

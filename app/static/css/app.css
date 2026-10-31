@@ -193,6 +193,8 @@ dl{margin:0}
 .pcard-price strong{font-family:var(--font-display);font-size:19px;font-weight:750;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
 .pcard-price strong.ask{font-size:14px;font-weight:600;color:var(--ink-2);letter-spacing:-.01em}
 .pcard-price .per{font-size:12px;color:var(--ink-3);font-weight:500}
+.pcard-old{font-size:12px;color:var(--ink-3);font-weight:500;font-variant-numeric:tabular-nums}
+.chip-sale{background:var(--bad);color:#fff}
 .pcard-alt{margin-top:3px;font-size:11.5px;font-weight:500;line-height:1.3;color:var(--ink-3);font-variant-numeric:tabular-nums;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pcard-title{margin-top:5px;font-size:14px;font-weight:600;letter-spacing:-.012em;line-height:1.25;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
 .pcard-brand{font-size:11.5px;text-transform:none;letter-spacing:0;font-weight:500}
@@ -444,6 +446,21 @@ button.list-item{width:100%;text-align:left}
 .hs-art{position:absolute;right:16px;bottom:12px;opacity:.2;pointer-events:none;line-height:0}
 .hs-art svg{width:86px;height:86px}
 .hs-badge{position:absolute;top:14px;right:14px;padding:6px 12px;border-radius:999px;background:#fff;color:#111;font-family:var(--font-display);font-size:17px;font-weight:800;letter-spacing:-.01em;box-shadow:0 6px 18px rgba(0,0,0,.2)}
+.hs-stack{position:relative;display:block;width:100%;height:150px}
+.hs-stack>*{position:absolute;top:50%;width:62%;aspect-ratio:1;max-height:128px;object-fit:cover;border-radius:16px;border:2px solid rgba(255,255,255,.8);background:rgba(255,255,255,.18);box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.hs-stack>:nth-child(1){left:0;transform:translateY(-50%) rotate(-6deg);z-index:1}
+.hs-stack>:nth-child(2){left:19%;transform:translateY(-50%) rotate(2deg);z-index:2}
+.hs-stack>:nth-child(3){left:38%;transform:translateY(-50%) rotate(8deg);z-index:3}
+.hs-stack>.hs-cap{height:auto;font-size:18px}
+.hs-count{font-size:13px;opacity:.85}
+/* offers page (a banner with several products) */
+.offer-head{position:relative;overflow:hidden;isolation:isolate;border-radius:26px;background:var(--bc);color:var(--bi);min-height:150px;display:flex}
+.offer-body{position:relative;display:flex;flex-direction:column;gap:6px;padding:20px}
+.offer-head:has(.hs-bg) .offer-body{margin:auto auto 12px 12px;padding:14px 16px;border-radius:18px;background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff}
+.offer-head h1{font-size:24px;line-height:1.12;letter-spacing:-.03em;color:inherit;max-width:18ch}
+.offer-head p{margin:0;font-size:14px;opacity:.88}
+.offer-count{align-self:flex-start;margin-top:6px;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.22);font-size:13px;font-weight:600}
+.c-gold .offer-count{background:rgba(0,0,0,.12)}
 .hs-dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
 .hs-dots button{position:relative;width:7px;height:7px;padding:0;margin:0;border:0;border-radius:4px;background:var(--fill-2);overflow:hidden;transition:width var(--t-med) var(--spring)}
 .hs-dots button.on{width:28px}

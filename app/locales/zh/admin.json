@@ -985,15 +985,16 @@
       "f_image_remove": "移除图片",
       "f_image_hint": "图片会铺满整个幻灯片；建议横图 1200×600。",
       "target": {
-        "product": "商品",
+        "product": "单个商品",
         "link": "页面",
-        "none": "不跳转"
+        "none": "不跳转",
+        "products": "多个商品"
       },
       "f_product": "商品",
       "f_product_pick": "选择商品",
       "f_product_hint": "幻灯片显示商品图片和价格（按客户货币）。",
       "f_old_price": "原价",
-      "f_old_price_hint": "用于展示折扣：以删除线显示。",
+      "f_old_price_hint": "留空且最近降过价时，会自动填入原价。",
       "f_link": "小程序页面",
       "preset": {
         "catalog": "目录",
@@ -1016,8 +1017,24 @@
       "err": {
         "title": "请输入标题",
         "ends_at": "结束时间须晚于开始时间",
-        "image": "图片上传失败（JPG、PNG 或 WebP）"
-      }
+        "image": "图片上传失败（JPG、PNG 或 WebP）",
+        "products": "请至少选择一个商品，或开启“全部折扣商品”"
+      },
+      "target_hint": {
+        "product": "打开商品页面",
+        "products": "优惠页面：所选商品或全部折扣商品",
+        "link": "目录、拍卖等",
+        "none": "仅展示"
+      },
+      "sec_link_hint": "选择客户点击幻灯片后打开的内容。",
+      "auto_sale": "全部折扣商品",
+      "auto_sale_hint": "降价的商品会自动加入并保持更新。当前：{n} 个。",
+      "pick_search": "搜索商品",
+      "pick_sale": "勾选折扣商品（{n}）",
+      "pick_clear": "清空",
+      "picked": "已选 {n} 个",
+      "n_products": "{n} 个商品",
+      "from": "{price} 起"
     }
   }
 }

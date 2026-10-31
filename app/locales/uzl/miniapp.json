@@ -50,7 +50,11 @@
       "info": "E'lon"
     },
     "slide_cta": "Ko'rish",
-    "slide_n": "{n}-slayd"
+    "slide_n": "{n}-slayd",
+    "offer_n": "{n} ta mahsulot",
+    "offer_from": "{price} dan",
+    "offer_empty": "Hozircha bu taklifda mahsulot yo'q",
+    "offer_ended": "Bu taklif muddati tugagan"
   },
   "catalog": {
     "title": "Katalog",

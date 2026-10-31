@@ -1,10 +1,12 @@
 """Home slider banners: which are live now, and where a click on one goes."""
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Banner
+from app.models import Banner, Product
+from app.services import discounts
 
 KINDS = ("new", "hot", "sale", "auction", "tips", "catalog", "info")
 KIND_ICONS = {"new": "sparkle", "hot": "fire", "sale": "percent", "auction": "gavel", "tips": "lightbulb", "catalog": "grid", "info": "bell"}
@@ -32,11 +34,30 @@ def status(b: Banner, now: datetime | None = None) -> str:
     return "live"
 
 
+def is_offer(b: Banner) -> bool:
+    """Several products (picked, or every discounted one): a tap opens the offers page."""
+    return bool(b.auto_sale or b.product_ids)
+
+
 def target(b: Banner) -> str | None:
-    """Where a tap goes: the product, the Mini App page, or nowhere (an announcement)."""
+    """Where a tap goes: the offers page, the product, the Mini App page, or nowhere (an announcement)."""
+    if is_offer(b):
+        return f"/app/offers/{b.id}"
     if b.product_id:
         return f"/app/products/{b.product_id}"
     return clean_link(b.link)
+
+
+async def offer(db: AsyncSession, b: Banner) -> tuple[list[Product], dict[int, Decimal]]:
+    """The products of an offers banner (in the order picked; on sale: biggest cut first) and their old prices."""
+    if b.auto_sale:
+        return await discounts.discounted(db)
+    ids = [int(i) for i in (b.product_ids or [])]
+    if not ids:
+        return [], {}
+    found = {p.id: p for p in (await db.execute(select(Product).where(Product.id.in_(ids), Product.is_active.is_(True)))).scalars().unique()}
+    rows = [found[i] for i in ids if i in found]
+    return rows, await discounts.price_drops(db, [p.id for p in rows])
 
 
 async def live(db: AsyncSession) -> list[Banner]:

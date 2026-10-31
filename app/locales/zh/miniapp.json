@@ -50,7 +50,11 @@
       "info": "公告"
     },
     "slide_cta": "查看",
-    "slide_n": "第 {n} 张"
+    "slide_n": "第 {n} 张",
+    "offer_n": "{n} 个商品",
+    "offer_from": "{price} 起",
+    "offer_empty": "此优惠暂时没有商品",
+    "offer_ended": "此优惠已结束"
   },
   "catalog": {
     "title": "商品目录",
