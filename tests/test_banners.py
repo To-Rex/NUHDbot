@@ -78,13 +78,8 @@ def test_slide_seconds_stay_in_range():
     assert svc.clean_seconds("", 7) == 7 and svc.clean_seconds(None) is None and svc.clean_seconds("abc", 7) == 7
 
 
+
 def test_slider_looks():
-    """The slider look picked on the Banners page: parallax by default, anything unknown falls back to it."""
-    assert svc.STYLES[:5] == ("parallax", "coverflow", "orbit", "stack", "fan") and len(set(svc.STYLES)) == 14 and set(svc.DIR_LIKE) <= set(svc.STYLES)
-    assert [svc.clean_style(v) for v in ("cube", "peek", "fade", None, "", "spin")] == ["cube", "peek", "fade", "parallax", "parallax", "parallax"]
-
-
-def test_banner_designs():
-    """The banner design picked on the Banners page: classic by default, anything unknown falls back to it."""
-    assert svc.DESIGNS == ("classic", "card", "glass", "light", "neon", "poster")
-    assert [svc.clean_design(v) for v in ("neon", "card", None, "", "gradient")] == ["neon", "card", "classic", "classic", "classic"]
+    """The slider animation picked on the Banners page: the Directions slider's looks, cover flow by default."""
+    assert svc.STYLES == ("coverflow", "orbit", "stack", "fan")
+    assert [svc.clean_style(v) for v in ("fan", "orbit", None, "", "parallax", "cube")] == ["fan", "orbit", "coverflow", "coverflow", "coverflow", "coverflow"]

@@ -83,8 +83,7 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "page_title": t(staff.lang, "admin.ban.title"), "rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": offers,
         "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
         "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
-        "styles": svc.STYLES, "dir_like": svc.DIR_LIKE, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
-        "designs": svc.DESIGNS, "banner_design": svc.clean_design(await get_setting(db, "banner_design")),
+        "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
     })
 
 
@@ -99,20 +98,9 @@ async def banners_settings(request: Request, db: DB, staff: User = Depends(staff
     return back(request, "/admin/banners", t(staff.lang, "admin.ban.seconds_saved", n=n))
 
 
-@router.post("/banners/design")
-async def banners_design(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
-    """How the home slider banners look: classic colour, Directions-style card, Liquid Glass, light showcase, neon or poster."""
-    before = await get_setting(db, "banner_design")
-    design = svc.clean_design((await request.form()).get("design"))
-    await set_setting(db, "banner_design", design)
-    await audit.log(db, staff.id, "settings.update", "settings", None, {"banner_design": before}, {"banner_design": design})
-    await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.ban.design_saved", name=t(staff.lang, "admin.ban.design." + design)))
-
-
 @router.post("/banners/style")
 async def banners_style(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
-    """How the home slider moves: parallax swipe or one of the 3D looks (cube, flip, stack, cover flow, drum, door…)."""
+    """How the home slider turns: the Directions slider's looks — cover flow, orbit, card stack or fan."""
     before = await get_setting(db, "banner_slider_style")
     style = svc.clean_style((await request.form()).get("style"))
     await set_setting(db, "banner_slider_style", style)

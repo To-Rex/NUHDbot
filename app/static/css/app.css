@@ -468,10 +468,6 @@ button.list-item{width:100%;text-align:left}
 .hs.paused .hs-dots button.on i{animation-play-state:paused}
 .hs.still .hs-dots button.on i{animation:none;width:100%}
 @keyframes hs-fill{to{width:100%}}
-/* slider motion lives in the swipe itself (home.html script): while a slide moves it turns slightly in depth,
-   shrinks and dims, and its text and pictures slide at different speeds (parallax); auto-advance glides */
-.hs-slide,.hs-body,.hs-media,.hs-badge,.hs-art{will-change:transform}
-.hs-slide{transform-origin:50% 50%}
 .hs-slide:active{transform:scale(.985)}
 /* home: directions as a 3D slider (home.html script). Cover-flow by default: the middle card faces you, its neighbours
    turn away into depth and darken; drag or tap a side card to bring it forward, tap the middle one to open its catalogue */
@@ -505,98 +501,37 @@ button.list-item{width:100%;text-align:left}
 .cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
 .cf-fan .cf-stage{padding-top:22px;padding-bottom:54px}
 .dir-dot{display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bc);box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
-/* banner designs (Banners page → Banner design), on top of any transition. Picture banners keep their picture and
-   dark glass text panel in every design; ::before is the design's ornament (::after stays the transition's shade) */
-/* Card: the Directions look — the picture (or the kind's icon) in a frame on the left, a round arrow button */
-.hs-d-card .hs-slide{flex-direction:row-reverse;padding:10px;min-height:188px}
-.hs-d-card .hs-media,.hs-d-card .hs-art{position:relative;right:auto;bottom:auto;flex:0 0 40%;display:grid;place-items:center;padding:0;border-radius:18px;background:rgba(255,255,255,.14);overflow:hidden;opacity:1;transform:none!important}
-.hs-d-card .hs-slide.c-gold .hs-media,.hs-d-card .hs-slide.c-gold .hs-art{background:rgba(0,0,0,.07)}
-.hs-d-card .hs-art{flex-basis:34%}
-.hs-d-card .hs-media img{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0;background:none}
-.hs-d-card .hs-cap{height:100%;border-radius:0;background:none}
-.hs-d-card .hs-stack{height:100%}
-.hs-d-card .hs-art svg{width:64px;height:64px;opacity:.92}
-.hs-d-card .hs-body{padding:10px 8px 6px 14px;gap:4px}
-.hs-d-card .hs-slide h2,.hs-d-glass .hs-slide:not(.has-img) h2{font-size:21px;-webkit-line-clamp:3}
-.hs-d-card .hs-cta:not(:has([data-countdown])){align-self:flex-end;width:36px;height:36px;padding:0;justify-content:center;border-radius:50%;font-size:0;gap:0}
-.hs-d-card .hs-badge{right:auto;left:20px;top:20px;font-size:15px;padding:5px 10px}
-.hs-d-card .hs-slide.has-img{padding:0}
-/* Liquid Glass: crisp light shapes on the colour, the text and the picture on frosted glass panels */
-.hs-d-glass .hs-slide::before{content:"";position:absolute;z-index:-1;width:220px;height:220px;right:-60px;top:-90px;border-radius:50%;background:rgba(255,255,255,.2);box-shadow:-230px 200px 0 -40px rgba(255,255,255,.12);pointer-events:none}
-.hs-d-glass .hs-slide:not(.has-img) .hs-body{margin:12px 0 12px 12px;padding:14px 16px;border-radius:20px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 10px 24px rgba(0,0,0,.1);-webkit-backdrop-filter:blur(16px) saturate(1.5);backdrop-filter:blur(16px) saturate(1.5)}
-.hs-d-glass .hs-media{margin:12px 12px 12px 10px;padding:10px;flex-basis:36%;border-radius:20px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.3);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-.hs-d-glass .hs-media img,.hs-d-glass .hs-cap{background:none}
-.hs-d-glass .hs-cta{background:#fff;color:#111;box-shadow:0 6px 16px rgba(0,0,0,.15)}
-.hs-d-glass .hs-badge{background:rgba(255,255,255,.24);color:inherit;border:1px solid rgba(255,255,255,.5);box-shadow:none;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
-.hs-d-glass .hs-art{opacity:.32}
-/* Showcase: a white card (dark at night), the colour only as an accent — side bar, kicker chip, button */
-.hs-d-light .hs-slide{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-card),inset 0 0 0 1px var(--card-border)}
-.hs-d-light .hs-slide.c-black{--bc:var(--ink);--bi:var(--surface)}
-.hs-d-light .hs-slide:not(.has-img)::before{content:"";position:absolute;left:0;top:22px;bottom:22px;width:4px;border-radius:0 4px 4px 0;background:var(--bc)}
-.hs-d-light .hs-kicker{align-self:flex-start;max-width:100%;overflow:hidden;white-space:nowrap;padding:4px 10px 4px 8px;border-radius:999px;background:var(--bc);color:var(--bi);font-size:12.5px;opacity:1}
-.hs-d-light .hs-slide:not(.has-img) .hs-sub{color:var(--ink-2);opacity:1}
-.hs-d-light .hs-slide:not(.has-img) .hs-price s,.hs-d-light .hs-slide:not(.has-img) .hs-count{color:var(--ink-3);opacity:1}
-.hs-d-light .hs-cta{background:var(--bc);color:var(--bi)}
-.hs-d-light .hs-media img,.hs-d-light .hs-cap{background:var(--fill)}
-.hs-d-light .hs-stack>*{border-color:var(--surface);background:var(--fill)}
-.hs-d-light .hs-art{color:var(--bc);opacity:.22}
-.hs-d-light .hs-badge{background:var(--bc);color:var(--bi)}
-/* Neon: a black card with a coloured edge, glow and rings */
-.hs-d-neon .hs-slide{background:#0B0B0F;color:#F5F5F7;box-shadow:inset 0 0 0 1px var(--bc),0 14px 34px -14px var(--bc)}
-.hs-d-neon .hs-slide.c-black{--bc:#F5F5F7;--bi:#0B0B0F}
-.hs-d-neon .hs-slide:not(.has-img)::before{content:"";position:absolute;z-index:-1;width:170px;height:170px;right:-50px;bottom:-80px;border-radius:50%;border:1px solid var(--bc);opacity:.55;box-shadow:0 0 0 22px rgba(255,255,255,.025),0 0 0 23px var(--bc);pointer-events:none}
-.hs-d-neon .hs-kicker{color:var(--bc);opacity:1}
-.hs-d-neon .hs-slide:not(.has-img) .hs-price b{color:var(--bc)}
-.hs-d-neon .hs-cta{background:var(--bc);color:var(--bi)}
-.hs-d-neon .hs-media img,.hs-d-neon .hs-cap{background:rgba(255,255,255,.06);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
-.hs-d-neon .hs-stack>*{border-color:rgba(255,255,255,.35)}
-.hs-d-neon .hs-art{color:var(--bc);opacity:.45}
-.hs-d-neon .hs-badge{background:var(--bc);color:var(--bi);box-shadow:0 0 20px -2px var(--bc)}
-/* Poster: big type, the product as a tilted sticker, the discount as a huge outlined number behind */
-.hs-d-poster .hs-kicker{text-transform:uppercase;letter-spacing:.08em;font-size:11.5px;font-weight:700}
-.hs-d-poster .hs-slide h2{font-size:31px;font-weight:850;line-height:1;letter-spacing:-.045em;max-width:11ch;-webkit-line-clamp:3}
-.hs-d-poster .hs-slide.has-product h2{max-width:none;font-size:26px}
-.hs-d-poster .hs-sub{font-size:13px}
-.hs-d-poster .hs-body{z-index:1}
-.hs-d-poster .hs-cta{background:#fff;color:#111}
-.hs-d-poster .hs-slide:not(.has-img) .hs-badge{top:auto;bottom:-8px;right:8px;padding:0;background:none;box-shadow:none;font-size:80px;font-weight:900;letter-spacing:-.06em;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.6);pointer-events:none}
-.hs-d-poster .hs-slide.c-gold:not(.has-img) .hs-badge{-webkit-text-stroke-color:rgba(0,0,0,.35)}
-.hs-d-poster .hs-media{position:relative;z-index:1}
-.hs-d-poster .hs-media img{transform:rotate(-6deg);border:3px solid #fff;box-shadow:0 10px 24px rgba(0,0,0,.25)}
-.hs-d-poster .hs-art{opacity:.16;right:-16px;bottom:-22px}
-.hs-d-poster .hs-art svg{width:150px;height:150px;transform:rotate(-12deg)}
-/* the other slider looks (Banners page → Slider look): all slides sit in one grid cell and the script places them
-   (cube, flip, card stack, cinema fade, panorama); --hs-dim darkens a slide that is turning away */
-.hs-fx .hs-track{display:grid;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1400px;user-select:none;-webkit-user-select:none;padding-top:10px;padding-bottom:12px;margin:-10px 0 -10px}
-.hs-fx .hs-slide{grid-area:1/1;flex:none;width:100%;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
-.hs-fx .hs-slide::after{content:"";position:absolute;inset:0;z-index:5;background:#000;opacity:var(--hs-dim,0);pointer-events:none}
+/* two or more banners turn like the Directions slider (home.html script): compact portrait cards in one grid cell, the
+   picture framed on top, the neighbours turning away into depth (Banners page → Slider animation); --hs-dim darkens them */
+.hs-fx .hs-track{display:grid;justify-items:center;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1000px;user-select:none;-webkit-user-select:none;padding:4px 0 22px;margin-bottom:-12px}
+.hs-fx .hs-slide{grid-area:1/1;flex:none;width:min(62vw,250px);min-height:0;flex-direction:column;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;will-change:transform}
+.hs-fx .hs-slide.c-black{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
+.hs-fx .hs-slide::after{content:"";position:absolute;inset:0;z-index:5;border-radius:inherit;background:#000;opacity:var(--hs-dim,0);pointer-events:none}
 .hs-fx:not(.ready) .hs-slide:not(.is-active){visibility:hidden}
-.hs-look-cube .hs-slide,.hs-look-flip .hs-slide,.hs-look-cylinder .hs-slide,.hs-look-door .hs-slide,.hs-look-roll .hs-slide{-webkit-backface-visibility:hidden;backface-visibility:hidden}
-.hs-look-stack .hs-track{padding-bottom:34px;margin-bottom:-14px}
-.hs-look-stack .hs-slide{transform-origin:50% 100%}
-/* looks that show the neighbours: narrower slides centred across the full width */
-.hs-look-peek .hs-track,.hs-look-cylinder .hs-track,.hs-look-spiral .hs-track{padding-left:0;padding-right:0}
-.hs-look-peek .hs-slide,.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{width:calc(100% - 60px);justify-self:center}
-.hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{width:calc(100% - 72px)}
-:is(.hs-look-peek,.hs-look-cylinder,.hs-look-spiral) .hs-slide h2{font-size:21px}
-:is(.hs-look-peek,.hs-look-cylinder,.hs-look-spiral) .hs-media{flex-basis:36%}
-/* the Directions slider's looks: compact banner cards with a shadow, the neighbours turning in depth beside them */
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-track{padding-left:0;padding-right:0;padding-bottom:26px;margin-bottom:-24px;perspective:1000px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-slide{width:min(76vw,330px);min-height:180px;justify-self:center;box-shadow:0 10px 24px rgba(0,0,0,.18)}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-body{padding:16px 12px 14px 16px;gap:5px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-slide h2{font-size:19px;-webkit-line-clamp:3}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-kicker{font-size:12px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-sub{font-size:12.5px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-price b{font-size:17px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-cta{height:32px;padding:0 12px;font-size:13px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-media{flex-basis:38%;padding:12px 12px 12px 0}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-badge{top:10px;right:10px;padding:4px 9px;font-size:14px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-art svg{width:64px;height:64px}
-:is(.hs-look-coverflow,.hs-look-orbit,.hs-look-fan) .hs-slide.has-img .hs-body{max-width:90%;padding:12px 14px}
-.hs-look-orbit .hs-track{padding-top:48px}
-.hs-look-fan .hs-track{padding-top:20px;padding-bottom:58px;margin-bottom:-18px}
-.hs-look-fan .hs-slide{transform-origin:50% 260%}
-.hs-look-spiral .hs-track{padding-top:30px;padding-bottom:24px;margin-top:-14px;margin-bottom:-14px}
+.hs-fx .hs-media,.hs-fx .hs-art,.hs-fx .hs-bg{order:-1;position:relative;inset:auto;z-index:auto;flex:none;width:100%;height:auto;aspect-ratio:16/11;display:grid;place-items:center;padding:0;border-radius:18px;background:rgba(255,255,255,.14);overflow:hidden;opacity:1;object-fit:cover}
+.hs-fx .hs-slide.c-gold .hs-media,.hs-fx .hs-slide.c-gold .hs-art{background:rgba(0,0,0,.06)}
+.hs-fx .hs-media img{width:100%;height:100%;max-height:none;object-fit:cover;border-radius:0;background:none}
+.hs-fx .hs-cap{height:100%;border-radius:0;background:none}
+.hs-fx .hs-stack{height:100%}
+.hs-fx .hs-stack>*{width:50%;max-height:none}
+.hs-fx .hs-stack>:nth-child(1){left:6%}.hs-fx .hs-stack>:nth-child(2){left:25%}.hs-fx .hs-stack>:nth-child(3){left:44%}
+.hs-fx .hs-art svg{width:56px;height:56px;opacity:.6}
+.hs-fx .hs-body,.hs-fx .hs-slide.has-img .hs-body{flex:1;margin:0;max-width:none;padding:11px 6px 3px;gap:2px;border-radius:0;background:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:inherit}
+.hs-fx .hs-kicker{font-size:12px}
+.hs-fx .hs-slide h2{font-size:19px;line-height:1.15;max-width:none}
+.hs-fx .hs-sub{font-size:12.5px;line-height:1.3;opacity:.82}
+.hs-fx .hs-price{margin-top:4px;padding-right:40px}
+.hs-fx .hs-price b{font-size:16px}
+.hs-fx .hs-count{font-size:12px}
+.hs-fx .hs-cta:not(:has([data-countdown])){position:absolute;right:16px;bottom:14px;width:30px;height:30px;margin:0;padding:0;justify-content:center;border-radius:50%;font-size:0;gap:0}
+.hs-fx .hs-cta:has([data-countdown]){margin-top:8px;height:30px;padding:0 12px;font-size:12.5px}
+.hs-fx .hs-badge{top:18px;left:18px;right:auto;padding:4px 9px;font-size:14px}
+.hs-fx .hs-dots button.on i{background:var(--dot,var(--ink))}
+.hs-look-orbit .hs-track{padding-top:52px}
+.hs-look-stack .hs-track{padding-top:38px}
+.hs-look-stack .hs-slide{transform-origin:50% 0}
+.hs-look-fan .hs-track{padding-top:26px;padding-bottom:58px;margin-bottom:-26px}
+.hs-look-fan .hs-slide{transform-origin:50% 175%}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}
 .use-tile:active{transform:scale(.96)}

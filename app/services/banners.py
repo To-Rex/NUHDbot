@@ -16,21 +16,12 @@ KIND_DEFAULTS = {"new": ("/app/new", "green"), "hot": (None, "red"), "sale": (No
 COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black")
 SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 1, 60, 7
 SECONDS_CHOICES = (5, 7, 10, 15)
-# how the home slider moves (Banners page → Slider look); the first is the default
-STYLES = ("parallax", "coverflow", "orbit", "stack", "fan", "cube", "flip", "fade", "peek", "cylinder", "tunnel", "door", "roll", "spiral")
-DIR_LIKE = ("coverflow", "orbit", "stack", "fan")  # the Directions slider's looks, on banners
+# how the home slider turns (Banners page → Slider animation): the Directions slider's looks; the first is the default
+STYLES = ("coverflow", "orbit", "stack", "fan")
 
 
 def clean_style(value: str | None) -> str:
     return value if value in STYLES else STYLES[0]
-
-
-# how the home slider banners look (Banners page → Banner design); the first is the default
-DESIGNS = ("classic", "card", "glass", "light", "neon", "poster")
-
-
-def clean_design(value: str | None) -> str:
-    return value if value in DESIGNS else DESIGNS[0]
 
 
 def clean_seconds(value, default: int | None = None) -> int | None:
