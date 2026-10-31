@@ -152,8 +152,9 @@
       return { t: 'translateY(' + -d * H * 0.1 + 'px) translateZ(' + -W + 'px) rotateY(' + d * 40 + 'deg) translateZ(' + W + 'px)', dim: Math.min(0.5, a * 0.25), op: fade(a, 1.8, 2.2) };
     } },
     cascade: { step: 0.5, place: function (d, a) {  /* a cascade: the next cards step back to the right, the front one flies off to the left */
-      if (d < 0) return { t: 'translate3d(' + (d * 1.1 - 0.18) * W + 'px,' + a * 12 + 'px,0) rotate(' + d * 8 + 'deg)', dim: 0, op: fade(a, 0.5, 1), z: 200 - Math.round(a * 10) };
-      return { t: 'translate3d(' + (d * 0.24 - 0.18) * W + 'px,' + -d * 8 + 'px,' + -d * 70 + 'px) rotateY(' + -d * 6 + 'deg)', dim: Math.min(0.5, d * 0.16), op: fade(a, 3, 3.5) };
+      var lead = wide ? 0.04 : 0.18, rise = wide ? 0.09 : 0.24;  /* wide cards leave less room beside them */
+      if (d < 0) return { t: 'translate3d(' + (d * 1.1 - lead) * W + 'px,' + a * 12 + 'px,0) rotate(' + d * 8 + 'deg)', dim: 0, op: fade(a, 0.5, 1), z: 200 - Math.round(a * 10) };
+      return { t: 'translate3d(' + (d * rise - lead) * W + 'px,' + -d * 8 + 'px,' + -d * 70 + 'px) rotateY(' + -d * 6 + 'deg)', dim: Math.min(0.5, d * 0.16), op: fade(a, 3, 3.5) };
     } },
     pile: { step: 0.9, place: function (d, a, s, k) {  /* a scattered pile: each card lies at its own slight angle, the top one is tossed aside */
       var rot = (k * 37) % 25 - 12, ox = (k * 53) % 37 - 18, oy = (k * 29) % 21 - 10;
