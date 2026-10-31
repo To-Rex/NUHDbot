@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-primary btn-sm" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.ban.help') }}</span></div>
+{% if rows %}
+<div class="bn-grid">
+  {% for b in rows %}{% set st = status(b) %}
+  <article class="card bn-card{{ ' is-' ~ st }}">
+    <a href="/admin/banners/{{ b.id }}" class="bn-card-preview" title="{{ t('admin.edit') }}">{% include "admin/banners/_slide.html" %}</a>
+    <div class="bn-card-meta">
+      <span class="chip bn-st bn-st-{{ st }}">{{ t('admin.ban.st.' ~ st) }}</span>
+      {% if st == 'scheduled' %}<span class="hint">{{ b.starts_at|dt }}</span>{% elif b.ends_at and st == 'live' %}<span class="hint">{{ t('admin.ban.until', d=b.ends_at|dt) }}</span>{% endif %}
+      <span class="bn-clicks" title="{{ t('admin.ban.clicks') }}">{{ icon('eye', 13) }}{{ b.clicks }}</span>
+    </div>
+    <div class="bn-card-acts">
+      <form method="post" action="/admin/banners/{{ b.id }}/move"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="dir" value="up"><button class="icon-btn sm" {{ 'disabled' if loop.first }} title="{{ t('admin.ban.up') }}" aria-label="{{ t('admin.ban.up') }}">{{ icon('arrow-left', 14) }}</button></form>
+      <form method="post" action="/admin/banners/{{ b.id }}/move"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="dir" value="down"><button class="icon-btn sm" {{ 'disabled' if loop.last }} title="{{ t('admin.ban.down') }}" aria-label="{{ t('admin.ban.down') }}">{{ icon('arrow-right', 14) }}</button></form>
+      <span class="flex1"></span>
+      <form method="post" action="/admin/banners/{{ b.id }}/toggle"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="bn-switch" title="{{ t('admin.ban.active') }}"><span class="switch{{ ' on' if b.is_active }}"></span>{{ t('admin.ban.on') if b.is_active else t('admin.ban.off') }}</button></form>
+      <a class="icon-btn sm" href="/admin/banners/{{ b.id }}" title="{{ t('admin.edit') }}" aria-label="{{ t('admin.edit') }}">{{ icon('edit', 14) }}</a>
+      <form method="post" action="/admin/banners/{{ b.id }}/delete" data-confirm="{{ t('admin.ban.delete_q') }}" data-confirm-danger="1"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+<p class="hint mt">{{ t('admin.ban.order_hint') }}</p>
+{% else %}
+<div class="card empty">{{ icon('image', 30) }}<b>{{ t('admin.ban.empty_title') }}</b><p class="sub">{{ t('admin.ban.empty_text') }}</p><a class="btn btn-primary btn-sm mt" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a></div>
+{% endif %}
+{% endblock %}

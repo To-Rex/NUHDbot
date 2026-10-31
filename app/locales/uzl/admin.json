@@ -24,7 +24,8 @@
       "brands": "Brendlar",
       "models": "Modellar",
       "currencies": "Valyutalar",
-      "series": "Seriyalar"
+      "series": "Seriyalar",
+      "banners": "Bannerlar"
     },
     "actions": "Amallar",
     "search": "Qidirish…",
@@ -629,7 +630,8 @@
       "article": "Maqola",
       "ad": "Reklama posti",
       "staff": "Xodim",
-      "brand": "Brend"
+      "brand": "Brend",
+      "banner": "Banner"
     },
     "top": {
       "search_hint": "Qidirish: buyurtma raqami, telefon, model, mijoz… ( / )",
@@ -911,6 +913,103 @@
         "gold": "Oltin",
         "silver": "Kumushsimon oq",
         "black": "Qora"
+      }
+    },
+    "ban": {
+      "title": "Bannerlar",
+      "new": "Yangi banner",
+      "edit": "Bannerni tahrirlash",
+      "add": "Banner qo'shish",
+      "help": "Bannerlar Mini App bosh sahifasidagi slayderda avtomatik aylanadi: qaynoq takliflar, chegirmalar, yangiliklar. Jonli auksion va yangi kelganlar slaydlari o'zi qo'shiladi.",
+      "st": {
+        "live": "Ko'rinmoqda",
+        "scheduled": "Rejalashtirilgan",
+        "ended": "Muddati tugagan",
+        "off": "O'chirilgan"
+      },
+      "until": "{d} gacha",
+      "clicks": "Bosishlar soni",
+      "up": "Oldinga",
+      "down": "Orqaga",
+      "active": "Ko'rinadi / yashirin",
+      "on": "Yoqilgan",
+      "off": "O'chiq",
+      "delete_q": "Banner o'chirilsinmi?",
+      "order_hint": "Slayderdagi tartib — shu ro'yxat tartibi. ← → tugmalari bilan almashtiring.",
+      "empty_title": "Hali banner yo'q",
+      "empty_text": "Birinchi bannerni qo'shing — u Mini App bosh sahifasidagi slayderda chiqadi.",
+      "shown": "Banner ko'rinadi",
+      "hidden": "Banner yashirildi",
+      "kind": {
+        "hot": "Qaynoq taklif",
+        "sale": "Chegirma",
+        "new": "Yangi",
+        "info": "E'lon"
+      },
+      "kind_hint": {
+        "hot": "Eng yaxshi narx, cheklangan partiya",
+        "sale": "Narx tushdi, aksiya",
+        "new": "Yangi partiya keldi",
+        "info": "Yangilik yoki eslatma"
+      },
+      "title_ph": "Sarlavha",
+      "cta": "Ko'rish",
+      "sec_kind": "Turi",
+      "sec_text": "Matn",
+      "sec_look": "Ko'rinish",
+      "sec_link": "Bosilganda",
+      "sec_when": "Muddat va holat",
+      "f_title": "Sarlavha",
+      "f_subtitle": "Qisqa tavsif",
+      "f_badge": "Belgi",
+      "f_badge_hint": "Burchakdagi yorliq: -15%, Hit, Yangi",
+      "f_color": "Rang",
+      "color": {
+        "red": "Qizil",
+        "orange": "To'q sariq",
+        "gold": "Oltin",
+        "green": "Yashil",
+        "teal": "Moviy-yashil",
+        "blue": "Ko'k",
+        "purple": "Binafsha",
+        "black": "Qora"
+      },
+      "f_image": "Rasm (ixtiyoriy)",
+      "f_image_pick": "Rasm tanlash",
+      "f_image_remove": "Rasmni olib tashlash",
+      "f_image_hint": "Rasm bo'lsa, butun slayd foni bo'ladi; yaxshisi gorizontal, 1200×600.",
+      "target": {
+        "product": "Mahsulot",
+        "link": "Sahifa",
+        "none": "Hech qayer"
+      },
+      "f_product": "Mahsulot",
+      "f_product_pick": "Mahsulotni tanlang",
+      "f_product_hint": "Slaydda mahsulot surati va narxi (mijoz valyutasida) chiqadi.",
+      "f_old_price": "Eski narx",
+      "f_old_price_hint": "Chegirmani ko'rsatish uchun: ustidan chizilgan holda chiqadi.",
+      "f_link": "Mini App sahifasi",
+      "preset": {
+        "catalog": "Katalog",
+        "new": "Yangi kelganlar",
+        "auctions": "Auksionlar",
+        "cctv": "Videokuzatuv disklari",
+        "nas": "NAS disklari",
+        "used": "B/u disklar"
+      },
+      "f_link_hint": "/app bilan boshlanadi. Tayyor variantlardan birini tanlash mumkin.",
+      "target_none_hint": "Slayd faqat ko'rsatiladi, bosilmaydi — e'lonlar uchun.",
+      "f_starts": "Boshlanishi",
+      "f_ends": "Tugashi",
+      "f_when_hint": "Bo'sh qoldirilsa, darhol va muddatsiz ko'rinadi.",
+      "f_active": "Mijozlarga ko'rinsin",
+      "save_hint": "O'ngda mijoz ko'radigan ko'rinish",
+      "preview": "Mijoz shunday ko'radi",
+      "preview_hint": "Mini App bosh sahifasidagi slayd.",
+      "err": {
+        "title": "Sarlavhani kiriting",
+        "ends_at": "Tugash vaqti boshlanishidan keyin bo'lishi kerak",
+        "image": "Rasm yuklanmadi (JPG, PNG yoki WebP)"
       }
     }
   }

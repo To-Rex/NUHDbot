@@ -14,31 +14,8 @@
 <div class="page" style="padding-top:14px">
   <a class="home-search" href="/app/catalog?focus=1">{{ icon('search', 19) }}<span>{{ t('catalog.search_ph') }}</span></a>
 
-  {# swipeable banners: store, live auction, new arrivals #}
-  {% set lot = lots[0] if lots else None %}
-  <div class="promo-track" data-promo>
-    <a class="promo blue" href="/app/catalog">
-      <span class="promo-kicker">{{ icon('drive', 15) }}{{ in_stock_models }} {{ t('home.fact_models') }}</span>
-      <h2>{{ t('home.hero_title') }}</h2>
-      <span class="promo-cta">{{ t('home.hero_cta') }}{{ icon('arrow-right', 16) }}</span>
-    </a>
-    {% if lot %}
-    <a class="promo orange" href="/app/auctions/{{ lot.id }}">
-      <span class="promo-kicker">{% if lot.status.value == 'live' %}<i class="live-dot"></i>{{ t('home.auction_live') }}{% else %}{{ icon('clock', 15) }}{{ t('home.auction_soon') }}{% endif %}</span>
-      <h2 class="truncate">{{ lot.brand }} {{ lot.model }}</h2>
-      <div class="promo-sub">{{ lot.capacity_gb|capacity }} × {{ lot.qty }} · {{ t('auction.current') }} <b class="num">{{ lot.current_price_total|money(lot.currency) }}</b></div>
-      <span class="promo-cta">{% if lot.status.value == 'live' %}{{ t('auction.ends_in') }}{% else %}{{ t('auction.starts_in') }}{% endif %} <span class="num" data-countdown="{{ (lot.ends_at if lot.status.value=='live' else lot.starts_at)|iso }}"></span></span>
-    </a>
-    {% endif %}
-    {% if new_count %}
-    <a class="promo green" href="/app/new">
-      <span class="promo-kicker">{{ icon('sparkle', 15) }}{{ t('home.new_arrivals') }}</span>
-      <h2>{{ t('home.promo_new_text', n=new_count) }}</h2>
-      <span class="promo-cta">{{ t('home.see_all') }}{{ icon('arrow-right', 16) }}</span>
-    </a>
-    {% endif %}
-  </div>
-  <div class="promo-dots" aria-hidden="true">{% for _ in range(1 + (1 if lot else 0) + (1 if new_count else 0)) %}<i class="{{ 'on' if loop.first }}"></i>{% endfor %}</div>
+  {# auto slider: staff banners (hot offers, sales, news), the live auction, new arrivals #}
+  {% include "miniapp/partials/home_slider.html" %}
 
   {% if uses %}
   <section class="home-sec">
@@ -117,9 +94,29 @@
 {% block scripts %}
 <script>
 (function(){
-  /* banner dots follow the swipe */
-  var tr = document.querySelector('[data-promo]'); var dots = document.querySelectorAll('.promo-dots i'); if (!tr || dots.length < 2) return;
-  tr.addEventListener('scroll', function(){ var w = tr.firstElementChild.getBoundingClientRect().width + 10; var i = Math.round(tr.scrollLeft / w); dots.forEach(function(d, k){ d.classList.toggle('on', k === i); }); }, {passive:true});
+  /* home slider: a slide every 5 s, swipeable; a touch pauses it, a dot jumps to its slide */
+  var el = document.querySelector('[data-slider]'); if (!el || el.dataset.ready) return; el.dataset.ready = '1';
+  var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
+  if (slides.length < 2) return;
+  var DELAY = 5000, still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null;
+  el.style.setProperty('--hs-delay', DELAY + 'ms'); if (still) el.classList.add('still');
+  function left(i) { return slides[i].offsetLeft - slides[0].offsetLeft; }
+  function mark(i) { dots.forEach(function (d, k) { d.classList.remove('on'); d.setAttribute('aria-current', k === i ? 'true' : 'false'); if (k === i) { void d.offsetWidth; d.classList.add('on'); } }); }
+  function schedule() { clearTimeout(timer); if (still || hold || document.hidden || !document.body.contains(el)) return; timer = setTimeout(function () { go(idx + 1); }, DELAY); }
+  function go(i) { idx = (i + slides.length) % slides.length; track.scrollTo({ left: left(idx), behavior: still ? 'auto' : 'smooth' }); mark(idx); schedule(); }
+  track.addEventListener('scroll', function () {  /* a swipe by hand: follow it */
+    clearTimeout(settle); settle = setTimeout(function () {
+      var x = track.scrollLeft, best = 0; slides.forEach(function (s, k) { if (Math.abs(left(k) - x) < Math.abs(left(best) - x)) best = k; });
+      if (best !== idx) { idx = best; mark(idx); schedule(); }
+    }, 120);
+  }, { passive: true });
+  function pause() { hold = true; el.classList.add('paused'); clearTimeout(timer); }
+  function resume() { if (!hold) return; hold = false; el.classList.remove('paused'); mark(idx); schedule(); }
+  track.addEventListener('pointerdown', pause); track.addEventListener('touchstart', pause, { passive: true });
+  ['pointerup', 'pointercancel', 'touchend', 'mouseleave'].forEach(function (ev) { track.addEventListener(ev, function () { setTimeout(resume, 1500); }, { passive: true }); });
+  dots.forEach(function (d, k) { d.addEventListener('click', function () { hold = false; el.classList.remove('paused'); go(k); }); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else schedule(); });
+  mark(0); schedule();
 })();
 </script>
 {% endblock %}

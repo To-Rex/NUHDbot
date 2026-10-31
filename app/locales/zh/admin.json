@@ -24,7 +24,8 @@
       "brands": "品牌",
       "models": "型号",
       "currencies": "货币",
-      "series": "系列"
+      "series": "系列",
+      "banners": "横幅"
     },
     "actions": "操作",
     "search": "搜索…",
@@ -629,7 +630,8 @@
       "article": "文章",
       "ad": "推广帖",
       "staff": "员工",
-      "brand": "品牌"
+      "brand": "品牌",
+      "banner": "横幅"
     },
     "top": {
       "search_hint": "搜索：订单号、电话、型号、客户…（按 / ）",
@@ -911,6 +913,103 @@
         "gold": "金色",
         "silver": "银白色",
         "black": "黑色"
+      }
+    },
+    "ban": {
+      "title": "横幅",
+      "new": "新横幅",
+      "edit": "编辑横幅",
+      "add": "添加横幅",
+      "help": "横幅会在小程序首页轮播中自动切换：热门优惠、折扣、新闻。实时拍卖和新品幻灯片会自动加入。",
+      "st": {
+        "live": "展示中",
+        "scheduled": "已排期",
+        "ended": "已结束",
+        "off": "已关闭"
+      },
+      "until": "至 {d}",
+      "clicks": "点击数",
+      "up": "提前",
+      "down": "延后",
+      "active": "显示 / 隐藏",
+      "on": "开启",
+      "off": "关闭",
+      "delete_q": "删除此横幅？",
+      "order_hint": "轮播顺序即列表顺序，可用 ← → 调整。",
+      "empty_title": "还没有横幅",
+      "empty_text": "添加第一个横幅——它会出现在小程序首页轮播中。",
+      "shown": "横幅已显示",
+      "hidden": "横幅已隐藏",
+      "kind": {
+        "hot": "热门优惠",
+        "sale": "折扣",
+        "new": "新品",
+        "info": "公告"
+      },
+      "kind_hint": {
+        "hot": "最优价格，数量有限",
+        "sale": "降价促销",
+        "new": "新批次到货",
+        "info": "新闻或提醒"
+      },
+      "title_ph": "标题",
+      "cta": "查看",
+      "sec_kind": "类型",
+      "sec_text": "文字",
+      "sec_look": "外观",
+      "sec_link": "点击后",
+      "sec_when": "时间与状态",
+      "f_title": "标题",
+      "f_subtitle": "简短描述",
+      "f_badge": "角标",
+      "f_badge_hint": "角落标签：-15%、Hit、New",
+      "f_color": "颜色",
+      "color": {
+        "red": "红色",
+        "orange": "橙色",
+        "gold": "金色",
+        "green": "绿色",
+        "teal": "青色",
+        "blue": "蓝色",
+        "purple": "紫色",
+        "black": "黑色"
+      },
+      "f_image": "图片（可选）",
+      "f_image_pick": "选择图片",
+      "f_image_remove": "移除图片",
+      "f_image_hint": "图片会铺满整个幻灯片；建议横图 1200×600。",
+      "target": {
+        "product": "商品",
+        "link": "页面",
+        "none": "不跳转"
+      },
+      "f_product": "商品",
+      "f_product_pick": "选择商品",
+      "f_product_hint": "幻灯片显示商品图片和价格（按客户货币）。",
+      "f_old_price": "原价",
+      "f_old_price_hint": "用于展示折扣：以删除线显示。",
+      "f_link": "小程序页面",
+      "preset": {
+        "catalog": "目录",
+        "new": "新品",
+        "auctions": "拍卖",
+        "cctv": "监控硬盘",
+        "nas": "NAS 硬盘",
+        "used": "二手硬盘"
+      },
+      "f_link_hint": "以 /app 开头，可选择现成选项。",
+      "target_none_hint": "仅展示，不可点击——用于公告。",
+      "f_starts": "开始",
+      "f_ends": "结束",
+      "f_when_hint": "留空则立即显示且不限时。",
+      "f_active": "向客户显示",
+      "save_hint": "右侧为客户看到的效果",
+      "preview": "客户看到的样子",
+      "preview_hint": "小程序首页的幻灯片。",
+      "err": {
+        "title": "请输入标题",
+        "ends_at": "结束时间须晚于开始时间",
+        "image": "图片上传失败（JPG、PNG 或 WebP）"
       }
     }
   }

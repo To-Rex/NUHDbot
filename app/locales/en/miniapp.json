@@ -38,7 +38,16 @@
     "why_4_t": "Wholesale prices",
     "why_4_d": "Straight from the Guangzhou warehouse",
     "help_title": "Have a question?",
-    "help_text": "Our admin will reply in chat and help you choose"
+    "help_text": "Our admin will reply in chat and help you choose",
+    "slider": "Offers",
+    "slide": {
+      "hot": "Hot offer",
+      "sale": "Sale",
+      "new": "New",
+      "info": "Notice"
+    },
+    "slide_cta": "View",
+    "slide_n": "Slide {n}"
   },
   "catalog": {
     "title": "Catalog",

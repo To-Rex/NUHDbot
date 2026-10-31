@@ -1,4 +1,5 @@
 from app.models.auction import Auction, AuctionDeposit, AuctionImage, Bid
+from app.models.banner import Banner
 from app.models.base import Base
 from app.models.brand import Brand
 from app.models.brand_model import BrandModel
@@ -12,6 +13,7 @@ from app.models.user import User
 
 __all__ = [
     "Base",
+    "Banner",
     "Brand",
     "BrandModel",
     "Currency",

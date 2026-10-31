@@ -38,7 +38,16 @@
     "why_4_t": "Ulgurji narxlar",
     "why_4_d": "To'g'ridan-to'g'ri Guanchjou omboridan",
     "help_title": "Savolingiz bormi?",
-    "help_text": "Admin chatda javob beradi va disk tanlashga yordam beradi"
+    "help_text": "Admin chatda javob beradi va disk tanlashga yordam beradi",
+    "slider": "Takliflar",
+    "slide": {
+      "hot": "Qaynoq taklif",
+      "sale": "Chegirma",
+      "new": "Yangi",
+      "info": "E'lon"
+    },
+    "slide_cta": "Ko'rish",
+    "slide_n": "{n}-slayd"
   },
   "catalog": {
     "title": "Katalog",

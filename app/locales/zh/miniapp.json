@@ -38,7 +38,16 @@
     "why_4_t": "批发价",
     "why_4_d": "广州仓库直供",
     "help_title": "有问题吗？",
-    "help_text": "管理员会在聊天中解答并帮您挑选"
+    "help_text": "管理员会在聊天中解答并帮您挑选",
+    "slider": "优惠",
+    "slide": {
+      "hot": "热门优惠",
+      "sale": "折扣",
+      "new": "新品",
+      "info": "公告"
+    },
+    "slide_cta": "查看",
+    "slide_n": "第 {n} 张"
   },
   "catalog": {
     "title": "商品目录",

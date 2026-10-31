@@ -4,10 +4,11 @@ from datetime import UTC, datetime, timedelta
 from fastapi import Request
 from sqlalchemy import func, select
 
-from app.deps import DB, CurrentUser, Lang
+from app.deps import DB, CurrentUser, Lang, redirect
 from app.enums import AuctionStatus, Purpose
-from app.models import Auction, Product
+from app.models import Auction, Banner, Product
 from app.services import auctions, catalog
+from app.services import banners as banner_service
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.router import router
@@ -41,5 +42,17 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         {
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
+            "banners": await banner_service.live(db), "kind_icons": banner_service.KIND_ICONS,
         },
     )
+
+
+@router.get("/promo/{bid}")
+async def promo_open(bid: int, request: Request, db: DB):
+    """A tap on a home slider banner: count it, then open what it points to."""
+    b = await db.get(Banner, bid)
+    if b is None:
+        return redirect(request, "/app/home")
+    await banner_service.count_click(db, bid)
+    await db.commit()
+    return redirect(request, banner_service.target(b) or "/app/home")

@@ -24,7 +24,8 @@
       "brands": "Brands",
       "models": "Models",
       "currencies": "Currencies",
-      "series": "Series"
+      "series": "Series",
+      "banners": "Banners"
     },
     "actions": "Actions",
     "search": "Search…",
@@ -629,7 +630,8 @@
       "article": "Article",
       "ad": "Ad post",
       "staff": "Staff member",
-      "brand": "Brand"
+      "brand": "Brand",
+      "banner": "Banner"
     },
     "top": {
       "search_hint": "Search: order number, phone, model, customer… ( / )",
@@ -911,6 +913,103 @@
         "gold": "Gold",
         "silver": "Silver white",
         "black": "Black"
+      }
+    },
+    "ban": {
+      "title": "Banners",
+      "new": "New banner",
+      "edit": "Edit banner",
+      "add": "Add banner",
+      "help": "Banners rotate on their own in the Mini App home slider: hot offers, sales, news. Slides for the live auction and new arrivals are added automatically.",
+      "st": {
+        "live": "Showing",
+        "scheduled": "Scheduled",
+        "ended": "Ended",
+        "off": "Off"
+      },
+      "until": "until {d}",
+      "clicks": "Taps",
+      "up": "Earlier",
+      "down": "Later",
+      "active": "Shown / hidden",
+      "on": "On",
+      "off": "Off",
+      "delete_q": "Delete the banner?",
+      "order_hint": "The slider order is this list's order. Swap with ← →.",
+      "empty_title": "No banners yet",
+      "empty_text": "Add the first one — it shows in the Mini App home slider.",
+      "shown": "Banner shown",
+      "hidden": "Banner hidden",
+      "kind": {
+        "hot": "Hot offer",
+        "sale": "Sale",
+        "new": "New",
+        "info": "Notice"
+      },
+      "kind_hint": {
+        "hot": "Best price, limited batch",
+        "sale": "Price cut, promotion",
+        "new": "A new batch arrived",
+        "info": "News or a reminder"
+      },
+      "title_ph": "Title",
+      "cta": "View",
+      "sec_kind": "Type",
+      "sec_text": "Text",
+      "sec_look": "Look",
+      "sec_link": "On tap",
+      "sec_when": "Dates and status",
+      "f_title": "Title",
+      "f_subtitle": "Short text",
+      "f_badge": "Badge",
+      "f_badge_hint": "Corner label: -15%, Hit, New",
+      "f_color": "Colour",
+      "color": {
+        "red": "Red",
+        "orange": "Orange",
+        "gold": "Gold",
+        "green": "Green",
+        "teal": "Teal",
+        "blue": "Blue",
+        "purple": "Purple",
+        "black": "Black"
+      },
+      "f_image": "Image (optional)",
+      "f_image_pick": "Choose image",
+      "f_image_remove": "Remove image",
+      "f_image_hint": "An image fills the whole slide; landscape works best, 1200×600.",
+      "target": {
+        "product": "Product",
+        "link": "Page",
+        "none": "Nowhere"
+      },
+      "f_product": "Product",
+      "f_product_pick": "Choose a product",
+      "f_product_hint": "The slide shows the product photo and price (in the customer's currency).",
+      "f_old_price": "Old price",
+      "f_old_price_hint": "To show a discount: it appears struck through.",
+      "f_link": "Mini App page",
+      "preset": {
+        "catalog": "Catalogue",
+        "new": "New arrivals",
+        "auctions": "Auctions",
+        "cctv": "Surveillance drives",
+        "nas": "NAS drives",
+        "used": "Used drives"
+      },
+      "f_link_hint": "Starts with /app. Pick a ready one if you like.",
+      "target_none_hint": "The slide is only shown, not tappable — for notices.",
+      "f_starts": "Starts",
+      "f_ends": "Ends",
+      "f_when_hint": "Empty means right away and with no end.",
+      "f_active": "Show to customers",
+      "save_hint": "On the right: what customers see",
+      "preview": "What the customer sees",
+      "preview_hint": "A slide on the Mini App home page.",
+      "err": {
+        "title": "Enter a title",
+        "ends_at": "The end must be after the start",
+        "image": "The image did not upload (JPG, PNG or WebP)"
       }
     }
   }

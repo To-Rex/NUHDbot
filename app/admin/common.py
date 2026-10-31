@@ -58,6 +58,7 @@ NAV_GROUPS = [
         ("currencies", "/admin/currencies", "money", ADMIN),
         ("geo", "/admin/settings/geo", "globe", ADMIN),
         ("ads", "/admin/ads", "flag", ADS_ROLES),
+        ("banners", "/admin/banners", "image", ADS_ROLES),
         ("reports", "/admin/reports", "chart", REPORT_ROLES),
         ("audit", "/admin/audit", "list", ADMIN),
     ]),
@@ -101,6 +102,7 @@ CREATE_ITEMS = [
     ("auction", "/admin/auctions/new", "gavel", AUCTION_EDIT_ROLES),
     ("article", "/admin/articles/new", "book", ARTICLE_ROLES),
     ("ad", "/admin/ads/new", "flag", ADS_ROLES),
+    ("banner", "/admin/banners/new", "image", ADS_ROLES),
     ("staff", "/admin/staff#new", "shield", ADMIN),
 ]
 HINT_COOKIE = "nuhd_admin_hint"

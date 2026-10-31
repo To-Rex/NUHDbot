@@ -1,0 +1,55 @@
+{# Home auto slider. Staff banners first (System → Banners), then the live / next auction and new arrivals.
+   Swipe, tap a dot, or let it run (5 s a slide, paused while touched). #}
+{% set lot = lots[0] if lots else None %}
+{% set n = banners|length + (1 if lot else 0) + (1 if new_count else 0) %}
+<div class="hs" data-slider aria-roledescription="carousel" aria-label="{{ t('home.slider') }}">
+  <div class="hs-track" data-slider-track>
+    {% for b in banners %}{% set prod = b.product %}{% set go = b.product_id or b.link %}
+    <{{ 'a' if go else 'div' }} class="hs-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if prod and not b.image }}"{% if go %} href="/app/promo/{{ b.id }}"{% endif %} aria-roledescription="slide">
+      {% if b.image %}<img class="hs-bg" src="{{ b.image_url }}" alt="" {{ 'loading="lazy"' if not loop.first }} decoding="async">{% endif %}
+      <div class="hs-body">
+        <span class="hs-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 14) }}{{ t('home.slide.' ~ b.kind) }}</span>
+        <h2>{{ p(b.title) }}</h2>
+        {% if p(b.subtitle) %}<p class="hs-sub">{{ p(b.subtitle) }}</p>{% endif %}
+        {% if prod and prod.price is not none %}<div class="hs-price"><b>{{ price(prod.price, prod.currency) }}</b>{% if b.old_price %}<s>{{ price(b.old_price, prod.currency) }}</s>{% endif %}</div>{% endif %}
+        {% if go %}<span class="hs-cta">{{ t('home.slide_cta') }}{{ icon('arrow-right', 15) }}</span>{% endif %}
+      </div>
+      {% if not prod and not b.image %}<span class="hs-art">{{ icon(kind_icons.get(b.kind, 'fire'), 64) }}</span>{% endif %}
+      {% if prod and not b.image %}<div class="hs-media">{% if prod.cover %}<img src="{{ prod.cover.thumb_url }}" alt="" loading="lazy" decoding="async">{% else %}<span class="hs-cap">{{ prod.capacity_gb|capacity }}</span>{% endif %}</div>{% endif %}
+      {% if b.badge %}<span class="hs-badge">{{ b.badge }}</span>{% endif %}
+    </{{ 'a' if go else 'div' }}>
+    {% endfor %}
+    {% if lot %}
+    <a class="hs-slide c-orange" href="/app/auctions/{{ lot.id }}" aria-roledescription="slide">
+      <div class="hs-body">
+        <span class="hs-kicker">{% if lot.status.value == 'live' %}<i class="live-dot"></i>{{ t('home.auction_live') }}{% else %}{{ icon('clock', 14) }}{{ t('home.auction_soon') }}{% endif %}</span>
+        <h2 class="truncate">{{ lot.brand }} {{ lot.model }}</h2>
+        <p class="hs-sub">{{ lot.capacity_gb|capacity }} × {{ lot.qty }} · {{ t('auction.current') }} <b class="num">{{ lot.current_price_total|money(lot.currency) }}</b></p>
+        <span class="hs-cta">{% if lot.status.value == 'live' %}{{ t('auction.ends_in') }}{% else %}{{ t('auction.starts_in') }}{% endif %} <span class="num" data-countdown="{{ (lot.ends_at if lot.status.value=='live' else lot.starts_at)|iso }}"></span></span>
+      </div>
+      <span class="hs-art">{{ icon('gavel', 64) }}</span>
+    </a>
+    {% endif %}
+    {% if new_count %}
+    <a class="hs-slide c-green" href="/app/new" aria-roledescription="slide">
+      <div class="hs-body">
+        <span class="hs-kicker">{{ icon('sparkle', 14) }}{{ t('home.new_arrivals') }}</span>
+        <h2>{{ t('home.promo_new_text', n=new_count) }}</h2>
+        <span class="hs-cta">{{ t('home.see_all') }}{{ icon('arrow-right', 15) }}</span>
+      </div>
+      <span class="hs-art">{{ icon('drive', 64) }}</span>
+    </a>
+    {% endif %}
+    {% if not n %}
+    <a class="hs-slide c-blue" href="/app/catalog" aria-roledescription="slide">
+      <div class="hs-body">
+        <span class="hs-kicker">{{ icon('drive', 14) }}{{ in_stock_models }} {{ t('home.fact_models') }}</span>
+        <h2>{{ t('home.hero_title') }}</h2>
+        <span class="hs-cta">{{ t('home.hero_cta') }}{{ icon('arrow-right', 15) }}</span>
+      </div>
+      <span class="hs-art">{{ icon('drive', 64) }}</span>
+    </a>
+    {% endif %}
+  </div>
+  {% if n > 1 %}<div class="hs-dots" data-slider-dots>{% for i in range(n) %}<button type="button" aria-label="{{ t('home.slide_n', n=i + 1) }}" class="{{ 'on' if loop.first }}"><i></i></button>{% endfor %}</div>{% endif %}
+</div>
