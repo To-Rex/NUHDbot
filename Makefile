@@ -1,4 +1,4 @@
-.PHONY: install migrate migration seed demo dev run lint test webhook
+.PHONY: install migrate migration seed demo products dev run lint test webhook
 
 install:
 	uv sync
@@ -14,6 +14,9 @@ seed:
 
 demo:
 	uv run python -m scripts.seed --demo
+
+products:
+	uv run python -m scripts.seed_products
 
 dev:
 	uv run uvicorn app.main:app --reload --port 8000

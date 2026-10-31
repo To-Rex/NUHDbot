@@ -54,10 +54,11 @@ uv sync
 cp .env.example .env            # BOT_TOKEN, SECRET_KEY, BASE_URL, DATABASE_URL ni to'ldiring
 uv run alembic upgrade head
 uv run python -m scripts.seed --demo     # ma'lumotnoma + NAMUNA mahsulotlar (--demo siz faqat ma'lumotnoma)
+uv run python -m scripts.seed_products     # sinov katalogi: har yo'nalishda 13–15 ta haqiqiy model, taxminiy narx (--remove bilan olib tashlanadi)
 uv run uvicorn app.main:app --reload     # http://localhost:8000
 ```
 
-Makefile qisqartmalari: `make install migrate demo dev lint test webhook`.
+Makefile qisqartmalari: `make install migrate demo products dev lint test webhook`.
 
 Admin panel: `http://localhost:8000/admin` — login/parol `.env` dagi `ADMIN_LOGIN` / `ADMIN_PASSWORD` (birinchi ishga tushganda yaratiladi).
 Qo'shimcha xodim: `uv run python -m scripts.create_staff --login manager1 --password 'S3cret!' --role orders --tg-id 123456789`.
