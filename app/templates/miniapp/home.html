@@ -17,14 +17,13 @@
   {# swipeable banners: store, live auction, new arrivals #}
   {% set lot = lots[0] if lots else None %}
   <div class="promo-track" data-promo>
-    <a class="promo indigo" href="/app/catalog">
-      <svg class="platter" viewBox="0 0 220 220" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><circle cx="110" cy="110" r="104"/><circle cx="110" cy="110" r="80"/><circle cx="110" cy="110" r="56"/><circle cx="110" cy="110" r="32"/><circle cx="110" cy="110" r="6" fill="currentColor" stroke="none"/><path d="M116 104 L178 46" stroke-width="3" stroke-linecap="round"/></svg>
+    <a class="promo blue" href="/app/catalog">
       <span class="promo-kicker">{{ icon('drive', 15) }}{{ in_stock_models }} {{ t('home.fact_models') }}</span>
       <h2>{{ t('home.hero_title') }}</h2>
       <span class="promo-cta">{{ t('home.hero_cta') }}{{ icon('arrow-right', 16) }}</span>
     </a>
     {% if lot %}
-    <a class="promo blue" href="/app/auctions/{{ lot.id }}">
+    <a class="promo orange" href="/app/auctions/{{ lot.id }}">
       <span class="promo-kicker">{% if lot.status.value == 'live' %}<i class="live-dot"></i>{{ t('home.auction_live') }}{% else %}{{ icon('clock', 15) }}{{ t('home.auction_soon') }}{% endif %}</span>
       <h2 class="truncate">{{ lot.brand }} {{ lot.model }}</h2>
       <div class="promo-sub">{{ lot.capacity_gb|capacity }} × {{ lot.qty }} · {{ t('auction.current') }} <b class="num">{{ lot.current_price_total|money(lot.currency) }}</b></div>
