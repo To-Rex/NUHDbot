@@ -177,17 +177,18 @@ dl{margin:0}
 
 /* ===== product card (marketplace style: price first, stretched link, quick add) ===== */
 .product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.pcard{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--card-border);border-radius:var(--r-card);overflow:hidden;position:relative;padding:6px;box-shadow:var(--shadow-card);transition:transform var(--t-fast) var(--ease);animation:card-in var(--t-slow) var(--ease-out) both;animation-delay:calc(var(--i,0) * 22ms)}
+.pcard{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--card-border);border-radius:var(--r-card);overflow:hidden;position:relative;padding:0;box-shadow:var(--shadow-card);transition:transform var(--t-fast) var(--ease);animation:card-in var(--t-slow) var(--ease-out) both;animation-delay:calc(var(--i,0) * 22ms);isolation:isolate}
 .pcard:active{transform:scale(.975)}
 .pcard-link{position:absolute;inset:0;z-index:1;border-radius:inherit}
 .pcard-link:focus-visible{box-shadow:var(--ring)}
-.pcard-media{position:relative;aspect-ratio:1/1;border-radius:17px;background:var(--media);overflow:hidden}
-.pcard-media img{width:100%;height:100%;object-fit:contain;padding:8px;transition:opacity var(--t-med),transform var(--t-slow) var(--ease-out)}
+/* photo runs edge to edge across the top of the card; non-square shots are cropped to fill */
+.pcard-media{position:relative;aspect-ratio:1/1;background:var(--media);overflow:hidden}
+.pcard-media img{width:100%;height:100%;object-fit:cover;transition:opacity var(--t-med),transform var(--t-slow) var(--ease-out)}
 .pcard-media img.lazy{opacity:0}
 .pcard-media img.loaded{opacity:1}
-.pcard-tags{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:4px;pointer-events:none}
+.pcard-tags{position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:4px;pointer-events:none}
 .pcard-sold{position:absolute;inset:0;background:var(--glass-bg);-webkit-backdrop-filter:blur(3px) grayscale(1);backdrop-filter:blur(3px) grayscale(1);display:grid;place-items:center}
-.pcard-body{padding:10px 6px 4px;display:flex;flex-direction:column;flex:1;min-width:0}
+.pcard-body{padding:12px 12px 12px;display:flex;flex-direction:column;flex:1;min-width:0}
 .pcard-price{display:flex;align-items:baseline;gap:4px;min-width:0}
 .pcard-price strong{font-family:var(--font-display);font-size:19px;font-weight:750;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1}
 .pcard-price strong.ask{font-size:14px;font-weight:600;color:var(--ink-2);letter-spacing:-.01em}
@@ -208,7 +209,7 @@ dl{margin:0}
 .pcard-add.added .i-add{opacity:0;transform:scale(.4) rotate(-90deg)}
 .pcard-add.added .i-done{opacity:1;transform:none}
 .pcard.compact .pcard-title{min-height:0;-webkit-line-clamp:1;display:block;white-space:nowrap;text-overflow:ellipsis}
-.pcard.compact .pcard-body{padding-bottom:6px}
+.pcard.compact .pcard-body{padding:10px 12px 12px}
 .tdot{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);font-weight:500}
 .tdot::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
 .tdot.t-tested::before{background:var(--ok)}.tdot.t-testing::before{background:var(--warn)}
