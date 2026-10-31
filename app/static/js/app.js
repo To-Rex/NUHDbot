@@ -123,6 +123,13 @@
       el.textContent = n; el.hidden = !n; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('badge-count');
     });
   });
+  // catalogue "+" button: brief check mark when the item really went into the cart
+  document.addEventListener('htmx:afterRequest', (e) => {
+    const b = e.detail.elt;
+    if (!b || !b.matches || !b.matches('[data-quick-add]') || !e.detail.successful) return;
+    if (!(e.detail.xhr.getResponseHeader('HX-Trigger') || '').includes('cartUpdated')) return;
+    b.classList.add('added'); clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove('added'), 1400);
+  });
 
   // ---------- lazy images with fade ----------
   function lazyImages() {
