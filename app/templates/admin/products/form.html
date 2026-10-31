@@ -91,7 +91,10 @@
   <details class="fsection" id="s-tech" {{ 'open' if errors or tester }}><summary data-n="{{ n_tech }}"><span class="ttl">{{ t('admin.prod.sec_tech') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_tech_hint') }}{% else %}{{ prod.interface.value }} · {{ prod.form_factor.value }}″{% if prod.rpm %} · {{ prod.rpm }} rpm{% endif %}{% if prod.series %} · {{ prod.series }}{% endif %} · {{ t('test.' ~ prod.test_status.value) }}{% endif %}</span></summary>
     <div class="form-grid mt">
       <div class="field"><label>{{ t('admin.prod.series') }}</label>
-        <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" {{ dis }}></div>
+        <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" list="series-list" autocomplete="off" data-series-input {{ dis }}>
+        <datalist id="series-list"></datalist>
+        <span class="hint series-hint" data-series-hint data-tpl-same="{{ t('admin.prod.series_color') }}" data-tpl-diff="{{ t('admin.prod.series_color_diff') }}" data-apply="{{ t('admin.prod.series_apply') }}">{{ t('admin.prod.series_hint') }} <a href="/admin/series" target="_blank" rel="noopener">{{ t('admin.nav.series') }} →</a></span>
+        <script type="application/json" id="series-data">{{ series|tojson }}</script></div>
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
       {% if is_new %}<input type="hidden" name="form_factor" value="{{ prod.form_factor.value if prod.form_factor else '3.5' }}"><input type="hidden" name="rpm" value="{{ prod.rpm or '' }}"><input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% else %}
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>

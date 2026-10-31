@@ -1,0 +1,102 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<span class="faint small">{{ total }} {{ t('admin.ser.count') }}</span><button type="button" class="btn btn-primary btn-sm" data-ser-add>{{ icon('plus', 15) }}{{ t('admin.ser.add_btn') }}</button>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.ser.help') }}</span></div>
+{% if uncoloured %}
+<form class="card ser-bulk mb" method="post" action="/admin/series/apply-colours"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <span class="ser-bulk-ic">{{ icon('sparkle', 18) }}</span>
+  <div class="flex1"><b>{{ t('admin.ser.uncoloured', n=uncoloured) }}</b><p>{{ t('admin.ser.uncoloured_sub') }}</p></div>
+  <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.ser.uncoloured_btn') }}</button>
+</form>
+{% endif %}
+
+{% if unlisted %}
+<section class="card ser-unlisted mb">
+  <div class="ser-unlisted-head"><b>{{ t('admin.ser.unlisted_title') }}</b><span class="hint">{{ t('admin.ser.unlisted_hint') }}</span></div>
+  <div class="ser-chips">{% for bid, bname, name, n in unlisted %}<button type="button" class="ser-chip" data-ser-add data-brand="{{ bid }}" data-name="{{ name }}" data-products="{{ n }}">{{ icon('plus', 13) }}<b>{{ name }}</b><span>{{ bname }} · {{ t('admin.ser.n_products', n=n) }}</span></button>{% endfor %}</div>
+</section>
+{% endif %}
+
+<div class="ser-groups">
+{% for b, items in groups %}
+<section class="card ser-group">
+  <div class="ser-group-head">
+    <h2>{{ b.name }}</h2><span class="cnt">{{ items|length }}</span>{% if not b.is_active %}<span class="chip">{{ t('admin.brands.hidden') }}</span>{% endif %}
+    <button type="button" class="btn btn-ghost btn-sm" data-ser-add data-brand="{{ b.id }}">{{ icon('plus', 14) }}{{ t('admin.ser.add_short') }}</button>
+  </div>
+  {% if items %}
+  <div class="ser-grid">
+    {% for s in items %}{% set n = used.get((s.brand_id, s.key), 0) %}
+    <button type="button" class="ser-tile" data-ser-edit data-id="{{ s.id }}" data-brand="{{ s.brand_id }}" data-name="{{ s.name }}" data-color="{{ s.color or '' }}" data-products="{{ n }}" title="{{ t('admin.edit') }}">
+      <span class="sw sw-{{ s.color or 'none' }}"></span>
+      <span class="ser-info"><b>{{ s.name }}</b><small>{{ color_dir[s.color] if s.color else t('admin.ser.no_color') }}</small></span>
+      {% if n %}<span class="ser-n" title="{{ t('admin.ser.n_products', n=n) }}">{{ icon('drive', 12) }}{{ n }}</span>{% endif %}
+    </button>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="ser-empty">{{ t('admin.ser.brand_empty') }}</p>
+  {% endif %}
+</section>
+{% endfor %}
+</div>
+
+<dialog class="dlg ser-dlg" id="ser-dlg" data-t-add="{{ t('admin.ser.dlg_add') }}" data-t-edit="{{ t('admin.ser.dlg_edit') }}" data-t-add-btn="{{ t('admin.ser.add') }}" data-t-save-btn="{{ t('admin.save') }}"
+  data-t-apply-n="{{ t('admin.ser.apply_n', n='{n}') }}" data-t-apply="{{ t('admin.ser.apply') }}" data-err-brand="{{ t('admin.ser.err.brand') }}" data-err-name="{{ t('admin.ser.err.name') }}">
+  <form method="post" action="/admin/series" id="ser-form" novalidate><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="dlg-body">
+      <div class="dlg-head"><div><h3 data-dlg-title>{{ t('admin.ser.dlg_add') }}</h3><p>{{ t('admin.ser.dlg_sub') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 18) }}</button></div>
+      <div class="ser-dlg-grid">
+        <div class="field"><label>{{ t('admin.ser.brand') }} <span class="req">*</span></label>
+          <select class="select" name="brand_id"><option value="">{{ t('admin.brands.select_brand') }}</option>{% for b in brands %}<option value="{{ b.id }}">{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}</select></div>
+        <div class="field"><label>{{ t('admin.ser.name') }} <span class="req">*</span></label><input class="input" name="name" maxlength="60" placeholder="Purple, IronWolf, Exos" autocomplete="off"></div>
+      </div>
+      <div class="field"><label>{{ t('admin.ser.color') }}</label>
+        <div class="color-pick ser-colors">
+          <label class="color-opt"><input type="radio" name="color" value="" checked><span class="sw sw-none"></span><span class="color-txt"><b>{{ t('admin.prod.color_none') }}</b><small>{{ t('admin.ser.no_color_desc') }}</small></span></label>
+          {% for c in colors %}<label class="color-opt"><input type="radio" name="color" value="{{ c.value }}"><span class="sw sw-{{ c.value }}"></span><span class="color-txt"><b>{{ color_dir[c] }}</b><small>{{ t('admin.prod.color_' ~ c.value) }} · {{ color_examples[c] }}</small></span></label>{% endfor %}
+        </div>
+        <span class="hint">{{ t('admin.ser.color_hint') }}</span></div>
+      <label class="sw-row ser-apply"><span><b data-apply-text>{{ t('admin.ser.apply') }}</b><small>{{ t('admin.ser.apply_hint') }}</small></span><input type="checkbox" name="apply" value="1" checked><span class="switch"></span></label>
+      <p class="cur-dlg-err" data-dlg-err role="alert" hidden></p>
+    </div>
+    <div class="dlg-acts">
+      <button type="button" class="btn btn-ghost btn-sm cur-dlg-del" data-dlg-del hidden>{{ icon('trash', 15) }}{{ t('admin.delete') }}</button>
+      <span class="flex1"></span>
+      <button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button>
+      <button class="btn btn-primary" type="submit" data-dlg-submit>{{ icon('check', 16) }}<span>{{ t('admin.ser.add') }}</span></button>
+    </div>
+  </form>
+</dialog>
+{% for b, items in groups %}{% for s in items %}<form id="ser-del-{{ s.id }}" method="post" action="/admin/series/{{ s.id }}/delete" data-confirm="{{ t('admin.ser.delete_q', name=s.name) }}" data-confirm-text="{{ t('admin.ser.delete_text') }}" data-confirm-danger="1" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endfor %}{% endfor %}
+
+<script>
+(function(){
+  var dlg=document.getElementById('ser-dlg'), form=document.getElementById('ser-form'); if(!dlg) return;
+  var D=dlg.dataset, editing=null, q=function(s){ return dlg.querySelector(s); }, F=function(n){ return form.elements[n]; };
+  function radio(v){ var r=form.querySelector('[name=color][value="'+(v||'')+'"]'); if(r) r.checked=true; }
+  function open(src, edit){
+    var d=src?src.dataset:{}; editing=edit?d:null; form.reset(); q('[data-dlg-err]').hidden=true;
+    form.action = edit ? '/admin/series/'+d.id : '/admin/series';
+    q('[data-dlg-title]').textContent = edit ? D.tEdit : D.tAdd;
+    q('[data-dlg-submit] span').textContent = edit ? D.tSaveBtn : D.tAddBtn;
+    F('brand_id').value=d.brand||''; F('name').value=d.name||''; radio(d.color);
+    var n=+(d.products||0); q('[data-apply-text]').textContent = n ? D.tApplyN.replace('{n}', n) : D.tApply; F('apply').checked=true;
+    q('[data-dlg-del]').hidden=!edit;
+    dlg.showModal(); (F('brand_id').value ? F('name') : F('brand_id')).focus();
+  }
+  document.addEventListener('click', function(e){
+    var a=e.target.closest('[data-ser-add]'); if(a){ open(a, false); return; }
+    var ed=e.target.closest('[data-ser-edit]'); if(ed){ open(ed, true); }
+  });
+  dlg.addEventListener('click', function(e){
+    if(e.target===dlg || e.target.closest('[data-dlg-close]')) return dlg.close();
+    if(e.target.closest('[data-dlg-del]') && editing){ var f=document.getElementById('ser-del-'+editing.id); if(f) f.requestSubmit(); }  /* asks to confirm first */
+  });
+  form.addEventListener('submit', function(e){
+    var err = !F('brand_id').value ? D.errBrand : (!F('name').value.trim() ? D.errName : '');
+    if(err){ e.preventDefault(); var b=q('[data-dlg-err]'); b.textContent=err; b.hidden=false; }
+  });
+})();
+</script>
+{% endblock %}

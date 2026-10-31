@@ -23,7 +23,8 @@
       "geo": "Countries & cities",
       "brands": "Brands",
       "models": "Models",
-      "currencies": "Currencies"
+      "currencies": "Currencies",
+      "series": "Series"
     },
     "actions": "Actions",
     "search": "Search…",
@@ -224,7 +225,11 @@
       "sec_terms": "Sales terms",
       "sec_terms_hint": "Minimum order, box, warranty",
       "sec_tech": "Specs and testing",
-      "sec_tech_hint": "Series, interface, use, test results"
+      "sec_tech_hint": "Series, interface, use, test results",
+      "series_hint": "Pick from the list — the colour is set for you.",
+      "series_color": "Series colour: {name} — set on the product. You can pick another under «Colour» above.",
+      "series_color_diff": "Series colour: {name}; the product has another.",
+      "series_apply": "Use the series colour"
     },
     "ord": {
       "title": "Orders",
@@ -840,6 +845,45 @@
       "default_label": "Main currency",
       "default_hint": "The Mini App shows prices in it first; customers can pick another",
       "default_toast": "{code} is now the main currency"
+    },
+    "ser": {
+      "title": "Series",
+      "count": "series",
+      "add_btn": "Add series",
+      "add_short": "Add",
+      "help": "A series is a brand's product line (WD Purple, Seagate IronWolf, Exos). Give each a colour: picking the series when adding or editing a product sets that colour, and you can still choose another one for the product.",
+      "unlisted_title": "On products, not in the list",
+      "unlisted_hint": "Click to add it to the list and give it a colour",
+      "n_products": "{n} products",
+      "no_color": "No colour",
+      "brand_empty": "No series yet",
+      "dlg_add": "New series",
+      "dlg_edit": "Edit series",
+      "dlg_sub": "Brand, series name and colour. The colour sets the look of the product page in the Mini App.",
+      "add": "Add",
+      "brand": "Brand",
+      "name": "Series name",
+      "color": "Colour",
+      "no_color_desc": "Products don't take a colour from it",
+      "color_hint": "A suggestion: each product can still have another colour.",
+      "apply": "Also apply to products of this series",
+      "apply_n": "Also apply the colour to {n} products of this series",
+      "apply_hint": "Products recoloured by hand keep their colour.",
+      "delete_q": "Delete the «{name}» series?",
+      "delete_text": "Products stay as they are: they keep the series name and colour.",
+      "added": "«{name}» added.",
+      "saved": "«{name}» saved.",
+      "deleted": "«{name}» deleted",
+      "applied": "{n} products recoloured.",
+      "err": {
+        "brand": "Pick a brand",
+        "name": "Enter the series name",
+        "taken": "{brand} already has a «{name}» series"
+      },
+      "uncoloured": "{n} products have no colour, but their series has one",
+      "uncoloured_sub": "One click gives them the series colour. Products with a colour stay as they are.",
+      "uncoloured_btn": "Give the series colour",
+      "applied_all": "{n} products got their series colour."
     }
   }
 }

@@ -6,6 +6,7 @@ from app.models.currency import Currency
 from app.models.misc import AdPost, Article, AuditLog, City, Country, NotificationLog, Setting, Subscription
 from app.models.order import Order, OrderItem, OrderStatusHistory, Payment
 from app.models.product import PriceHistory, Product, ProductImage
+from app.models.series import Series
 from app.models.support import SupportMessage, SupportThread
 from app.models.user import User
 
@@ -17,6 +18,7 @@ __all__ = [
     "User",
     "Product",
     "ProductImage",
+    "Series",
     "PriceHistory",
     "Order",
     "OrderItem",

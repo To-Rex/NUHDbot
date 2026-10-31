@@ -23,7 +23,8 @@
       "geo": "Mamlakat va shaharlar",
       "brands": "Brendlar",
       "models": "Modellar",
-      "currencies": "Valyutalar"
+      "currencies": "Valyutalar",
+      "series": "Seriyalar"
     },
     "actions": "Amallar",
     "search": "Qidirish…",
@@ -224,7 +225,11 @@
       "sec_terms": "Sotuv shartlari",
       "sec_terms_hint": "Minimal buyurtma, quti, kafolat",
       "sec_tech": "Texnik ma'lumotlar va test",
-      "sec_tech_hint": "Seriya, interfeys, maqsad, test natijalari"
+      "sec_tech_hint": "Seriya, interfeys, maqsad, test natijalari",
+      "series_hint": "Ro'yxatdan tanlang — rang avtomatik qo'yiladi.",
+      "series_color": "Seriya rangi: {name} — mahsulot rangi shunga o'rnatildi. Yuqoridagi «Rang» qismida boshqasini tanlash mumkin.",
+      "series_color_diff": "Seriya rangi: {name}, mahsulotniki boshqa.",
+      "series_apply": "Seriya rangini qo'yish"
     },
     "ord": {
       "title": "Buyurtmalar",
@@ -840,6 +845,45 @@
       "default_label": "Asosiy valyuta",
       "default_hint": "Mini App'da narx birinchi shu valyutada ko'rinadi, mijoz boshqasini tanlashi mumkin",
       "default_toast": "{code} endi asosiy valyuta"
+    },
+    "ser": {
+      "title": "Seriyalar",
+      "count": "ta seriya",
+      "add_btn": "Seriya qo'shish",
+      "add_short": "Qo'shish",
+      "help": "Seriya — brendning mahsulot liniyasi (WD Purple, Seagate IronWolf, Exos). Har biriga rang bering: mahsulot qo'shish yoki tahrirlashda seriya tanlanganda rang avtomatik qo'yiladi, xohlasangiz mahsulotning o'zida boshqa rang tanlaysiz.",
+      "unlisted_title": "Mahsulotlarda bor, ro'yxatda yo'q",
+      "unlisted_hint": "Bosing — ro'yxatga qo'shib, rang bering",
+      "n_products": "{n} ta mahsulot",
+      "no_color": "Rangsiz",
+      "brand_empty": "Hali seriya qo'shilmagan",
+      "dlg_add": "Yangi seriya",
+      "dlg_edit": "Seriyani tahrirlash",
+      "dlg_sub": "Brend, seriya nomi va rangi. Rang Mini App'dagi mahsulot sahifasi ko'rinishini belgilaydi.",
+      "add": "Qo'shish",
+      "brand": "Brend",
+      "name": "Seriya nomi",
+      "color": "Rang",
+      "no_color_desc": "Mahsulot rangi seriyadan olinmaydi",
+      "color_hint": "Bu tavsiya: mahsulotning o'zida boshqa rang tanlash mumkin.",
+      "apply": "Shu seriyadagi mahsulotlarga ham qo'llash",
+      "apply_n": "Rangni shu seriyadagi {n} ta mahsulotga ham qo'llash",
+      "apply_hint": "Rangi qo'lda o'zgartirilgan mahsulotlar o'zgarmaydi.",
+      "delete_q": "«{name}» seriyasi o'chirilsinmi?",
+      "delete_text": "Mahsulotlar o'zgarmaydi: seriya nomi va rangi o'zida qoladi.",
+      "added": "«{name}» qo'shildi.",
+      "saved": "«{name}» saqlandi.",
+      "deleted": "«{name}» o'chirildi",
+      "applied": "{n} ta mahsulot rangi yangilandi.",
+      "err": {
+        "brand": "Brendni tanlang",
+        "name": "Seriya nomini kiriting",
+        "taken": "{brand} brendida «{name}» seriyasi allaqachon bor"
+      },
+      "uncoloured": "{n} ta mahsulotda rang tanlanmagan, lekin seriyasining rangi bor",
+      "uncoloured_sub": "Bir bosishda ularga seriya rangini beramiz. Rangi tanlangan mahsulotlar o'zgarmaydi.",
+      "uncoloured_btn": "Seriya rangini berish",
+      "applied_all": "{n} ta mahsulotga seriya rangi berildi."
     }
   }
 }

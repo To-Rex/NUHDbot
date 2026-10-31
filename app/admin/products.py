@@ -46,6 +46,7 @@ from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
 from app.services import audit, media, model_dict
 from app.services import brands as brand_service
+from app.services import series as series_service
 from app.services.catalog import capacity_presets
 
 PRODUCT_FIELDS = ["brand", "brand_id", "model", "label_model", "series", "capacity_gb", "interface", "form_factor", "condition", "color", "price", "currency", "cost_price", "stock", "min_order", "box_qty", "full_box_only", "seller_warranty_months", "factory_warranty_months", "test_status", "hours_used", "health", "is_active", "sale_allowed", "arrived_at", "sort", "rpm", "cache_mb"]
@@ -64,7 +65,8 @@ async def _form_ctx(db, p: Product | None = None) -> dict:
         own = await brand_service.get_brand(db, p.brand_id)
         if own:
             brands.append(own)
-    return {"brands": brands, "capacities": await capacity_presets(db), "models": await model_dict.known_models(db), **_ctx_lists()}
+    return {"brands": brands, "capacities": await capacity_presets(db), "models": await model_dict.known_models(db),
+            "series": [series_service.as_dict(s) for s in await series_service.list_series(db)], **_ctx_lists()}
 
 
 def parse_capacity(form) -> int:

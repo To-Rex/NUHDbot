@@ -16,6 +16,7 @@ from app.admin import (  # noqa: E402,F401
     orders,
     products,
     reports,
+    series_dict,
     settings_pages,
     staff,
     support,
