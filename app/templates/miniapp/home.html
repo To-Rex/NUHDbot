@@ -97,12 +97,16 @@
   /* home slider: every slide stays the slider's seconds (data-ms), swipeable; a touch pauses it, a dot jumps to its slide */
   var el = document.querySelector('[data-slider]'); if (!el || el.dataset.ready) return; el.dataset.ready = '1';
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
-  if (slides.length < 2) return;
+  el.classList.add('ready');
+  if (slides.length < 2) { if (slides[0]) slides[0].classList.add('is-active'); return; }
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null;
   function delay(i) { return parseInt(slides[i].dataset.ms, 10) || 7000; }
-  dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
+  dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); slides.forEach(function (s, k) { s.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
   function left(i) { return slides[i].offsetLeft - slides[0].offsetLeft; }
-  function mark(i) { dots.forEach(function (d, k) { d.classList.remove('on'); d.setAttribute('aria-current', k === i ? 'true' : 'false'); if (k === i) { void d.offsetWidth; d.classList.add('on'); } }); }
+  function mark(i) {
+    dots.forEach(function (d, k) { d.classList.remove('on'); d.setAttribute('aria-current', k === i ? 'true' : 'false'); if (k === i) { void d.offsetWidth; d.classList.add('on'); } });
+    slides.forEach(function (s, k) { s.classList.toggle('is-active', k === i); });  /* the active slide plays its entrance (CSS) */
+  }
   function schedule() { clearTimeout(timer); if (still || hold || document.hidden || !document.body.contains(el)) return; timer = setTimeout(function () { go(idx + 1); }, delay(idx)); }
   function go(i) { idx = (i + slides.length) % slides.length; track.scrollTo({ left: left(idx), behavior: still ? 'auto' : 'smooth' }); mark(idx); schedule(); }
   track.addEventListener('scroll', function () {  /* a swipe by hand: follow it */

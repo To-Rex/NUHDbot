@@ -425,7 +425,6 @@ button.list-item{width:100%;text-align:left}
 .c-red{--bc:#E5392F;--bi:#fff}.c-orange{--bc:#E05A1F;--bi:#fff}.c-gold{--bc:#F2B400;--bi:#2B2100}.c-green{--bc:#1C8C4E;--bi:#fff}
 .c-teal{--bc:#0F8F8F;--bi:#fff}.c-blue{--bc:#0071E3;--bi:#fff}.c-purple{--bc:#7A3FD6;--bi:#fff}.c-black{--bc:#1C1C1E;--bi:#fff}
 .hs-slide{position:relative;flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;min-height:196px;border-radius:26px;overflow:hidden;display:flex;align-items:stretch;background:var(--bc);color:var(--bi);isolation:isolate;transition:transform var(--t-fast) var(--ease)}
-.hs-slide:active{transform:scale(.985)}
 .hs-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
 .hs-body{position:relative;display:flex;flex-direction:column;gap:6px;padding:20px 20px 18px;flex:1;min-width:0}
 .hs-slide.has-img .hs-body{margin:auto auto 12px 12px;flex:0 1 auto;max-width:82%;padding:14px 16px;border-radius:18px;background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff}
@@ -448,9 +447,9 @@ button.list-item{width:100%;text-align:left}
 .hs-badge{position:absolute;top:14px;right:14px;padding:6px 12px;border-radius:999px;background:#fff;color:#111;font-family:var(--font-display);font-size:17px;font-weight:800;letter-spacing:-.01em;box-shadow:0 6px 18px rgba(0,0,0,.2)}
 .hs-stack{position:relative;display:block;width:100%;height:150px}
 .hs-stack>*{position:absolute;top:50%;width:62%;aspect-ratio:1;max-height:128px;object-fit:cover;border-radius:16px;border:2px solid rgba(255,255,255,.8);background:rgba(255,255,255,.18);box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.hs-stack>:nth-child(1){left:0;transform:translateY(-50%) rotate(-6deg);z-index:1}
-.hs-stack>:nth-child(2){left:19%;transform:translateY(-50%) rotate(2deg);z-index:2}
-.hs-stack>:nth-child(3){left:38%;transform:translateY(-50%) rotate(8deg);z-index:3}
+.hs-stack>:nth-child(1){left:0;z-index:1}
+.hs-stack>:nth-child(2){left:19%;z-index:2}
+.hs-stack>:nth-child(3){left:38%;z-index:3}
 .hs-stack>.hs-cap{height:auto;font-size:18px}
 .hs-count{font-size:13px;opacity:.85}
 /* offers page (a banner with several products) */
@@ -469,6 +468,47 @@ button.list-item{width:100%;text-align:left}
 .hs.paused .hs-dots button.on i{animation-play-state:paused}
 .hs.still .hs-dots button.on i{animation:none;width:100%}
 @keyframes hs-fill{to{width:100%}}
+/* slider motion: soft and calm — the active slide comes forward, its content rises in turn, the badge
+   springs in and breathes, product shots fan out and float, a photo slowly settles, one light sweep */
+.hs-slide{transition:transform .55s var(--ease-out),opacity .55s var(--ease-out)}
+.hs.ready .hs-slide:not(.is-active){transform:scale(.94);opacity:.72}
+.hs-slide.is-active:active{transform:scale(.985);transition-duration:.15s}
+.hs-body,.hs-media{z-index:1}
+.hs-media{position:relative}
+.hs-badge{z-index:2}
+.hs-slide::after{content:"";position:absolute;top:-30%;bottom:-30%;left:0;width:26%;background:rgba(255,255,255,.16);transform:skewX(-18deg) translateX(-160%);opacity:0;pointer-events:none;z-index:0}
+.hs-slide.is-active::after{animation:hs-sweep 1.5s var(--ease-out) .3s}
+.hs-slide.is-active .hs-kicker{animation:hs-up .6s var(--ease-out) .05s both}
+.hs-slide.is-active h2{animation:hs-up .7s var(--ease-out) .12s both}
+.hs-slide.is-active .hs-sub{animation:hs-up .7s var(--ease-out) .2s both}
+.hs-slide.is-active .hs-price{animation:hs-up .7s var(--ease-out) .27s both}
+.hs-slide.is-active .hs-cta{animation:hs-pop .7s var(--spring) .36s both}
+.hs-slide.is-active .hs-cta svg{animation:hs-nudge 3.2s ease-in-out 1.4s infinite}
+.hs-slide.is-active .hs-badge{animation:hs-badge .8s var(--spring) .32s both,hs-breathe 3.6s ease-in-out 1.6s infinite}
+.hs-slide.is-active .hs-media{animation:hs-media .9s var(--ease-out) .1s both}
+.hs-slide.is-active .hs-media>img,.hs-slide.is-active .hs-media>.hs-cap,.hs-slide.is-active .hs-stack{animation:hs-float 5.5s ease-in-out 1.1s infinite}
+.hs-stack>*{--r:0deg;transform:translateY(-50%) rotate(var(--r))}
+.hs-stack>:nth-child(1){--r:-6deg}.hs-stack>:nth-child(2){--r:2deg}.hs-stack>:nth-child(3){--r:8deg}
+.hs-slide.is-active .hs-stack>*{animation:hs-fan .8s var(--spring) both}
+.hs-slide.is-active .hs-stack>:nth-child(2){animation-delay:.08s}.hs-slide.is-active .hs-stack>:nth-child(3){animation-delay:.16s}
+.hs-slide.is-active .hs-bg{animation:hs-settle var(--hs-delay,7s) ease-out both}
+.hs-slide.is-active .hs-art{animation:hs-art .9s var(--ease-out) .15s both,hs-drift 7s ease-in-out 1.2s infinite}
+@keyframes hs-up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes hs-pop{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+@keyframes hs-nudge{0%,55%,100%{transform:none}25%{transform:translateX(4px)}}
+@keyframes hs-badge{0%{opacity:0;transform:scale(.4) rotate(-14deg)}60%{opacity:1;transform:scale(1.12) rotate(4deg)}100%{opacity:1;transform:none}}
+@keyframes hs-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes hs-media{from{opacity:0;transform:translateX(18px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes hs-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes hs-fan{from{opacity:0;transform:translateY(-42%) rotate(0deg) scale(.88)}to{opacity:1;transform:translateY(-50%) rotate(var(--r)) scale(1)}}
+@keyframes hs-settle{from{transform:scale(1.09)}to{transform:scale(1)}}
+@keyframes hs-art{from{opacity:0;transform:translateY(14px) rotate(-10deg)}to{opacity:.2;transform:none}}
+@keyframes hs-drift{0%,100%{transform:none}50%{transform:translateY(-5px) rotate(-6deg)}}
+@keyframes hs-sweep{0%{opacity:0;transform:skewX(-18deg) translateX(-160%)}20%{opacity:1}100%{opacity:0;transform:skewX(-18deg) translateX(520%)}}
+@media (prefers-reduced-motion:reduce){
+  .hs-slide,.hs-slide *,.hs-slide::after{animation:none!important;transition:none!important}
+  .hs.ready .hs-slide:not(.is-active){transform:none;opacity:1}
+}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}
 .use-tile:active{transform:scale(.96)}
