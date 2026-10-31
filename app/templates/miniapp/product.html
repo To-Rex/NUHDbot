@@ -7,10 +7,10 @@
     <div class="gallery-track">
       {% if p.images %}
       {% for img in p.images %}
-      <figure><img src="{{ img.url }}" alt="{{ p.title }}" {% if not loop.first %}loading="lazy"{% endif %} data-lightbox="{{ img.url }}" width="{{ img.width or 800 }}" height="{{ img.height or 800 }}"></figure>
+      <figure style="--img:url('{{ img.thumb_url }}')"><img src="{{ img.url }}" alt="{{ p.title }}" {% if not loop.first %}loading="lazy"{% endif %} data-lightbox="{{ img.url }}" width="{{ img.width or 800 }}" height="{{ img.height or 800 }}"></figure>
       {% endfor %}
       {% else %}
-      <figure><img src="/static/img/placeholder.svg" alt=""></figure>
+      <figure><div class="ph" aria-hidden="true">{{ icon('drive', 30) }}<b>{{ p.capacity_gb|capacity }}</b><span>{{ p.brand }}</span></div></figure>
       {% endif %}
     </div>
     <div class="gallery-tag">{% with cond=p.condition, lg=True %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>

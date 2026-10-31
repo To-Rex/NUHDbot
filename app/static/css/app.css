@@ -337,17 +337,23 @@ button.list-item{width:100%;text-align:left}
 .gallery{position:relative;background:var(--media);border-radius:28px;overflow:hidden}
 .gallery-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;aspect-ratio:1/1}
 .gallery-track::-webkit-scrollbar{display:none}
-.gallery-track>figure{flex:0 0 100%;margin:0;scroll-snap-align:center;display:grid;place-items:center;padding:22px}
-.gallery-track img{width:100%;height:100%;object-fit:contain}
-.gallery-dots{position:absolute;bottom:14px;left:0;right:0;display:flex;justify-content:center;gap:6px;pointer-events:none}
-.gallery-dots span{width:7px;height:7px;border-radius:4px;background:var(--fill-2);transition:background var(--t-med),width var(--t-med) var(--spring)}
-.gallery-dots span.active{background:var(--ink);width:20px}
+.gallery-track>figure{position:relative;flex:0 0 100%;margin:0;scroll-snap-align:center;display:grid;place-items:center;overflow:hidden}
+/* any photo shape: the whole shot sits on a soft blurred copy of itself, so the frame never shows empty bands */
+.gallery-track>figure::before{content:"";position:absolute;inset:-14%;background:var(--img,none) center/cover no-repeat;filter:blur(30px) saturate(1.25);opacity:.65;transform:translateZ(0)}
+.gallery-track img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.gallery .ph{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink)}
+.gallery .ph svg{width:30px;height:30px;color:var(--ink-3);margin-bottom:6px}
+.gallery .ph b{font-family:var(--font-display);font-size:54px;font-weight:750;letter-spacing:-.04em;line-height:1}
+.gallery .ph span{font-size:15px;color:var(--ink-2);font-weight:500}
+.gallery-dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:5px;padding:6px 9px;border-radius:var(--r-pill);background:rgba(0,0,0,.3);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);pointer-events:none}
+.gallery-dots span{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.55);transition:background var(--t-med),width var(--t-med) var(--spring)}
+.gallery-dots span.active{background:#fff;width:16px}
 .gallery-tag{position:absolute;top:14px;left:14px}
 .gallery-kind{position:absolute;top:14px;right:14px}
 .gallery-zoom{position:absolute;right:14px;bottom:14px;width:38px;height:38px;border-radius:50%;background:var(--glass-bg-strong);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:var(--shadow);color:var(--ink);display:grid;place-items:center}
 .gallery-zoom svg{width:17px;height:17px}
 .thumbs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
-.thumbs img{width:58px;height:58px;border-radius:14px;object-fit:contain;background:var(--media);border:2px solid transparent;padding:4px;transition:border-color var(--t-fast),opacity var(--t-fast);opacity:.6}
+.thumbs img{width:58px;height:58px;border-radius:14px;object-fit:cover;background:var(--media);border:2px solid transparent;padding:0;transition:border-color var(--t-fast),opacity var(--t-fast);opacity:.6}
 .thumbs img.active{border-color:var(--accent);opacity:1}
 .lightbox{position:fixed;inset:0;z-index:100;background:#000;display:grid;place-items:center;animation:fade-in var(--t-med)}
 .lightbox img{max-width:100vw;max-height:100dvh;object-fit:contain;animation:zoom-in var(--t-slow) var(--ease-out)}
