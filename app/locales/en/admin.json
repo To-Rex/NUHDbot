@@ -769,7 +769,9 @@
       "search": "Find a model",
       "empty_brand": "This brand has no models yet",
       "tokens_ph": "Type a model and press Enter",
-      "will_add": "To add: {n}"
+      "will_add": "To add: {n}",
+      "series": "Series (direction)",
+      "series_hint": "The chosen series goes to every model you add, and to listed models that have none yet."
     },
     "nav_edit": {
       "hint": "Drag a section to any place",

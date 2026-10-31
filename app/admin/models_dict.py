@@ -4,10 +4,12 @@ from fastapi.responses import JSONResponse
 
 from app.admin.common import DB, PRODUCT_EDIT_ROLES, back, f_int, render, staff_dep
 from app.admin.router import router
+from app.enums import COLOR_DIRECTION, ProductColor
 from app.i18n import t
 from app.models import User
 from app.services import audit, model_dict
 from app.services import brands as brand_service
+from app.services import series as series_service
 
 
 def _lang(request: Request, staff: User) -> str:
@@ -30,7 +32,10 @@ async def models_page(request: Request, db: DB, staff: User = Depends(staff_dep(
     for m in await model_dict.list_models(db, bid):
         by_brand.setdefault(m.brand_id, []).append(m)
     counts = await model_dict.counts(db)
+    series = await series_service.list_series(db)
     return render(request, staff, "admin/models/list.html", {
+        "series": [series_service.as_dict(s) for s in series], "series_colors": {(s.brand_id, s.key): s.color for s in series if s.color},
+        "colors": list(ProductColor), "color_dir": COLOR_DIRECTION,
         "page_title": t(_lang(request, staff), "admin.models.title"), "brands": brands, "brand_id": bid,
         # brand tabs: only brands that already have models, plus the one being viewed
         "tabs": [(b, counts.get(b.id, 0)) for b in brands if counts.get(b.id) or b.id == bid],
@@ -58,7 +63,7 @@ async def models_bulk(request: Request, db: DB, staff: User = Depends(staff_dep(
         if _wants_json(request):
             return JSONResponse({"error": t(lang, "admin.models.pick_brand")}, status_code=400)
         return back(request, "/admin/models", t(lang, "admin.models.pick_brand"), "bad")
-    added, skipped = await model_dict.bulk_add(db, brand, form.get("lines") or "")
+    added, skipped = await model_dict.bulk_add(db, brand, form.get("lines") or "", series_service.norm_name(form.get("series")) or None)
     if added:
         await audit.log(db, staff.id, "model.bulk_add", "brand", brand.id, None, {"added": [m.name for m in added], "skipped": skipped})
     await db.commit()

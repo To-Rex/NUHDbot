@@ -1,0 +1,14 @@
+{# Series menu: the brand's series with their direction colour, "No series", "Other — type it".
+   Lives in a form with a `brand_id` select. Expects: series (list of {b,n,k,c}), colors, color_dir; optional series_value, dis. #}
+{% set dirs = {} %}{% for c in colors %}{% set _ = dirs.update({c.value: [color_dir[c], t('admin.ser.colorname.' ~ c.value)]}) %}{% endfor %}
+<div class="series-select" data-series-select data-series="{{ series|tojson|forceescape }}" data-dirs="{{ dirs|tojson|forceescape }}" data-l-pick-brand="{{ t('admin.prod.series_pick_brand_short') }}" data-l-choose="{{ t('admin.prod.series_choose') }}" data-l-none="{{ t('admin.prod.series_none_brand') }}" data-l-typed="{{ t('admin.prod.series_typed') }}" data-l-no-dir="{{ t('admin.ser.no_color') }}">
+  <button type="button" class="select series-trigger" data-series-trigger aria-haspopup="listbox" aria-expanded="false" {{ dis }}><span class="series-value" data-series-value></span></button>
+  <div class="series-pop" data-series-pop role="listbox" hidden></div>
+  <template data-series-extra>
+    <div class="series-sep" role="separator"></div>
+    <div class="series-opt series-act" role="option" data-act="clear">{{ icon('x', 14) }}<span class="so-name">{{ t('admin.prod.series_clear') }}</span></div>
+    <div class="series-opt series-act" role="option" data-act="other">{{ icon('edit', 14) }}<span class="so-name">{{ t('admin.prod.series_other_long') }}</span></div>
+    <a class="series-manage" href="/admin/series" target="_blank" rel="noopener">{{ icon('grid', 13) }}{{ t('admin.ser.title') }} →</a>
+  </template>
+</div>
+<input class="input series-input" name="series" value="{{ series_value or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" autocomplete="off" data-series-input {{ dis }}>

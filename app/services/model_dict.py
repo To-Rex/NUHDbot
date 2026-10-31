@@ -69,8 +69,9 @@ async def counts(db: AsyncSession) -> dict[int, int]:
     return {bid: n for bid, n in rows}
 
 
-async def bulk_add(db: AsyncSession, brand: Brand, text: str) -> tuple[list[BrandModel], int]:
-    """Add every parsable line that is not already in the brand's dictionary. Returns (added, skipped)."""
+async def bulk_add(db: AsyncSession, brand: Brand, text: str, series: str | None = None) -> tuple[list[BrandModel], int]:
+    """Add every parsable line that is not already in the brand's dictionary. Returns (added, skipped).
+    `series` (picked in the form) goes to every line that does not name its own."""
     existing = {m.key: m for m in await list_models(db, brand.id)}
     added: list[BrandModel] = []
     skipped = 0
@@ -78,6 +79,8 @@ async def bulk_add(db: AsyncSession, brand: Brand, text: str) -> tuple[list[Bran
         spec = parse_line(raw)
         if not spec:
             continue
+        if series and not spec["series"]:
+            spec["series"] = series[:60]
         key = norm_key(spec["name"])
         if key in existing:
             cur = existing[key]  # fill specs that were empty before; never overwrite

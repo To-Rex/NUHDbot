@@ -49,3 +49,13 @@ async def test_known_models_merges_dictionary_and_products(db):
     await model_dict.delete_model(db, m)
     await db.commit()
     assert [k["m"] for k in await model_dict.known_models(db) if k["b"] == b.id] == ["HDWT140UZSVA", "hdwd120"]
+
+
+async def test_bulk_add_series_from_the_form(db):
+    b = await brands.create_brand(db, name="Seagate")
+    await model_dict.bulk_add(db, b, "ST4000VX016")  # already listed, no series yet
+    added, skipped = await model_dict.bulk_add(db, b, "ST8000VN004\nST4000VX016\nST16000NM001G | Exos", series="IronWolf")
+    got = {m.name: m.series for m in await model_dict.list_models(db, b.id)}
+    assert (len(added), skipped) == (2, 1)
+    # the picked series goes to new lines and fills an empty one; a line naming its own series keeps it
+    assert got == {"ST8000VN004": "IronWolf", "ST4000VX016": "IronWolf", "ST16000NM001G": "Exos"}

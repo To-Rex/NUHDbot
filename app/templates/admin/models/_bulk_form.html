@@ -1,10 +1,13 @@
-{# Bulk entry form shared by the Models page and the product-form dialog. Expects: brands, selected brand_id, csrf, form_id, form_class #}
+{# Bulk entry form shared by the Models page and the product-form dialog. Expects: brands, selected brand_id, csrf, form_id, form_class, series, colors, color_dir #}
 <form method="post" action="/admin/models/bulk" id="{{ form_id }}" class="{{ form_class or 'stack' }}" data-models-bulk><input type="hidden" name="_csrf" value="{{ csrf }}">
   <div class="field"><label>{{ t('admin.models.brand') }} <span class="req">*</span></label>
     <select class="select" name="brand_id" required>
       <option value="" disabled {{ 'selected' if not brand_id }}>{{ t('admin.brands.select_brand') }}</option>
       {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
     </select></div>
+  <div class="field series-field"><label>{{ t('admin.models.series') }}</label>
+    {% with series_value='', dis='' %}{% include "admin/partials/series_select.html" %}{% endwith %}
+    <span class="hint">{{ t('admin.models.series_hint') }}</span></div>
   <div class="field"><label>{{ t('admin.models.lines') }}</label>
     {% include "admin/models/_tokens.html" %}
     <span class="hint">{{ t('admin.models.lines_hint') }}</span></div>

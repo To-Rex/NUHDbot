@@ -769,7 +769,9 @@
       "search": "Model qidirish",
       "empty_brand": "Bu brendda hali model yo'q",
       "tokens_ph": "Model nomini yozing va Enter bosing",
-      "will_add": "Qo'shiladi: {n}"
+      "will_add": "Qo'shiladi: {n}",
+      "series": "Seriya (yo'nalish)",
+      "series_hint": "Tanlangan seriya qo'shiladigan barcha modellarga yoziladi; ro'yxatda bor, lekin seriyasi bo'sh modellarga ham."
     },
     "nav_edit": {
       "hint": "Bo'limni ushlab, kerakli joyga suring",

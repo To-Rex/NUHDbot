@@ -769,7 +769,9 @@
       "search": "查找型号",
       "empty_brand": "该品牌暂无型号",
       "tokens_ph": "输入型号并按回车",
-      "will_add": "将添加：{n}"
+      "will_add": "将添加：{n}",
+      "series": "系列（方向）",
+      "series_hint": "所选系列会写入所有新增型号，以及已在列表中但尚无系列的型号。"
     },
     "nav_edit": {
       "hint": "拖动栏目到任意位置",

@@ -570,95 +570,105 @@
     [/\bsurveillance\b/i, 'purple'], [/\bnas\b/i, 'red'], [/\benterprise\b/i, 'gold'], [/\bdata\s*cent(er|re)\b/i, 'silver'], [/\bgaming\b/i, 'black'], [/\bdesktop\b/i, 'blue']];
   const normKey = (v) => String(v || '').trim().replace(/\s+/g, ' ').toUpperCase();
   const escHtml = (v) => String(v == null ? '' : v).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // the series menu (product form, model dictionary): the brand's series with their direction colour,
+  // "No series" and "Other — type it"; the real field is the `series` input next to it
+  function seriesMenu(form) {
+    const sel = form.querySelector('[data-series-select]'), input = form.querySelector('[data-series-input]');
+    if (!sel || !input) return null;
+    if (sel._menu) return sel._menu;
+    const C = sel.dataset, trigger = sel.querySelector('[data-series-trigger]'), valueEl = sel.querySelector('[data-series-value]'), pop = sel.querySelector('[data-series-pop]'), extra = sel.querySelector('[data-series-extra]');
+    let series = [], dirs = {}; try { series = JSON.parse(C.series || '[]'); dirs = JSON.parse(C.dirs || '{}'); } catch (e) {}
+    const brandSel = form.querySelector('[name="brand_id"]');
+    const brandId = () => (brandSel || {}).value || '';
+    const own = () => { const b = brandId(); return series.filter((x) => b && String(x.b) === b); };
+    const dirName = (c) => (dirs[c] ? dirs[c][0] : c), dirText = (c) => (dirs[c] ? dirs[c][0] + ' · ' + dirs[c][1] : c);
+    const dot = (c) => '<span class="series-dot sw sw-' + (c || 'none') + '"></span>';
+    // the dictionary entry for the typed series: this brand's first, else one every brand that has it agrees on
+    const known = () => {
+      const k = normKey(input.value); if (!k) return null;
+      const same = series.filter((x) => x.k === k), mine = same.find((x) => String(x.b) === brandId());
+      if (mine) return mine;
+      return same.length && same.every((x) => x.c === same[0].c) ? same[0] : null;
+    };
+    let other = false, active = -1, colourOf = () => '';
+    function render() {
+      const b = brandId(), mine = own(), k = normKey(input.value), hit = mine.find((x) => x.k === k);
+      let html;
+      if (!b && !k) html = '<span class="series-ph">' + escHtml(C.lPickBrand) + '</span>';
+      else if (hit) html = dot(hit.c) + '<span class="sv-name">' + escHtml(hit.n) + '</span>' + (hit.c ? '<span class="sv-dir">' + escHtml(dirName(hit.c)) + '</span>' : '');
+      else if (k) html = dot((known() || {}).c || colourOf()) + '<span class="sv-name">' + escHtml(input.value.trim()) + '</span><span class="sv-dir">' + escHtml(C.lTyped) + '</span>';
+      else html = '<span class="series-ph">' + escHtml(mine.length ? C.lChoose : C.lNone) + '</span>';
+      valueEl.innerHTML = html;
+      trigger.disabled = input.disabled || !b;
+      input.hidden = !(other || (b && !mine.length) || (!b && k));
+    }
+    const opts = () => Array.from(pop.querySelectorAll('.series-opt'));
+    const setActive = (i) => { const o = opts(); if (!o.length) return; active = (i + o.length) % o.length; o.forEach((x, j) => x.classList.toggle('active', j === active)); o[active].scrollIntoView({ block: 'nearest' }); };
+    function open() {
+      if (trigger.disabled) return;
+      const mine = own(), k = normKey(input.value);
+      pop.textContent = '';
+      mine.forEach((x) => {
+        const o = document.createElement('div'); o.className = 'series-opt' + (x.k === k ? ' chosen' : ''); o.setAttribute('role', 'option'); o.setAttribute('aria-selected', x.k === k ? 'true' : 'false'); o.dataset.value = x.n;
+        o.innerHTML = dot(x.c) + '<span class="so-name">' + escHtml(x.n) + '</span><span class="so-dir">' + escHtml(x.c ? dirName(x.c) : C.lNoDir) + '</span>' + (x.k === k ? ICONS.ok.replace('<svg', '<svg class="so-check"') : '');
+        pop.appendChild(o);
+      });
+      if (extra) {
+        pop.appendChild(extra.content.cloneNode(true));
+        if (!k) { const c = pop.querySelector('[data-act=clear]'); if (c) c.remove(); }
+        if (!mine.length) { const sp = pop.querySelector('.series-sep'); if (sp) sp.remove(); }
+      }
+      pop.hidden = false; trigger.setAttribute('aria-expanded', 'true'); sel.classList.add('open');
+      setActive(Math.max(0, opts().findIndex((x) => x.classList.contains('chosen'))));
+      pop.scrollIntoView({ block: 'nearest' });  // the whole menu in view, above a sticky save bar
+    }
+    function close(focus) { if (pop.hidden) return; pop.hidden = true; trigger.setAttribute('aria-expanded', 'false'); sel.classList.remove('open'); active = -1; if (focus) trigger.focus(); }
+    function choose(o) {
+      if (!o) return;
+      if (o.dataset.act === 'other') { other = true; if (own().some((x) => x.k === normKey(input.value))) input.value = ''; close(false); render(); input.hidden = false; input.focus(); input.dispatchEvent(new Event('input', { bubbles: true })); return; }
+      other = false; input.value = o.dataset.act === 'clear' ? '' : o.dataset.value;
+      close(true); input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    trigger.addEventListener('click', () => (pop.hidden ? open() : close(true)));
+    trigger.addEventListener('keydown', (e) => {
+      if (pop.hidden) { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); open(); } return; }
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(opts()[active]); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(true); }
+      else if (e.key === 'Tab') close(false);
+    });
+    pop.addEventListener('mousedown', (e) => e.preventDefault());  // keep focus on the trigger
+    pop.addEventListener('click', (e) => { const o = e.target.closest('.series-opt'); if (o) choose(o); });
+    pop.addEventListener('mousemove', (e) => { const o = e.target.closest('.series-opt'); if (o) setActive(opts().indexOf(o)); });
+    document.addEventListener('click', (e) => { if (!sel.contains(e.target)) close(false); });
+    input.addEventListener('input', render);
+    if (brandSel) brandSel.addEventListener('change', () => { close(false); other = false; render(); });
+    render();
+    sel._menu = { render, known, dirName, dirText, dot, close, setColourOf: (fn) => { colourOf = fn; } };
+    return sel._menu;
+  }
+  // model dictionary entry: the series picked once applies to every model added with it
+  function bindSeriesMenus(scope) { (scope.querySelectorAll ? scope : document).querySelectorAll('form[data-models-bulk]').forEach((f) => seriesMenu(f)); }
+
   function bindProductColour(scope) {
     (scope.querySelectorAll ? scope : document).querySelectorAll('form[data-colour-form]:not([data-colour-bound])').forEach((form) => {
       form.dataset.colourBound = '1';
+      const menu = seriesMenu(form); if (!menu) return;
       const field = (n) => form.querySelector('[name="' + n + '"]');
       const radios = () => Array.from(form.querySelectorAll('input[type=radio][name=color]'));
       const hidden = form.querySelector('input[data-color-hidden]'), pick = form.querySelector('[data-color-pick]'), now = form.querySelector('[data-color-now]');
-      const input = form.querySelector('[data-series-input]'), out = form.querySelector('[data-series-out]'), list = document.getElementById('series-list');
-      const sel = form.querySelector('[data-series-select]'), trigger = sel && sel.querySelector('[data-series-trigger]'), valueEl = sel && sel.querySelector('[data-series-value]'), pop = sel && sel.querySelector('[data-series-pop]'), extra = sel && sel.querySelector('[data-series-extra]');
-      if (!input) return;
-      let series = []; try { series = JSON.parse((document.getElementById('series-data') || {}).textContent || '[]'); } catch (e) {}
-      const O = out ? out.dataset : {}, C = sel ? sel.dataset : {};
-      let dirs = {}; try { dirs = JSON.parse(O.dirs || '{}'); } catch (e) {}
-      const brandId = () => (field('brand_id') || {}).value || '';
+      const input = form.querySelector('[data-series-input]'), out = form.querySelector('[data-series-out]');
+      const O = out ? out.dataset : {}, known = menu.known, dot = menu.dot, dirName = menu.dirName, dirText = menu.dirText;
       const current = () => (hidden ? hidden.value : ((radios().find((r) => r.checked) || {}).value || ''));
       const setColor = (v) => {  // untrusted change: not a hand pick, but the preview and the savebar notice it
         if (hidden) { if (hidden.value !== v) { hidden.value = v; hidden.dispatchEvent(new Event('change', { bubbles: true })); } return; }
         const r = radios().find((x) => x.value === v); if (r && !r.disabled && !r.checked) { r.checked = true; r.dispatchEvent(new Event('change', { bubbles: true })); }
       };
-      // the dictionary entry for the typed series: this brand's first, else one every brand that has it agrees on
-      const known = () => {
-        const k = normKey(input.value); if (!k) return null;
-        const same = series.filter((x) => x.k === k), mine = same.find((x) => String(x.b) === brandId());
-        if (mine) return mine;
-        return same.length && same.every((x) => x.c === same[0].c) ? same[0] : null;
-      };
       const guess = () => { const text = [input.value, (field('model') || {}).value].join(' '); const hit = COLOR_HINTS.find(([re]) => re.test(text)); return hit ? hit[1] : ''; };
-      const dirName = (c) => (dirs[c] ? dirs[c][0] : c), dirText = (c) => (dirs[c] ? dirs[c][0] + ' · ' + dirs[c][1] : c);
-      const dot = (c) => '<span class="series-dot sw sw-' + (c || 'none') + '"></span>';
+      menu.setColourOf(guess);
       let touched = !hidden && radios().some((r) => r.checked && r.value); // on edit a saved colour counts as a choice
-      let fromSeries = false, other = false, lastKey = normKey(input.value);
-
-      const ownSeries = () => { const b = brandId(); return series.filter((x) => b && String(x.b) === b); };
-      // the series menu: looks like the brand select; the list shows each series with its direction colour
-      function renderSelect() {
-        const b = brandId(), own = ownSeries(), k = normKey(input.value), hit = own.find((x) => x.k === k);
-        if (list) { list.textContent = ''; own.forEach((x) => { const o = document.createElement('option'); o.value = x.n; list.appendChild(o); }); }
-        if (!sel) return;
-        let html;
-        if (!b && !k) html = '<span class="series-ph">' + escHtml(C.lPickBrand) + '</span>';
-        else if (hit) html = dot(hit.c) + '<span class="sv-name">' + escHtml(hit.n) + '</span>' + (hit.c ? '<span class="sv-dir">' + escHtml(dirName(hit.c)) + '</span>' : '');
-        else if (k) { const c = (known() || {}).c || guess(); html = dot(c) + '<span class="sv-name">' + escHtml(input.value.trim()) + '</span><span class="sv-dir">' + escHtml(C.lTyped) + '</span>'; }
-        else html = '<span class="series-ph">' + escHtml(own.length ? C.lChoose : C.lNone) + '</span>';
-        valueEl.innerHTML = html;
-        trigger.disabled = input.disabled || !b;
-        input.hidden = !(other || (b && !own.length && b !== '') || (!b && k));
-      }
-      let active = -1;
-      const opts = () => Array.from(pop.querySelectorAll('.series-opt'));
-      const setActive = (i) => { const o = opts(); if (!o.length) return; active = (i + o.length) % o.length; o.forEach((x, j) => x.classList.toggle('active', j === active)); o[active].scrollIntoView({ block: 'nearest' }); };
-      function openPop() {
-        if (!sel || trigger.disabled) return;
-        const own = ownSeries(), k = normKey(input.value);
-        pop.textContent = '';
-        own.forEach((x) => {
-          const o = document.createElement('div'); o.className = 'series-opt' + (x.k === k ? ' chosen' : ''); o.setAttribute('role', 'option'); o.setAttribute('aria-selected', x.k === k ? 'true' : 'false'); o.dataset.value = x.n;
-          o.innerHTML = dot(x.c) + '<span class="so-name">' + escHtml(x.n) + '</span><span class="so-dir">' + escHtml(x.c ? dirName(x.c) : C.lNoDir) + '</span>' + (x.k === k ? ICONS.ok.replace('<svg', '<svg class="so-check"') : '');
-          pop.appendChild(o);
-        });
-        if (extra) {
-          pop.appendChild(extra.content.cloneNode(true));
-          if (!k) { const c = pop.querySelector('[data-act=clear]'); if (c) c.remove(); }
-          if (!own.length) { const sp = pop.querySelector('.series-sep'); if (sp) sp.remove(); }
-        }
-        pop.hidden = false; trigger.setAttribute('aria-expanded', 'true'); sel.classList.add('open');
-        const o = opts(); setActive(Math.max(0, o.findIndex((x) => x.classList.contains('chosen'))));
-        pop.scrollIntoView({ block: 'nearest' });  // the whole menu in view, above the sticky save bar
-      }
-      function closePop(focus) { if (!sel || pop.hidden) return; pop.hidden = true; trigger.setAttribute('aria-expanded', 'false'); sel.classList.remove('open'); active = -1; if (focus) trigger.focus(); }
-      function choose(o) {
-        if (!o) return;
-        if (o.dataset.act === 'other') { other = true; if (ownSeries().some((x) => x.k === normKey(input.value))) input.value = ''; closePop(false); render(); input.hidden = false; input.focus(); input.dispatchEvent(new Event('input', { bubbles: true })); return; }
-        other = false; input.value = o.dataset.act === 'clear' ? '' : o.dataset.value;
-        closePop(true); input.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-      if (sel) {
-        trigger.addEventListener('click', () => (pop.hidden ? openPop() : closePop(true)));
-        trigger.addEventListener('keydown', (e) => {
-          if (pop.hidden) { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); openPop(); } return; }
-          if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1); }
-          else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
-          else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(opts()[active]); }
-          else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePop(true); }
-          else if (e.key === 'Tab') closePop(false);
-        });
-        pop.addEventListener('mousedown', (e) => e.preventDefault());  // keep focus on the trigger
-        pop.addEventListener('click', (e) => { const o = e.target.closest('.series-opt'); if (o) choose(o); });
-        pop.addEventListener('mousemove', (e) => { const o = e.target.closest('.series-opt'); if (o) setActive(opts().indexOf(o)); });
-        document.addEventListener('click', (e) => { if (!sel.contains(e.target)) closePop(false); });
-      }
+      let fromSeries = false, lastKey = normKey(input.value);
       function renderOut() {
         const s = known(), c = current();
         if (out) {
@@ -671,7 +681,7 @@
         }
         if (now) now.innerHTML = dot(c) + escHtml(c ? dirName(c) : now.dataset.none);
       }
-      const render = () => { renderSelect(); renderOut(); };
+      const render = () => { menu.render(); renderOut(); };
       // the series (or the brand) changed: take its colour; nothing known → guess from the name
       function apply() {
         const s = known();
@@ -684,14 +694,14 @@
       input.addEventListener('input', onSeries); input.addEventListener('change', onSeries);
       if (out) out.addEventListener('click', (e) => { const s = known(); if (e.target.closest('[data-series-apply]') && s && s.c) { setColor(s.c); touched = false; fromSeries = true; renderOut(); } });
       if (pick) pick.addEventListener('change', (e) => { if (e.isTrusted) touched = true; renderOut(); });
-      const model = field('model'); if (model) { const onModel = () => { if (!known() && (hidden || !touched)) { const g = guess(); if (hidden || g || !fromSeries) setColor(g); } renderOut(); }; model.addEventListener('input', onModel); model.addEventListener('change', onModel); }
-      const brand = field('brand_id'); if (brand) brand.addEventListener('change', () => { closePop(false); other = false; lastKey = ''; if (input.value.trim()) onSeries(); else render(); });
+      const model = field('model'); if (model) { const onModel = () => { if (!known() && (hidden || !touched)) { const g = guess(); if (hidden || g || !fromSeries) setColor(g); } render(); }; model.addEventListener('input', onModel); model.addEventListener('change', onModel); }
+      const brand = field('brand_id'); if (brand) brand.addEventListener('change', () => { lastKey = ''; if (input.value.trim()) onSeries(); else render(); });
       if (hidden && !hidden.value) apply();
       render();
     });
   }
-  bindProductColour(document);
-  document.addEventListener('htmx:afterSettle', (e) => bindProductColour(e.target));
+  bindProductColour(document); bindSeriesMenus(document);
+  document.addEventListener('htmx:afterSettle', (e) => { bindProductColour(e.target); bindSeriesMenus(e.target); });
 
   // ---------- file input counters ----------
   document.querySelectorAll('input[type=file][multiple]').forEach((i) => i.addEventListener('change', () => { const l = i.closest('label'); const c = l && l.querySelector('[data-count]'); if (c) c.textContent = i.files.length ? '(' + i.files.length + ')' : ''; }));

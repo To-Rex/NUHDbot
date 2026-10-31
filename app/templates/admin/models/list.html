@@ -8,11 +8,16 @@
 <section class="card mb models-add" id="add">
   <h2>{{ t('admin.models.add_title') }}</h2>
   <form method="post" action="/admin/models/bulk" class="models-add-form" data-models-bulk><input type="hidden" name="_csrf" value="{{ csrf }}">
-    <div class="field"><label>{{ t('admin.models.brand') }} <span class="req">*</span></label>
-      <select class="select" name="brand_id" required>
-        <option value="" disabled {{ 'selected' if not brand_id }}>{{ t('admin.brands.select_brand') }}</option>
-        {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
-      </select></div>
+    <div class="models-add-side">
+      <div class="field"><label>{{ t('admin.models.brand') }} <span class="req">*</span></label>
+        <select class="select" name="brand_id" required>
+          <option value="" disabled {{ 'selected' if not brand_id }}>{{ t('admin.brands.select_brand') }}</option>
+          {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if brand_id == b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
+        </select></div>
+      <div class="field series-field"><label>{{ t('admin.models.series') }}</label>
+        {% with series_value='', dis='' %}{% include "admin/partials/series_select.html" %}{% endwith %}
+        <span class="hint">{{ t('admin.models.series_hint') }}</span></div>
+    </div>
     <div class="field"><label>{{ t('admin.models.lines') }}</label>
       {% include "admin/models/_tokens.html" %}</div>
     <div class="models-add-foot"><span class="hint">{{ t('admin.models.lines_hint') }}</span><span class="tok-count" data-token-count data-tpl="{{ t('admin.models.will_add') }}"></span><button class="btn btn-primary" type="submit">{{ icon('plus', 15) }}{{ t('admin.models.add') }}</button></div>
@@ -31,9 +36,9 @@
 <section class="mgroup" data-mgroup>
   {% if not brand_id %}<h3 class="mgroup-h"><a href="/admin/models?brand_id={{ b.id }}">{{ b.name }}</a><span class="cnt">{{ models|length }}</span></h3>{% endif %}
   <div class="mgrid">
-    {% for m in models %}{% set meta = [m.capacity_gb|capacity if m.capacity_gb else '', m.interface or '', (m.form_factor ~ '"') if m.form_factor else '', m.series or '']|select|join(' · ') %}
+    {% for m in models %}{% set meta = [m.capacity_gb|capacity if m.capacity_gb else '', m.interface or '', (m.form_factor ~ '"') if m.form_factor else '']|select|join(' · ') %}{% set sc = series_colors.get((m.brand_id, (m.series or '')|trim|upper)) %}
     <div class="mitem" data-name="{{ (b.name ~ ' ' ~ m.name ~ ' ' ~ (m.series or ''))|lower }}">
-      <div class="mitem-main"><span class="mono bold" title="{{ m.name }}">{{ m.name }}</span>{% if meta %}<span class="mitem-meta">{{ meta }}</span>{% endif %}</div>
+      <div class="mitem-main"><span class="mono bold" title="{{ m.name }}">{{ m.name }}</span>{% if meta or m.series %}<span class="mitem-meta">{{ meta }}{% if m.series %}{% if meta %} · {% endif %}<span class="mitem-series">{% if sc %}<span class="sw sw-{{ sc }}"></span>{% endif %}{{ m.series }}</span>{% endif %}</span>{% endif %}</div>
       <form method="post" action="/admin/models/{{ m.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="{{ here }}"><button class="icon-btn sm danger" data-confirm="{{ t('admin.models.delete_q') }}" data-confirm-text="{{ b.name }} {{ m.name }}" data-confirm-danger="1" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>
     </div>{% endfor %}
   </div>
