@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Currency
 
-COOKIE = "nuhd_cur"
+COOKIE = "nuhd_currency"  # renamed once so picks made while testing the launch are forgotten
 ORDER = (Currency.is_default.desc(), Currency.is_base.desc(), Currency.sort, Currency.id)  # the main one first
 TTL = 60
 NBSP = " "
