@@ -3,7 +3,7 @@ import dataclasses
 from fastapi import Request
 
 from app.deps import DB, CurrentUser, Lang
-from app.enums import Condition, FormFactor, Interface, Purpose, TestStatus
+from app.enums import Condition, FormFactor, Interface, ProductColor, Purpose, TestStatus
 from app.services import catalog, currencies
 from app.templating import render
 from app.web.router import router
@@ -16,6 +16,7 @@ def _filter_ctx(f: catalog.CatalogFilters, facets: dict, presets: list[int]) -> 
         "capacity_presets": [g for g in presets if any(g == c for c, _ in facets["capacities"])] or [c for c, _ in facets["capacities"]],
         "conditions": list(Condition),
         "purposes": list(Purpose),
+        "directions": list(ProductColor),
         "interfaces": list(Interface),
         "form_factors": list(FormFactor),
         "tests": list(TestStatus),

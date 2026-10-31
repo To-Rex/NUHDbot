@@ -54,7 +54,17 @@
     "offer_n": "{n} products",
     "offer_from": "from {price}",
     "offer_empty": "No products in this offer right now",
-    "offer_ended": "This offer has ended"
+    "offer_ended": "This offer has ended",
+    "dirs_title": "Product lines",
+    "dir_open": "{name}: open the catalogue",
+    "dir": {
+      "blue": "For home and office PCs",
+      "purple": "For 24/7 video surveillance",
+      "red": "For network storage (NAS)",
+      "gold": "For business servers",
+      "silver": "For data centres",
+      "black": "For gaming PCs"
+    }
   },
   "catalog": {
     "title": "Catalog",
@@ -85,7 +95,8 @@
     "load_more": "Load more",
     "new_title": "New arrivals",
     "new_empty": "New batches coming soon",
-    "left": "{n} left"
+    "left": "{n} left",
+    "direction": "Product line"
   },
   "product": {
     "title": "Product",

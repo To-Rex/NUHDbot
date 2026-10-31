@@ -54,7 +54,17 @@
     "offer_n": "{n} ta mahsulot",
     "offer_from": "{price} dan",
     "offer_empty": "Hozircha bu taklifda mahsulot yo'q",
-    "offer_ended": "Bu taklif muddati tugagan"
+    "offer_ended": "Bu taklif muddati tugagan",
+    "dirs_title": "Yo'nalishlar",
+    "dir_open": "{name}: katalogni ochish",
+    "dir": {
+      "blue": "Uy va ofis kompyuterlari uchun",
+      "purple": "Videokuzatuv tizimlari uchun, 24/7",
+      "red": "Tarmoq xotiralari (NAS) uchun",
+      "gold": "Korporativ serverlar uchun",
+      "silver": "Ma'lumotlar markazlari uchun",
+      "black": "O'yin kompyuterlari uchun"
+    }
   },
   "catalog": {
     "title": "Katalog",
@@ -85,7 +95,8 @@
     "load_more": "Yana yuklash",
     "new_title": "Yangi kelganlar",
     "new_empty": "Yaqinda yangi partiyalar keladi",
-    "left": "{n} ta qoldi"
+    "left": "{n} ta qoldi",
+    "direction": "Yo'nalish"
   },
   "product": {
     "title": "Mahsulot",

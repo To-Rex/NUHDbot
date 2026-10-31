@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from sqlalchemy import Text, and_, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.enums import Condition, FormFactor, Interface, TestStatus
+from app.enums import Condition, FormFactor, Interface, ProductColor, TestStatus
 from app.models import Product
 
 CAPACITY_PRESETS_GB = [500, 1000, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000]
@@ -19,6 +19,7 @@ class CatalogFilters:
     interfaces: list[str] = field(default_factory=list)
     form_factors: list[str] = field(default_factory=list)
     purposes: list[str] = field(default_factory=list)
+    colors: list[str] = field(default_factory=list)  # catalogue directions (Desktop, NAS, …)
     tests: list[str] = field(default_factory=list)
     in_stock: bool = False
     warranty: bool = False
@@ -30,7 +31,7 @@ class CatalogFilters:
     @property
     def active_count(self) -> int:
         n = 0
-        for v in (self.brands, self.capacities, self.conditions, self.interfaces, self.form_factors, self.purposes, self.tests):
+        for v in (self.brands, self.capacities, self.conditions, self.interfaces, self.form_factors, self.purposes, self.colors, self.tests):
             n += len(v)
         n += int(self.in_stock) + int(self.warranty) + int(self.price_min is not None) + int(self.price_max is not None)
         return n
@@ -44,6 +45,7 @@ class CatalogFilters:
             "iface": self.interfaces or None,
             "ff": self.form_factors or None,
             "use": self.purposes or None,
+            "dir": self.colors or None,
             "test": self.tests or None,
             "in_stock": 1 if self.in_stock else None,
             "warranty": 1 if self.warranty else None,
@@ -84,6 +86,7 @@ def parse_filters(params) -> CatalogFilters:
         interfaces=[i for i in params.getlist("iface") if i in [e.value for e in Interface]],
         form_factors=[f for f in params.getlist("ff") if f in [e.value for e in FormFactor]],
         purposes=[p for p in params.getlist("use") if p][:6],
+        colors=[c for c in params.getlist("dir") if c in [e.value for e in ProductColor]],
         tests=[s for s in params.getlist("test") if s in [e.value for e in TestStatus]],
         in_stock=params.get("in_stock") in ("1", "true", "on"),
         warranty=params.get("warranty") in ("1", "true", "on"),
@@ -111,6 +114,8 @@ def _base_query(f: CatalogFilters):
         stmt = stmt.where(Product.form_factor.in_(f.form_factors))
     if f.tests:
         stmt = stmt.where(Product.test_status.in_(f.tests))
+    if f.colors:
+        stmt = stmt.where(Product.color.in_(f.colors))
     if f.purposes:
         # JSON array containment is dialect specific; keep portable with text match
         stmt = stmt.where(or_(*[cast(Product.purposes, Text).ilike(f'%"{p}"%') for p in f.purposes]))

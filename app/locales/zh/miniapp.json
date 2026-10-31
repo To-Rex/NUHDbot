@@ -54,7 +54,17 @@
     "offer_n": "{n} 个商品",
     "offer_from": "{price} 起",
     "offer_empty": "此优惠暂时没有商品",
-    "offer_ended": "此优惠已结束"
+    "offer_ended": "此优惠已结束",
+    "dirs_title": "产品方向",
+    "dir_open": "{name}：打开目录",
+    "dir": {
+      "blue": "适用于家用和办公电脑",
+      "purple": "适用于全天候视频监控",
+      "red": "适用于网络存储（NAS）",
+      "gold": "适用于企业服务器",
+      "silver": "适用于数据中心",
+      "black": "适用于游戏电脑"
+    }
   },
   "catalog": {
     "title": "商品目录",
@@ -85,7 +95,8 @@
     "load_more": "加载更多",
     "new_title": "新到货",
     "new_empty": "新批次即将到货",
-    "left": "仅剩 {n} 个"
+    "left": "仅剩 {n} 个",
+    "direction": "方向"
   },
   "product": {
     "title": "商品",

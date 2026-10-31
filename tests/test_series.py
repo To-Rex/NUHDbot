@@ -56,3 +56,25 @@ async def test_colour_for_new_products(db):
     assert await svc.colour_for(db, b.id, "IronWolf Pro") == "red"  # not in the list: the name says NAS
     assert await svc.colour_for(db, b.id, "WD White") == "silver" and await svc.colour_for(db, b.id, "Gold") == "gold"
     assert await svc.colour_for(db, b.id, "Some line", "XYZ123") is None
+
+
+async def test_home_directions_and_catalog_filter(db):
+    """Home 3D slider: every direction with its active models and Series-page picture; a card opens the catalogue of that direction."""
+    from starlette.datastructures import QueryParams
+
+    from app.services import catalog
+    from app.services.settings_service import set_setting
+    from app.web.home import _directions
+
+    nas, cctv, _plain = [await make_product(db) for _ in range(3)]
+    nas.color, cctv.color = "red", "purple"
+    await db.flush()
+    f = catalog.parse_filters(QueryParams("dir=red&dir=pink"))  # unknown directions are dropped
+    assert f.colors == ["red"] and f.active_count == 1 and f.to_query()["dir"] == ["red"]
+    products, total = await catalog.list_products(db, f)
+    assert total == 1 and products[0].id == nas.id
+    await set_setting(db, "direction_images", {"red": {"filename": "dir_a.webp", "thumb": "dir_a_t.webp"}})
+    cards = {c["color"]: c for c in await _directions(db)}
+    assert list(cards) == ["blue", "purple", "red", "gold", "silver", "black"]
+    assert cards["red"]["n"] == 1 and cards["red"]["name"] == "NAS" and cards["red"]["img"].endswith("dir_a_t.webp")
+    assert cards["blue"]["n"] == 0 and cards["blue"]["img"] is None

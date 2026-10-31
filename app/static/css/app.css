@@ -423,7 +423,7 @@ button.list-item{width:100%;text-align:left}
 .hs-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 var(--sp-4) 2px;scroll-padding:0 var(--sp-4);overscroll-behavior-x:contain}
 .hs-track::-webkit-scrollbar{display:none}
 .c-red{--bc:#E5392F;--bi:#fff}.c-orange{--bc:#E05A1F;--bi:#fff}.c-gold{--bc:#F2B400;--bi:#2B2100}.c-green{--bc:#1C8C4E;--bi:#fff}
-.c-teal{--bc:#0F8F8F;--bi:#fff}.c-blue{--bc:#0071E3;--bi:#fff}.c-purple{--bc:#7A3FD6;--bi:#fff}.c-black{--bc:#1C1C1E;--bi:#fff}
+.c-teal{--bc:#0F8F8F;--bi:#fff}.c-blue{--bc:#0071E3;--bi:#fff}.c-purple{--bc:#7A3FD6;--bi:#fff}.c-black{--bc:#1C1C1E;--bi:#fff}.c-silver{--bc:#D5DAE1;--bi:#1C1C1E}
 .hs-slide{position:relative;flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;min-height:196px;border-radius:26px;overflow:hidden;display:flex;align-items:stretch;background:var(--bc);color:var(--bi);isolation:isolate}
 .hs-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-1}
 .hs-body{position:relative;display:flex;flex-direction:column;gap:6px;padding:20px 20px 18px;flex:1;min-width:0}
@@ -473,6 +473,31 @@ button.list-item{width:100%;text-align:left}
 .hs-slide,.hs-body,.hs-media,.hs-badge,.hs-art{will-change:transform}
 .hs-slide{transform-origin:50% 50%}
 .hs-slide:active{transform:scale(.985)}
+/* home: directions as a 3D cover-flow (home.html script). The middle card faces you, its neighbours turn away
+   into depth and darken; drag or tap a side card to bring it forward, tap the middle one to open its catalogue */
+.cf{margin:-14px calc(-1 * var(--sp-4)) 0;overflow:hidden;padding:18px 0 14px}  /* room for the card shadow inside the clip */
+.cf-stage{display:grid;justify-items:center;padding-bottom:22px;perspective:1000px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;outline:0}
+.cf-stage.dragging{cursor:grabbing}
+.cf-card{grid-area:1/1;position:relative;width:min(58vw,236px);display:flex;flex-direction:column;padding:10px;border-radius:26px;background:var(--bc);color:var(--bi);box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;will-change:transform;transform-origin:50% 50%}
+.cf-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#000;opacity:var(--cf-dim,0);pointer-events:none}
+.c-black.cf-card{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
+.cf:not(.ready) .cf-card:not(:first-child){visibility:hidden}
+.cf-pic{display:grid;place-items:center;aspect-ratio:1;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.14)}
+.cf-pic img{width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+.cf-pic svg{width:56px;height:56px;opacity:.55}
+.cf-body{display:flex;flex-direction:column;gap:2px;padding:11px 6px 3px;min-width:0}
+.cf-body b{font-family:var(--font-display);font-size:21px;font-weight:750;letter-spacing:-.03em;line-height:1.15}
+.cf-body small{font-size:13px;line-height:1.3;opacity:.82;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
+.cf-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cf-go{display:grid;place-items:center;width:30px;height:30px;margin-left:auto;border-radius:50%;background:rgba(255,255,255,.22)}
+.cf-go svg{width:15px;height:15px}
+.c-gold .cf-go,.c-silver .cf-go{background:rgba(0,0,0,.1)}
+.c-gold .cf-pic,.c-silver .cf-pic{background:rgba(0,0,0,.06)}
+.cf-dots{display:flex;justify-content:center;gap:6px}
+.cf-dots button{width:7px;height:7px;padding:0;margin:0;border:0;border-radius:4px;background:var(--fill-2);transition:width var(--t-med) var(--spring),background var(--t-med)}
+.cf-dots button.on{width:22px;background:var(--bc)}
+.cf-dots button.on.c-silver{box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.dir-dot{display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bc);box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}
 .use-tile:active{transform:scale(.96)}

@@ -17,6 +17,28 @@
   {# auto slider: staff banners (hot offers, sales, news), the live auction, new arrivals #}
   {% include "miniapp/partials/home_slider.html" %}
 
+  {# directions (Series page pictures) as a 3D cover-flow; the middle card opens the catalogue of that direction #}
+  {% if directions %}
+  <section class="home-sec">
+    <div class="section-title"><h2>{{ t('home.dirs_title') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
+    <div class="cf" data-coverflow aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
+      <div class="cf-stage" data-cf-stage>
+        {% for d in directions %}
+        <a class="cf-card c-{{ d.color }}" href="/app/catalog?dir={{ d.color }}" draggable="false" aria-roledescription="slide" aria-label="{{ t('home.dir_open', name=d.name) }}">
+          <span class="cf-pic">{% if d.img %}<img src="{{ d.img }}" alt="" draggable="false" decoding="async"{% if loop.index > 2 and not loop.last %} loading="lazy"{% endif %}>{% else %}{{ icon('drive', 56) }}{% endif %}</span>
+          <span class="cf-body">
+            <b>{{ d.name }}</b>
+            <small>{{ t('home.dir.' ~ d.color) }}</small>
+            <span class="cf-meta">{% if d.n %}<span>{{ t('home.cap_models', n=d.n) }}</span>{% endif %}<span class="cf-go">{{ icon('arrow-right', 15) }}</span></span>
+          </span>
+        </a>
+        {% endfor %}
+      </div>
+      <div class="cf-dots" data-cf-dots>{% for d in directions %}<button type="button" class="c-{{ d.color }}{{ ' on' if loop.first }}" aria-label="{{ d.name }}"></button>{% endfor %}</div>
+    </div>
+  </section>
+  {% endif %}
+
   {% if uses %}
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.purpose_title') }}</h2></div>
@@ -97,7 +119,7 @@
   /* home slider: each slide stays its own seconds (data-ms); a touch pauses it, a dot jumps to its slide.
      The motion is in the swipe: a moving slide turns a little in depth, shrinks and dims, and its text and
      pictures slide at different speeds (parallax); auto-advance glides with an ease-in-out. */
-  var el = document.querySelector('[data-slider]'); if (!el || el.dataset.ready) return; el.dataset.ready = '1';
+  var el = document.querySelector('[data-slider]'); if (!el || el._hs) return; el._hs = true;  /* a property: a page restored from history (back) starts fresh */
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
   if (slides.length < 2) return;
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null, glide = null, frame = 0;
@@ -156,6 +178,94 @@
   document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else schedule(); });
   window.addEventListener('resize', repaint);
   paint(); mark(0); schedule();
+})();
+(function(){
+  /* directions cover-flow: an endless ring of cards. pos is the (fractional) index of the card in the middle;
+     every card is placed by its distance d from it: turned away (rotateY), pushed back (translateZ), darkened.
+     Drag to spin it, tap a side card to bring it forward, tap the middle one to open it; it turns by itself
+     every few seconds until touched. */
+  var root = document.querySelector('[data-coverflow]'); if (!root || root._cf) return; root._cf = true;  /* a property, not an attribute: a page restored from history starts fresh */
+  var stage = root.querySelector('[data-cf-stage]'), cards = [].slice.call(stage.children), dots = [].slice.call(root.querySelectorAll('[data-cf-dots] button'));
+  var n = cards.length; if (!n) return;
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pos = 0, shown = -1, anim = null, drag = null, dragged = false, auto = null, idleUntil = 0, visible = true, W = 0;
+  var fadeFrom = Math.min(2.2, n / 2 - 0.5), fadeTo = Math.min(2.8, n / 2);
+  function dist(k) { var d = ((k - pos) % n + n) % n; return d >= n / 2 ? d - n : d; }  /* -n/2 … n/2 */
+  function paint() {
+    W = cards[0].offsetWidth || 220;
+    cards.forEach(function (c, k) {
+      var d = dist(k), a = Math.abs(d), s = d < 0 ? -1 : 1, near = Math.min(a, 1), far = Math.max(0, a - 1);
+      var x = s * (near * 0.6 + far * 0.3) * W, z = -(near * 150 + far * 90), r = -s * near * 50;
+      var fade = a <= fadeFrom ? 1 : Math.max(0, 1 - (a - fadeFrom) / (fadeTo - fadeFrom));
+      c.style.transform = 'translate3d(' + x.toFixed(1) + 'px,0,' + z.toFixed(1) + 'px) rotateY(' + r.toFixed(2) + 'deg)';
+      c.style.setProperty('--cf-dim', Math.min(0.5, a * 0.3).toFixed(3));
+      c.style.opacity = fade.toFixed(3); c.style.visibility = fade ? '' : 'hidden';
+      c.style.zIndex = String(100 - Math.round(a * 10));
+      c.setAttribute('aria-hidden', a < 0.5 ? 'false' : 'true'); c.tabIndex = a < 0.5 ? 0 : -1;
+    });
+    var i = ((Math.round(pos) % n) + n) % n;
+    if (i !== shown) { shown = i; dots.forEach(function (b, k) { b.classList.toggle('on', k === i); b.setAttribute('aria-current', k === i ? 'true' : 'false'); }); }
+  }
+  function stop() { if (anim) { cancelAnimationFrame(anim); anim = null; } }
+  function to(target, ms, easeInOut) {  /* glide pos to target */
+    stop();
+    var from = pos, d = target - from;
+    if (still || !d) { pos = target; paint(); return; }
+    var t0 = null;
+    function step(ts) {
+      if (!document.body.contains(root)) { anim = null; return; }
+      if (t0 === null) t0 = ts;
+      var t = Math.min(1, (ts - t0) / ms), e = easeInOut ? (t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2) : 1 - Math.pow(1 - t, 3);
+      pos = from + d * e; paint();
+      if (t < 1) anim = requestAnimationFrame(step); else { anim = null; pos = target; paint(); }
+    }
+    anim = requestAnimationFrame(step);
+  }
+  function go(k) { to(pos + dist(k), 520); }  /* the short way round */
+  function rest() { idleUntil = Date.now() + 6000; }  /* a touch holds the auto-turn for a while */
+  function tick() {
+    if (!document.body.contains(root)) { clearInterval(auto); return; }
+    if (still || drag || anim || !visible || document.hidden || Date.now() < idleUntil) return;
+    to(Math.round(pos) + 1, 900, true);
+  }
+  stage.addEventListener('pointerdown', function (e) {
+    if (e.button) return;
+    stop(); rest(); dragged = false;
+    drag = { x: e.clientX, p: pos, id: e.pointerId, lx: e.clientX, lt: e.timeStamp, v: 0 };
+  });
+  stage.addEventListener('pointermove', function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x;
+    if (!dragged) { if (Math.abs(dx) < 6) return; dragged = true; stage.classList.add('dragging'); try { stage.setPointerCapture(e.pointerId); } catch (_) {} }
+    var dt = e.timeStamp - drag.lt; if (dt > 0) drag.v = 0.8 * ((e.clientX - drag.lx) / dt) + 0.2 * drag.v;  /* px per ms, smoothed */
+    drag.lx = e.clientX; drag.lt = e.timeStamp;
+    pos = drag.p - dx / (W * 0.6); paint();
+  });
+  function release(e) {
+    if (!drag || (e && e.pointerId !== drag.id)) return;
+    var v = drag.v; drag = null; stage.classList.remove('dragging'); rest();
+    if (!dragged) { to(Math.round(pos), 300); return; }  /* a tap (the click below decides) or a page scroll: settle */
+    var fling = Math.max(-2, Math.min(2, -v * 240 / (W * 0.6)));  /* a quick flick carries on a card or two */
+    to(Math.round(pos + fling), 560);
+  }
+  stage.addEventListener('pointerup', release); stage.addEventListener('pointercancel', release);
+  stage.addEventListener('click', function (e) {  /* capture: runs before the link (and its hx-boost) */
+    var c = e.target.closest('.cf-card'); if (!c) return;
+    var k = cards.indexOf(c);
+    if (dragged || Math.abs(dist(k)) > 0.5) { e.preventDefault(); e.stopPropagation(); if (!dragged) go(k); }
+    dragged = false;
+  }, true);
+  stage.addEventListener('dragstart', function (e) { e.preventDefault(); });
+  stage.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault(); rest();
+    var k = (((Math.round(pos) + (e.key === 'ArrowRight' ? 1 : -1)) % n) + n) % n; go(k); cards[k].focus({ preventScroll: true });
+  });
+  dots.forEach(function (b, k) { b.addEventListener('click', function () { rest(); go(k); }); });
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; }).observe(root);
+  window.addEventListener('resize', paint);
+  paint(); root.classList.add('ready');
+  if (!still && n > 1) auto = setInterval(tick, 3600);
 })();
 </script>
 {% endblock %}

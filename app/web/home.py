@@ -5,9 +5,9 @@ from fastapi import Request
 from sqlalchemy import func, select
 
 from app.deps import DB, CurrentUser, Lang, redirect
-from app.enums import AuctionStatus, Purpose
+from app.enums import COLOR_DIRECTION, AuctionStatus, ProductColor, Purpose
 from app.models import Auction, Banner, Product
-from app.services import auctions, catalog, discounts
+from app.services import auctions, catalog, discounts, storage
 from app.services import banners as banner_service
 from app.services.settings_service import get_setting
 from app.templating import render
@@ -42,9 +42,22 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         {
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
-            "kind_icons": banner_service.KIND_ICONS, **(await _slider(db)),
+            "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db), **(await _slider(db)),
         },
     )
+
+
+async def _directions(db) -> list[dict]:
+    """The six catalogue directions for the home 3D slider: the picture set on the Series page and how many models each has."""
+    counts = dict(
+        (await db.execute(select(Product.color, func.count()).where(Product.is_active.is_(True), Product.color.is_not(None)).group_by(Product.color))).all()
+    )
+    pics = await get_setting(db, "direction_images") or {}
+    return [
+        {"color": c.value, "name": COLOR_DIRECTION[c], "n": counts.get(c.value, 0),
+         "img": storage.url(pic.get("thumb") or pic.get("filename")) if (pic := pics.get(c.value)) else None}
+        for c in ProductColor
+    ]
 
 
 async def _slider(db) -> dict:

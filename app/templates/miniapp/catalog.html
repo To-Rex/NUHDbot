@@ -16,6 +16,9 @@
 {% block content %}
 <div class="page" style="padding-top:8px">
   <div class="scroller mb-3">
+    {% for c in f.colors %}{# a direction opened from the home slider: shown first, tap to drop it #}
+    <a class="fchip active" href="/app/catalog?{{ f.to_query(dir=(f.colors|reject('equalto', c)|list))|qs }}"><span class="dir-dot c-{{ c }}"></span>{{ COLOR_DIRECTION[c] }}<span class="x">{{ icon('x', 12) }}</span></a>
+    {% endfor %}
     {% for c in conditions %}
     {% set on = c.value in f.conditions %}
     <a class="fchip {{ 'active' if on }}" href="/app/catalog?{{ f.to_query(cond=(f.conditions|reject('equalto', c.value)|list) if on else f.conditions + [c.value])|qs }}">
@@ -67,6 +70,9 @@
     </div></div>
     <div class="filter-group"><span class="filter-label">{{ t('catalog.purpose') }}</span><div class="chips-wrap">
       {% for u in purposes %}<label class="check-chip"><input type="checkbox" name="use" value="{{ u.value }}" {{ 'checked' if u.value in f.purposes }}><span class="chip chip-lg chip-outline">{{ t('purpose.' ~ u.value) }}</span></label>{% endfor %}
+    </div></div>
+    <div class="filter-group"><span class="filter-label">{{ t('catalog.direction') }}</span><div class="chips-wrap">
+      {% for c in directions %}<label class="check-chip"><input type="checkbox" name="dir" value="{{ c.value }}" {{ 'checked' if c.value in f.colors }}><span class="chip chip-lg chip-outline"><span class="dir-dot c-{{ c.value }}"></span>{{ COLOR_DIRECTION[c.value] }}</span></label>{% endfor %}
     </div></div>
     <div class="grid-2">
       <div class="filter-group"><span class="filter-label">{{ t('catalog.interface') }}</span><div class="chips-wrap">
