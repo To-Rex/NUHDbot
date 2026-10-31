@@ -100,7 +100,7 @@ async def banners_settings(request: Request, db: DB, staff: User = Depends(staff
 
 @router.post("/banners/style")
 async def banners_style(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
-    """How the home slider moves: parallax swipe, cube, flip, card stack, cinema fade or panorama."""
+    """How the home slider moves: parallax swipe or one of the 3D looks (cube, flip, stack, cover flow, drum, door…)."""
     before = await get_setting(db, "banner_slider_style")
     style = svc.clean_style((await request.form()).get("style"))
     await set_setting(db, "banner_slider_style", style)

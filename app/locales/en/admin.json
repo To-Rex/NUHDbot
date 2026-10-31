@@ -1083,7 +1083,19 @@
         "fade": "Cinema",
         "fade_d": "Banners dissolve softly with a gentle zoom",
         "peek": "Panorama",
-        "peek_d": "The neighbouring banners peek in at the edges"
+        "peek_d": "The neighbouring banners peek in at the edges",
+        "coverflow": "Cover Flow",
+        "coverflow_d": "The front banner faces you, its neighbours turn away into depth",
+        "cylinder": "3D drum",
+        "cylinder_d": "The banners are the faces of a turning drum",
+        "tunnel": "Depth",
+        "tunnel_d": "The banner flies past you and the next one comes up from the distance",
+        "door": "Door",
+        "door_d": "The banner swings open like a door, the next one is behind it",
+        "roll": "Vertical cube",
+        "roll_d": "A cube turning top over bottom: the next banner rolls down from above",
+        "spiral": "Spiral",
+        "spiral_d": "Banners on a spiral stair: each next one higher and deeper"
       }
     }
   }

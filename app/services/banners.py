@@ -17,7 +17,7 @@ COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black")
 SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 1, 60, 7
 SECONDS_CHOICES = (5, 7, 10, 15)
 # how the home slider moves (Banners page → Slider look); the first is the default
-STYLES = ("parallax", "cube", "flip", "stack", "fade", "peek")
+STYLES = ("parallax", "cube", "flip", "stack", "fade", "peek", "coverflow", "cylinder", "tunnel", "door", "roll", "spiral")
 
 
 def clean_style(value: str | None) -> str:

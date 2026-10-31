@@ -1083,7 +1083,19 @@
         "fade": "Kino",
         "fade_d": "Bannerlar yumshoq eriydi va biroz yaqinlashadi",
         "peek": "Panorama",
-        "peek_d": "Yonidagi bannerlar chetlardan ko'rinib turadi"
+        "peek_d": "Yonidagi bannerlar chetlardan ko'rinib turadi",
+        "coverflow": "Cover Flow",
+        "coverflow_d": "O'rtadagi banner oldinda, yonidagilari chuqurlikka burilgan",
+        "cylinder": "3D baraban",
+        "cylinder_d": "Bannerlar aylanuvchi barabanning yoqlari",
+        "tunnel": "Chuqurlik",
+        "tunnel_d": "Banner sizga qarab uchib o'tadi, keyingisi uzoqdan yaqinlashadi",
+        "door": "Eshik",
+        "door_d": "Banner eshikdek ochiladi, ortida keyingisi turadi",
+        "roll": "Vertikal kub",
+        "roll_d": "Kub yuqoridan pastga aylanadi, keyingi banner tepadan tushadi",
+        "spiral": "Spiral",
+        "spiral_d": "Bannerlar spiral zinadek: har keyingisi balandroq va chuqurroq"
       }
     }
   }
