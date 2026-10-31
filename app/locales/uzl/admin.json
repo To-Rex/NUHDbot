@@ -1039,14 +1039,13 @@
       "picked": "{n} ta tanlandi",
       "n_products": "{n} ta mahsulot",
       "from": "{price} dan",
-      "seconds_default": "Slayd vaqti (standart)",
-      "seconds_default_hint": "Har bir slayd necha soniya turadi. O'z vaqti berilmagan bannerlar, auksion va yangi kelganlar slaydlari uchun.",
-      "seconds_saved": "Standart slayd vaqti: {n} soniya",
+      "seconds_default": "Slayd vaqti",
+      "seconds_default_hint": "Har bir slayd necha soniya turadi — barcha bannerlar, auksion va yangi kelganlar slaydlari uchun bir xil.",
+      "seconds_saved": "Slayd vaqti: {n} soniya — barcha slaydlar uchun",
+      "f_seconds_common": "Slayd vaqti barcha bannerlar uchun bir xil — {n} soniya.",
+      "f_seconds_where": "Bannerlar sahifasida o'zgartiriladi",
       "sec_short": "{n} s",
-      "sec_other": "Boshqa",
-      "sec_default": "Standart ({n} s)",
-      "f_seconds": "Slayd vaqti",
-      "f_seconds_hint": "Bu banner slayderda necha soniya turadi (3–60). Standart — Bannerlar sahifasidagi umumiy vaqt."
+      "sec_other": "Boshqa"
     }
   }
 }

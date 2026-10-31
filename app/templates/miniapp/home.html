@@ -94,7 +94,7 @@
 {% block scripts %}
 <script>
 (function(){
-  /* home slider: each slide stays its own seconds (data-ms), swipeable; a touch pauses it, a dot jumps to its slide */
+  /* home slider: every slide stays the slider's seconds (data-ms), swipeable; a touch pauses it, a dot jumps to its slide */
   var el = document.querySelector('[data-slider]'); if (!el || el.dataset.ready) return; el.dataset.ready = '1';
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
   if (slides.length < 2) return;

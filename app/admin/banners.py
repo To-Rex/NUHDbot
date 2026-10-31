@@ -24,7 +24,7 @@ from app.services import audit, discounts, media
 from app.services import banners as svc
 from app.services.settings_service import get_setting, set_setting
 
-FIELDS = ["kind", "title", "subtitle", "badge", "color", "product_id", "product_ids", "auto_sale", "link", "old_price", "starts_at", "ends_at", "seconds", "is_active", "sort"]
+FIELDS = ["kind", "title", "subtitle", "badge", "color", "product_id", "product_ids", "auto_sale", "link", "old_price", "starts_at", "ends_at", "is_active", "sort"]
 
 
 async def _ctx(db, staff: User, b: Banner, is_new: bool, errors: list[str] | None = None) -> dict:
@@ -33,8 +33,7 @@ async def _ctx(db, staff: User, b: Banner, is_new: bool, errors: list[str] | Non
         products = [b.product, *products]
     drops = await discounts.price_drops(db)
     return {
-        "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
-        "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
+        "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT),
         "drops": drops, "percent": discounts.percent, "on_sale": [p for p in products if p.id in drops],
         "page_title": t(staff.lang, "admin.ban.new" if is_new else "admin.ban.edit"), "b": b, "is_new": is_new, "errors": errors or [],
         "products": products, "kinds": svc.KINDS, "kind_icons": svc.KIND_ICONS, "kind_defaults": svc.KIND_DEFAULTS, "colors": svc.COLORS, "dt_local": dt_local,
@@ -64,7 +63,6 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
     b.starts_at, b.ends_at = f_dt(form, "starts_at"), f_dt(form, "ends_at")
     if b.starts_at and b.ends_at and b.ends_at <= b.starts_at:
         errors.append("ends_at")
-    b.seconds = svc.clean_seconds(form.get("seconds")) if (form.get("seconds") or "").strip() else None
     b.is_active = f_bool(form, "is_active")
     if f_bool(form, "remove_image"):
         b.image = b.image_thumb = None
@@ -90,7 +88,7 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
 
 @router.post("/banners/settings")
 async def banners_settings(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
-    """The slider's default: seconds a slide stays when its banner sets no time (and for the auction / new slides)."""
+    """The slide time: seconds every slide stays — one for all banners and the auction / new slides."""
     before = await get_setting(db, "slider_seconds")
     n = svc.clean_seconds((await request.form()).get("slider_seconds"), svc.SECONDS_DEFAULT)
     await set_setting(db, "slider_seconds", n)

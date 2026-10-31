@@ -82,13 +82,7 @@
       <div class="field"><label>{{ t('admin.ban.f_ends') }}</label><input class="input" type="datetime-local" name="ends_at" value="{{ dt_local(b.ends_at) }}"></div>
     </div>
     <span class="hint">{{ t('admin.ban.f_when_hint') }}</span>
-    <div class="field mt"><label>{{ t('admin.ban.f_seconds') }}</label>
-      <div class="bn-secs" role="radiogroup">
-        <label class="seg-opt"><input type="radio" name="seconds" value="" {{ 'checked' if not b.seconds }}><span>{{ t('admin.ban.sec_default', n=slider_seconds) }}</span></label>
-        {% for s in seconds_choices %}<label class="seg-opt"><input type="radio" name="seconds" value="{{ s }}" {{ 'checked' if b.seconds == s }}><span>{{ t('admin.ban.sec_short', n=s) }}</span></label>{% endfor %}
-        <label class="bn-secs-own"><input class="input mono" type="number" name="seconds" min="{{ seconds_min }}" max="{{ seconds_max }}" value="{{ b.seconds if b.seconds and b.seconds not in seconds_choices else '' }}" placeholder="{{ t('admin.ban.sec_other') }}" data-secs-own {{ 'disabled' if not b.seconds or b.seconds in seconds_choices }}></label>
-      </div>
-      <span class="hint">{{ t('admin.ban.f_seconds_hint') }}</span></div>
+    <p class="hint mt bn-secs-note">{{ icon('timer', 14) }}<span>{{ t('admin.ban.f_seconds_common', n=slider_seconds) }} <a href="/admin/banners">{{ t('admin.ban.f_seconds_where') }} →</a></span></p>
     <label class="sw-row mt"><span>{{ t('admin.ban.f_active') }}</span><input type="checkbox" name="is_active" value="1" {{ 'checked' if b.is_active }}><span class="switch"></span></label>
   </section>
 

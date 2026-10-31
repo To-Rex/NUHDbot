@@ -1086,6 +1086,8 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .bn-timing b{display:block;font-size:13.5px}.bn-timing p{margin:2px 0 0;font-size:12px;color:var(--ink-3)}
 .bn-secs{display:inline-flex;align-items:center;gap:3px;flex-wrap:wrap;padding:3px;border-radius:10px;background:var(--sunken);border:1px solid var(--hairline)}
 .bn-secs-own{display:inline-flex;cursor:text}
+.bn-secs-note{display:flex;align-items:center;gap:6px}
+.bn-secs-note svg{width:14px;height:14px;flex:0 0 auto}
 .bn-secs-own .input{width:92px;height:32px;padding:0 10px;font-size:12.5px;border-radius:8px;background:var(--surface)}
 .bn-secs-own .input:disabled{opacity:.6;cursor:pointer;pointer-events:none}
 .bn-targets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
