@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import BigInteger, Boolean, DateTime, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.enums import STAFF_ROLES, Role
@@ -21,6 +22,7 @@ class User(Base, TimestampMixin):
     city: Mapped[str | None] = mapped_column(String(100))
     lang: Mapped[str] = mapped_column(String(8), default="uz")
     theme: Mapped[str] = mapped_column(String(8), default="auto")  # auto | light | dark
+    nav_layout: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))  # staff sidebar order {"groups": {group: [item, ...]}}; JSONB keeps DISTINCT on users working
     bought_from_china_before: Mapped[bool | None] = mapped_column(Boolean)
     ads_opt_in: Mapped[bool] = mapped_column(Boolean, default=False)
     registered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

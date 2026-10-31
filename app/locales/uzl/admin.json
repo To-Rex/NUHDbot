@@ -755,6 +755,13 @@
       "empty_brand": "Bu brendda hali model yo'q",
       "tokens_ph": "Model nomini yozing va Enter bosing",
       "will_add": "Qo'shiladi: {n}"
+    },
+    "nav_edit": {
+      "hint": "Bo'limni ushlab, kerakli joyga suring",
+      "done": "Tayyor",
+      "reset": "Asl holiga",
+      "drop": "Shu yerga suring",
+      "error": "Tartib saqlanmadi"
     }
   }
 }

@@ -11,22 +11,29 @@
 <link rel="stylesheet" href="{{ asset('css/tokens.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 <script src="/static/js/htmx.min.js" defer></script>
-<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }},sup_new:{{ t('admin.sup.new_message')|tojson }}};</script>
+<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }},sup_new:{{ t('admin.sup.new_message')|tojson }},nav_error:{{ t('admin.nav_edit.error')|tojson }}};</script>
 {% block head %}{% endblock %}
 </head>
 <body{% if staff is defined and staff and can(roles.SUPPORT_ROLES) %} data-support-stream="1"{% endif %}>
 <div class="shell">
   <aside class="sidebar" id="sidebar" aria-label="{{ t('admin.top.menu') }}">
     <a class="sb-brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>NUHD<small>{{ t('admin.title') }}</small></span></a>
-    <nav class="sb-nav">
-      {% for gkey, items in nav_groups %}{% if items %}
-      <div class="sb-group"><span>{{ t('admin.nav_group.' ~ gkey) }}</span>
+    <nav class="sb-nav" data-default='{{ nav_default|tojson }}'>
+      {% for gkey, items in nav_groups %}
+      <div class="sb-group{{ ' is-empty' if not items }}" data-group="{{ gkey }}" data-empty="{{ t('admin.nav_edit.drop') }}"><span>{{ t('admin.nav_group.' ~ gkey) }}</span>
         {% for key, url, ico in items %}
-        <a href="{{ url }}" class="sb-item {{ 'active' if url == active_nav }}" title="{{ t('admin.nav.' ~ key) }}">{{ icon(ico, 20) }}<span>{{ t('admin.nav.' ~ key) }}</span>{% if badges and badges.get(key) %}<span class="cnt">{{ badges[key] }}</span>{% endif %}</a>
+        <a href="{{ url }}" class="sb-item {{ 'active' if url == active_nav }}" data-key="{{ key }}" draggable="false" title="{{ t('admin.nav.' ~ key) }}">{{ icon(ico, 20) }}<span>{{ t('admin.nav.' ~ key) }}</span>{% if badges and badges.get(key) %}<span class="cnt">{{ badges[key] }}</span>{% endif %}</a>
         {% endfor %}
       </div>
-      {% endif %}{% endfor %}
+      {% endfor %}
     </nav>
+    <div class="sb-edit" hidden>
+      <p>{{ t('admin.nav_edit.hint') }}</p>
+      <div class="sb-edit-row">
+        <button type="button" class="btn btn-ghost btn-sm" data-nav-reset title="{{ t('admin.nav_edit.reset') }}">{{ icon('refresh', 16) }}<span>{{ t('admin.nav_edit.reset') }}</span></button>
+        <button type="button" class="btn btn-primary btn-sm" data-nav-done title="{{ t('admin.nav_edit.done') }}">{{ icon('check', 16) }}<span>{{ t('admin.nav_edit.done') }}</span></button>
+      </div>
+    </div>
     <div class="sb-foot">
       <div class="sb-me"><div class="av">{{ (staff.full_name or 'A')[:1]|upper }}</div><div class="flex1"><div class="nm">{{ staff.full_name }}</div><div class="rl">{{ t('roles.' ~ staff.role.value) }}</div></div></div>
       <div class="sb-ctl">

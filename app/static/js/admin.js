@@ -94,6 +94,109 @@
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.querySelectorAll('.dd-menu,.gsearch-pop').forEach((m) => m.hidden = true); closeSb(); } });
 
+  // ---------- sidebar order: hold an item to start, then drag it to any place in any group ----------
+  const nav = sb && sb.querySelector('.sb-nav'); const navEdit = sb && sb.querySelector('.sb-edit');
+  if (nav && navEdit) {
+    const HOLD = 450, SLOP = 8, EDGE = 44;
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let press = null, drag = null, editing = false, droppedAt = 0;
+    const groups = () => [...nav.querySelectorAll('.sb-group')];
+    const layout = () => Object.fromEntries(groups().map((g) => [g.dataset.group, [...g.querySelectorAll('.sb-item')].map((a) => a.dataset.key)]));
+    const markEmpty = () => groups().forEach((g) => g.classList.toggle('is-empty', !g.querySelector('.sb-item')));
+    const setEditing = (on) => { editing = on; sb.classList.toggle('editing', on); navEdit.hidden = !on; };
+    const post = (body) => fetch('/admin/nav-layout', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF': csrf }, credentials: 'same-origin', body: JSON.stringify(body) })
+      .then((r) => { if (!r.ok) throw new Error(r.status); }).catch(() => toast(T('nav_error', 'Not saved'), 'bad'));
+    // move nodes, then slide everything from where it was (FLIP)
+    function flip(mutate) {
+      const els = [...nav.querySelectorAll('.sb-item,.sb-group>span')];
+      const was = new Map(els.map((el) => [el, el.getBoundingClientRect().top]));
+      mutate();
+      if (still) return;
+      els.forEach((el) => { const dy = was.get(el) - el.getBoundingClientRect().top; if (Math.abs(dy) > 1) el.animate([{ transform: 'translateY(' + dy + 'px)' }, { transform: 'none' }], { duration: 170, easing: 'cubic-bezier(.2,.8,.2,1)' }); });
+    }
+    function place() {  // list coordinates (offsetTop), so slides still running do not skew the target
+      const y = drag.y - nav.getBoundingClientRect().top - nav.clientTop + nav.scrollTop;
+      const gs = groups().filter((g) => g.offsetParent);
+      const g = gs.find((el) => y < el.offsetTop + el.offsetHeight) || gs[gs.length - 1];
+      const next = [...g.querySelectorAll('.sb-item')].find((a) => a !== drag.item && y < a.offsetTop + a.offsetHeight / 2) || null;
+      if (drag.item.parentNode === g && (next ? drag.item.nextElementSibling === next : !drag.item.nextElementSibling)) return;
+      flip(() => { g.insertBefore(drag.item, next); markEmpty(); });
+    }
+    function scroll() {  // auto-scroll while the item is held near the top or bottom of the list
+      if (!drag) return;
+      const r = nav.getBoundingClientRect();
+      const v = drag.y < r.top + EDGE ? -(r.top + EDGE - drag.y) : drag.y > r.bottom - EDGE ? drag.y - (r.bottom - EDGE) : 0;
+      if (v && drag.live) { const top = nav.scrollTop; nav.scrollTop += Math.max(-16, Math.min(16, v / 3)); if (nav.scrollTop !== top) place(); }
+      drag.raf = requestAnimationFrame(scroll);
+    }
+    function startDrag(item, ox, oy, x, y, r = item.getBoundingClientRect()) {
+      const ghost = item.cloneNode(true); ghost.classList.add('sb-ghost'); ghost.removeAttribute('href');
+      Object.assign(ghost.style, { left: r.left + 'px', top: r.top + 'px', width: r.width + 'px', height: r.height + 'px' });
+      document.body.appendChild(ghost); item.classList.add('sb-ph'); root.classList.add('sb-dragging');
+      drag = { item, ghost, dx: ox - r.left, dy: oy - r.top, x, y, sx: x, sy: y, live: false, before: JSON.stringify(layout()), raf: 0 };
+      move(); drag.raf = requestAnimationFrame(scroll);
+    }
+    function move() {  // a lifted item that is let go without moving stays where it was
+      drag.ghost.style.left = (drag.x - drag.dx) + 'px'; drag.ghost.style.top = (drag.y - drag.dy) + 'px';
+      drag.live = drag.live || Math.hypot(drag.x - drag.sx, drag.y - drag.sy) > 4;
+      if (drag.live) place();
+    }
+    function endDrag() {
+      const { item, ghost, before } = drag; cancelAnimationFrame(drag.raf); drag = null; droppedAt = Date.now();
+      root.classList.remove('sb-dragging');
+      const done = () => { ghost.remove(); item.classList.remove('sb-ph'); };
+      if (still) done();
+      else {
+        const r = item.getBoundingClientRect();
+        ghost.style.transition = 'left .16s ease-out,top .16s ease-out,transform .16s ease-out';
+        Object.assign(ghost.style, { left: r.left + 'px', top: r.top + 'px', transform: 'none' });
+        setTimeout(done, 170);
+      }
+      const now = layout(); if (JSON.stringify(now) !== before) post({ groups: now });
+    }
+    function hold() {  // long press reached: enter edit mode and lift the item under the finger
+      const p = press; clearTimeout(p.timer); press = null;
+      const r = p.item.getBoundingClientRect();
+      setEditing(true);  // empty groups show up now: keep the held item under the finger
+      nav.scrollTop += p.item.getBoundingClientRect().top - r.top;
+      startDrag(p.item, p.x, p.y, p.lx, p.ly, r);
+    }
+    nav.addEventListener('pointerdown', (e) => {
+      const item = e.target.closest('.sb-item');
+      if (!item || e.button !== 0 || drag) return;
+      press = { item, id: e.pointerId, touch: e.pointerType !== 'mouse', x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY };
+      if (!editing) press.timer = setTimeout(hold, HOLD);  // in edit mode a plain drag is enough
+    });
+    document.addEventListener('pointermove', (e) => {
+      if (drag) { drag.x = e.clientX; drag.y = e.clientY; move(); return; }
+      if (!press || e.pointerId !== press.id) return;
+      press.lx = e.clientX; press.ly = e.clientY;
+      const d = Math.hypot(e.clientX - press.x, e.clientY - press.y);
+      if (editing && d > 4) { const p = press; press = null; startDrag(p.item, p.x, p.y, p.lx, p.ly); }
+      else if (!editing && d > SLOP) { clearTimeout(press.timer); press = null; }  // scrolling or a normal click-drag
+    });
+    const up = () => { if (drag) endDrag(); else if (press) { clearTimeout(press.timer); press = null; } };
+    document.addEventListener('pointerup', up); document.addEventListener('pointercancel', up);
+    sb.addEventListener('touchmove', (e) => { if (drag) e.preventDefault(); }, { passive: false });  // the held item moves, not the list
+    nav.addEventListener('contextmenu', (e) => {  // a touch long press: use it as the hold, without the link menu
+      if (!e.target.closest('.sb-item') || !(press || drag || editing)) return;
+      e.preventDefault(); if (press && press.touch && !editing) hold();
+    });
+    nav.addEventListener('dragstart', (e) => e.preventDefault());
+    nav.addEventListener('click', (e) => { if (editing && e.target.closest('.sb-item')) e.preventDefault(); }, true);
+    navEdit.querySelector('[data-nav-done]').addEventListener('click', () => setEditing(false));
+    navEdit.querySelector('[data-nav-reset]').addEventListener('click', () => {
+      const def = JSON.parse(nav.dataset.default || '{}');
+      flip(() => {
+        Object.entries(def).forEach(([g, keys]) => { const box = nav.querySelector('.sb-group[data-group="' + g + '"]'); keys.forEach((k) => { const a = nav.querySelector('.sb-item[data-key="' + k + '"]'); if (a && box) box.appendChild(a); }); });
+        markEmpty();
+      });
+      post({ reset: true });
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && editing && !drag) setEditing(false); });
+    document.addEventListener('click', (e) => { if (editing && !drag && Date.now() - droppedAt > 300 && !sb.contains(e.target)) setEditing(false); });
+  }
+
   // ---------- global search ----------
   const gs = document.getElementById('gsearch'); const gsPop = document.getElementById('gsearch-pop');
   if (gs && gsPop) {

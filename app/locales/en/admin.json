@@ -755,6 +755,13 @@
       "empty_brand": "This brand has no models yet",
       "tokens_ph": "Type a model and press Enter",
       "will_add": "To add: {n}"
+    },
+    "nav_edit": {
+      "hint": "Drag a section to any place",
+      "done": "Done",
+      "reset": "Reset",
+      "drop": "Drop here",
+      "error": "Order was not saved"
     }
   }
 }

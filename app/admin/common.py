@@ -61,6 +61,38 @@ NAV_GROUPS = [
     ]),
 ]
 NAV = [item for _, items in NAV_GROUPS for item in items]
+NAV_GROUP_KEYS = [g for g, _ in NAV_GROUPS]
+NAV_KEYS = {k for k, _, _, _ in NAV}
+
+
+def nav_groups_for(staff: User) -> list[tuple[str, list[tuple[str, str, str]]]]:
+    """Sidebar groups in the staff member's own order (dragged in the sidebar). Items they cannot open are
+    left out; items missing from the saved layout (e.g. added in a later release) go to their usual group."""
+    allowed = {k: (k, u, i) for _, items in NAV_GROUPS for k, u, i, r in items if can(staff, r)}
+    saved = (staff.nav_layout or {}).get("groups") or {}
+    placed: set[str] = set()
+    order: dict[str, list[str]] = {}
+    for g in NAV_GROUP_KEYS:
+        keys = [k for k in saved.get(g, []) if k in allowed and k not in placed]
+        placed.update(keys)
+        order[g] = keys
+    for g, items in NAV_GROUPS:
+        for k, _, _, _ in items:
+            if k in allowed and k not in placed:
+                order[g].append(k)
+                placed.add(k)
+    return [(g, [allowed[k] for k in order[g]]) for g in NAV_GROUP_KEYS]
+
+
+def clean_nav_layout(data) -> dict | None:
+    """A sidebar order posted by the browser, kept to known groups and items (each item once). None = default."""
+    if not isinstance(data, dict) or data.get("reset") or not isinstance(data.get("groups"), dict):
+        return None
+    groups, seen = {}, set()
+    for g, keys in data["groups"].items():
+        if g in NAV_GROUP_KEYS and isinstance(keys, list):
+            groups[g] = [k for k in keys if isinstance(k, str) and k in NAV_KEYS and not (k in seen or seen.add(k))]
+    return {"groups": groups}
 CREATE_ITEMS = [
     ("product", "/admin/products/new", "drive", PRODUCT_EDIT_ROLES),
     ("brand", "/admin/brands/new", "tag", PRODUCT_EDIT_ROLES),
@@ -111,7 +143,8 @@ def render(request: Request, staff: User, name: str, ctx: dict | None = None, **
     ctx.setdefault("staff", staff)
     ctx.setdefault("csrf", csrf_token(staff))
     ctx.setdefault("nav", [(k, u, i) for k, u, i, r in NAV if can(staff, r)])
-    ctx.setdefault("nav_groups", [(g, [(k, u, i) for k, u, i, r in items if can(staff, r)]) for g, items in NAV_GROUPS])
+    ctx.setdefault("nav_groups", nav_groups_for(staff))
+    ctx.setdefault("nav_default", {g: [k for k, _, _, _ in items] for g, items in NAV_GROUPS})
     ctx.setdefault("create_items", [(k, u, i) for k, u, i, r in CREATE_ITEMS if can(staff, r)])
     path = request.url.path
     matches = [u for _, u, _, _ in NAV if (path == u if u == "/admin" else path.startswith(u))]

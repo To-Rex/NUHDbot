@@ -1,7 +1,7 @@
 from fastapi import Depends, Request, Response
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
-from app.admin.common import staff_dep
+from app.admin.common import clean_nav_layout, staff_dep
 from app.admin.router import router
 from app.deps import ADMIN_COOKIE, ADMIN_LANG_COOKIE, DB, THEME_COOKIE, THEMES, CurrentStaff, set_pref_cookie
 from app.i18n import normalize_lang, t
@@ -70,6 +70,18 @@ async def admin_set_theme(mode: str, request: Request, db: DB, next: str | None 
     resp = Response(status_code=204) if request.method == "POST" else RedirectResponse(_safe_next(next), status_code=303)
     set_pref_cookie(resp, THEME_COOKIE, mode)
     return resp
+
+
+@router.post("/nav-layout")
+async def admin_nav_layout(request: Request, db: DB, staff: User = Depends(staff_dep())):
+    """Save the sidebar order dragged by this staff member ({"groups": {group: [item, ...]}}), or reset it."""
+    try:
+        data = await request.json()
+    except ValueError:
+        return JSONResponse({"ok": False}, status_code=400)
+    staff.nav_layout = clean_nav_layout(data)
+    await db.commit()
+    return JSONResponse({"ok": True})
 
 
 @router.post("/hint/dismiss")
