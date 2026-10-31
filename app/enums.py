@@ -61,8 +61,8 @@ COLOR_DIRECTION = {
 }
 COLOR_EXAMPLES = {
     ProductColor.BLUE: "WD Blue, Seagate BarraCuda, Toshiba P300", ProductColor.PURPLE: "WD Purple, SkyHawk, Toshiba S300",
-    ProductColor.RED: "WD Red, IronWolf, Toshiba N300", ProductColor.GOLD: "Seagate Exos, Ultrastar, Toshiba MG",
-    ProductColor.SILVER: "WD Gold, Exos, Ultrastar", ProductColor.BLACK: "WD_BLACK, FireCuda HDD",
+    ProductColor.RED: "WD Red, IronWolf, Toshiba N300", ProductColor.GOLD: "WD Gold, Seagate Exos, Ultrastar, Toshiba MG",
+    ProductColor.SILVER: "WD White, Exos, Ultrastar", ProductColor.BLACK: "WD_BLACK, FireCuda HDD",
 }
 
 

@@ -17,7 +17,7 @@ class BrandError(Exception):
 
 # Spec brands in display order: (name, series, warranty_url, aliases)
 DEFAULT_BRANDS: list[tuple[str, list[str], str | None, tuple[str, ...]]] = [
-    ("Western Digital", ["Blue", "Purple", "Red", "Red Pro", "Gold", "Black"], "https://support-en.wd.com/app/warrantystatusweb", ("wd", "western digital", "westerndigital")),
+    ("Western Digital", ["Blue", "Purple", "Red", "Red Pro", "Gold", "Black", "White"], "https://support-en.wd.com/app/warrantystatusweb", ("wd", "western digital", "westerndigital")),
     ("Seagate", ["BarraCuda", "SkyHawk", "SkyHawk AI", "IronWolf", "IronWolf Pro", "Exos"], "https://www.seagate.com/support/warranty-and-replacements/", ("seagate",)),
     ("Toshiba", ["P300", "S300", "N300", "MG"], None, ("toshiba",)),
     ("HGST / Ultrastar", ["Ultrastar"], None, ("hgst", "hgst / ultrastar", "hgst/ultrastar", "ultrastar")),

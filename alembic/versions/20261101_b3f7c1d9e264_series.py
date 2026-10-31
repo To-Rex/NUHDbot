@@ -18,8 +18,8 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 # same hints the product form used to guess a colour from the series name
-HINTS = [(r"\b(wd\s*)?gold\b", "silver"), (r"\b(purple|skyhawk|s300)\b", "purple"), (r"\b(red|ironwolf|n300)\b", "red"),
-         (r"\b(exos|ultrastar|mg|mg\d{2})\b", "gold"), (r"\b(black|wd_black|firecuda)\b", "black"), (r"\b(blue|barracuda|p300)\b", "blue"),
+HINTS = [(r"\b(wd\s*)?white\b", "silver"), (r"\b(purple|skyhawk|s300)\b", "purple"), (r"\b(red|ironwolf|n300)\b", "red"),
+         (r"\b(gold|exos|ultrastar|mg|mg\d{2})\b", "gold"), (r"\b(black|wd_black|firecuda)\b", "black"), (r"\b(blue|barracuda|p300)\b", "blue"),
          # or a use named after a colour direction
          (r"\bsurveillance\b", "purple"), (r"\bnas\b", "red"), (r"\benterprise\b", "gold"), (r"\bdata\s*cent(er|re)\b", "silver"), (r"\bgaming\b", "black"), (r"\bdesktop\b", "blue")]
 

@@ -565,8 +565,8 @@
   // A series from the Series page brings its colour as soon as it is typed or picked (create and edit);
   // a colour clicked by hand afterwards stays until the series changes again. Without a known series the
   // colour is still guessed from the series / model text, until someone picks one by hand.
-  const COLOR_HINTS = [[/\b(wd\s*)?gold\b/i, 'silver'], [/\b(purple|skyhawk|s300)\b/i, 'purple'], [/\b(red|ironwolf|n300)\b/i, 'red'],
-    [/\b(exos|ultrastar|mg\d{2})/i, 'gold'], [/\b(black|wd_black|firecuda)\b/i, 'black'], [/\b(blue|barracuda|p300)\b/i, 'blue'],
+  const COLOR_HINTS = [[/\b(wd\s*)?white\b/i, 'silver'], [/\b(purple|skyhawk|s300)\b/i, 'purple'], [/\b(red|ironwolf|n300)\b/i, 'red'],
+    [/\b(gold|exos|ultrastar|mg\d{2})/i, 'gold'], [/\b(black|wd_black|firecuda)\b/i, 'black'], [/\b(blue|barracuda|p300)\b/i, 'blue'],
     [/\bsurveillance\b/i, 'purple'], [/\bnas\b/i, 'red'], [/\benterprise\b/i, 'gold'], [/\bdata\s*cent(er|re)\b/i, 'silver'], [/\bgaming\b/i, 'black'], [/\bdesktop\b/i, 'blue']];
   const normKey = (v) => String(v || '').trim().replace(/\s+/g, ' ').toUpperCase();
   function bindColorPick(scope) {
