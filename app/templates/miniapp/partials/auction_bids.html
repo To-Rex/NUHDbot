@@ -1,13 +1,23 @@
+{# Activity: how the lot is going — participants, bids, how far the price has climbed, the last bid — and the bid history.
+   Customers never see each other's names: each bidder is "Participant №N" (the order of their first bid), the viewer is "You".
+   Refreshed after each bid (refreshBids). #}
 <div id="bids-list">
+  <div class="ap-stats">
+    <div class="ap-stat">{{ icon('users', 17) }}<b class="num">{{ stats.participants }}</b><span>{{ t('auction.participants') }}</span></div>
+    <div class="ap-stat">{{ icon('gavel', 17) }}<b class="num">{{ a.bids_count }}</b><span>{{ t('auction.bids') }}</span></div>
+    <div class="ap-stat">{{ icon('arrow-up-right', 17) }}<b class="num">{% if stats.growth > 0 %}+{{ stats.growth_pct }}%{% else %}0%{% endif %}</b><span>{{ t('auction.growth') }}{% if stats.growth > 0 %} · +{{ stats.growth|money(a.currency) }}{% endif %}</span></div>
+    <div class="ap-stat">{{ icon('clock', 17) }}<b class="num">{{ stats.last_bid_at|dt('%H:%M') if stats.last_bid_at else '—' }}</b><span>{{ t('auction.last_bid') }}</span></div>
+  </div>
+  <div class="ap-hist-head"><h4>{{ t('auction.history') }}</h4><span class="xs faint">{{ icon('lock', 11) }} {{ t('auction.anon_note') }}</span></div>
   {% if bids %}
-  {% for b in bids %}
-  <div class="bid-row {{ 'me' if b.user_id == me_id }} {{ 'leader' if loop.first }}">
-    <div class="avatar">{{ (b.user.full_name if b.user else '?')|initials }}</div>
-    <div class="flex-1"><div class="semibold small">{{ t('auction.your_bid') if b.user_id == me_id else b.user|anon }}{% if loop.first %} <span class="chip chip-ok" style="height:18px;margin-left:4px">{{ t('auction.leader') }}</span>{% endif %}</div><div class="xs faint mono">{{ b.created_at|dt('%d.%m %H:%M:%S') }}</div></div>
+  {% for b in bids %}{% set n = numbers.get(b.user_id, 0) %}{% set mine = b.user_id == me_id %}
+  <div class="bid-row{{ ' me' if mine }}{{ ' leader' if loop.first }}">
+    <span class="bidder b{{ n % 8 }}{{ ' is-me' if mine }}">{% if mine %}{{ icon('user', 15) }}{% else %}{{ n }}{% endif %}</span>
+    <div class="flex-1" style="min-width:0"><div class="semibold small">{{ t('auction.your_bid') if mine else t('auction.participant', n=n) }}{% if loop.first %} <span class="chip chip-ok ap-lead">{{ icon('trophy', 11) }}{{ t('auction.leader') }}</span>{% endif %}</div><div class="xs faint mono">{{ b.created_at|dt('%d.%m %H:%M:%S') }}</div></div>
     <div class="amt">{{ b.amount_total|money(a.currency) }}</div>
   </div>
   {% endfor %}
   {% else %}
-  <div class="center muted small" style="padding:16px">{{ t('auction.no_bids') }}</div>
+  <div class="ap-empty">{{ icon('gavel', 26) }}<span>{{ t('auction.no_bids') }}</span></div>
   {% endif %}
 </div>

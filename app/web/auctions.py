@@ -31,7 +31,17 @@ async def _ctx(db, a, user, lang):
     dep = await auctions.user_deposit(db, a.id, user.id) if user else None
     needs_deposit = a.require_deposit and Decimal(a.deposit_amount or 0) > 0
     can_bid = (not needs_deposit) or (dep is not None and dep.status in (DepositStatus.CONFIRMED, DepositStatus.APPLIED))
-    return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, "deposit": dep, "needs_deposit": needs_deposit, "can_bid": can_bid, "me_id": user.id if user else None}
+    numbers = await auctions.bidder_numbers(db, a.id)  # no names on the customer side: "Participant №N"
+    start, cur = Decimal(a.start_price_total or 0), Decimal(a.current_price_total or 0)
+    growth = cur - start if a.bids_count else Decimal(0)
+    stats = {
+        "participants": len(numbers), "growth": growth, "growth_pct": (growth / start * 100).quantize(Decimal("0.1")) if start and growth else Decimal(0),
+        "last_bid_at": bids[0].created_at if bids else None,
+        "extended_min": max(0, int((a.ends_at - a.original_ends_at).total_seconds() // 60)) if a.original_ends_at else 0,
+    }
+    return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, "deposit": dep, "needs_deposit": needs_deposit, "can_bid": can_bid,
+            "me_id": user.id if user else None, "numbers": numbers, "stats": stats,
+            "my_best": await auctions.best_bid(db, a.id, user.id) if user and user.id in numbers else None}
 
 
 @router.get("/auctions/{auction_id}")

@@ -328,7 +328,20 @@
     "warranty": "Warranty",
     "test": "Test",
     "extended": "Time extended",
-    "product_page": "Product details"
+    "product_page": "Product details",
+    "participant": "Participant №{n}",
+    "participants": "Participants",
+    "activity": "Activity",
+    "growth": "Price growth",
+    "last_bid": "Last bid",
+    "history": "Bid history",
+    "anon_note": "Names are not shown",
+    "not_joined": "You haven't bid yet",
+    "your_best": "Your best bid: {amount}",
+    "outbid_cta": "You've been outbid — bid again",
+    "extended_by": "Extended by {n} min",
+    "starts": "Starts",
+    "ends": "Ends"
   },
   "info": {
     "title": "Useful info",

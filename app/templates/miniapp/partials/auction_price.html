@@ -1,24 +1,36 @@
-<div id="price-box" class="card" data-version="{{ a.version }}" data-ends="{{ a.ends_at|iso }}" data-status="{{ a.status.value }}">
-  <div class="eyebrow">{{ t('auction.current') if a.bids_count else t('auction.start_price') }} · {{ t('auction.lot_total') }}</div>
-  <div class="auction-price mt-1" id="price-total">{{ a.current_price_total|money(a.currency) }}</div>
-  <div class="small muted mono mt-1"><span id="price-unit">{{ a.current_price_unit|money(a.currency) }}</span> / {{ t('auction.per_unit') }} · <span id="bids-count">{{ a.bids_count }}</span> {{ t('auction.bids')|lower }}</div>
+{# The price card: where the lot stands now, the clock, and where the viewer stands. Refreshed after each bid. #}
+<div id="price-box" class="card ap-price" data-version="{{ a.version }}" data-ends="{{ a.ends_at|iso }}" data-status="{{ a.status.value }}">
+  <div class="ap-price-top">
+    <span class="eyebrow">{{ t('auction.current') if a.bids_count else t('auction.start_price') }} · {{ t('auction.lot_total') }}</span>
+    {% if a.status.value == 'live' %}<span class="chip chip-live">{{ t('auction.live') }}</span>{% elif a.status.value == 'scheduled' %}<span class="chip chip-info">{{ t('auction.scheduled') }}</span>{% else %}<span class="chip chip-soft">{{ t('auction.ended') }}</span>{% endif %}
+  </div>
+  <div class="auction-price" id="price-total">{{ a.current_price_total|money(a.currency) }}</div>
+  <div class="ap-price-sub"><span class="mono"><span id="price-unit">{{ a.current_price_unit|money(a.currency) }}</span> / {{ t('auction.per_unit') }}</span>
+    {% if stats.growth > 0 %}<span class="ap-growth">{{ icon('arrow-up', 13) }}+{{ stats.growth_pct }}%</span>{% endif %}</div>
+
   {% if a.status.value == 'live' %}
   <div class="countdown mt-4" data-countdown="{{ a.ends_at|iso }}" id="countdown">
     <span data-u="d">00<small>{{ t('auction.days') }}</small></span><span data-u="h">00<small>{{ t('auction.hours') }}</small></span><span data-u="m">00<small>{{ t('auction.mins') }}</small></span><span data-u="s">00<small>{{ t('auction.secs') }}</small></span>
   </div>
-  {% if leader_id and leader_id == me_id %}<div class="chip chip-ok chip-lg mt-3">{{ t('auction.you_lead') }}</div>
-  {% elif me_id and bids and bids|selectattr('user_id','equalto', me_id)|list %}<div class="chip chip-bad chip-lg mt-3">{{ t('auction.outbid') }}</div>{% endif %}
+  {% if stats.extended_min %}<p class="ap-note">{{ icon('clock', 13) }}{{ t('auction.extended_by', n=stats.extended_min) }}</p>{% endif %}
+  {% if me_id %}
+    {% if leader_id and leader_id == me_id %}<div class="ap-me ok">{{ icon('trophy', 18) }}<div><b>{{ t('auction.you_lead') }}</b>{% if my_best %}<small>{{ t('auction.your_best', amount=my_best|money(a.currency)) }}</small>{% endif %}</div></div>
+    {% elif my_best %}<div class="ap-me bad">{{ icon('alert', 18) }}<div><b>{{ t('auction.outbid_cta') }}</b><small>{{ t('auction.your_best', amount=my_best|money(a.currency)) }}</small></div></div>
+    {% else %}<div class="ap-me">{{ icon('gavel', 18) }}<div><b>{{ t('auction.not_joined') }}</b><small>{{ t('auction.next_bid') }}: {{ a.next_bid_total|money(a.currency) }}</small></div></div>{% endif %}
+  {% endif %}
   <div class="divider"></div>
   <dl class="kv small"><dt>{{ t('auction.next_bid') }}</dt><dd class="mono" id="next-total">{{ a.next_bid_total|money(a.currency) }}</dd>
   <dt>{{ t('auction.step') }}</dt><dd class="mono">{{ a.step_per_unit|money(a.currency) }}/{{ t('auction.per_unit') }} = {{ a.step_total|money(a.currency) }}</dd></dl>
   {% elif a.status.value == 'scheduled' %}
   <div class="eyebrow mt-4">{{ t('auction.starts_in') }}</div>
   <div class="countdown mt-2" data-countdown="{{ a.starts_at|iso }}"><span data-u="d">00<small>{{ t('auction.days') }}</small></span><span data-u="h">00<small>{{ t('auction.hours') }}</small></span><span data-u="m">00<small>{{ t('auction.mins') }}</small></span><span data-u="s">00<small>{{ t('auction.secs') }}</small></span></div>
+  <div class="divider"></div>
+  <dl class="kv small"><dt>{{ t('auction.step') }}</dt><dd class="mono">{{ a.step_per_unit|money(a.currency) }}/{{ t('auction.per_unit') }} = {{ a.step_total|money(a.currency) }}</dd></dl>
   {% else %}
   <div class="mt-3">
     {% if a.winner_user_id %}
-      {% if a.winner_user_id == me_id %}<div class="winner-banner me">{{ icon('star', 20) }}{{ t('auction.you_won') }}</div>
-      {% else %}<div class="winner-banner">{{ t('auction.winner') }}: <b>{{ a.winner|anon }}</b>{% if me_id and bids|selectattr('user_id','equalto', me_id)|list %}<div class="xs mt-1 muted">{{ t('auction.you_lost') }}</div>{% endif %}</div>{% endif %}
+      {% if a.winner_user_id == me_id %}<div class="winner-banner me">{{ icon('trophy', 20) }}{{ t('auction.you_won') }}</div>
+      {% else %}<div class="winner-banner">{% set wn = numbers.get(a.winner_user_id) %}<span class="bidder b{{ (wn or 0) % 8 }}">{{ wn or '?' }}</span><div>{{ t('auction.winner') }}: <b>{{ t('auction.participant', n=wn) if wn else '—' }}</b>{% if my_best %}<div class="xs mt-1 muted">{{ t('auction.you_lost') }}</div>{% endif %}</div></div>{% endif %}
     {% else %}<div class="chip chip-soft chip-lg">{{ t('auction.no_winner') }}</div>{% endif %}
   </div>
   {% endif %}

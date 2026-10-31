@@ -127,3 +127,16 @@ async def test_lot_takes_its_details_from_the_product(db):
     assert (a.product_id, a.brand, a.model, a.capacity_gb, a.condition) == (p.id, p.brand, p.model, p.capacity_gb, p.condition)
     assert (a.seller_warranty_months, a.factory_warranty_months, a.currency, a.description) == (6, 24, "USD", {"uz": "Sinovdan o'tgan"})
     assert a.qty == 3 and a.start_price_total == Decimal("90") and a.current_price_total == Decimal("90")
+
+
+async def test_bidders_are_numbered_not_named(db):
+    """On the lot page customers see "Participant №N" (the order of each bidder's first bid), never names."""
+    from app.services import auctions as svc
+
+    a = await make_auction(db, qty=2, start="100", step="1")
+    u1, u2, u3 = await make_user(db, 3101), await make_user(db, 3102), await make_user(db, 3103)
+    for u in (u2, u1, u2, u3):
+        await svc.place_bid(db, a.id, u, None)
+    await db.flush()
+    assert await svc.bidder_numbers(db, a.id) == {u2.id: 1, u1.id: 2, u3.id: 3}
+    assert await svc.best_bid(db, a.id, u2.id) == a.current_price_total - a.step_total * 1

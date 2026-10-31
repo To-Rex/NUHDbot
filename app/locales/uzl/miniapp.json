@@ -328,7 +328,20 @@
     "warranty": "Kafolat",
     "test": "Test",
     "extended": "Vaqt uzaytirildi",
-    "product_page": "Mahsulot haqida batafsil"
+    "product_page": "Mahsulot haqida batafsil",
+    "participant": "Ishtirokchi №{n}",
+    "participants": "Ishtirokchilar",
+    "activity": "Faollik",
+    "growth": "Narx o'sishi",
+    "last_bid": "Oxirgi stavka",
+    "history": "Stavkalar tarixi",
+    "anon_note": "Ismlar ko'rsatilmaydi",
+    "not_joined": "Siz hali stavka qo'ymadingiz",
+    "your_best": "Sizning eng yuqori stavkangiz: {amount}",
+    "outbid_cta": "Sizdan o'zib ketishdi — yana stavka qo'ying",
+    "extended_by": "Vaqt {n} daqiqaga uzaytirilgan",
+    "starts": "Boshlanish",
+    "ends": "Tugash"
   },
   "info": {
     "title": "Foydali ma'lumotlar",

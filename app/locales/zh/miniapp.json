@@ -328,7 +328,20 @@
     "warranty": "质保",
     "test": "检测",
     "extended": "时间已顺延",
-    "product_page": "商品详情"
+    "product_page": "商品详情",
+    "participant": "参与者 №{n}",
+    "participants": "参与人数",
+    "activity": "竞拍动态",
+    "growth": "价格涨幅",
+    "last_bid": "最后出价",
+    "history": "出价记录",
+    "anon_note": "不显示姓名",
+    "not_joined": "您还没有出价",
+    "your_best": "您的最高出价：{amount}",
+    "outbid_cta": "您已被超越——再出一次价",
+    "extended_by": "已延长 {n} 分钟",
+    "starts": "开始",
+    "ends": "结束"
   },
   "info": {
     "title": "实用资讯",

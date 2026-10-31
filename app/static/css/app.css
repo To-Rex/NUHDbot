@@ -605,6 +605,41 @@ button.list-item{width:100%;text-align:left}
 .bid-row .amt{font-family:var(--font-display);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
 .avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--accent);background:var(--accent-soft);flex:0 0 auto}
 .bid-row.me .avatar{background:var(--accent);color:var(--accent-ink)}
+/* lot page: the price card, the viewer's standing, activity stats and an anonymous bid history ("Participant №N") */
+.ap-price-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ap-price .auction-price{margin-top:6px}
+.ap-price-sub{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px;font-size:13.5px;color:var(--ink-2)}
+.ap-growth{display:inline-flex;align-items:center;gap:3px;height:22px;padding:0 8px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+.ap-growth svg{width:12px;height:12px}
+.ap-note{display:flex;align-items:center;gap:6px;margin:10px 0 0;font-size:12.5px;color:var(--warn)}
+.ap-note svg{width:13px;height:13px}
+.ap-me{display:flex;align-items:center;gap:12px;margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--fill);color:var(--ink-2)}
+.ap-me>svg{width:20px;height:20px;flex:0 0 auto}
+.ap-me b{display:block;font-size:14.5px;color:var(--ink)}
+.ap-me small{display:block;margin-top:1px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.ap-me.ok{background:var(--ok-bg);color:var(--ok)}.ap-me.ok b{color:var(--ok)}
+.ap-me.bad{background:var(--bad-bg);color:var(--bad)}.ap-me.bad b{color:var(--bad)}
+.ap-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ap-stat{display:flex;flex-direction:column;gap:2px;padding:12px 13px;border-radius:16px;background:var(--fill);min-width:0}
+.ap-stat svg{width:17px;height:17px;color:var(--accent);margin-bottom:4px}
+.ap-stat b{font-family:var(--font-display);font-size:21px;font-weight:750;letter-spacing:-.02em;line-height:1.1}
+.ap-stat span{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap-hist-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:18px 0 4px}
+.ap-hist-head h4{font-size:15px}
+.ap-hist-head span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.ap-hist-head svg{width:11px;height:11px}
+.bidder{width:36px;height:36px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:14px;color:#fff;background:var(--bc,#6E6E73)}
+.bidder svg{width:16px;height:16px}
+.bidder.b0{--bc:#5E5CE6}.bidder.b1{--bc:#0071E3}.bidder.b2{--bc:#7A3FD6}.bidder.b3{--bc:#E5392F}.bidder.b4{--bc:#1C8C4E}.bidder.b5{--bc:#E05A1F}.bidder.b6{--bc:#0F8F8F}.bidder.b7{--bc:#B8860B}
+.bidder.is-me{--bc:var(--accent);color:var(--accent-ink)}
+.bid-row.me{background:var(--accent-soft);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:14px;border-bottom-color:transparent}
+.ap-lead{height:20px;padding:0 7px;margin-left:4px;gap:3px;font-size:11px;vertical-align:1px}
+.ap-lead svg{width:11px;height:11px}
+.ap-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:22px 10px 10px;text-align:center;color:var(--ink-3);font-size:14px}
+.winner-banner{display:flex;align-items:center;gap:12px}
+.winner-banner.me{background:var(--ok-bg);color:var(--ok)}
+.winner-banner.me svg{width:20px;height:20px}
+.lot-head h1{text-wrap:balance}
 .lot-card{display:flex;gap:14px;padding:10px;align-items:stretch}
 .lot-img{position:relative;width:96px;border-radius:16px;overflow:hidden;background:var(--media);display:grid;place-items:center;color:var(--ink-3);flex:0 0 auto}
 .lot-img img{width:100%;height:100%;object-fit:contain;padding:6px}

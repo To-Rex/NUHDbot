@@ -4,7 +4,7 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -75,6 +75,16 @@ async def get_auction(db: AsyncSession, auction_id: int) -> Auction | None:
 async def recent_bids(db: AsyncSession, auction_id: int, limit: int = 20) -> list[Bid]:
     stmt = select(Bid).where(Bid.auction_id == auction_id).order_by(Bid.id.desc()).limit(limit)
     return list((await db.execute(stmt)).scalars().all())
+
+
+async def bidder_numbers(db: AsyncSession, auction_id: int) -> dict[int, int]:
+    """Customers never see each other's names: each bidder is "Participant №N", N = the order of their first bid here."""
+    rows = (await db.execute(select(Bid.user_id, func.min(Bid.id).label("first")).where(Bid.auction_id == auction_id).group_by(Bid.user_id).order_by("first"))).all()
+    return {uid: n for n, (uid, _) in enumerate(rows, start=1)}
+
+
+async def best_bid(db: AsyncSession, auction_id: int, user_id: int):
+    return (await db.execute(select(func.max(Bid.amount_total)).where(Bid.auction_id == auction_id, Bid.user_id == user_id))).scalar_one()
 
 
 async def user_deposit(db: AsyncSession, auction_id: int, user_id: int) -> AuctionDeposit | None:
