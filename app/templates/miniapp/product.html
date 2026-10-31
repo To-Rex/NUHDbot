@@ -109,7 +109,7 @@
 
   {% if similar %}
   <div class="section-title"><h2>{{ t('product.similar') }}</h2></div>
-  <div class="scroller similar-scroller" style="padding-bottom:6px">{% for sp in similar %}<div>{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
+  <div class="scroller" style="padding-bottom:10px">{% for sp in similar %}<div class="rail-item">{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
   {% endif %}
   <div class="xs faint center mt-4 row" style="justify-content:center;gap:4px">{{ icon('eye', 12) }}{{ p.views }} {{ t('product.views') }}</div>
 </div>

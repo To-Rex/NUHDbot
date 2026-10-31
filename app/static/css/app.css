@@ -208,8 +208,9 @@ dl{margin:0}
 .pcard-add.added{background:var(--tile-green)}
 .pcard-add.added .i-add{opacity:0;transform:scale(.4) rotate(-90deg)}
 .pcard-add.added .i-done{opacity:1;transform:none}
-.pcard.compact .pcard-title{min-height:0;-webkit-line-clamp:1;display:block;white-space:nowrap;text-overflow:ellipsis}
-.pcard.compact .pcard-body{padding:10px 12px 12px}
+/* horizontal rails (home, similar items) use the same card at the grid column width */
+.rail-item{width:calc((100vw - 42px) / 2);max-width:220px;display:flex}
+.rail-item>.pcard{flex:1}
 .tdot{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);font-weight:500}
 .tdot::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
 .tdot.t-tested::before{background:var(--ok)}.tdot.t-testing::before{background:var(--warn)}
@@ -573,7 +574,6 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 .stock-pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
 .stock-pill.low{color:var(--warn)}
 .stock-pill.none{color:var(--bad)}
-.similar-scroller>div{width:46%;max-width:200px}
 .minbox{text-align:right;min-width:80px}
 .minbox .eyebrow{text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:500;color:var(--ink-2)}
 .minbox .v{font-family:var(--font-display);font-size:21px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}

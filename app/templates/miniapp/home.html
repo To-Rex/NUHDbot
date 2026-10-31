@@ -62,7 +62,7 @@
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.new_arrivals') }}</h2><a href="/app/new">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
     <div class="scroller" style="padding-bottom:10px">
-      {% for p in arrivals %}<div style="width:42%;max-width:180px">{% with i=loop.index0, compact=True %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}
+      {% for p in arrivals %}<div class="rail-item">{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}
     </div>
   </section>
   {% endif %}

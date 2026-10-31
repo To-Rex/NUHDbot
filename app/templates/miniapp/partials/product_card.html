@@ -1,9 +1,9 @@
-{# expects: p (Product), i (index for stagger); compact=True drops the footer (home carousels).
+{# expects: p (Product), i (index for stagger). Same card everywhere: catalogue, home rails, similar items.
    The whole card opens the product through a stretched link; the + button adds the minimum quantity to the cart. #}
 {% set step = p.box_qty if (p.full_box_only and p.box_qty) else 1 %}
 {% set min_qty = p.min_order if (step == 1 or p.min_order % step == 0) else ((p.min_order // step) + 1) * step %}
 {% set can_add = p.price is not none and p.sale_allowed and p.available >= min_qty %}
-<div class="pcard{{ ' compact' if compact }}" style="--i:{{ i or 0 }}">
+<div class="pcard" style="--i:{{ i or 0 }}">
   <a class="pcard-link" href="/app/products/{{ p.id }}" aria-label="{{ p.title }}"></a>
   <div class="pcard-media">
     {% if p.cover %}<img class="lazy" src="{{ p.cover.thumb_url }}" alt="" loading="lazy" decoding="async" width="480" height="480">
@@ -20,7 +20,6 @@
     </div>
     <div class="pcard-title">{{ p.brand }} {{ p.model }}</div>
     <div class="pcard-spec">{{ p.capacity_gb|capacity }} · {{ p.interface.value }} · {{ p.form_factor.value }}″{% if p.series %} · {{ p.series }}{% endif %}</div>
-    {% if not compact %}
     <div class="pcard-foot">
       <div class="pcard-meta">
         <span class="tdot t-{{ p.test_status.value }}">{{ t('test.' ~ p.test_status.value) }}</span>
@@ -28,6 +27,5 @@
       </div>
       {% if can_add %}<button type="button" class="pcard-add" hx-post="/app/cart/add" hx-vals='{"product_id": {{ p.id }}, "qty": {{ min_qty }}}' hx-swap="none" data-quick-add aria-label="{{ t('product.add_to_cart') }}">{{ icon('plus', 18, 'i-add') }}{{ icon('check', 18, 'i-done') }}</button>{% endif %}
     </div>
-    {% endif %}
   </div>
 </div>
