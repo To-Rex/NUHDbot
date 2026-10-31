@@ -30,6 +30,8 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "seagate_check_url": {"v": "https://www.seagate.com/support/warranty-and-replacements/", "d": "Seagate warranty check"},
     "support_group_id": {"v": None, "d": "Telegram group id where support messages are mirrored"},
     "direction_images": {"v": {}, "d": "Series page: a picture per catalogue direction {colour: {filename, thumb}}"},
+    "dir_slider_shape": {"v": "tall", "d": "Mini App home: directions slider card shape (tall | wide)"},
+    "banner_slider_shape": {"v": "tall", "d": "Mini App home: banner slider card shape (tall | wide)"},
     "dir_slider_style": {"v": "coverflow", "d": "Mini App home: how the directions slider moves (coverflow | orbit | stack | fan | cylinder | spiral | cascade | pile)"},
     "slider_seconds": {"v": 7, "d": "Mini App home slider: seconds a slide stays (banners can set their own)"},
     "banner_slider_style": {"v": "coverflow", "d": "Mini App home slider: how the banners turn, like the Directions slider (coverflow | orbit | stack | fan | cylinder | spiral | cascade | pile)"},

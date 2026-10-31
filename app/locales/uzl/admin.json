@@ -1089,6 +1089,12 @@
         "pile": "Tarqoq kartalar",
         "pile_d": "Stol ustida tarqoq yotgan kartalar, ustidagisi chetga otiladi"
       }
+    },
+    "shape": {
+      "title": "Karta shakli",
+      "tall": "Vertikal",
+      "wide": "Gorizontal",
+      "saved": "Karta shakli saqlandi: {name}"
     }
   }
 }

@@ -24,6 +24,14 @@ def clean_style(value: str | None) -> str:
     return value if value in STYLES else STYLES[0]
 
 
+# the card shape of the home sliders (banners and directions): tall portrait cards or wide landscape ones
+SHAPES = ("tall", "wide")
+
+
+def clean_shape(value: str | None) -> str:
+    return value if value in SHAPES else SHAPES[0]
+
+
 def clean_seconds(value, default: int | None = None) -> int | None:
     """Seconds a slide stays, kept within 1–60; anything else gives the default."""
     try:

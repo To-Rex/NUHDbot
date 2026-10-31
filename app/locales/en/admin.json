@@ -1089,6 +1089,12 @@
         "pile": "Scattered pile",
         "pile_d": "Cards lie scattered on a table, the top one is tossed aside"
       }
+    },
+    "shape": {
+      "title": "Card shape",
+      "tall": "Tall",
+      "wide": "Wide",
+      "saved": "Card shape saved: {name}"
     }
   }
 }

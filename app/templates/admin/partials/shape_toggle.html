@@ -1,0 +1,6 @@
+{# card shape of a Mini App home slider (tall / wide): its own little form beside a look picker; a click saves it.
+   expects: action, current, shapes, csrf #}
+<form class="ds-shape" method="post" action="{{ action }}" role="radiogroup" aria-label="{{ t('admin.shape.title') }}"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <span class="ds-shape-label">{{ t('admin.shape.title') }}</span>
+  <span class="ds-shape-seg">{% for sh in shapes %}<label class="seg-opt"><input type="radio" name="shape" value="{{ sh }}" {{ 'checked' if current == sh }} onchange="this.form.requestSubmit()"><span><i class="shp shp-{{ sh }}" aria-hidden="true"></i>{{ t('admin.shape.' ~ sh) }}</span></label>{% endfor %}</span>
+</form>

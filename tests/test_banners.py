@@ -83,3 +83,9 @@ def test_slider_looks():
     """The slider animation picked on the Banners page: the Directions slider's looks, cover flow by default."""
     assert svc.STYLES == ("coverflow", "orbit", "stack", "fan", "cylinder", "spiral", "cascade", "pile")
     assert [svc.clean_style(v) for v in ("fan", "orbit", None, "", "parallax", "cube")] == ["fan", "orbit", "coverflow", "coverflow", "coverflow", "coverflow"]
+
+
+def test_card_shapes():
+    """The card shape of both home sliders: tall by default, wide on request, anything else falls back to tall."""
+    assert svc.SHAPES == ("tall", "wide")
+    assert [svc.clean_shape(v) for v in ("wide", "tall", None, "", "square")] == ["wide", "tall", "tall", "tall", "tall"]

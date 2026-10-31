@@ -44,7 +44,8 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
             "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db),
-            "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")), **(await _slider(db)),
+            "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
+            "dir_shape": banner_service.clean_shape(await get_setting(db, "dir_slider_shape")), **(await _slider(db)),
         },
     )
 
@@ -69,7 +70,8 @@ async def _slider(db) -> dict:
     singles = await discounts.price_drops(db, [b.product_id for b in banners if b.product_id and not banner_service.is_offer(b)])
     seconds = banner_service.clean_seconds(await get_setting(db, "slider_seconds"), banner_service.SECONDS_DEFAULT)
     style = banner_service.clean_style(await get_setting(db, "banner_slider_style"))
-    return {"banners": banners, "offers": offers, "single_drops": singles, "slider_seconds": seconds, "slider_style": style}
+    shape = banner_service.clean_shape(await get_setting(db, "banner_slider_shape"))
+    return {"banners": banners, "offers": offers, "single_drops": singles, "slider_seconds": seconds, "slider_style": style, "slider_shape": shape}
 
 
 @router.get("/offers/{bid}")

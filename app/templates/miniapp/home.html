@@ -21,7 +21,7 @@
   {% if directions %}
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.dirs_title') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
-    <div class="cf cf-{{ dir_style }}" data-coverflow data-style="{{ dir_style }}" aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
+    <div class="cf cf-{{ dir_style }}{{ ' cf-wide' if dir_shape == 'wide' }}" data-coverflow data-style="{{ dir_style }}" data-shape="{{ dir_shape }}" aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
       <div class="cf-stage" data-cf-stage>
         {% for d in directions %}
         <a class="cf-card c-{{ d.color }}" href="/app/catalog?dir={{ d.color }}" draggable="false" aria-roledescription="slide" aria-label="{{ t('home.dir_open', name=d.name) }}">
@@ -123,7 +123,7 @@
   var el = document.querySelector('[data-slider]'); if (!el || el._hs) return; el._hs = true;  /* a property: a page restored from history (back) starts fresh */
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
   var n = slides.length; if (n < 2) return;
-  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, wide = el.dataset.shape === 'wide';  /* landscape cards (Banners page → card shape) */
   var idx = 0, timer = null, hold = false, pos = 0, anim = null, drag = null, dragged = false, W = 0, H = 0;
   function delay(i) { return parseInt(slides[i].dataset.ms, 10) || 7000; }
   dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
@@ -135,7 +135,7 @@
     } },
     orbit: { step: 0.8, place: function (d) {  /* cards ride a ring seen from a little above: the far side is smaller, higher, darker */
       var th = d * 2 * Math.PI / n, c = Math.cos(th);
-      return { t: 'translate3d(' + Math.sin(th) * W * 0.95 + 'px,' + -(1 - c) * W * 0.3 + 'px,' + -(1 - c) * W * 1.1 + 'px)', dim: Math.min(0.5, (1 - c) * 0.3), op: 1 };
+      return { t: 'translate3d(' + Math.sin(th) * W * (wide ? 0.7 : 0.95) + 'px,' + -(1 - c) * (wide ? H * 0.5 : W * 0.3) + 'px,' + -(1 - c) * W * 1.1 + 'px)', dim: Math.min(0.5, (1 - c) * 0.3), op: 1 };
     } },
     stack: { step: 0.9, place: function (d, a) {  /* a deck: the front card is swiped aside (turning on its bottom edge), the next ones wait behind */
       if (d < 0) return { t: 'translate3d(' + d * W * 1.15 + 'px,' + a * 14 + 'px,0) translateY(' + H + 'px) rotate(' + d * 14 + 'deg) translateY(' + -H + 'px)', dim: 0, op: fade(a, 0.55, 1), z: 200 - Math.round(a * 10) };
@@ -242,6 +242,7 @@
      Drag to turn it, tap a side card to bring it forward, tap the front one to open it; it turns by itself
      every few seconds until touched. */
   var root = document.querySelector('[data-coverflow]'); if (!root || root._cf) return; root._cf = true;  /* a property, not an attribute: a page restored from history starts fresh */
+  var wide = root.dataset.shape === 'wide';  /* landscape cards (Series page → card shape) */
   var stage = root.querySelector('[data-cf-stage]'), cards = [].slice.call(stage.children), dots = [].slice.call(root.querySelectorAll('[data-cf-dots] button'));
   var n = cards.length; if (!n) return;
   var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -254,7 +255,7 @@
     } },
     orbit: { step: 0.8, place: function (d) {  /* cards ride a ring seen from a little above: the far side is smaller, higher, darker */
       var th = d * 2 * Math.PI / n, c = Math.cos(th);
-      return { t: 'translate3d(' + Math.sin(th) * W * 0.95 + 'px,' + -(1 - c) * W * 0.3 + 'px,' + -(1 - c) * W * 1.1 + 'px)', dim: Math.min(0.5, (1 - c) * 0.3), op: 1 };
+      return { t: 'translate3d(' + Math.sin(th) * W * (wide ? 0.7 : 0.95) + 'px,' + -(1 - c) * (wide ? H * 0.5 : W * 0.3) + 'px,' + -(1 - c) * W * 1.1 + 'px)', dim: Math.min(0.5, (1 - c) * 0.3), op: 1 };
     } },
     stack: { step: 0.9, place: function (d, a) {  /* a deck: the front card is swiped aside (turning on its bottom edge), the next ones wait behind */
       if (d < 0) return { t: 'translate3d(' + d * W * 1.15 + 'px,' + a * 14 + 'px,0) translateY(' + H + 'px) rotate(' + d * 14 + 'deg) translateY(' + -H + 'px)', dim: 0, op: fade(a, 0.55, 1), z: 200 - Math.round(a * 10) };

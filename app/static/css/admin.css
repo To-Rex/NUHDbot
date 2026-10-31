@@ -1197,3 +1197,13 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .dsv-pile .k3{transform:translate(5px,-3px) rotate(8deg);--dim:.12}.dsv-pile .k4{transform:translate(-6px,2px) rotate(-9deg);--dim:.22}
 .dsv-pile .k5{transform:translate(9px,4px) rotate(4deg);--dim:.3}
 .dsv-pile .k1{transform:translate(-64px,10px) rotate(-18deg);z-index:10}.dsv-pile .k0{opacity:0}
+
+/* card shape toggle beside a slider look picker (tall / wide); with "wide" the picker's mini cards turn landscape too */
+.ds-head{flex-wrap:wrap}
+.ds-shape{display:inline-flex;align-items:center;gap:10px;margin-left:auto}
+.ds-shape-label{font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.ds-shape-seg{display:inline-flex;gap:3px;padding:3px;border-radius:10px;background:var(--sunken);border:1px solid var(--hairline)}
+.ds-shape .seg-opt span{display:inline-flex;align-items:center;gap:7px;padding:0 12px}
+.shp{display:inline-block;border:1.6px solid currentColor;border-radius:3px}
+.shp-tall{width:9px;height:13px}.shp-wide{width:15px;height:9px}
+.ds-wide .dsv i{width:58px;height:38px;border-radius:7px}

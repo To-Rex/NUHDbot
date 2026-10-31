@@ -500,6 +500,18 @@ button.list-item{width:100%;text-align:left}
 .cf-stack .cf-card{transform-origin:50% 0}
 .cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
 .cf-fan .cf-stage{padding-top:22px;padding-bottom:54px}
+/* wide cards (Series page → card shape): the picture on the left, the text beside it */
+.cf-wide .cf-card{width:min(82vw,340px);flex-direction:row;align-items:stretch}
+.cf-wide .cf-pic{flex:0 0 40%;align-self:center}
+.cf-wide .cf-body{flex:1;padding:4px 4px 2px 12px}
+.cf-wide .cf-body b{font-size:20px}
+.cf-wide .cf-body small{min-height:0;-webkit-line-clamp:3}
+.cf-wide .cf-meta{margin-top:auto}
+.cf-wide.cf-orbit .cf-stage{padding-top:52px}
+.cf-wide.cf-orbit .cf-card{width:min(74vw,300px)}
+.cf-wide.cf-stack .cf-stage{padding-top:30px}
+.cf-wide.cf-fan .cf-card{transform-origin:50% 330%}
+.cf-wide.cf-fan .cf-stage{padding-top:14px;padding-bottom:44px}
 .dir-dot{display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bc);box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
 /* two or more banners turn like the Directions slider (home.html script): compact portrait cards in one grid cell, the
    picture framed on top, the neighbours turning away into depth (Banners page → Slider animation); --hs-dim darkens them */
@@ -533,6 +545,24 @@ button.list-item{width:100%;text-align:left}
 .hs-look-fan .hs-track{padding-top:26px;padding-bottom:58px;margin-bottom:-26px}
 .hs-look-fan .hs-slide{transform-origin:50% 175%}
 .hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+/* wide cards (Banners page → card shape): the picture framed on the left, the text beside it; a picture banner
+   keeps its picture across the whole card with the text on a dark glass panel */
+.hs-fx.hs-wide .hs-slide{width:min(84vw,340px);flex-direction:row;min-height:168px}
+.hs-fx.hs-wide .hs-media,.hs-fx.hs-wide .hs-art{width:40%;flex:0 0 40%;aspect-ratio:auto;align-self:stretch}
+.hs-fx.hs-wide .hs-stack>*{width:66%}
+.hs-fx.hs-wide .hs-stack>:nth-child(1){left:2%}.hs-fx.hs-wide .hs-stack>:nth-child(2){left:16%}.hs-fx.hs-wide .hs-stack>:nth-child(3){left:30%}
+.hs-fx.hs-wide .hs-body{padding:6px 4px 4px 12px}
+.hs-fx.hs-wide .hs-slide h2{font-size:18px;-webkit-line-clamp:3}
+.hs-fx.hs-wide .hs-badge{top:16px;left:16px}
+.hs-fx.hs-wide .hs-slide.has-img .hs-bg{position:absolute;inset:0;z-index:-1;width:100%;height:100%;aspect-ratio:auto;border-radius:0}
+.hs-fx.hs-wide .hs-slide.has-img .hs-body{flex:0 1 auto;align-self:flex-end;margin-right:auto;max-width:88%;padding:12px 14px;border-radius:16px;background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff}
+.hs-fx.hs-wide .hs-slide.has-img .hs-body{padding-right:54px}
+.hs-fx.hs-wide .hs-slide.has-img .hs-cta:not(:has([data-countdown])){right:12px;bottom:auto;top:50%;margin-top:-15px}
+.hs-fx.hs-wide.hs-look-orbit .hs-slide{width:min(76vw,310px)}
+.hs-fx.hs-wide.hs-look-fan .hs-slide{transform-origin:50% 330%}
+.hs-fx.hs-wide.hs-look-fan .hs-track{padding-top:16px;padding-bottom:46px}
+.hs-fx.hs-wide.hs-look-orbit .hs-track{padding-top:54px}
+.hs-fx.hs-wide.hs-look-stack .hs-track{padding-top:32px}
 .hs-look-spiral .hs-track{padding-top:44px;padding-bottom:40px;margin-bottom:-14px}
 .hs-look-cascade .hs-track{padding-top:30px}
 .hs-look-pile .hs-track{padding-top:26px;padding-bottom:34px;margin-bottom:-18px}
