@@ -1,52 +1,67 @@
 {% extends "admin/base.html" %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="{{ '/admin/auctions' if is_new else '/admin/auctions/' ~ a.id }}">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
-{% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{{ t('admin.required') }}: {{ errors|join(', ') }}{% if 'times' in errors %} — {{ t('admin.auc.invalid_times') }}{% endif %}</span></div>{% endif %}
-{% if is_new %}<form method="get" class="card row mb" style="padding:12px 16px"><label class="lbl">{{ t('admin.auc.from_product') }}</label><select class="select flex1" name="product_id" onchange="this.form.submit()"><option value="">—</option>{% for p in products %}<option value="{{ p.id }}" {{ 'selected' if a.product_id==p.id }}>{{ p.brand }} {{ p.model }} · {{ p.capacity_gb|capacity }} · {{ p.condition.value|upper }} · {{ p.price|money(p.currency) }} · {{ p.available }} pcs</option>{% endfor %}</select></form>{% endif %}
+{#- The lot is a catalogue product: its brand, model, capacity, condition, test, warranty, pictures and description come
+    from the product. Here: which product, how many drives, the price and the time. -#}
+{% set locked = a.bids_count and a.product_id %}{% set legacy = not is_new and not a.product_id %}
+{% macro lot_data(pr) %}data-title="{{ pr.brand }} {{ pr.model }}" data-cap="{{ pr.capacity_gb|capacity }}" data-cond="{{ pr.condition.value }}" data-test="{{ t('test.' ~ pr.test_status.value) }}" data-warranty="{{ pr.seller_warranty_months or 0 }}/{{ pr.factory_warranty_months or 0 }}" data-avail="{{ pr.available }}" data-price="{{ pr.price if pr.price is not none else '' }}" data-cur="{{ (pr.currency or 'USD')|upper }}" data-thumb="{{ pr.cover.thumb_url if pr.cover else '' }}" data-series="{{ pr.series or '' }}" data-color="{{ pr.color or '' }}"{% endmacro %}
+{% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{% if 'product' in errors %}{{ t('admin.auc.err_product') }}{% if errors|length > 1 %} · {% endif %}{% endif %}{% set rest = errors|reject('equalto', 'product')|list %}{% if rest %}{{ t('admin.required') }}: {{ rest|join(', ') }}{% endif %}{% if 'times' in errors %} — {{ t('admin.auc.invalid_times') }}{% endif %}</span></div>{% endif %}
 <div class="split">
-<form method="post" id="auction-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="product_id" value="{{ a.product_id or '' }}">
+<form method="post" id="auction-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection"><h2>{{ t('admin.auc.sec_lot') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.auc.help_lot') }}</span></div>
-    <div class="form-grid">
-      {% set brand_known = a.brand_id and (brands|selectattr('id','equalto',a.brand_id)|list|length > 0) %}
-      <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label>
-        <select class="select" name="brand_id" required onchange="var o=this.form.querySelector('[name=brand_other]');o.hidden=this.value!=='__other__';if(!o.hidden)o.focus();">
-          <option value="" disabled {{ 'selected' if not a.brand }}>{{ t('admin.brands.select_brand') }}</option>
-          {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if a.brand_id==b.id }}>{{ b.name }}</option>{% endfor %}
-          <option value="__other__" {{ 'selected' if a.brand and not brand_known }}>{{ t('admin.brands.other') }}</option>
-        </select>
-        <input class="input mt-sm" name="brand_other" value="{{ a.brand if (a.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not a.brand %}hidden{% endif %}></div>
-      <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label><input class="input mono" name="model" value="{{ a.model }}" required></div>
-      <div class="field"><label>{{ t('admin.prod.capacity') }} (GB)</label><input class="input mono" type="number" name="capacity_gb" value="{{ a.capacity_gb }}" min="1"></div>
-      <div class="field"><label>{{ t('admin.prod.condition') }}</label><select class="select" name="condition">{% for c in conditions %}<option value="{{ c.value }}" {{ 'selected' if a.condition==c }}>{{ c.value|upper }}</option>{% endfor %}</select></div>
-      <div class="field"><label>{{ t('admin.prod.test_status') }}</label><select class="select" name="test_status">{% for s in tests %}<option value="{{ s.value }}" {{ 'selected' if a.test_status==s }}>{{ t('test.' ~ s.value) }}</option>{% endfor %}</select></div>
-      <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
-      <div class="field"><label>{{ t('admin.prod.seller_warranty') }} ({{ t('common.months') }})</label><input class="input mono" type="number" name="seller_warranty_months" value="{{ a.seller_warranty_months }}" min="0"></div>
-      <div class="field"><label>{{ t('admin.prod.factory_warranty') }} ({{ t('common.months') }})</label><input class="input mono" type="number" name="factory_warranty_months" value="{{ a.factory_warranty_months }}" min="0"></div>
+    {% if legacy %}<div class="notice notice-warn mb">{{ icon('alert', 16) }}<span>{{ t('admin.auc.legacy', title=a.title ~ ' ' ~ (a.capacity_gb|capacity)) }}</span></div>{% endif %}
+    {% if locked %}
+    <input type="hidden" name="product_id" value="{{ a.product_id }}">
+    <div class="notice notice-plain mb">{{ icon('lock', 16) }}<span>{{ t('admin.auc.locked') }}</span></div>
+    {% if picked %}<span hidden data-lot-fixed {{ lot_data(picked) }}></span>{% endif %}
+    {% else %}
+    <div class="field"><label>{{ t('admin.auc.pick_product') }} {% if not legacy %}<span class="req">*</span>{% endif %}</label>
+      <div class="bn-picker auc-picker" data-auc-picker>
+        <div class="bn-picker-bar"><label class="search">{{ icon('search', 15) }}<input class="input" type="search" placeholder="{{ t('admin.auc.pick_search') }}" data-pick-q autocomplete="off"></label></div>
+        <div class="bn-picker-list">
+          {% for pr in products %}
+          <label class="bn-pick{{ ' is-out' if pr.available <= 0 }}" data-q="{{ (pr.brand ~ ' ' ~ pr.model ~ ' ' ~ (pr.series or '') ~ ' ' ~ (pr.capacity_gb|capacity))|lower }}">
+            <input type="radio" name="product_id" value="{{ pr.id }}" {{ 'checked' if a.product_id == pr.id }} {{ lot_data(pr) }}>
+            <span class="bn-pick-img">{% if pr.cover %}<img src="{{ pr.cover.thumb_url }}" alt="" loading="lazy">{% else %}{{ pr.capacity_gb|capacity }}{% endif %}</span>
+            <span class="bn-pick-name"><b>{% if pr.color %}<i class="sw sw-{{ pr.color }} auc-sw"></i>{% endif %}{{ pr.brand }} {{ pr.model }}</b><small>{{ pr.capacity_gb|capacity }} · {{ pr.condition.value|upper }}{% if pr.series %} · {{ pr.series }}{% endif %}</small></span>
+            <span class="bn-pick-price">{% if pr.price is not none %}<b>{{ cur_display(pr.price, pr.currency) }}</b>{% endif %}<span class="chip {{ 'chip-ok' if pr.available > 0 else 'chip-soft' }} auc-stock">{{ t('admin.auc.in_stock', n=pr.available) if pr.available > 0 else t('admin.auc.out_of_stock') }}</span></span>
+          </label>
+          {% endfor %}
+          <div class="bn-pick-none hint" data-pick-none hidden>{{ t('admin.nothing_found') }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="form-grid mt">
+      <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
+        <div class="row" style="gap:8px"><input class="input mono flex1" type="number" name="qty" value="{{ a.qty }}" min="1" required><button type="button" class="btn btn-secondary btn-sm" data-qty-all hidden></button></div>
+        <span class="hint" data-avail-hint data-tpl="{{ t('admin.auc.in_stock', n='{n}') }}" data-none="{{ t('admin.auc.out_of_stock') }}"></span></div>
     </div>
     <div class="stack mt">
-      {% with name='description', value=a.description, kind='textarea', label=t('admin.auc.description'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
       {% with name='rules', value=a.rules, kind='textarea', label=t('admin.auc.rules'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
     </div>
   </section>
   <section class="fsection"><h2>{{ t('admin.auc.sec_price') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.auc.help_price') }}</span></div>
     <div class="form-grid">
-      <div class="field"><label>{{ t('admin.auc.start_price') }} ({{ t('admin.auc.per_lot') }}) <span class="req">*</span></label><input class="input mono" name="start_price_total" value="{{ a.start_price_total }}" required></div>
-      <div class="field"><label>{{ t('admin.prod.currency') }}</label><input class="input mono" name="currency" value="{{ a.currency }}" maxlength="3"></div>
+      <div class="field"><label>{{ t('admin.auc.start_price') }} ({{ t('admin.auc.per_lot') }}, <span data-cur-label>{{ a.currency }}</span>) <span class="req">*</span></label><input class="input mono" name="start_price_total" value="{{ a.start_price_total }}" required>
+        <button type="button" class="link-btn mt-sm" data-price-fill data-tpl="{{ t('admin.auc.price_fill', price='{p}') }}" hidden></button></div>
       <div class="field"><label>{{ t('admin.auc.step_unit') }}</label><input class="input mono" name="step_per_unit" value="{{ a.step_per_unit }}"></div>
       <div class="field"><label>{{ t('admin.auc.deposit') }}</label><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}"><label class="check"><input type="checkbox" name="require_deposit" {{ 'checked' if a.require_deposit }}>{{ t('admin.auc.require_deposit') }}</label></div>
     </div>
   </section>
   <section class="fsection"><h2>{{ t('admin.auc.sec_time') }}</h2><div class="help">{{ icon('clock', 16) }}<span>{{ t('admin.auc.help_time', tz=tz) }}</span></div>
     <div class="form-grid">
-      <div class="field"><label>{{ t('admin.auc.starts_at') }}</label><input class="input" type="datetime-local" name="starts_at" value="{{ dt_local(a.starts_at) }}" required></div>
-      <div class="field"><label>{{ t('admin.auc.ends_at') }}</label><input class="input" type="datetime-local" name="ends_at" value="{{ dt_local(a.ends_at) }}" required></div>
+      <div class="field"><label>{{ t('admin.auc.starts_at') }}</label><input class="input" type="datetime-local" name="starts_at" value="{{ dt_local(a.starts_at) }}" required>
+        <div class="auc-chips"><button type="button" class="chip-btn" data-start-now>{{ t('admin.auc.now') }}</button></div></div>
+      <div class="field"><label>{{ t('admin.auc.ends_at') }}</label><input class="input" type="datetime-local" name="ends_at" value="{{ dt_local(a.ends_at) }}" required>
+        <div class="auc-chips">{% for h, key, n in [(1,'dur_h',1),(6,'dur_h',6),(24,'dur_d',1),(72,'dur_d',3),(168,'dur_d',7)] %}<button type="button" class="chip-btn" data-dur="{{ h }}">{{ t('admin.auc.' ~ key, n=n) }}</button>{% endfor %}</div></div>
     </div>
   </section>
 </form>
 <aside class="stack">
   <div class="card"><h2>{{ t('admin.auc.preview') }}</h2>
-    <div class="lot-card" id="lot-preview">
-      <div class="im">{% if a.cover_url %}<img src="{{ a.cover_url }}" alt="">{% else %}{{ icon('drive', 40) }}{% endif %}</div>
+    <div class="lot-card" id="lot-preview" data-title="{{ a.title if a.brand else '' }}" data-cap="{{ a.capacity_gb|capacity if a.capacity_gb else '' }}" data-cond="{{ a.condition.value }}" data-cur="{{ a.currency }}" data-none="{{ t('admin.auc.picked_none') }}">
+      <div class="im" data-p="img">{% if a.cover_url %}<img src="{{ a.cover_url }}" alt="">{% else %}{{ icon('drive', 40) }}{% endif %}</div>
       <div class="bd"><div class="row mb-sm"><span class="chip cond-{{ a.condition.value }}" data-p="cond">{{ a.condition.value|upper }}</span><span class="chip chip-soft" data-p="cap">{{ a.capacity_gb|capacity }}</span></div>
         <div class="row-main" data-p="title">{{ a.title }}</div>
         <div class="row-sub"><span data-p="qty">{{ a.qty }}</span> {{ t('common.pcs') }}</div>
@@ -60,4 +75,40 @@
 </aside>
 </div>
 <div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span><kbd>{{ t('admin.prod.save_shortcut') }}</kbd><button class="btn btn-primary" form="auction-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+<script>
+(function(){
+  /* lot picker: search the catalogue; the picked product's stock and price feed the "all" and "price × qty" shortcuts;
+     the end time can be set by a duration from the start */
+  var form = document.getElementById('auction-form'); if (!form) return;
+  var q = function (n) { return form.querySelector('[name="' + n + '"]'); };
+  var lot = function () { return form.querySelector('[name="product_id"]:checked') || form.querySelector('[data-lot-fixed]'); };
+  var pq = form.querySelector('[data-pick-q]');
+  if (pq) pq.addEventListener('input', function () {
+    var v = pq.value.trim().toLowerCase(), any = false;
+    form.querySelectorAll('[data-auc-picker] .bn-pick').forEach(function (row) { var hit = !v || row.dataset.q.indexOf(v) >= 0; row.hidden = !hit; if (hit) any = true; });
+    form.querySelector('[data-pick-none]').hidden = any;
+  });
+  var all = form.querySelector('[data-qty-all]'), hint = form.querySelector('[data-avail-hint]'), fill = form.querySelector('[data-price-fill]'), curLabel = form.querySelector('[data-cur-label]');
+  function money(n, cur) { return (Math.round(n * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + cur; }
+  function sync() {
+    var d = (lot() || {}).dataset || {}, avail = parseInt(d.avail || '', 10), qty = parseInt(q('qty').value || '0', 10) || 0, price = parseFloat(d.price || '');
+    if (d.cur) curLabel.textContent = d.cur;
+    if (hint) { hint.textContent = d.title ? (avail > 0 ? hint.dataset.tpl.replace('{n}', avail) : hint.dataset.none) : ''; hint.classList.toggle('bad', !!d.title && qty > avail); }
+    if (all) { all.hidden = !(avail > 0); all.textContent = '= ' + (avail || ''); }
+    if (fill) { fill.hidden = !(price > 0 && qty > 0); if (!fill.hidden) fill.textContent = fill.dataset.tpl.replace('{p}', money(price * qty, d.cur || '')); }
+  }
+  form.addEventListener('change', function (e) { if (e.target.name === 'product_id') { sync(); q('qty').dispatchEvent(new Event('input', { bubbles: true })); } });
+  q('qty').addEventListener('input', sync);
+  if (all) all.addEventListener('click', function () { var d = (lot() || {}).dataset || {}; q('qty').value = d.avail; q('qty').dispatchEvent(new Event('input', { bubbles: true })); });
+  if (fill) fill.addEventListener('click', function () { var d = (lot() || {}).dataset || {}, qty = parseInt(q('qty').value || '0', 10) || 0; q('start_price_total').value = (Math.round(parseFloat(d.price) * qty * 100) / 100).toFixed(2); q('start_price_total').dispatchEvent(new Event('input', { bubbles: true })); });
+  function local(d) { var z = function (n) { return String(n).padStart(2, '0'); }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + 'T' + z(d.getHours()) + ':' + z(d.getMinutes()); }
+  var st = q('starts_at'), en = q('ends_at');
+  form.querySelector('[data-start-now]').addEventListener('click', function () { st.value = local(new Date()); st.dispatchEvent(new Event('input', { bubbles: true })); });
+  form.querySelectorAll('[data-dur]').forEach(function (b) { b.addEventListener('click', function () {
+    var s = st.value ? new Date(st.value) : new Date(); en.value = local(new Date(s.getTime() + parseInt(b.dataset.dur, 10) * 3600000)); en.dispatchEvent(new Event('input', { bubbles: true }));
+  }); });
+  var picked = form.querySelector('[name="product_id"]:checked'); if (picked) picked.closest('.bn-pick').scrollIntoView({ block: 'nearest' });
+  sync();
+})();
+</script>
 {% endblock %}

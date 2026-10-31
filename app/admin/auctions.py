@@ -18,7 +18,6 @@ from app.admin.common import (
     f_dt,
     f_i18n,
     f_int,
-    f_str,
     nav_badges,
     render,
     staff_dep,
@@ -40,7 +39,6 @@ from app.models import (
 )
 from app.services import auctions as asvc
 from app.services import audit, media, notifications
-from app.services import brands as brand_service
 from app.services import orders as osvc
 from app.templating import capacity
 
@@ -60,46 +58,48 @@ def _ctx():
     return {"conditions": list(Condition), "tests": list(TestStatus), "tz": settings.timezone, "dt_local": dt_local}
 
 
-async def _brands_ctx(db, a=None) -> dict:
-    brands = await brand_service.list_brands(db, active_only=True)
-    if a is not None and getattr(a, "brand_id", None) and all(b.id != a.brand_id for b in brands):
-        own = await brand_service.get_brand(db, a.brand_id)
-        if own:
-            brands.append(own)
-    return {"brands": brands}
+async def _form_ctx(db, a: Auction) -> dict:
+    """The lot picker: active catalogue products, the ones in stock first (plus the lot's own product if it was hidden since)."""
+    rows = list((await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.brand, Product.model))).scalars().unique().all())
+    if a.product_id and all(p.id != a.product_id for p in rows) and (own := await db.get(Product, a.product_id)):
+        rows.insert(0, own)
+    rows.sort(key=lambda p: (p.available <= 0, p.brand.lower(), p.model.lower()))
+    return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None)}
+
+
+def _from_product(a: Auction, p: Product) -> None:
+    """The lot is a catalogue product: brand, model, capacity, condition, test, warranty, currency and description come from it."""
+    a.product_id = p.id
+    a.brand, a.brand_id, a.model, a.capacity_gb = p.brand, p.brand_id, p.model, p.capacity_gb
+    a.condition, a.test_status = p.condition, p.test_status
+    a.seller_warranty_months, a.factory_warranty_months = p.seller_warranty_months or 0, p.factory_warranty_months or 0
+    a.currency = (p.currency or "USD").upper()
+    a.description = p.description or {}
 
 
 @router.get("/auctions/new")
 async def auction_new(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
-    a = Auction(brand="", model="", capacity_gb=1000, condition=Condition.USED, qty=10, currency="USD", start_price_total=Decimal(0), step_per_unit=Decimal(1), current_price_total=Decimal(0), deposit_amount=Decimal(0), starts_at=datetime.now(UTC) + timedelta(hours=1), ends_at=datetime.now(UTC) + timedelta(days=1), timezone=settings.timezone)
-    pid = request.query_params.get("product_id")
-    if pid and pid.isdigit():
-        p = await db.get(Product, int(pid))
-        if p:
-            a.product_id, a.brand, a.model, a.capacity_gb, a.condition, a.test_status = p.id, p.brand, p.model, p.capacity_gb, p.condition, p.test_status
-            a.brand_id = p.brand_id
-            a.seller_warranty_months, a.factory_warranty_months, a.currency = p.seller_warranty_months, p.factory_warranty_months, p.currency
-            a.description = p.description
-            if p.price:
-                a.start_price_total = Decimal(p.price) * a.qty
-    products = (await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.brand, Product.model))).scalars().unique().all()
-    return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.new"), "a": a, "is_new": True, "products": products, **_ctx(), **(await _brands_ctx(db, a))})
+    a = Auction(brand="", model="", capacity_gb=0, condition=Condition.USED, qty=10, currency="USD", start_price_total=Decimal(0), step_per_unit=Decimal(1), current_price_total=Decimal(0), deposit_amount=Decimal(0), starts_at=datetime.now(UTC) + timedelta(hours=1), ends_at=datetime.now(UTC) + timedelta(days=1), timezone=settings.timezone)
+    pid = request.query_params.get("product_id")  # "New auction" on a product page
+    if pid and pid.isdigit() and (p := await db.get(Product, int(pid))):
+        _from_product(a, p)
+        a.qty = max(1, min(a.qty, p.available or a.qty))
+        if p.price:
+            a.start_price_total = Decimal(p.price) * a.qty
+    return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.new"), "a": a, "is_new": True, **_ctx(), **(await _form_ctx(db, a))})
 
 
 async def _apply(db, a: Auction, form) -> list[str]:
     errors = []
-    b = await brand_service.resolve_brand(db, form.get("brand_id"), f_str(form, "brand_other", maxlen=60) or f_str(form, "brand", maxlen=60))
-    brand_service.sync_product_brand(a, b, fallback_name="")
-    a.model = f_str(form, "model", maxlen=120)
-    if not a.brand or not a.model:
-        errors.append("brand/model")
-    a.capacity_gb = f_int(form, "capacity_gb", 0) or 0
-    a.condition = Condition(form.get("condition") or "used")
-    a.test_status = TestStatus(form.get("test_status") or "untested")
+    pid = f_int(form, "product_id", None)
+    p = await db.get(Product, pid) if pid else None
+    if a.bids_count and a.product_id:  # bids are on this product: it stays
+        p = await db.get(Product, a.product_id)
+    if p is not None:
+        _from_product(a, p)
+    elif not a.brand:  # a new lot needs a product; an old hand-made lot keeps its own details
+        errors.append("product")
     a.qty = max(1, f_int(form, "qty", 1) or 1)
-    a.seller_warranty_months = f_int(form, "seller_warranty_months", 0) or 0
-    a.factory_warranty_months = f_int(form, "factory_warranty_months", 0) or 0
-    a.currency = (f_str(form, "currency", "USD", 3) or "USD").upper()
     sp = f_dec(form, "start_price_total")
     if sp is None or sp <= 0:
         errors.append("start_price_total")
@@ -107,8 +107,6 @@ async def _apply(db, a: Auction, form) -> list[str]:
     a.step_per_unit = f_dec(form, "step_per_unit") or Decimal(1)
     a.deposit_amount = f_dec(form, "deposit_amount") or Decimal(0)
     a.require_deposit = f_bool(form, "require_deposit") and a.deposit_amount > 0
-    pid = f_int(form, "product_id", None)
-    a.product_id = pid or None
     starts, ends = f_dt(form, "starts_at"), f_dt(form, "ends_at")
     if not starts or not ends or ends <= starts:
         errors.append("times")
@@ -117,7 +115,6 @@ async def _apply(db, a: Auction, form) -> list[str]:
         if a.status in (AuctionStatus.DRAFT, AuctionStatus.SCHEDULED):
             a.original_ends_at = ends
     a.timezone = settings.timezone
-    a.description = f_i18n(form, "description")
     a.rules = f_i18n(form, "rules")
     if a.bids_count == 0:
         a.current_price_total = a.start_price_total
@@ -130,8 +127,7 @@ async def auction_create(request: Request, db: DB, staff: User = Depends(staff_d
     a = Auction(status=AuctionStatus.DRAFT, bids_count=0, current_price_total=Decimal(0))
     errors = await _apply(db, a, form)
     if errors:
-        products = (await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.brand, Product.model))).scalars().unique().all()
-        return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.new"), "a": a, "is_new": True, "errors": errors, "products": products, **_ctx(), **(await _brands_ctx(db, a))}, status_code=400)
+        return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.new"), "a": a, "is_new": True, "errors": errors, **_ctx(), **(await _form_ctx(db, a))}, status_code=400)
     a.original_ends_at = a.ends_at
     db.add(a)
     await db.flush()
@@ -166,8 +162,7 @@ async def auction_bids_partial(aid: int, request: Request, db: DB, staff: User =
 @router.get("/auctions/{aid}/edit")
 async def auction_edit(aid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
     a = await _get(db, aid)
-    products = (await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.brand, Product.model))).scalars().unique().all()
-    return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.edit"), "a": a, "is_new": False, "products": products, **_ctx(), **(await _brands_ctx(db, a))})
+    return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.edit"), "a": a, "is_new": False, **_ctx(), **(await _form_ctx(db, a))})
 
 
 @router.post("/auctions/{aid}/edit")
@@ -179,8 +174,7 @@ async def auction_update(aid: int, request: Request, db: DB, staff: User = Depen
     before = {"start": str(a.start_price_total), "ends_at": a.ends_at.isoformat(), "qty": a.qty}
     errors = await _apply(db, a, form)
     if errors:
-        products = (await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.brand, Product.model))).scalars().unique().all()
-        return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.edit"), "a": a, "is_new": False, "errors": errors, "products": products, **_ctx(), **(await _brands_ctx(db, a))}, status_code=400)
+        return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.edit"), "a": a, "is_new": False, "errors": errors, **_ctx(), **(await _form_ctx(db, a))}, status_code=400)
     a.version += 1
     await audit.log(db, staff.id, "auction.update", "auction", a.id, before, {"start": str(a.start_price_total), "ends_at": a.ends_at.isoformat(), "qty": a.qty})
     await db.commit()

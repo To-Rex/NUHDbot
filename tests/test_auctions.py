@@ -7,7 +7,7 @@ import pytest
 from app.enums import AuctionStatus
 from app.models import Auction
 from app.services import auctions
-from tests.conftest import make_auction, make_user
+from tests.conftest import make_auction, make_product, make_user
 
 
 async def test_first_bid_equals_start_then_step_enforced(db):
@@ -103,3 +103,27 @@ async def test_scheduled_auction_goes_live_on_tick(db):
     await db.commit()
     await db.refresh(a)
     assert a.status == AuctionStatus.LIVE
+
+
+async def test_lot_takes_its_details_from_the_product(db):
+    """Admin auction form: the lot is a catalogue product — brand, model, capacity, condition, warranty and currency come from it."""
+    from datetime import UTC, datetime, timedelta
+    from decimal import Decimal
+
+    from starlette.datastructures import FormData
+
+    from app.admin.auctions import _apply
+    from app.enums import AuctionStatus
+    from app.models import Auction
+
+    p = await make_product(db)
+    p.seller_warranty_months, p.factory_warranty_months, p.description = 6, 24, {"uz": "Sinovdan o'tgan"}
+    start = datetime.now(UTC).replace(second=0, microsecond=0) + timedelta(hours=1)
+    times = {"starts_at": start.strftime("%Y-%m-%dT%H:%M"), "ends_at": (start + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M")}
+    a = Auction(status=AuctionStatus.DRAFT, bids_count=0, brand="", model="", current_price_total=Decimal(0))
+    assert "product" in await _apply(db, a, FormData({"qty": "3", "start_price_total": "90", **times}))  # a new lot needs a product
+    errors = await _apply(db, a, FormData({"product_id": str(p.id), "qty": "3", "start_price_total": "90", "brand": "Ignored", **times}))
+    assert errors == []
+    assert (a.product_id, a.brand, a.model, a.capacity_gb, a.condition) == (p.id, p.brand, p.model, p.capacity_gb, p.condition)
+    assert (a.seller_warranty_months, a.factory_warranty_months, a.currency, a.description) == (6, 24, "USD", {"uz": "Sinovdan o'tgan"})
+    assert a.qty == 3 and a.start_price_total == Decimal("90") and a.current_price_total == Decimal("90")

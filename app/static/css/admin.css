@@ -1207,3 +1207,13 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .shp{display:inline-block;border:1.6px solid currentColor;border-radius:3px}
 .shp-tall{width:9px;height:13px}.shp-wide{width:15px;height:9px}
 .ds-wide .dsv i{width:58px;height:38px;border-radius:7px}
+
+/* auction form: the lot is picked from the catalogue (single choice in the banner picker's list), time shortcuts */
+.auc-picker .bn-picker-list{max-height:300px}
+.bn-pick.is-out{opacity:.62}
+.auc-sw{display:inline-block;width:9px;height:9px;margin-right:6px;vertical-align:1px}
+.auc-stock{font-size:11px;padding:2px 8px}
+.auc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip-btn{height:28px;padding:0 11px;border-radius:999px;border:1px solid var(--hairline);background:var(--surface);color:var(--ink-2);font-size:12px;font-weight:600;cursor:pointer;transition:background var(--t-fast),color var(--t-fast),border-color var(--t-fast)}
+.chip-btn:hover{border-color:var(--accent);color:var(--accent)}
+.hint.bad{color:var(--bad)}

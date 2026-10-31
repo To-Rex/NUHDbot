@@ -287,18 +287,22 @@
 
   // ---------- auction form live preview ----------
   const prev = document.getElementById('lot-preview');
-  if (prev) {
+  if (prev) {  // auction form: the lot card as the customer sees it — the picked product, its qty, price and step
     const q = (n) => document.querySelector('[name="' + n + '"]');
-    const fmt = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? '—' : '$' + n.toLocaleString('en-US', { maximumFractionDigits: 2 }); };
+    const lot = () => document.querySelector('[name="product_id"]:checked') || document.querySelector('[data-lot-fixed]');
+    const fmt = (v, cur) => { const n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? '—' : n.toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + cur; };
     const upd = () => {
+      const d = (lot() || {}).dataset || {}, cur = d.cur || prev.dataset.cur || '';
       const qty = parseInt(q('qty')?.value || '1', 10) || 1; const start = parseFloat((q('start_price_total')?.value || '0').replace(',', '.')) || 0; const step = parseFloat((q('step_per_unit')?.value || '0').replace(',', '.')) || 0;
       const set = (k, v) => { const el = prev.querySelector('[data-p="' + k + '"]'); if (el) el.textContent = v; };
-      set('title', ((q('brand')?.value || '') + ' ' + (q('model')?.value || '')).trim() || '—');
-      const cap = parseInt(q('capacity_gb')?.value || '0', 10); set('cap', cap >= 1000 ? (cap / 1000).toFixed(cap % 1000 ? 1 : 0) + 'TB' : cap + 'GB');
-      set('cond', (q('condition')?.value || '').toUpperCase()); const cc = prev.querySelector('[data-p="cond"]'); if (cc) cc.className = 'chip cond-' + (q('condition')?.value || 'used');
-      set('qty', qty); set('start', fmt(start)); set('unit', fmt(qty ? start / qty : 0)); set('step', fmt(step) + ' / pc  ·  ' + fmt(step * qty) + ' / lot');
+      set('title', d.title || prev.dataset.title || prev.dataset.none); set('cap', d.cap || prev.dataset.cap || '');
+      const cond = d.cond || prev.dataset.cond || 'used'; set('cond', cond.toUpperCase()); const cc = prev.querySelector('[data-p="cond"]'); if (cc) cc.className = 'chip cond-' + cond;
+      if (d.thumb !== undefined && lot()) { const im = prev.querySelector('[data-p="img"]'); if (im && d.thumb) im.innerHTML = '<img src="' + d.thumb + '" alt="">'; }
+      set('qty', qty); set('start', fmt(start, cur)); set('unit', fmt(qty ? start / qty : 0, cur)); set('step', fmt(step, cur) + ' / pc  ·  ' + fmt(step * qty, cur) + ' / lot');
     };
-    ['brand', 'model', 'capacity_gb', 'condition', 'qty', 'start_price_total', 'step_per_unit'].forEach((n) => q(n)?.addEventListener('input', upd)); upd();
+    ['qty', 'start_price_total', 'step_per_unit'].forEach((n) => q(n)?.addEventListener('input', upd));
+    document.addEventListener('change', (e) => { if (e.target.name === 'product_id') upd(); });
+    upd();
   }
 
   // ---------- auction live (SSE) ----------

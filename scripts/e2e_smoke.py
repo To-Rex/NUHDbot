@@ -263,8 +263,11 @@ ok("admin reopen thread", adm.post(f"/admin/support/{tid}/reopen").status_code =
 
 # ---------------------------------------------------------------- auction
 now = datetime.now()
-r = adm.post("/admin/auctions/new", data={"brand_id": "", "brand_other": "Seagate", "model": "E2E-LOT", "capacity_gb": "4000", "condition": "used", "test_status": "tested", "qty": "2", "currency": "USD", "start_price_total": "100", "step_per_unit": "1", "deposit_amount": "0", "product_id": "", "starts_at": (now - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M"), "ends_at": (now + timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M")})
-ok("admin creates auction", r.status_code == 303 and "/admin/auctions/" in r.headers.get("location", ""), f"{r.status_code} {r.text[:300]}")
+lot_times = {"starts_at": (now - timedelta(minutes=1)).strftime("%Y-%m-%dT%H:%M"), "ends_at": (now + timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M")}
+r = adm.post("/admin/auctions/new", data={"product_id": "", "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_amount": "0", **lot_times})
+ok("auction without a product is refused", r.status_code == 400, str(r.status_code))
+r = adm.post("/admin/auctions/new", data={"product_id": str(pid), "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_amount": "0", **lot_times})
+ok("admin creates auction from a product", r.status_code == 303 and "/admin/auctions/" in r.headers.get("location", ""), f"{r.status_code} {r.text[:300]}")
 aid = int(re.search(r"/auctions/(\d+)", r.headers.get("location", "/auctions/0")).group(1))
 ok("auction draft hidden from customers", cust.get(f"/app/auctions/{aid}").status_code == 404)
 r = cust.post(f"/app/auctions/{aid}/bid", data={"amount": ""}, headers={"HX-Request": "true"})
@@ -272,7 +275,7 @@ ok("bid on non-live auction gives friendly error", r.status_code in (200, 404) a
 r = adm.post(f"/admin/auctions/{aid}/action/start")
 ok("start auction", r.status_code == 303 and "flash_kind=ok" in r.headers.get("location", ""), r.headers.get("location"))
 r = cust.get(f"/app/auctions/{aid}")
-ok("customer sees live auction", r.status_code == 200 and "E2E-LOT" in r.text)
+ok("customer sees live auction", r.status_code == 200 and f"#{aid}" in r.text)
 r = cust.post(f"/app/auctions/{aid}/bid", data={"amount": ""}, headers={"HX-Request": "true"})
 ok("customer bids (min step)", r.status_code == 200 and "bidPlaced" in r.headers.get("HX-Trigger", ""), f"{r.status_code} {r.headers.get('HX-Trigger')}")
 r = cust.post(f"/app/auctions/{aid}/bid", data={"amount": "150"}, headers={"HX-Request": "true"})
