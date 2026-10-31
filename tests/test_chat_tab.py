@@ -4,23 +4,44 @@ from app.services import support
 from tests.conftest import make_user
 
 
-async def test_general_thread_and_unread_badge(db):
+async def test_one_conversation_per_customer(db):
+    """A customer talks to the admin in one conversation: an order question, a closed chat or a second "first" message
+    all continue it; the badge counts unseen admin replies."""
+    import pytest
+    from sqlalchemy.exc import IntegrityError
+
+    from app.models import SupportThread
+    from tests.conftest import make_product
+
     u, other = await make_user(db, 2001), await make_user(db, 2002)
-    assert await support.general_thread(db, u.id) is None  # before the first message the tab shows a greeting
-    assert await support.unread_total(db, u.id) == 0
+    assert await support.user_thread(db, u.id) is None  # before the first message the tab is empty
     th = await support.get_or_create_thread(db, u)
     await support.add_message(db, th, sender=None, from_staff=True, text="Salom!")
     await support.add_message(db, th, sender=None, from_staff=True, text="Qanday yordam kerak?")
-    assert (await support.general_thread(db, u.id)).id == th.id
     assert await support.unread_total(db, u.id) == 2 and await support.unread_total(db, other.id) == 0
     await support.mark_read(db, th, by_staff=False)
     assert await support.unread_total(db, u.id) == 0
-    # a closed conversation still opens in the tab; the customer's reply reopens it
+    # a closed conversation continues: the customer's message reopens it
     th.status = ThreadStatus.CLOSED
     await db.flush()
-    assert (await support.general_thread(db, u.id)).id == th.id
-    await support.add_message(db, th, sender=u, from_staff=False, text="Rahmat")
+    again = await support.get_or_create_thread(db, u)
+    assert again.id == th.id
+    await support.add_message(db, again, sender=u, from_staff=False, text="Rahmat")
     assert th.status == ThreadStatus.OPEN
+    # an order question is the same conversation, now marked with that order
+    p = await make_product(db)
+    from app.enums import OrderStatus
+    from app.models import Order
+    o = Order(number="NU-T-1", user_id=u.id, status=OrderStatus.AWAITING_ADVANCE, currency="USD", subtotal=p.price, total=p.price)
+    db.add(o)
+    await db.flush()
+    about = await support.get_or_create_thread(db, u, order_id=o.id)
+    assert about.id == th.id and about.order_id == o.id
+    # the database itself refuses a second conversation
+    with pytest.raises(IntegrityError):
+        async with db.begin_nested():
+            db.add(SupportThread(user_id=u.id))
+            await db.flush()
 
 
 async def test_bot_copy_only_for_unseen_replies(db):

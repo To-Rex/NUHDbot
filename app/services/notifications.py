@@ -73,4 +73,4 @@ async def notify_auction_result(db: AsyncSession, auction, participants: list[Us
 
 async def notify_support_reply(db: AsyncSession, user: User, thread_id: int, preview: str) -> None:
     text = t(user.lang, "notify.support_reply", preview=esc(preview[:200]))
-    await send(db, user, text, kind="support_reply", reply_markup=miniapp_button(t(user.lang, "notify.open_chat"), f"/app/support/{thread_id}"))
+    await send(db, user, text, kind="support_reply", reply_markup=miniapp_button(t(user.lang, "notify.open_chat"), "/app/chat"))

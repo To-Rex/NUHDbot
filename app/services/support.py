@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums import MessageKind, ThreadStatus
@@ -9,13 +10,19 @@ from app.services import chat_events
 
 
 async def get_or_create_thread(db: AsyncSession, user: User, order_id: int | None = None) -> SupportThread:
-    stmt = select(SupportThread).where(SupportThread.user_id == user.id, SupportThread.status == ThreadStatus.OPEN)
-    stmt = stmt.where(SupportThread.order_id == order_id) if order_id else stmt.where(SupportThread.order_id.is_(None))
-    th = (await db.execute(stmt.order_by(SupportThread.id.desc()))).scalars().first()
+    """The customer's one conversation with the admin (made with the first message, a closed one reopens when they write).
+    `order_id` only marks which order it is about now — it never starts a second conversation."""
+    th = await user_thread(db, user.id)
     if th is None:
-        th = SupportThread(user_id=user.id, order_id=order_id, last_message_at=datetime.now(UTC))
-        db.add(th)
-        await db.flush()
+        try:
+            async with db.begin_nested():  # two first messages at once: the unique index lets one in, the other reads it
+                th = SupportThread(user_id=user.id, order_id=order_id, last_message_at=datetime.now(UTC))
+                db.add(th)
+                await db.flush()
+        except IntegrityError:
+            th = await user_thread(db, user.id)
+    if order_id and th.order_id != order_id:
+        th.order_id = order_id
     return th
 
 
@@ -62,26 +69,15 @@ def thread_changed(db: AsyncSession, thread: SupportThread) -> None:
     chat_events.queue(db, {"type": "thread", "thread_id": thread.id})
 
 
-async def general_thread(db: AsyncSession, user_id: int) -> SupportThread | None:
-    """The customer's latest general (not order) conversation, open or closed — what the Chat tab shows; None before the first message."""
-    stmt = select(SupportThread).where(SupportThread.user_id == user_id, SupportThread.order_id.is_(None)).order_by(SupportThread.id.desc())
-    return (await db.execute(stmt)).scalars().first()
-
-
-async def chat_thread(db: AsyncSession, user: User) -> SupportThread:
-    """The conversation the Chat tab writes to: the latest general one (a closed one reopens with the message), or a new one."""
-    return await general_thread(db, user.id) or await get_or_create_thread(db, user)
+async def user_thread(db: AsyncSession, user_id: int) -> SupportThread | None:
+    """The customer's conversation with the admin — what the Chat tab shows; None before the first message."""
+    return (await db.execute(select(SupportThread).where(SupportThread.user_id == user_id))).scalars().first()
 
 
 async def unread_total(db: AsyncSession, user_id: int) -> int:
-    """Admin replies in the Chat tab's conversation the customer has not seen yet (its badge); order threads come with a bot link."""
-    stmt = select(func.coalesce(func.sum(SupportThread.unread_for_customer), 0)).where(SupportThread.user_id == user_id, SupportThread.order_id.is_(None))
+    """Admin replies the customer has not seen yet (the Chat tab badge)."""
+    stmt = select(func.coalesce(func.sum(SupportThread.unread_for_customer), 0)).where(SupportThread.user_id == user_id)
     return int((await db.execute(stmt)).scalar_one())
-
-
-async def user_threads(db: AsyncSession, user_id: int) -> list[SupportThread]:
-    stmt = select(SupportThread).where(SupportThread.user_id == user_id).order_by(SupportThread.last_message_at.desc().nulls_last())
-    return list((await db.execute(stmt)).scalars().unique().all())
 
 
 async def staff_threads(db: AsyncSession, status: ThreadStatus | None = ThreadStatus.OPEN, limit: int = 100) -> list[SupportThread]:

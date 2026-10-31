@@ -94,8 +94,8 @@ async def _load(db, oid: int) -> Order:
 async def order_detail(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ORDER_ROLES))):
     o = await _load(db, oid)
     prev_count = (await db.execute(select(func.count()).select_from(Order).where(Order.user_id == o.user_id, Order.id != o.id))).scalar_one()
-    # payments are agreed in chat, so the order page links straight to the conversation about this order
-    thread = (await db.execute(select(SupportThread).where(SupportThread.order_id == o.id).order_by(SupportThread.last_message_at.desc().nulls_last(), SupportThread.id.desc()).limit(1))).scalars().first()
+    # payments are agreed in chat, so the order page links straight to the customer's conversation (one per customer)
+    thread = (await db.execute(select(SupportThread).where(SupportThread.user_id == o.user_id))).scalars().first()
     chat_url = f"/admin/support/{thread.id}" if thread else f"/admin/support?user={o.user_id}"
     transitions = osvc.allowed_transitions(o, is_admin=staff.is_admin)
     due = (o.advance_amount if o.status in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE) else Decimal(o.total or 0)) - o.paid_amount

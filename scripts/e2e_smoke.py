@@ -129,7 +129,7 @@ if r.status_code == 200:
     ok("register submit", r2.status_code in (303, 204), f"{r2.status_code} {r2.text[:200]}")
 else:
     ok("already registered", r.status_code in (302, 303))
-pages = ["/app/home", "/app/catalog", "/app/catalog?q=seagate", "/app/catalog?cond=used&sort=price_asc", "/app/new", "/app/cart", "/app/orders", "/app/orders?tab=history", "/app/auctions", "/app/profile", "/app/profile/edit", "/app/profile/subscriptions", "/app/profile/auctions", "/app/support", "/app/support/new", "/app/info", "/app/cart/count"]
+pages = ["/app/home", "/app/catalog", "/app/catalog?q=seagate", "/app/catalog?cond=used&sort=price_asc", "/app/new", "/app/cart", "/app/orders", "/app/orders?tab=history", "/app/auctions", "/app/profile", "/app/profile/edit", "/app/profile/subscriptions", "/app/profile/auctions", "/app/chat", "/app/support/new", "/app/info", "/app/cart/count"]
 for p in pages:
     r = cust.get(p)
     ok(f"GET {p}", r.status_code in (200, 302, 303) and clean(r.text), str(r.status_code))
@@ -197,9 +197,12 @@ for gone in ("pay", "cancel", "confirm-tests"):
 buf = io.BytesIO()
 Image.new("RGB", (40, 40), (200, 200, 200)).save(buf, "PNG")
 r = cust.post("/app/support/new", data={"text": "chek", "order_id": str(oid)}, files={"attachment": ("chek.png", buf.getvalue(), "image/png")})
-ok("customer sends receipt photo in the order chat", r.status_code == 303 and "/app/support/" in r.headers.get("location", ""), f"{r.status_code} {r.headers.get('location')}")
-otid = int(re.search(r"/support/(\d+)", r.headers.get("location", "/support/0")).group(1))
-ok("order page now opens that chat", f"/app/support/{otid}" in cust.get(f"/app/orders/{oid}").text)
+ok("customer sends receipt photo in the order chat", r.status_code == 303 and r.headers.get("location", "").endswith("/app/chat"), f"{r.status_code} {r.headers.get('location')}")
+page = cust.get("/app/chat").text
+m = re.search(r'id="chat" data-thread="(\d+)"', page)
+otid = int(m.group(1)) if m else 0
+ok("the receipt lands in the one chat, the order named on top", otid > 0 and "[NU-" in page)
+ok("order page writes to that chat", f"/app/support/new?order_id={oid}" in cust.get(f"/app/orders/{oid}").text)
 ok("admin order page links to that chat", f"/admin/support/{otid}" in adm.get(f"/admin/orders/{oid}").text)
 # staff record the money they received
 def due_of(oid):
@@ -217,7 +220,7 @@ r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "test_ready"})
 ok("→ test_ready", status_of(oid) == "test_ready", status_of(oid))
 r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "awaiting_customer"})
 ok("→ awaiting_customer", status_of(oid) == "awaiting_customer", status_of(oid))
-ok("customer sees chat button while results are discussed", f"/app/support/{otid}" in cust.get(f"/app/orders/{oid}").text)
+ok("customer sees chat button while results are discussed", f"/app/support/new?order_id={oid}" in cust.get(f"/app/orders/{oid}").text)
 ok("admin sees 'customer agreed' action", 'value="awaiting_balance"' in adm.get(f"/admin/orders/{oid}").text)
 r = adm.post(f"/admin/orders/{oid}/status", data={"to_status": "awaiting_balance"})
 ok("customer agreed → awaiting_balance", status_of(oid) == "awaiting_balance", status_of(oid))

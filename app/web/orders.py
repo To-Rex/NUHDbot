@@ -1,10 +1,9 @@
 from fastapi import Depends, Request
-from sqlalchemy import select
 
 from app.deps import DB, Lang, redirect, require_registered, require_user
-from app.enums import OrderStatus, PaymentKind, ThreadStatus
+from app.enums import OrderStatus, PaymentKind
 from app.i18n import t
-from app.models import SupportThread, User
+from app.models import User
 from app.services.orders import OrderError, customer_confirm_offer, get_order_for_user, user_orders
 from app.services.settings_service import get_setting
 from app.templating import ORDER_STEPS, render
@@ -26,16 +25,8 @@ def _progress(order) -> tuple[int, int]:
 
 
 async def _chat_url(db, order, user: User) -> str:
-    """Payments are agreed in chat: open the conversation about this order, or start one."""
-    th = (
-        await db.execute(
-            select(SupportThread)
-            .where(SupportThread.user_id == user.id, SupportThread.order_id == order.id, SupportThread.status == ThreadStatus.OPEN)
-            .order_by(SupportThread.id.desc())
-            .limit(1)
-        )
-    ).scalars().first()
-    return f"/app/support/{th.id}" if th else f"/app/support/new?order_id={order.id}"
+    """Payments are agreed in chat: write about this order — it goes to the one conversation, the order number on top."""
+    return f"/app/support/new?order_id={order.id}"
 
 
 async def _detail_ctx(request, db, lang, order, user):

@@ -8,14 +8,7 @@ from app.models import Order, Product, SupportMessage, User
 from app.services import chat_events
 from app.services.media import ALLOWED_TYPES, MediaError, save_document
 from app.services.settings_service import get_setting
-from app.services.support import (
-    add_message,
-    chat_thread,
-    general_thread,
-    get_or_create_thread,
-    mark_read,
-    user_threads,
-)
+from app.services.support import add_message, get_or_create_thread, mark_read, user_thread
 from app.templating import render
 from app.web.common import hx_trigger, toast
 from app.web.router import router
@@ -30,8 +23,8 @@ async def _thread_for(db, thread_id: int, user: User):
 
 @router.get("/chat")
 async def chat_tab(request: Request, db: DB, lang: Lang, user: User = Depends(require_user)):
-    """The Chat tab: just the conversation with the admin and the message box — nothing to pick first."""
-    th = await general_thread(db, user.id)
+    """The Chat tab: the customer's one conversation with the admin and the message box — nothing to pick first."""
+    th = await user_thread(db, user.id)
     if th is not None:
         await mark_read(db, th, by_staff=False)
         await db.commit()
@@ -52,7 +45,7 @@ async def chat_send(request: Request, db: DB, lang: Lang, user: User = Depends(r
         att, kind = await _store_attachment(attachment)
     except MediaError:
         return toast(HTMLResponse("", status_code=422), t(lang, "support.errors.file"), "bad", "error")
-    th = await chat_thread(db, user)
+    th = await get_or_create_thread(db, user)
     msg = await add_message(db, th, sender=user, from_staff=False, text=text, kind=kind, attachment=att)
     await db.commit()
     await db.refresh(th, ["messages"])  # a thread made just now: the bubbles' read ticks look at its messages
@@ -61,9 +54,9 @@ async def chat_send(request: Request, db: DB, lang: Lang, user: User = Depends(r
 
 
 @router.get("/support")
-async def support_list(request: Request, db: DB, lang: Lang, user: User = Depends(require_user)):
-    threads = await user_threads(db, user.id)
-    return render(request, "miniapp/support_list.html", {"lang": lang, "threads": threads, "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time"), "page_title": t(lang, "support.title"), "back_url": "/app/chat"})
+async def support_list(request: Request, user: User = Depends(require_user)):
+    """There is one conversation with the admin: it lives in the Chat tab."""
+    return redirect(request, "/app/chat")
 
 
 @router.get("/support/new")
@@ -72,7 +65,7 @@ async def support_new(request: Request, db: DB, lang: Lang, user: User = Depends
     if order is not None and order.user_id != user.id:
         order = None
     product = await db.get(Product, product_id) if product_id else None
-    return render(request, "miniapp/support_new.html", {"lang": lang, "order": order, "product": product, "page_title": t(lang, "support.new"), "back_url": f"/app/products/{product.id}" if product else "/app/chat", "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time")})
+    return render(request, "miniapp/support_new.html", {"lang": lang, "order": order, "product": product, "page_title": t(lang, "support.new"), "back_url": f"/app/products/{product.id}" if product else (f"/app/orders/{order.id}" if order else "/app/chat"), "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time")})
 
 
 async def _store_attachment(file: UploadFile | None):
@@ -86,7 +79,12 @@ async def _store_attachment(file: UploadFile | None):
 @router.post("/support/new")
 async def support_create(request: Request, db: DB, lang: Lang, user: User = Depends(require_user), text: str = Form(""), order_id: int | None = Form(None), product_id: int | None = Form(None), attachment: UploadFile | None = File(None)):
     text = text.strip()
-    if product_id and not order_id:
+    order = await db.get(Order, order_id) if order_id else None
+    if order is not None and order.user_id != user.id:
+        order = None
+    if order is not None:  # the one conversation, with the order named at the top of the message
+        text = f"[{order.number}]\n{text}".strip()
+    elif product_id:
         p = await db.get(Product, product_id)
         if p is not None:
             text = f"[{p.brand} {p.model} {p.capacity_label} · #{p.id}]\n{text}".strip()
@@ -96,27 +94,16 @@ async def support_create(request: Request, db: DB, lang: Lang, user: User = Depe
         att, kind = await _store_attachment(attachment)
     except MediaError:
         return toast(redirect(request, "/app/support/new"), t(lang, "support.errors.file"), "bad", "error")
-    th = await get_or_create_thread(db, user, order_id) if order_id else await chat_thread(db, user)
-    if order_id and not th.subject:
-        o = await db.get(Order, order_id)
-        th.subject = o.number if o else None
+    th = await get_or_create_thread(db, user, order.id if order else None)
     await add_message(db, th, sender=user, from_staff=False, text=text, kind=kind, attachment=att)
     await db.commit()
-    back_to = f"/app/support/{th.id}" if order_id else "/app/chat"  # general questions live in the Chat tab
-    return hx_trigger(redirect(request, back_to), toast={"msg": t(lang, "support.sent"), "type": "ok"}, haptic="success")
+    return hx_trigger(redirect(request, "/app/chat"), toast={"msg": t(lang, "support.sent"), "type": "ok"}, haptic="success")
 
 
 @router.get("/support/{thread_id}")
-async def support_thread(thread_id: int, request: Request, db: DB, lang: Lang, user: User = Depends(require_user)):
-    th = await _thread_for(db, thread_id, user)
-    if th is None:
-        return redirect(request, "/app/support")
-    if th.order_id is None and (g := await general_thread(db, user.id)) is not None and g.id == th.id:
-        return redirect(request, "/app/chat")
-    await mark_read(db, th, by_staff=False)
-    await db.commit()
-    title = t(lang, "support.about_order", number=th.order.number) if th.order else t(lang, "support.general")
-    return render(request, "miniapp/support_thread.html", {"lang": lang, "th": th, "messages": th.messages, "page_title": title, "back_url": "/app/support", "hide_nav": True, "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time")})
+async def support_thread(thread_id: int, request: Request, user: User = Depends(require_user)):
+    """Old links (bot notifications) to a conversation: there is one, in the Chat tab."""
+    return redirect(request, "/app/chat")
 
 
 @router.get("/support/{thread_id}/stream")

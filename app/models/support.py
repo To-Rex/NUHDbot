@@ -12,8 +12,8 @@ class SupportThread(Base, TimestampMixin):
     __tablename__ = "support_threads"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
-    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True, unique=True)  # one conversation per customer
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("orders.id", ondelete="SET NULL"), index=True)  # the order it is about now
     subject: Mapped[str | None] = mapped_column(String(160))
     status: Mapped[ThreadStatus] = mapped_column(
         str_enum(ThreadStatus, 8), default=ThreadStatus.OPEN, index=True
