@@ -1,65 +1,122 @@
 {% extends "admin/base.html" %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="{{ '/admin/auctions' if is_new else '/admin/auctions/' ~ a.id }}">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
-{#- The lot is a catalogue product: its brand, model, capacity, condition, test, warranty, pictures and description come
-    from the product. Here: which product, how many drives, the price and the time. -#}
+{#- New / edit lot in three steps. 1: the catalogue product (brand, model, capacity, condition, test, warranty, pictures and
+    description come from it) — browsed by direction, condition, brand, capacity, stock, search and sort. 2: how many drives
+    and the price. 3: the time. On the right, the lot as the customer sees it and the numbers that matter. -#}
 {% set locked = a.bids_count and a.product_id %}{% set legacy = not is_new and not a.product_id %}
-{% macro lot_data(pr) %}data-title="{{ pr.brand }} {{ pr.model }}" data-cap="{{ pr.capacity_gb|capacity }}" data-cond="{{ pr.condition.value }}" data-test="{{ t('test.' ~ pr.test_status.value) }}" data-warranty="{{ pr.seller_warranty_months or 0 }}/{{ pr.factory_warranty_months or 0 }}" data-avail="{{ pr.available }}" data-price="{{ pr.price if pr.price is not none else '' }}" data-cur="{{ (pr.currency or 'USD')|upper }}" data-thumb="{{ pr.cover.thumb_url if pr.cover else '' }}" data-series="{{ pr.series or '' }}" data-color="{{ pr.color or '' }}"{% endmacro %}
+{% macro lot_data(pr) %}data-title="{{ pr.brand }} {{ pr.model }}" data-brand="{{ pr.brand }}" data-gb="{{ pr.capacity_gb }}" data-cap="{{ pr.capacity_gb|capacity }}" data-cond="{{ pr.condition.value }}" data-cond-label="{{ t('condition.' ~ pr.condition.value) }}" data-test="{{ t('test.' ~ pr.test_status.value) }}" data-avail="{{ pr.available }}" data-price="{{ pr.price if pr.price is not none else '' }}" data-price-text="{{ cur_display(pr.price, pr.currency) if pr.price is not none else '' }}" data-cur="{{ (pr.currency or 'USD')|upper }}" data-thumb="{{ pr.cover.thumb_url if pr.cover else '' }}" data-series="{{ pr.series or '' }}" data-color="{{ pr.color or '' }}" data-dir="{{ COLOR_DIRECTION[pr.color] if pr.color else '' }}" data-new="{{ pr.arrived_at.timestamp()|int if pr.arrived_at else 0 }}"{% endmacro %}
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{% if 'product' in errors %}{{ t('admin.auc.err_product') }}{% if errors|length > 1 %} · {% endif %}{% endif %}{% set rest = errors|reject('equalto', 'product')|list %}{% if rest %}{{ t('admin.required') }}: {{ rest|join(', ') }}{% endif %}{% if 'times' in errors %} — {{ t('admin.auc.invalid_times') }}{% endif %}</span></div>{% endif %}
-<div class="split">
-<form method="post" id="auction-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
-  <section class="fsection"><h2>{{ t('admin.auc.sec_lot') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.auc.help_lot') }}</span></div>
+<div class="auc-page">
+<form method="post" id="auction-form" class="auc-steps" data-track data-tz-offset="{{ tz_offset }}"><input type="hidden" name="_csrf" value="{{ csrf }}">
+
+  {# ---------------------------------------------------------------- 1. product #}
+  <section class="auc-step{{ ' is-picked' if picked }}" data-step-product>
+    <header class="auc-step-head"><span class="auc-step-num">{{ icon('check', 15) }}<i>1</i></span><div><h2>{{ t('admin.auc.step1_t') }}</h2><p>{{ t('admin.auc.help_lot') }}</p></div></header>
     {% if legacy %}<div class="notice notice-warn mb">{{ icon('alert', 16) }}<span>{{ t('admin.auc.legacy', title=a.title ~ ' ' ~ (a.capacity_gb|capacity)) }}</span></div>{% endif %}
+
+    {# the picked product, folded (the browser opens again with "Change") #}
+    <div class="ap-picked" data-picked>
+      <span class="ap-picked-img" data-pk="img">{% if picked and picked.cover %}<img src="{{ picked.cover.thumb_url }}" alt="">{% else %}{{ icon('drive', 26) }}{% endif %}</span>
+      <div class="ap-picked-info">
+        <small>{{ t('admin.auc.picked_label') }}</small>
+        <b data-pk="title">{{ picked.brand ~ ' ' ~ picked.model if picked else '' }}</b>
+        <span class="ap-picked-meta" data-pk="meta">{% if picked %}{{ picked.capacity_gb|capacity }} · {{ t('condition.' ~ picked.condition.value) }}{% if picked.series %} · {{ picked.series }}{% endif %}{% endif %}</span>
+      </div>
+      <div class="ap-picked-side"><b data-pk="price">{{ cur_display(picked.price, picked.currency) if picked and picked.price is not none else '' }}</b><span class="chip chip-ok" data-pk="stock">{% if picked %}{{ t('admin.auc.in_stock', n=picked.available) if picked.available > 0 else t('admin.auc.out_of_stock') }}{% endif %}</span></div>
+      {% if not locked %}<button type="button" class="btn btn-secondary btn-sm" data-change>{{ icon('refresh', 14) }}{{ t('admin.auc.change') }}</button>{% endif %}
+    </div>
+
     {% if locked %}
     <input type="hidden" name="product_id" value="{{ a.product_id }}">
-    <div class="notice notice-plain mb">{{ icon('lock', 16) }}<span>{{ t('admin.auc.locked') }}</span></div>
     {% if picked %}<span hidden data-lot-fixed {{ lot_data(picked) }}></span>{% endif %}
+    <p class="hint mt-sm row" style="gap:6px">{{ icon('lock', 13) }}{{ t('admin.auc.locked') }}</p>
     {% else %}
-    <div class="field"><label>{{ t('admin.auc.pick_product') }} {% if not legacy %}<span class="req">*</span>{% endif %}</label>
-      <div class="bn-picker auc-picker" data-auc-picker>
-        <div class="bn-picker-bar"><label class="search">{{ icon('search', 15) }}<input class="input" type="search" placeholder="{{ t('admin.auc.pick_search') }}" data-pick-q autocomplete="off"></label></div>
-        <div class="bn-picker-list">
-          {% for pr in products %}
-          <label class="bn-pick{{ ' is-out' if pr.available <= 0 }}" data-q="{{ (pr.brand ~ ' ' ~ pr.model ~ ' ' ~ (pr.series or '') ~ ' ' ~ (pr.capacity_gb|capacity))|lower }}">
-            <input type="radio" name="product_id" value="{{ pr.id }}" {{ 'checked' if a.product_id == pr.id }} {{ lot_data(pr) }}>
-            <span class="bn-pick-img">{% if pr.cover %}<img src="{{ pr.cover.thumb_url }}" alt="" loading="lazy">{% else %}{{ pr.capacity_gb|capacity }}{% endif %}</span>
-            <span class="bn-pick-name"><b>{% if pr.color %}<i class="sw sw-{{ pr.color }} auc-sw"></i>{% endif %}{{ pr.brand }} {{ pr.model }}</b><small>{{ pr.capacity_gb|capacity }} · {{ pr.condition.value|upper }}{% if pr.series %} · {{ pr.series }}{% endif %}</small></span>
-            <span class="bn-pick-price">{% if pr.price is not none %}<b>{{ cur_display(pr.price, pr.currency) }}</b>{% endif %}<span class="chip {{ 'chip-ok' if pr.available > 0 else 'chip-soft' }} auc-stock">{{ t('admin.auc.in_stock', n=pr.available) if pr.available > 0 else t('admin.auc.out_of_stock') }}</span></span>
-          </label>
-          {% endfor %}
-          <div class="bn-pick-none hint" data-pick-none hidden>{{ t('admin.nothing_found') }}</div>
-        </div>
+    <div class="ap" data-browser>
+      <div class="ap-tools">
+        <label class="ap-search">{{ icon('search', 16) }}<input class="input" type="search" placeholder="{{ t('admin.auc.pick_search') }}" data-f-q autocomplete="off"></label>
+        <label class="ap-sort">{{ icon('sliders', 15) }}<select class="select" data-f-sort aria-label="{{ t('admin.auc.sort') }}">
+          {% for k in ('stock', 'price_asc', 'price_desc', 'avail', 'new', 'name') %}<option value="{{ k }}">{{ t('admin.auc.sort_' ~ k) }}</option>{% endfor %}
+        </select></label>
+      </div>
+      {% set dirs = products|selectattr('color')|map(attribute='color')|unique|list %}
+      <div class="ap-dirs" role="group" aria-label="{{ t('admin.auc.f_dir') }}">
+        <button type="button" class="ap-dir on" data-f-dir="">{{ t('admin.auc.f_all') }}<b>{{ products|length }}</b></button>
+        {% for c in ('blue', 'purple', 'red', 'gold', 'silver', 'black') if c in dirs %}
+        <button type="button" class="ap-dir" data-f-dir="{{ c }}"><i class="sw sw-{{ c }}"></i>{{ COLOR_DIRECTION[c] }}<b>{{ products|selectattr('color', 'equalto', c)|list|length }}</b></button>
+        {% endfor %}
+      </div>
+      <div class="ap-filters">
+        <span class="seg ap-seg" role="group" aria-label="{{ t('admin.prod.condition') }}">
+          <button type="button" class="on" data-f-cond="">{{ t('admin.auc.f_all') }}</button>
+          {% for c in conditions %}<button type="button" data-f-cond="{{ c.value }}">{{ t('condition.' ~ c.value) }}</button>{% endfor %}
+        </span>
+        <select class="select ap-sel" data-f-brand aria-label="{{ t('admin.prod.brand') }}"><option value="">{{ t('admin.auc.f_brand') }}</option>{% for b in products|map(attribute='brand')|unique|sort %}<option>{{ b }}</option>{% endfor %}</select>
+        <select class="select ap-sel" data-f-cap aria-label="{{ t('admin.prod.capacity') }}"><option value="">{{ t('admin.auc.f_cap') }}</option>{% for g in products|map(attribute='capacity_gb')|unique|sort %}<option value="{{ g }}">{{ g|capacity }}</option>{% endfor %}</select>
+        <label class="ap-stock"><input type="checkbox" class="sr-only" data-f-stock><span class="switch"></span>{{ t('admin.auc.f_stock') }}</label>
+        <span class="ap-count" data-f-count data-tpl="{{ t('admin.auc.found', n='{n}') }}"></span>
+        <button type="button" class="link-btn" data-f-reset hidden>{{ t('admin.auc.f_reset') }}</button>
+      </div>
+      <div class="ap-grid" data-grid>
+        {% for pr in products %}
+        <label class="ap-card{{ ' is-out' if pr.available <= 0 }}" data-q="{{ (pr.brand ~ ' ' ~ pr.model ~ ' ' ~ (pr.series or '') ~ ' ' ~ (pr.capacity_gb|capacity) ~ ' ' ~ (COLOR_DIRECTION[pr.color] if pr.color else ''))|lower }}">
+          <input type="radio" name="product_id" value="{{ pr.id }}" {{ 'checked' if a.product_id == pr.id }} {{ lot_data(pr) }}>
+          <span class="ap-img">{% if pr.cover %}<img src="{{ pr.cover.thumb_url }}" alt="" loading="lazy">{% else %}<em>{{ pr.capacity_gb|capacity }}</em>{% endif %}
+            {% if pr.color %}<span class="ap-dirtag"><i class="sw sw-{{ pr.color }}"></i>{{ COLOR_DIRECTION[pr.color] }}</span>{% endif %}
+            <span class="ap-check">{{ icon('check', 13) }}</span></span>
+          <span class="ap-body">
+            <small class="ap-brand">{{ pr.brand }}{% if pr.series %} · {{ pr.series }}{% endif %}</small>
+            <b class="ap-model">{{ pr.model }}</b>
+            <span class="ap-chips"><span class="chip chip-soft">{{ pr.capacity_gb|capacity }}</span><span class="chip cond-{{ pr.condition.value }}">{{ t('condition.' ~ pr.condition.value) }}</span></span>
+            <span class="ap-foot"><b>{{ cur_display(pr.price, pr.currency) if pr.price is not none else '—' }}</b><span class="ap-stockv{{ ' out' if pr.available <= 0 }}">{{ t('admin.auc.in_stock', n=pr.available) if pr.available > 0 else t('admin.auc.out_of_stock') }}</span></span>
+          </span>
+        </label>
+        {% endfor %}
+        <div class="ap-empty" data-empty hidden>{{ icon('search', 22) }}<span>{{ t('admin.nothing_found') }}</span></div>
       </div>
     </div>
     {% endif %}
-    <div class="form-grid mt">
+  </section>
+
+  {# ---------------------------------------------------------------- 2. quantity and price #}
+  <section class="auc-step">
+    <header class="auc-step-head"><span class="auc-step-num"><i>2</i></span><div><h2>{{ t('admin.auc.step2_t') }}</h2><p>{{ t('admin.auc.help_price') }}</p></div></header>
+    <div class="auc-grid auc-grid-2">
       <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
-        <div class="row" style="gap:8px"><input class="input mono flex1" type="number" name="qty" value="{{ a.qty }}" min="1" required><button type="button" class="btn btn-secondary btn-sm" data-qty-all hidden></button></div>
-        <span class="hint" data-avail-hint data-tpl="{{ t('admin.auc.in_stock', n='{n}') }}" data-none="{{ t('admin.auc.out_of_stock') }}"></span></div>
-    </div>
-    <div class="stack mt">
-      {% with name='rules', value=a.rules, kind='textarea', label=t('admin.auc.rules'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
-    </div>
-  </section>
-  <section class="fsection"><h2>{{ t('admin.auc.sec_price') }}</h2><div class="help">{{ icon('info', 16) }}<span>{{ t('admin.auc.help_price') }}</span></div>
-    <div class="form-grid">
-      <div class="field"><label>{{ t('admin.auc.start_price') }} ({{ t('admin.auc.per_lot') }}, <span data-cur-label>{{ a.currency }}</span>) <span class="req">*</span></label><input class="input mono" name="start_price_total" value="{{ a.start_price_total }}" required>
-        <button type="button" class="link-btn mt-sm" data-price-fill data-tpl="{{ t('admin.auc.price_fill', price='{p}') }}" hidden></button></div>
-      <div class="field"><label>{{ t('admin.auc.step_unit') }}</label><input class="input mono" name="step_per_unit" value="{{ a.step_per_unit }}"></div>
-      <div class="field"><label>{{ t('admin.auc.deposit') }}</label><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}"><label class="check"><input type="checkbox" name="require_deposit" {{ 'checked' if a.require_deposit }}>{{ t('admin.auc.require_deposit') }}</label></div>
+        <div class="auc-qty"><button type="button" class="icon-btn" data-qty-step="-1" aria-label="−">{{ icon('minus', 16) }}</button><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required><button type="button" class="icon-btn" data-qty-step="1" aria-label="+">{{ icon('plus', 16) }}</button></div>
+        <div class="auc-under"><span class="hint" data-avail-hint data-tpl="{{ t('admin.auc.in_stock', n='{n}') }}" data-none="{{ t('admin.auc.out_of_stock') }}"></span><button type="button" class="chip-btn" data-qty-all hidden data-tpl="{{ t('admin.auc.qty_all', n='{n}') }}"></button></div></div>
+      <div class="field"><label>{{ t('admin.auc.start_price') }} <span class="req">*</span></label>
+        <div class="auc-money"><input class="input mono" name="start_price_total" value="{{ a.start_price_total }}" inputmode="decimal" required><span data-cur-label>{{ a.currency }}</span></div>
+        <div class="auc-under"><span class="hint" data-unit-hint data-tpl="{{ t('admin.auc.unit_price', p='{p}') }}"></span><button type="button" class="chip-btn" data-price-fill data-tpl="{{ t('admin.auc.price_fill', price='{p}') }}" hidden></button></div></div>
+      <div class="field"><label>{{ t('admin.auc.step_unit') }}</label>
+        <div class="auc-money"><input class="input mono" name="step_per_unit" value="{{ a.step_per_unit }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
+        <div class="auc-under"><span class="hint" data-step-hint data-tpl="{{ t('admin.auc.lot_step', p='{p}') }}"></span><span class="auc-chips">{% for v in ('0.5', '1', '2', '5') %}<button type="button" class="chip-btn" data-step-set="{{ v }}">{{ v }}</button>{% endfor %}</span></div></div>
+      <div class="field"><label>{{ t('admin.auc.deposit') }}</label>
+        <div class="auc-money"><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
+        <label class="auc-switch"><input type="checkbox" class="sr-only" name="require_deposit" {{ 'checked' if a.require_deposit }}><span class="switch"></span><span>{{ t('admin.auc.require_deposit') }}</span></label></div>
     </div>
   </section>
-  <section class="fsection"><h2>{{ t('admin.auc.sec_time') }}</h2><div class="help">{{ icon('clock', 16) }}<span>{{ t('admin.auc.help_time', tz=tz) }}</span></div>
-    <div class="form-grid">
+
+  {# ---------------------------------------------------------------- 3. time #}
+  <section class="auc-step">
+    <header class="auc-step-head"><span class="auc-step-num"><i>3</i></span><div><h2>{{ t('admin.auc.sec_time') }}</h2><p>{{ t('admin.auc.help_time', tz=tz) }}</p></div></header>
+    <div class="auc-grid auc-grid-2">
       <div class="field"><label>{{ t('admin.auc.starts_at') }}</label><input class="input" type="datetime-local" name="starts_at" value="{{ dt_local(a.starts_at) }}" required>
-        <div class="auc-chips"><button type="button" class="chip-btn" data-start-now>{{ t('admin.auc.now') }}</button></div></div>
+        <div class="auc-chips"><button type="button" class="chip-btn" data-start-now>{{ icon('bolt', 12) }}{{ t('admin.auc.now') }}</button></div></div>
       <div class="field"><label>{{ t('admin.auc.ends_at') }}</label><input class="input" type="datetime-local" name="ends_at" value="{{ dt_local(a.ends_at) }}" required>
         <div class="auc-chips">{% for h, key, n in [(1,'dur_h',1),(6,'dur_h',6),(24,'dur_d',1),(72,'dur_d',3),(168,'dur_d',7)] %}<button type="button" class="chip-btn" data-dur="{{ h }}">{{ t('admin.auc.' ~ key, n=n) }}</button>{% endfor %}</div></div>
     </div>
+    <div class="auc-duration" data-dur-out data-h="{{ t('admin.auc.dur_h', n='{n}') }}" data-d="{{ t('admin.auc.dur_d', n='{n}') }}" data-m="{{ t('admin.auc.dur_m', n='{n}') }}" data-bad="{{ t('admin.auc.invalid_times') }}">{{ icon('clock', 15) }}<span>{{ t('admin.auc.duration') }}:</span><b></b></div>
+    <details class="auc-more"{% if a.rules and a.rules.values()|select|list %} open{% endif %}><summary>{{ icon('book', 15) }}{{ t('admin.auc.rules_more') }}{{ icon('chevron-down', 15, 'chev') }}</summary>
+      <div class="mt">{% with name='rules', value=a.rules, kind='textarea', label=t('admin.auc.rules'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
+    </details>
   </section>
 </form>
-<aside class="stack">
-  <div class="card"><h2>{{ t('admin.auc.preview') }}</h2>
+
+{# ---------------------------------------------------------------- summary #}
+<aside class="auc-side">
+  <div class="card auc-sum">
+    <h2>{{ t('admin.auc.preview') }}</h2>
     <div class="lot-card" id="lot-preview" data-title="{{ a.title if a.brand else '' }}" data-cap="{{ a.capacity_gb|capacity if a.capacity_gb else '' }}" data-cond="{{ a.condition.value }}" data-cur="{{ a.currency }}" data-none="{{ t('admin.auc.picked_none') }}">
       <div class="im" data-p="img">{% if a.cover_url %}<img src="{{ a.cover_url }}" alt="">{% else %}{{ icon('drive', 40) }}{% endif %}</div>
       <div class="bd"><div class="row mb-sm"><span class="chip cond-{{ a.condition.value }}" data-p="cond">{{ a.condition.value|upper }}</span><span class="chip chip-soft" data-p="cap">{{ a.capacity_gb|capacity }}</span></div>
@@ -70,45 +127,140 @@
         <div class="row-sub mt-sm">{{ t('admin.auc.step_unit') }}: <span class="mono" data-p="step">{{ a.step_per_unit|money(a.currency) }} / pc · {{ a.step_total|money(a.currency) }} / lot</span></div>
       </div>
     </div>
-    <p class="hint mt">{{ t('admin.auc.preview_hint') }}</p>
+    <dl class="auc-facts">
+      <div><dt>{{ t('admin.auc.starts_at') }}</dt><dd data-s="start"></dd></div>
+      <div><dt>{{ t('admin.auc.ends_at') }}</dt><dd data-s="end"></dd></div>
+      <div><dt>{{ t('admin.auc.deposit') }}</dt><dd data-s="deposit" data-off="{{ t('admin.auc.no_deposit') }}"></dd></div>
+    </dl>
+    <button class="btn btn-primary btn-block" form="auction-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button>
+    <p class="hint">{{ t('admin.auc.preview_hint') }}</p>
   </div>
 </aside>
 </div>
 <div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span><kbd>{{ t('admin.prod.save_shortcut') }}</kbd><button class="btn btn-primary" form="auction-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
 <script>
 (function(){
-  /* lot picker: search the catalogue; the picked product's stock and price feed the "all" and "price × qty" shortcuts;
-     the end time can be set by a duration from the start */
   var form = document.getElementById('auction-form'); if (!form) return;
   var q = function (n) { return form.querySelector('[name="' + n + '"]'); };
   var lot = function () { return form.querySelector('[name="product_id"]:checked') || form.querySelector('[data-lot-fixed]'); };
-  var pq = form.querySelector('[data-pick-q]');
-  if (pq) pq.addEventListener('input', function () {
-    var v = pq.value.trim().toLowerCase(), any = false;
-    form.querySelectorAll('[data-auc-picker] .bn-pick').forEach(function (row) { var hit = !v || row.dataset.q.indexOf(v) >= 0; row.hidden = !hit; if (hit) any = true; });
-    form.querySelector('[data-pick-none]').hidden = any;
-  });
-  var all = form.querySelector('[data-qty-all]'), hint = form.querySelector('[data-avail-hint]'), fill = form.querySelector('[data-price-fill]'), curLabel = form.querySelector('[data-cur-label]');
-  function money(n, cur) { return (Math.round(n * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + cur; }
-  function sync() {
-    var d = (lot() || {}).dataset || {}, avail = parseInt(d.avail || '', 10), qty = parseInt(q('qty').value || '0', 10) || 0, price = parseFloat(d.price || '');
-    if (d.cur) curLabel.textContent = d.cur;
-    if (hint) { hint.textContent = d.title ? (avail > 0 ? hint.dataset.tpl.replace('{n}', avail) : hint.dataset.none) : ''; hint.classList.toggle('bad', !!d.title && qty > avail); }
-    if (all) { all.hidden = !(avail > 0); all.textContent = '= ' + (avail || ''); }
-    if (fill) { fill.hidden = !(price > 0 && qty > 0); if (!fill.hidden) fill.textContent = fill.dataset.tpl.replace('{p}', money(price * qty, d.cur || '')); }
+  var data = function () { return (lot() || {}).dataset || {}; };
+  var num = function (v) { var n = parseFloat(String(v || '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+  var money = function (n, cur) { return (Math.round(n * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 }) + ' ' + (cur || ''); };
+  var fire = function (el) { el.dispatchEvent(new Event('input', { bubbles: true })); };
+  var step1 = form.querySelector('[data-step-product]');
+
+  /* ---- 1. the product browser: direction, condition, brand, capacity, in stock, search; sort ---- */
+  var grid = form.querySelector('[data-grid]');
+  if (grid) {
+    var cards = [].slice.call(grid.querySelectorAll('.ap-card')), f = { q: '', dir: '', cond: '', brand: '', cap: '', stock: false, sort: 'stock' };
+    var count = form.querySelector('[data-f-count]'), reset = form.querySelector('[data-f-reset]');
+    var key = {
+      stock: function (d) { return [num(d.avail) > 0 ? 0 : 1, d.title.toLowerCase()]; },
+      price_asc: function (d) { return [d.price === '' ? 1 : 0, num(d.price)]; },
+      price_desc: function (d) { return [d.price === '' ? 1 : 0, -num(d.price)]; },
+      avail: function (d) { return [-num(d.avail), d.title.toLowerCase()]; },
+      new: function (d) { return [-num(d.new), d.title.toLowerCase()]; },
+      name: function (d) { return [d.title.toLowerCase()]; }
+    };
+    function cmp(x, y) { for (var i = 0; i < x.length; i++) { if (x[i] < y[i]) return -1; if (x[i] > y[i]) return 1; } return 0; }
+    function apply() {
+      var shown = 0;
+      cards.forEach(function (c) {
+        var d = c.querySelector('input').dataset;
+        var hit = (!f.q || c.dataset.q.indexOf(f.q) >= 0) && (!f.dir || d.color === f.dir) && (!f.cond || d.cond === f.cond) && (!f.brand || d.brand === f.brand) && (!f.cap || d.gb === f.cap) && (!f.stock || num(d.avail) > 0);
+        c.hidden = !hit; if (hit) shown++;
+      });
+      cards.slice().sort(function (a, b) { return cmp(key[f.sort](a.querySelector('input').dataset), key[f.sort](b.querySelector('input').dataset)); })
+        .forEach(function (c) { grid.insertBefore(c, grid.querySelector('[data-empty]')); });
+      grid.querySelector('[data-empty]').hidden = shown > 0;
+      count.textContent = count.dataset.tpl.replace('{n}', shown);
+      reset.hidden = !(f.q || f.dir || f.cond || f.brand || f.cap || f.stock);
+    }
+    function pressed(sel, attr, v) { form.querySelectorAll(sel).forEach(function (b) { b.classList.toggle('on', b.getAttribute(attr) === v); }); }
+    form.querySelector('[data-f-q]').addEventListener('input', function () { f.q = this.value.trim().toLowerCase(); apply(); });
+    form.querySelector('[data-f-sort]').addEventListener('change', function () { f.sort = this.value; apply(); });
+    form.querySelectorAll('[data-f-dir]').forEach(function (b) { b.addEventListener('click', function () { f.dir = b.dataset.fDir; pressed('[data-f-dir]', 'data-f-dir', f.dir); apply(); }); });
+    form.querySelectorAll('[data-f-cond]').forEach(function (b) { b.addEventListener('click', function () { f.cond = b.dataset.fCond; pressed('[data-f-cond]', 'data-f-cond', f.cond); apply(); }); });
+    form.querySelector('[data-f-brand]').addEventListener('change', function () { f.brand = this.value; apply(); });
+    form.querySelector('[data-f-cap]').addEventListener('change', function () { f.cap = this.value; apply(); });
+    form.querySelector('[data-f-stock]').addEventListener('change', function () { f.stock = this.checked; apply(); });
+    reset.addEventListener('click', function () {
+      f = { q: '', dir: '', cond: '', brand: '', cap: '', stock: false, sort: f.sort };
+      form.querySelector('[data-f-q]').value = ''; form.querySelector('[data-f-brand]').value = ''; form.querySelector('[data-f-cap]').value = ''; form.querySelector('[data-f-stock]').checked = false;
+      pressed('[data-f-dir]', 'data-f-dir', ''); pressed('[data-f-cond]', 'data-f-cond', ''); apply();
+    });
+    apply();
+    var ch = form.querySelector('[data-change]');
+    if (ch) ch.addEventListener('click', function () { step1.classList.remove('is-picked'); var c = form.querySelector('[name="product_id"]:checked'); if (c) c.closest('.ap-card').scrollIntoView({ block: 'nearest' }); });
   }
-  form.addEventListener('change', function (e) { if (e.target.name === 'product_id') { sync(); q('qty').dispatchEvent(new Event('input', { bubbles: true })); } });
-  q('qty').addEventListener('input', sync);
-  if (all) all.addEventListener('click', function () { var d = (lot() || {}).dataset || {}; q('qty').value = d.avail; q('qty').dispatchEvent(new Event('input', { bubbles: true })); });
-  if (fill) fill.addEventListener('click', function () { var d = (lot() || {}).dataset || {}, qty = parseInt(q('qty').value || '0', 10) || 0; q('start_price_total').value = (Math.round(parseFloat(d.price) * qty * 100) / 100).toFixed(2); q('start_price_total').dispatchEvent(new Event('input', { bubbles: true })); });
+
+  /* ---- the picked product: folded summary, its stock and price feed the shortcuts ---- */
+  var pk = function (k) { return form.querySelector('[data-pk="' + k + '"]'); };
+  function showPicked() {
+    var d = data(); if (!d.title) return;
+    pk('title').textContent = d.title;
+    pk('meta').textContent = [d.cap, d.condLabel, d.series].filter(Boolean).join(' · ');
+    pk('price').textContent = d.priceText || '';
+    var st = pk('stock'), av = num(d.avail); st.textContent = av > 0 ? (form.querySelector('[data-avail-hint]').dataset.tpl.replace('{n}', av)) : form.querySelector('[data-avail-hint]').dataset.none; st.className = 'chip ' + (av > 0 ? 'chip-ok' : 'chip-soft');
+    pk('img').innerHTML = d.thumb ? '<img src="' + d.thumb + '" alt="">' : pk('img').innerHTML;
+    form.querySelectorAll('[data-cur-label]').forEach(function (el) { el.textContent = d.cur; });
+  }
+  form.addEventListener('change', function (e) {
+    if (e.target.name !== 'product_id') return;
+    showPicked(); sync(); fire(q('qty'));
+    setTimeout(function () { step1.classList.add('is-picked'); q('qty').focus({ preventScroll: true }); step1.nextElementSibling.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 220);
+  });
+
+  /* ---- 2. quantity and price ---- */
+  var all = form.querySelector('[data-qty-all]'), fill = form.querySelector('[data-price-fill]');
+  function sync() {
+    var d = data(), av = parseInt(d.avail || '', 10), qty = parseInt(q('qty').value || '0', 10) || 0, price = num(d.price), cur = d.cur || q('qty').form.querySelector('[data-cur-label]').textContent;
+    var hint = form.querySelector('[data-avail-hint]');
+    hint.textContent = d.title ? (av > 0 ? hint.dataset.tpl.replace('{n}', av) : hint.dataset.none) : ''; hint.classList.toggle('bad', !!d.title && qty > av);
+    all.hidden = !(av > 0) || qty === av; all.textContent = all.dataset.tpl.replace('{n}', av || '');
+    fill.hidden = !(price > 0 && qty > 0) || Math.abs(num(q('start_price_total').value) - price * qty) < 0.005; fill.textContent = fill.dataset.tpl.replace('{p}', money(price * qty, cur));
+    var unit = form.querySelector('[data-unit-hint]'), sp = num(q('start_price_total').value); unit.textContent = qty && sp ? unit.dataset.tpl.replace('{p}', money(sp / qty, cur)) : '';
+    var sh = form.querySelector('[data-step-hint]'), stp = num(q('step_per_unit').value); sh.textContent = qty && stp ? sh.dataset.tpl.replace('{p}', money(stp * qty, cur)) : '';
+    form.querySelectorAll('[data-step-set]').forEach(function (b) { b.classList.toggle('on', num(b.dataset.stepSet) === stp); });
+    var dep = form.parentNode.querySelector('[data-s="deposit"]'), da = num(q('deposit_amount').value);
+    dep.textContent = q('require_deposit').checked && da > 0 ? money(da, cur) : dep.dataset.off;
+  }
+  ['qty', 'start_price_total', 'step_per_unit', 'deposit_amount'].forEach(function (n) { q(n).addEventListener('input', sync); });
+  q('require_deposit').addEventListener('change', sync);
+  form.querySelectorAll('[data-qty-step]').forEach(function (b) { b.addEventListener('click', function () { q('qty').value = Math.max(1, (parseInt(q('qty').value || '0', 10) || 0) + parseInt(b.dataset.qtyStep, 10)); fire(q('qty')); }); });
+  all.addEventListener('click', function () { q('qty').value = data().avail; fire(q('qty')); });
+  fill.addEventListener('click', function () { var qty = parseInt(q('qty').value || '0', 10) || 0; q('start_price_total').value = (Math.round(num(data().price) * qty * 100) / 100).toFixed(2); fire(q('start_price_total')); });
+  form.querySelectorAll('[data-step-set]').forEach(function (b) { b.addEventListener('click', function () { q('step_per_unit').value = b.dataset.stepSet; fire(q('step_per_unit')); }); });
+
+  /* ---- 3. time: now, durations, the length and the dates in the summary ---- */
+  var st = q('starts_at'), en = q('ends_at'), out = form.querySelector('[data-dur-out]');
   function local(d) { var z = function (n) { return String(n).padStart(2, '0'); }; return d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + 'T' + z(d.getHours()) + ':' + z(d.getMinutes()); }
-  var st = q('starts_at'), en = q('ends_at');
-  form.querySelector('[data-start-now]').addEventListener('click', function () { st.value = local(new Date()); st.dispatchEvent(new Event('input', { bubbles: true })); });
+  function shopNow() {  /* "now" on the shop's clock (the inputs are in its time zone, not the browser's) */
+    var d = new Date(Date.now() + parseInt(form.dataset.tzOffset || '0', 10) * 60000), z = function (n) { return String(n).padStart(2, '0'); };
+    return d.getUTCFullYear() + '-' + z(d.getUTCMonth() + 1) + '-' + z(d.getUTCDate()) + 'T' + z(d.getUTCHours()) + ':' + z(d.getUTCMinutes());
+  }
+  function nice(v) { if (!v) return '—'; var d = new Date(v); return d.toLocaleString(document.documentElement.lang || undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  function times() {
+    var s = st.value ? new Date(st.value) : null, e = en.value ? new Date(en.value) : null, b = out.querySelector('b');
+    var side = form.parentNode; side.querySelector('[data-s="start"]').textContent = nice(st.value); side.querySelector('[data-s="end"]').textContent = nice(en.value);
+    if (!s || !e) { b.textContent = '—'; return; }
+    var m = Math.round((e - s) / 60000); out.classList.toggle('bad', m <= 0);
+    if (m <= 0) { b.textContent = out.dataset.bad; return; }
+    var dd = Math.floor(m / 1440), hh = Math.floor(m % 1440 / 60), mm = m % 60, parts = [];
+    if (dd) parts.push(out.dataset.d.replace('{n}', dd)); if (hh) parts.push(out.dataset.h.replace('{n}', hh)); if (mm && !dd) parts.push(out.dataset.m.replace('{n}', mm));
+    b.textContent = parts.join(' ');
+    var hours = m / 60; form.querySelectorAll('[data-dur]').forEach(function (x) { x.classList.toggle('on', Math.abs(parseInt(x.dataset.dur, 10) - hours) < 0.02); });
+  }
+  [st, en].forEach(function (el) { el.addEventListener('input', times); el.addEventListener('change', times); });
+  form.querySelector('[data-start-now]').addEventListener('click', function () {
+    var s = st.value ? new Date(st.value) : null, e = en.value ? new Date(en.value) : null, len = s && e && e > s ? e - s : 0;
+    st.value = shopNow(); if (len) en.value = local(new Date(new Date(st.value).getTime() + len)); fire(st); fire(en);  /* keep the length */
+  });
   form.querySelectorAll('[data-dur]').forEach(function (b) { b.addEventListener('click', function () {
-    var s = st.value ? new Date(st.value) : new Date(); en.value = local(new Date(s.getTime() + parseInt(b.dataset.dur, 10) * 3600000)); en.dispatchEvent(new Event('input', { bubbles: true }));
+    var s = st.value ? new Date(st.value) : new Date(); en.value = local(new Date(s.getTime() + parseInt(b.dataset.dur, 10) * 3600000)); fire(en);
   }); });
-  var picked = form.querySelector('[name="product_id"]:checked'); if (picked) picked.closest('.bn-pick').scrollIntoView({ block: 'nearest' });
-  sync();
+
+  showPicked(); sync(); times();
 })();
 </script>
 {% endblock %}

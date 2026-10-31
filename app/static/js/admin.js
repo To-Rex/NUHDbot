@@ -296,6 +296,7 @@
       const qty = parseInt(q('qty')?.value || '1', 10) || 1; const start = parseFloat((q('start_price_total')?.value || '0').replace(',', '.')) || 0; const step = parseFloat((q('step_per_unit')?.value || '0').replace(',', '.')) || 0;
       const set = (k, v) => { const el = prev.querySelector('[data-p="' + k + '"]'); if (el) el.textContent = v; };
       set('title', d.title || prev.dataset.title || prev.dataset.none); set('cap', d.cap || prev.dataset.cap || '');
+      const capEl = prev.querySelector('[data-p="cap"]'); if (capEl) capEl.hidden = !(d.cap || prev.dataset.cap);
       const cond = d.cond || prev.dataset.cond || 'used'; set('cond', cond.toUpperCase()); const cc = prev.querySelector('[data-p="cond"]'); if (cc) cc.className = 'chip cond-' + cond;
       if (d.thumb !== undefined && lot()) { const im = prev.querySelector('[data-p="img"]'); if (im && d.thumb) im.innerHTML = '<img src="' + d.thumb + '" alt="">'; }
       set('qty', qty); set('start', fmt(start, cur)); set('unit', fmt(qty ? start / qty : 0, cur)); set('step', fmt(step, cur) + ' / pc  ·  ' + fmt(step * qty, cur) + ' / lot');

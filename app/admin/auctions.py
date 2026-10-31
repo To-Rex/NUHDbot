@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import select
@@ -55,7 +56,8 @@ async def auctions_list(request: Request, db: DB, staff: User = Depends(staff_de
 
 
 def _ctx():
-    return {"conditions": list(Condition), "tests": list(TestStatus), "tz": settings.timezone, "dt_local": dt_local}
+    offset = datetime.now(ZoneInfo(settings.timezone)).utcoffset()  # "Now" on the form: the inputs are in the shop's time zone
+    return {"conditions": list(Condition), "tests": list(TestStatus), "tz": settings.timezone, "tz_offset": int(offset.total_seconds() // 60) if offset else 0, "dt_local": dt_local}
 
 
 async def _form_ctx(db, a: Auction) -> dict:
@@ -79,7 +81,7 @@ def _from_product(a: Auction, p: Product) -> None:
 
 @router.get("/auctions/new")
 async def auction_new(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
-    a = Auction(brand="", model="", capacity_gb=0, condition=Condition.USED, qty=10, currency="USD", start_price_total=Decimal(0), step_per_unit=Decimal(1), current_price_total=Decimal(0), deposit_amount=Decimal(0), starts_at=datetime.now(UTC) + timedelta(hours=1), ends_at=datetime.now(UTC) + timedelta(days=1), timezone=settings.timezone)
+    a = Auction(brand="", model="", capacity_gb=0, condition=Condition.USED, qty=10, currency="USD", start_price_total=Decimal(0), step_per_unit=Decimal(1), current_price_total=Decimal(0), deposit_amount=Decimal(0), starts_at=(start := datetime.now(UTC).replace(second=0, microsecond=0) + timedelta(hours=1)), ends_at=start + timedelta(days=1), timezone=settings.timezone)
     pid = request.query_params.get("product_id")  # "New auction" on a product page
     if pid and pid.isdigit() and (p := await db.get(Product, int(pid))):
         _from_product(a, p)
