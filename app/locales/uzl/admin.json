@@ -771,7 +771,9 @@
       "tokens_ph": "Model nomini yozing va Enter bosing",
       "will_add": "Qo'shiladi: {n}",
       "series": "Seriya (yo'nalish)",
-      "series_hint": "Tanlangan seriya qo'shiladigan barcha modellarga yoziladi; ro'yxatda bor, lekin seriyasi bo'sh modellarga ham."
+      "series_hint": "Barcha qo'shiladigan modellarga yoziladi",
+      "no_series": "Seriyasiz",
+      "add_flow": "Brend → seriya → modellar"
     },
     "nav_edit": {
       "hint": "Bo'limni ushlab, kerakli joyga suring",
