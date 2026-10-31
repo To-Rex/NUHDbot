@@ -418,13 +418,6 @@
   },
   "chat": {
     "title": "Chat with the admin",
-    "sub": "Write your question — we answer right here",
-    "hello": "Hello! How can we help?",
-    "hello_text": "Choosing a drive, prices, an order or delivery — ask anything, the admin answers in this chat.",
-    "q1": "Help me choose a drive",
-    "q2": "I'd like to know price and stock",
-    "q3": "How long does delivery take?",
-    "others": "Order conversations",
-    "all": "All conversations"
+    "sub": "Write your question — we answer right here"
   }
 }

@@ -4,34 +4,23 @@
 {% block content %}
 <div class="page" style="padding-bottom:calc(var(--nav-h) + var(--nav-gap) + 90px)">
   {% block chat_head %}<p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>{% endblock %}
-  {% if th %}
-  <div class="chat" id="chat" data-thread="{{ th.id }}">
-    {% include "miniapp/partials/messages.html" %}
+  {# no conversation yet (the Chat tab before the first message): the first send goes to data-start, which starts it #}
+  <div class="chat" id="chat" data-thread="{{ th.id if th else '' }}"{% if not th %} data-start="/app/chat/send"{% endif %}>
+    {% if th %}{% include "miniapp/partials/messages.html" %}{% endif %}
   </div>
-  {% endif %}
 </div>
-{% if th %}
 <form class="chat-bar" id="chat-form" hx-boost="false" data-retry="{{ t('support.retry') }}" data-failed="{{ t('support.failed') }}">
   <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only">{{ icon('paperclip', 20) }}</label>
   <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
   <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}">{{ icon('send', 18) }}</button>
 </form>
-{% else %}{# no conversation yet (the Chat tab before the first message): a plain form starts it and comes back here #}
-<form class="chat-bar" id="chat-start" method="post" action="/app/support/new" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data">
-  <input type="hidden" name="to" value="chat">
-  <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only" onchange="if(this.files.length)this.form.requestSubmit()">{{ icon('paperclip', 20) }}</label>
-  <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
-  <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}">{{ icon('send', 18) }}</button>
-</form>
-{% endif %}
 {% endblock %}
 {% block scripts %}
-{% if th %}
 <script>
 (function(){
   /* live chat: the stream says "something changed", we fetch only messages newer than the last one on screen */
   var chat = document.getElementById('chat'), form = document.getElementById('chat-form'), ta = form.querySelector('textarea');
-  var base = '/app/support/' + chat.dataset.thread, es = null, busy = false, again = false;
+  var base = chat.dataset.thread ? '/app/support/' + chat.dataset.thread : '', es = null, busy = false, again = false;
   function lastId(){ var n = 0; chat.querySelectorAll('.msg[data-id]').forEach(function(m){ n = Math.max(n, Number(m.dataset.id)); }); return n; }
   function nearEnd(){ return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 160; }
   function toEnd(smooth){ window.scrollTo({top: document.documentElement.scrollHeight, behavior: smooth ? 'smooth' : 'auto'}); }
@@ -50,6 +39,7 @@
     return added;
   }
   function catchUp(){
+    if (!base) return;  // nothing to follow before the first message
     if (busy) { again = true; return; }
     busy = true; var stick = nearEnd();
     fetch(base + '/messages?after=' + lastId(), {credentials: 'same-origin', headers: {'HX-Request': 'true'}})
@@ -59,12 +49,14 @@
       .finally(function(){ busy = false; if (again) { again = false; catchUp(); } });
   }
   function read(){ chat.querySelectorAll('.msg.me .tick').forEach(function(t){ t.classList.add('read'); }); }
-  if (window.EventSource) {
+  function connect(){
+    if (!base || !window.EventSource || es) return;
     es = new EventSource(base + '/stream');
     es.addEventListener('ready', catchUp);  // first connect and every reconnect: pick up anything missed
     es.addEventListener('msg', catchUp);
     es.addEventListener('read', function(e){ try { if (JSON.parse(e.data).by === 'staff') read(); } catch (_) {} });
   }
+  connect();
   function onVisible(){ if (document.visibilityState === 'visible') catchUp(); }
   document.addEventListener('visibilitychange', onVisible);
   var safety = setInterval(catchUp, 30000);  // safety net if a proxy ever blocks the stream
@@ -91,8 +83,13 @@
   function pump(){
     if (sending || !jobs.length) return;
     sending = true; var job = jobs[0];
-    fetch(base + '/send', {method: 'POST', body: job.fd, credentials: 'same-origin', headers: {'HX-Request': 'true'}})
-      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.text(); })
+    fetch(base ? base + '/send' : chat.dataset.start, {method: 'POST', body: job.fd, credentials: 'same-origin', headers: {'HX-Request': 'true'}})
+      .then(function(r){
+        if (!r.ok) throw new Error(r.status);
+        var id = !base && r.headers.get('X-Thread');  // the first message started the conversation: follow it live from now on
+        if (id) { chat.dataset.thread = id; base = '/app/support/' + id; connect(); }
+        return r.text();
+      })
       .then(function(html){ jobs.shift(); job.b.remove(); insert(html); toEnd(true); })
       .catch(function(){
         jobs.shift(); job.b.classList.add('failed');
@@ -118,5 +115,4 @@
   });
 })();
 </script>
-{% endif %}
 {% endblock %}

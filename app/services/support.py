@@ -68,9 +68,14 @@ async def general_thread(db: AsyncSession, user_id: int) -> SupportThread | None
     return (await db.execute(stmt)).scalars().first()
 
 
+async def chat_thread(db: AsyncSession, user: User) -> SupportThread:
+    """The conversation the Chat tab writes to: the latest general one (a closed one reopens with the message), or a new one."""
+    return await general_thread(db, user.id) or await get_or_create_thread(db, user)
+
+
 async def unread_total(db: AsyncSession, user_id: int) -> int:
-    """Admin replies the customer has not seen yet, over all their conversations (the Chat tab badge)."""
-    stmt = select(func.coalesce(func.sum(SupportThread.unread_for_customer), 0)).where(SupportThread.user_id == user_id)
+    """Admin replies in the Chat tab's conversation the customer has not seen yet (its badge); order threads come with a bot link."""
+    stmt = select(func.coalesce(func.sum(SupportThread.unread_for_customer), 0)).where(SupportThread.user_id == user_id, SupportThread.order_id.is_(None))
     return int((await db.execute(stmt)).scalar_one())
 
 

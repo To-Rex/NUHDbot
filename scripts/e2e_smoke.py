@@ -246,9 +246,11 @@ ok("admin cancels order", status_of(oid2) == "cancelled", status_of(oid2))
 
 # ---------------------------------------------------------------- support
 r = cust.post("/app/support/new", data={"text": "Salom, e2e savol"})
-ok("customer opens support thread", r.status_code == 303 and "/app/support/" in r.headers.get("location", ""), str(r.status_code))
-tid = int(re.search(r"/support/(\d+)", r.headers.get("location", "/support/0")).group(1))
-ok("customer thread page", cust.get(f"/app/support/{tid}").status_code == 200)
+ok("customer writes to the admin (lands in the Chat tab)", r.status_code == 303 and r.headers.get("location", "").endswith("/app/chat"), str(r.status_code))
+page = cust.get("/app/chat")
+m = re.search(r'id="chat" data-thread="(\d+)"', page.text)
+tid = int(m.group(1)) if m else 0
+ok("customer chat tab shows the conversation", page.status_code == 200 and tid > 0 and "Salom, e2e savol" in page.text)
 r = cust.post(f"/app/support/{tid}/send", data={"text": "ikkinchi xabar"})
 ok("customer sends message", r.status_code == 200, str(r.status_code))
 r = adm.get(f"/admin/support/{tid}")
