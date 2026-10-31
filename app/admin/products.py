@@ -171,8 +171,11 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
     p.is_active = f_bool(form, "is_active")
     p.sale_allowed = f_bool(form, "sale_allowed")
     p.sort = f_int(form, "sort", 0) or 0
-    arrived = (form.get("arrived_at") or "").strip()
-    p.arrived_at = datetime.fromisoformat(arrived).replace(tzinfo=UTC) if arrived else None
+    if "arrived_at" in form:
+        arrived = (form.get("arrived_at") or "").strip()
+        p.arrived_at = datetime.fromisoformat(arrived).replace(tzinfo=UTC) if arrived else None
+    elif is_new:  # the "new" form has no date field: a fresh product arrives today (so it shows in New arrivals)
+        p.arrived_at = datetime.now(UTC)
     if not is_new and (old_price or 0) != (p.price or 0):
         db.add(PriceHistory(product_id=p.id, old_price=old_price, new_price=p.price, currency=p.currency, changed_by=staff.id))
         await audit.log(db, staff.id, "product.price", "product", p.id, {"price": str(old_price)}, {"price": str(p.price)})

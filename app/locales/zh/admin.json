@@ -223,7 +223,7 @@
       "sec_terms": "销售条件",
       "sec_terms_hint": "起订量、整箱、质保",
       "sec_tech": "参数与检测",
-      "sec_tech_hint": "接口、转速、用途、检测结果"
+      "sec_tech_hint": "系列、接口、用途、检测结果"
     },
     "ord": {
       "title": "订单",

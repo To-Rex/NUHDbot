@@ -778,3 +778,7 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .msg time .spinner{width:11px;height:11px;border-width:1.5px}
 .msg.failed{opacity:1;background:var(--bad-bg)!important;color:var(--bad)!important}
 .msg .retry{font:inherit;font-weight:700;text-decoration:underline;color:inherit}
+/* capacity field: no number spinners or list arrow (presets still pop up while typing) */
+#cap-value{-moz-appearance:textfield;appearance:textfield}
+#cap-value::-webkit-inner-spin-button,#cap-value::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#cap-value::-webkit-calendar-picker-indicator{display:none!important;opacity:0}

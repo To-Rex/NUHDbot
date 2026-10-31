@@ -78,12 +78,14 @@
       <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><input class="input mono" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="hint">{{ t('admin.prod.warranty_hint') }}</span></div>
     </div>
     <div class="notice notice-info mt" id="warranty-autofill" hidden>{{ icon('info', 18) }}<span>{{ t('admin.prod.warranty_autofill') }}</span></div>
+    {% if not is_new %}{# cost price, arrival date (defaults to today) and sort order: edit page only #}
     <div class="divider"></div>
     <div class="form-grid">
       {% if can_finance %}<div class="field"><label>{{ t('admin.prod.cost_price') }}</label><input class="input mono" name="cost_price" inputmode="decimal" value="{{ prod.cost_price if prod.cost_price is not none else '' }}" {{ dis }}></div>{% endif %}
       <div class="field"><label>{{ t('admin.prod.arrived_at') }}</label><input class="input" type="date" name="arrived_at" value="{{ prod.arrived_at.strftime('%Y-%m-%d') if prod.arrived_at else '' }}" {{ dis }}></div>
       <div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ prod.sort }}" {{ dis }}></div>
     </div>
+    {% endif %}
   </details>
 
   <details class="fsection" id="s-tech" {{ 'open' if errors or tester }}><summary data-n="{{ n_tech }}"><span class="ttl">{{ t('admin.prod.sec_tech') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_tech_hint') }}{% else %}{{ prod.interface.value }} · {{ prod.form_factor.value }}″{% if prod.rpm %} · {{ prod.rpm }} rpm{% endif %}{% if prod.series %} · {{ prod.series }}{% endif %} · {{ t('test.' ~ prod.test_status.value) }}{% endif %}</span></summary>
@@ -91,9 +93,10 @@
       <div class="field"><label>{{ t('admin.prod.series') }}</label>
         <input class="input" name="series" value="{{ prod.series or '' }}" placeholder="Purple, SkyHawk, Exos…" maxlength="60" {{ dis }}></div>
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
+      {% if is_new %}<input type="hidden" name="form_factor" value="{{ prod.form_factor.value if prod.form_factor else '3.5' }}"><input type="hidden" name="rpm" value="{{ prod.rpm or '' }}"><input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% else %}
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.cache') }}</label><input class="input mono" type="number" name="cache_mb" value="{{ prod.cache_mb or '' }}" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.cache') }}</label><input class="input mono" type="number" name="cache_mb" value="{{ prod.cache_mb or '' }}" {{ dis }}></div>{% endif %}
     </div>
     <div class="field mt"><label>{{ t('admin.prod.purposes') }}</label><div class="row">{% for u in purposes %}<label class="fchip {{ 'active' if u.value in prod.purposes }}"><input type="checkbox" name="purposes" value="{{ u.value }}" {{ 'checked' if u.value in prod.purposes }} {{ dis }} hidden onchange="this.parentElement.classList.toggle('active', this.checked)">{{ t('purpose.' ~ u.value) }}</label>{% endfor %}</div></div>
     <div class="divider"></div>
@@ -109,7 +112,7 @@
   <details class="fsection" id="s-texts"><summary data-n="{{ n_texts }}"><span class="ttl">{{ t('admin.prod.sec_texts') }}</span><span class="sub">{{ t('admin.prod.help_texts') }}</span></summary>
     <div class="stack mt">
       {% with name='description', value=prod.description, kind='textarea', label=t('admin.prod.description'), rows=4 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
-      {% with name='compatibility', value=prod.compatibility, kind='textarea', label=t('admin.prod.compatibility'), rows=2 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+      {% if not is_new %}{% with name='compatibility', value=prod.compatibility, kind='textarea', label=t('admin.prod.compatibility'), rows=2 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}{% endif %}
       {% with name='delivery_note', value=prod.delivery_note, kind='textarea', label=t('admin.prod.delivery_note'), rows=2 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
       <div class="field"><label>{{ t('admin.prod.specs') }}</label>
         <div id="specs">

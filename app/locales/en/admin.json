@@ -223,7 +223,7 @@
       "sec_terms": "Sales terms",
       "sec_terms_hint": "Minimum order, box, warranty",
       "sec_tech": "Specs and testing",
-      "sec_tech_hint": "Interface, speed, use, test results"
+      "sec_tech_hint": "Series, interface, use, test results"
     },
     "ord": {
       "title": "Orders",
