@@ -32,6 +32,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "direction_images": {"v": {}, "d": "Series page: a picture per catalogue direction {colour: {filename, thumb}}"},
     "dir_slider_style": {"v": "coverflow", "d": "Mini App home: how the directions slider moves (coverflow | orbit | stack | fan)"},
     "slider_seconds": {"v": 7, "d": "Mini App home slider: seconds a slide stays (banners can set their own)"},
+    "banner_slider_style": {"v": "parallax", "d": "Mini App home slider: how the banners change (parallax | cube | flip | stack | fade | peek)"},
     "capacity_presets": {"v": [500, 1000, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000], "d": "Capacity chips (GB) shown in catalogue filters and product form"},
 }
 

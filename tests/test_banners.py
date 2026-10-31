@@ -76,3 +76,9 @@ def test_slide_seconds_stay_in_range():
     assert svc.SECONDS_MIN == 1 and svc.clean_seconds("1") == 1  # one second is allowed
     assert svc.clean_seconds("0") == svc.SECONDS_MIN and svc.clean_seconds("-5") == svc.SECONDS_MIN and svc.clean_seconds("999") == svc.SECONDS_MAX
     assert svc.clean_seconds("", 7) == 7 and svc.clean_seconds(None) is None and svc.clean_seconds("abc", 7) == 7
+
+
+def test_slider_looks():
+    """The slider look picked on the Banners page: parallax by default, anything unknown falls back to it."""
+    assert svc.STYLES == ("parallax", "cube", "flip", "stack", "fade", "peek")
+    assert [svc.clean_style(v) for v in ("cube", "peek", "fade", None, "", "spin")] == ["cube", "peek", "fade", "parallax", "parallax", "parallax"]

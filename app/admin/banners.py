@@ -83,6 +83,7 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "page_title": t(staff.lang, "admin.ban.title"), "rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": offers,
         "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
         "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
+        "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
     })
 
 
@@ -95,6 +96,17 @@ async def banners_settings(request: Request, db: DB, staff: User = Depends(staff
     await audit.log(db, staff.id, "settings.update", "settings", None, {"slider_seconds": before}, {"slider_seconds": n})
     await db.commit()
     return back(request, "/admin/banners", t(staff.lang, "admin.ban.seconds_saved", n=n))
+
+
+@router.post("/banners/style")
+async def banners_style(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """How the home slider moves: parallax swipe, cube, flip, card stack, cinema fade or panorama."""
+    before = await get_setting(db, "banner_slider_style")
+    style = svc.clean_style((await request.form()).get("style"))
+    await set_setting(db, "banner_slider_style", style)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"banner_slider_style": before}, {"banner_slider_style": style})
+    await db.commit()
+    return back(request, "/admin/banners", t(staff.lang, "admin.ban.style_saved", name=t(staff.lang, "admin.ban.style." + style)))
 
 
 @router.get("/banners/new")

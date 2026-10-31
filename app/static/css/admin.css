@@ -1182,3 +1182,26 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .dsv-fan .k1{transform:translateY(6px) rotate(-14deg) scale(.95);--dim:.2}.dsv-fan .k3{transform:translateY(6px) rotate(14deg) scale(.95);--dim:.2}
 .dsv-fan .k0{transform:translateY(6px) rotate(-28deg) scale(.9);--dim:.4}.dsv-fan .k4{transform:translateY(6px) rotate(28deg) scale(.9);--dim:.4}
 .dsv-fan .k5{opacity:0}
+
+/* Banners page: how the home slider changes slides. Mini banners k0…k3 = the one before, the one in front, the next two */
+.ds-opts-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.ds-opts-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.ds-opts-3{grid-template-columns:minmax(0,1fr)}}
+.bsv{perspective:420px}
+.bsv i{width:92px;height:52px;border-radius:10px;background:var(--bc);opacity:0}
+.bsv i::before{content:"";position:absolute;left:10px;top:12px;width:38px;height:6px;border-radius:3px;background:rgba(255,255,255,.85);box-shadow:0 11px 0 -1px rgba(255,255,255,.5)}
+.bsv .k1{opacity:1;z-index:9}.bsv .k2{z-index:8}.bsv .k3{z-index:7}.bsv .k0{z-index:10}
+.bsv-parallax .k1{transform:translateX(-52px) rotateY(9deg) scale(.94);--dim:.12}
+.bsv-parallax .k2{opacity:1;transform:translateX(52px) rotateY(-9deg) scale(.94);--dim:.12}
+.bsv-cube .k1{transform:translateX(-4px) translateZ(-46px) rotateY(-40deg) translateZ(46px) scale(.9)}
+.bsv-cube .k2{opacity:1;transform:translateX(-4px) translateZ(-46px) rotateY(50deg) translateZ(46px) scale(.9);--dim:.25}
+.bsv-cube i{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.bsv-flip .k1{transform:rotateY(-58deg) scale(.94);--dim:.15}
+.bsv-stack i{transform-origin:50% 100%}
+.bsv-stack .k1{transform:translateY(-8px)}
+.bsv-stack .k2{opacity:1;transform:translateY(0) scale(.9);--dim:.15}.bsv-stack .k3{opacity:1;transform:translateY(8px) scale(.8);--dim:.3}
+.bsv-stack .k0{opacity:1;transform:translate(-64px,-10px) rotate(-12deg)}
+.bsv-fade .k1{opacity:.6;transform:translateX(-10px) scale(1.05)}
+.bsv-fade .k2{opacity:.75;transform:translateX(10px)}
+.bsv-peek i{width:70px}
+.bsv-peek .k0{opacity:1;transform:translateX(-78px) scale(.88);--dim:.3}.bsv-peek .k2{opacity:1;transform:translateX(78px) scale(.88);--dim:.3}

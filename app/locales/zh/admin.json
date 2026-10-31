@@ -1067,7 +1067,24 @@
       "f_seconds_common": "所有横幅的幻灯片时长相同——{n} 秒。",
       "f_seconds_where": "在“横幅”页面修改",
       "sec_short": "{n} 秒",
-      "sec_other": "其他"
+      "sec_other": "其他",
+      "style_title": "滑块样式",
+      "style_hint": "首页横幅的切换方式——选择一种，立即保存。",
+      "style_saved": "滑块样式已保存：{name}",
+      "style": {
+        "parallax": "视差",
+        "parallax_d": "滑动时幻灯片微微向纵深转动，文字和图片以不同速度移动",
+        "cube": "3D 立方体",
+        "cube_d": "横幅像立方体的面一样旋转切换",
+        "flip": "翻转",
+        "flip_d": "横幅像硬币一样翻转，背面露出下一张",
+        "stack": "卡片堆叠",
+        "stack_d": "横幅叠放，滑开最上面一张",
+        "fade": "电影",
+        "fade_d": "横幅柔和溶解并轻微放大",
+        "peek": "全景",
+        "peek_d": "相邻横幅从两侧露出"
+      }
     }
   }
 }

@@ -1067,7 +1067,24 @@
       "f_seconds_common": "The slide time is the same for every banner — {n} s.",
       "f_seconds_where": "Change it on the Banners page",
       "sec_short": "{n} s",
-      "sec_other": "Other"
+      "sec_other": "Other",
+      "style_title": "Slider look",
+      "style_hint": "How the banners change on the home page — pick one, it is saved right away.",
+      "style_saved": "Slider look saved: {name}",
+      "style": {
+        "parallax": "Parallax",
+        "parallax_d": "The moving slide turns slightly into depth, text and picture slide at different speeds",
+        "cube": "3D cube",
+        "cube_d": "Banners change by turning like the faces of a cube",
+        "flip": "Flip",
+        "flip_d": "The banner flips like a coin and shows the next one on its back",
+        "stack": "Card stack",
+        "stack_d": "Banners lie in a stack; the top one is swiped aside",
+        "fade": "Cinema",
+        "fade_d": "Banners dissolve softly with a gentle zoom",
+        "peek": "Panorama",
+        "peek_d": "The neighbouring banners peek in at the edges"
+      }
     }
   }
 }

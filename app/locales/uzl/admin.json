@@ -1067,7 +1067,24 @@
       "f_seconds_common": "Slayd vaqti barcha bannerlar uchun bir xil — {n} soniya.",
       "f_seconds_where": "Bannerlar sahifasida o'zgartiriladi",
       "sec_short": "{n} s",
-      "sec_other": "Boshqa"
+      "sec_other": "Boshqa",
+      "style_title": "Slayder ko'rinishi",
+      "style_hint": "Bosh sahifadagi bannerlar qanday almashadi — birini tanlang, darhol saqlanadi.",
+      "style_saved": "Slayder ko'rinishi saqlandi: {name}",
+      "style": {
+        "parallax": "Parallaks",
+        "parallax_d": "Surilganda chuqurlikka biroz buriladi, matn va rasm har xil tezlikda suriladi",
+        "cube": "3D kub",
+        "cube_d": "Bannerlar kub yoqlaridek aylanib almashadi",
+        "flip": "Varaqlash",
+        "flip_d": "Banner tanga kabi aylanib, orqasidan keyingisi chiqadi",
+        "stack": "Kartalar to'plami",
+        "stack_d": "Bannerlar ustma-ust, oldingisi chetga surib tashlanadi",
+        "fade": "Kino",
+        "fade_d": "Bannerlar yumshoq eriydi va biroz yaqinlashadi",
+        "peek": "Panorama",
+        "peek_d": "Yonidagi bannerlar chetlardan ko'rinib turadi"
+      }
     }
   }
 }

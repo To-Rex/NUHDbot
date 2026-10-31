@@ -505,6 +505,19 @@ button.list-item{width:100%;text-align:left}
 .cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
 .cf-fan .cf-stage{padding-top:22px;padding-bottom:54px}
 .dir-dot{display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bc);box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
+/* the other slider looks (Banners page → Slider look): all slides sit in one grid cell and the script places them
+   (cube, flip, card stack, cinema fade, panorama); --hs-dim darkens a slide that is turning away */
+.hs-fx .hs-track{display:grid;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1400px;user-select:none;-webkit-user-select:none;padding-top:10px;padding-bottom:12px;margin:-10px 0 -10px}
+.hs-fx .hs-slide{grid-area:1/1;flex:none;width:100%;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.hs-fx .hs-slide::after{content:"";position:absolute;inset:0;z-index:5;background:#000;opacity:var(--hs-dim,0);pointer-events:none}
+.hs-fx:not(.ready) .hs-slide:not(.is-active){visibility:hidden}
+.hs-look-cube .hs-slide,.hs-look-flip .hs-slide{-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.hs-look-stack .hs-track{padding-bottom:34px;margin-bottom:-14px}
+.hs-look-stack .hs-slide{transform-origin:50% 100%}
+.hs-look-peek .hs-track{padding-left:0;padding-right:0}
+.hs-look-peek .hs-slide{width:calc(100% - 60px);justify-self:center}
+.hs-look-peek .hs-slide h2{font-size:21px}
+.hs-look-peek .hs-media{flex-basis:36%}
 .use-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .use-tile{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:14px 14px 13px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);transition:transform var(--t-fast) var(--ease)}
 .use-tile:active{transform:scale(.96)}
