@@ -94,34 +94,68 @@
 {% block scripts %}
 <script>
 (function(){
-  /* home slider: every slide stays the slider's seconds (data-ms), swipeable; a touch pauses it, a dot jumps to its slide */
+  /* home slider: each slide stays its own seconds (data-ms); a touch pauses it, a dot jumps to its slide.
+     The motion is in the swipe: a moving slide turns a little in depth, shrinks and dims, and its text and
+     pictures slide at different speeds (parallax); auto-advance glides with an ease-in-out. */
   var el = document.querySelector('[data-slider]'); if (!el || el.dataset.ready) return; el.dataset.ready = '1';
   var track = el.querySelector('[data-slider-track]'), slides = [].slice.call(track.children), dots = [].slice.call(el.querySelectorAll('[data-slider-dots] button'));
-  el.classList.add('ready');
-  if (slides.length < 2) { if (slides[0]) slides[0].classList.add('is-active'); return; }
-  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null;
+  if (slides.length < 2) return;
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches, idx = 0, timer = null, hold = false, settle = null, glide = null, frame = 0;
   function delay(i) { return parseInt(slides[i].dataset.ms, 10) || 7000; }
-  dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); slides.forEach(function (s, k) { s.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
+  dots.forEach(function (d, k) { d.style.setProperty('--hs-delay', delay(k) + 'ms'); }); if (still) el.classList.add('still');
   function left(i) { return slides[i].offsetLeft - slides[0].offsetLeft; }
+  var parts = slides.map(function (s) { return { body: s.querySelector('.hs-body'), media: s.querySelector('.hs-media'), badge: s.querySelector('.hs-badge'), art: s.querySelector('.hs-art') }; });
+  function paint() {  /* every slide by how far it is from its resting place: -1 … 0 … 1 */
+    frame = 0; if (still) return;
+    var w = slides[0].offsetWidth || 1, x = track.scrollLeft;
+    slides.forEach(function (s, k) {
+      var p = Math.max(-1.2, Math.min(1.2, (left(k) - x) / w)), a = Math.min(1, Math.abs(p)), P = parts[k];
+      s.style.transform = 'perspective(1100px) rotateY(' + (-p * 9).toFixed(2) + 'deg) scale(' + (1 - a * 0.07).toFixed(3) + ')';
+      s.style.opacity = (1 - a * 0.28).toFixed(3);
+      if (P.body) P.body.style.transform = 'translateX(' + (p * 34).toFixed(1) + 'px)';
+      if (P.media) P.media.style.transform = 'translateX(' + (p * 72).toFixed(1) + 'px) scale(' + (1 - a * 0.06).toFixed(3) + ')';
+      if (P.badge) P.badge.style.transform = 'translateX(' + (p * 96).toFixed(1) + 'px) rotate(' + (p * 10).toFixed(1) + 'deg)';
+      if (P.art) P.art.style.transform = 'translateX(' + (p * 110).toFixed(1) + 'px) rotate(' + (p * -14).toFixed(1) + 'deg)';
+    });
+  }
+  function repaint() { if (!frame) frame = requestAnimationFrame(paint); }
   function mark(i) {
     dots.forEach(function (d, k) { d.classList.remove('on'); d.setAttribute('aria-current', k === i ? 'true' : 'false'); if (k === i) { void d.offsetWidth; d.classList.add('on'); } });
-    slides.forEach(function (s, k) { s.classList.toggle('is-active', k === i); });  /* the active slide plays its entrance (CSS) */
+    slides.forEach(function (s, k) { s.classList.toggle('is-active', k === i); });
   }
   function schedule() { clearTimeout(timer); if (still || hold || document.hidden || !document.body.contains(el)) return; timer = setTimeout(function () { go(idx + 1); }, delay(idx)); }
-  function go(i) { idx = (i + slides.length) % slides.length; track.scrollTo({ left: left(idx), behavior: still ? 'auto' : 'smooth' }); mark(idx); schedule(); }
-  track.addEventListener('scroll', function () {  /* a swipe by hand: follow it */
-    clearTimeout(settle); settle = setTimeout(function () {
+  function stopGlide() { if (glide) { cancelAnimationFrame(glide); glide = null; track.style.scrollSnapType = ''; } }
+  function go(i) {
+    idx = (i + slides.length) % slides.length; mark(idx); schedule();
+    stopGlide();
+    var from = track.scrollLeft, to = left(idx), d = to - from;
+    if (still || !d) { track.scrollLeft = to; return; }
+    var dur = Math.min(1100, 650 + Math.abs(d) / (slides[0].offsetWidth || 1) * 120), t0 = null;  /* farther jumps take a bit longer */
+    track.style.scrollSnapType = 'none';  /* snapping would fight the glide */
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var t = Math.min(1, (ts - t0) / dur), e = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;  /* ease-in-out */
+      track.scrollLeft = from + d * e;
+      if (t < 1) glide = requestAnimationFrame(step); else { glide = null; track.style.scrollSnapType = ''; }
+    }
+    glide = requestAnimationFrame(step);
+  }
+  track.addEventListener('scroll', function () {
+    repaint();
+    if (glide) return;
+    clearTimeout(settle); settle = setTimeout(function () {  /* a swipe by hand: follow it */
       var x = track.scrollLeft, best = 0; slides.forEach(function (s, k) { if (Math.abs(left(k) - x) < Math.abs(left(best) - x)) best = k; });
       if (best !== idx) { idx = best; mark(idx); schedule(); }
     }, 120);
   }, { passive: true });
-  function pause() { hold = true; el.classList.add('paused'); clearTimeout(timer); }
+  function pause() { stopGlide(); hold = true; el.classList.add('paused'); clearTimeout(timer); }
   function resume() { if (!hold) return; hold = false; el.classList.remove('paused'); mark(idx); schedule(); }
   track.addEventListener('pointerdown', pause); track.addEventListener('touchstart', pause, { passive: true });
   ['pointerup', 'pointercancel', 'touchend', 'mouseleave'].forEach(function (ev) { track.addEventListener(ev, function () { setTimeout(resume, 1500); }, { passive: true }); });
   dots.forEach(function (d, k) { d.addEventListener('click', function () { hold = false; el.classList.remove('paused'); go(k); }); });
   document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else schedule(); });
-  mark(0); schedule();
+  window.addEventListener('resize', repaint);
+  paint(); mark(0); schedule();
 })();
 </script>
 {% endblock %}
