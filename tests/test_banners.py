@@ -73,5 +73,6 @@ async def test_offer_banners(db):
 
 def test_slide_seconds_stay_in_range():
     assert svc.clean_seconds("10") == 10 and svc.clean_seconds(" 12 ") == 12
-    assert svc.clean_seconds("1") == svc.SECONDS_MIN and svc.clean_seconds("999") == svc.SECONDS_MAX
+    assert svc.SECONDS_MIN == 1 and svc.clean_seconds("1") == 1  # one second is allowed
+    assert svc.clean_seconds("0") == svc.SECONDS_MIN and svc.clean_seconds("-5") == svc.SECONDS_MIN and svc.clean_seconds("999") == svc.SECONDS_MAX
     assert svc.clean_seconds("", 7) == 7 and svc.clean_seconds(None) is None and svc.clean_seconds("abc", 7) == 7

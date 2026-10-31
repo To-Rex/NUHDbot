@@ -14,12 +14,12 @@ KIND_ICONS = {"new": "sparkle", "hot": "fire", "sale": "percent", "auction": "ga
 KIND_DEFAULTS = {"new": ("/app/new", "green"), "hot": (None, "red"), "sale": (None, "purple"), "auction": ("/app/auctions", "orange"),
                  "tips": ("/app/info", "teal"), "catalog": ("/app/catalog", "blue"), "info": (None, "black")}
 COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black")
-SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 3, 60, 7
+SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 1, 60, 7
 SECONDS_CHOICES = (5, 7, 10, 15)
 
 
 def clean_seconds(value, default: int | None = None) -> int | None:
-    """Seconds a slide stays, kept within 3–60; anything else gives the default."""
+    """Seconds a slide stays, kept within 1–60; anything else gives the default."""
     try:
         n = int(str(value).strip())
     except (TypeError, ValueError):
