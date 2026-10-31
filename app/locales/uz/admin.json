@@ -238,7 +238,10 @@
       "series_choose": "Серияни танланг",
       "series_typed": "қўлда ёзилган",
       "series_clear": "Сериясиз",
-      "series_other_long": "Бошқа — қўлда ёзиш"
+      "series_other_long": "Бошқа — қўлда ёзиш",
+      "model_in_series": "{s} серияси моделлари",
+      "model_brand_rest": "Бренднинг бошқа моделлари",
+      "model_series_empty": "{s} сериясида ҳали модел йўқ — янгисини ёзинг ёки пастдан танланг"
     },
     "ord": {
       "title": "Буюртмалар",

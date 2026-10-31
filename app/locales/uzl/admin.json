@@ -238,7 +238,10 @@
       "series_choose": "Seriyani tanlang",
       "series_typed": "qo'lda yozilgan",
       "series_clear": "Seriyasiz",
-      "series_other_long": "Boshqa — qo'lda yozish"
+      "series_other_long": "Boshqa — qo'lda yozish",
+      "model_in_series": "{s} seriyasi modellari",
+      "model_brand_rest": "Brendning boshqa modellari",
+      "model_series_empty": "{s} seriyasida hali model yo'q — yangisini yozing yoki pastdan tanlang"
     },
     "ord": {
       "title": "Buyurtmalar",

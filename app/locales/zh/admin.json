@@ -238,7 +238,10 @@
       "series_choose": "选择系列",
       "series_typed": "手动输入",
       "series_clear": "无系列",
-      "series_other_long": "其他——手动输入"
+      "series_other_long": "其他——手动输入",
+      "model_in_series": "{s} 系列型号",
+      "model_brand_rest": "该品牌的其他型号",
+      "model_series_empty": "{s} 系列暂无型号——输入新型号或从下方选择"
     },
     "ord": {
       "title": "订单",

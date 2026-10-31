@@ -29,7 +29,7 @@
     </div>
     <div class="form-grid mt">
       <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label>
-        <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-other="{{ t('admin.prod.model_other_brands') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
+        <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-series="{{ t('admin.prod.model_in_series') }}" data-l-brand-rest="{{ t('admin.prod.model_brand_rest') }}" data-l-series-empty="{{ t('admin.prod.model_series_empty') }}" data-l-other="{{ t('admin.prod.model_other_brands') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
           <input class="input mono" name="model" id="model-input" value="{{ prod.model }}" placeholder="{{ t('admin.prod.model_placeholder') }}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="model-pop" required {{ dis }}>
           <button type="button" class="combo-toggle" id="model-toggle" tabindex="-1" aria-label="▾" {{ dis }}>{{ icon('chevron-down', 16) }}</button>
           <div class="combo-pop" id="model-pop" role="listbox" hidden></div>
@@ -205,13 +205,17 @@
   function meta(m){ var p=[]; if(m.cap) p.push(cap(m.cap)); if(m.if||m.ff) p.push([m.if,m.ff?m.ff+'"':''].filter(Boolean).join(' ')); if(m.series) p.push(m.series); return p.map(esc).join(' · '); }
   function mark(name,q){ if(!q) return esc(name); var i=name.toLowerCase().indexOf(q.toLowerCase()); if(i<0) return esc(name); return esc(name.slice(0,i))+'<b>'+esc(name.slice(i,i+q.length))+'</b>'+esc(name.slice(i+q.length)); }
   function cap(gb){ return gb>=1000?((gb%1000?(gb/1000).toFixed(1):gb/1000)+' TB'):gb+' GB'; }
-  function build(q){ var b=brandId(), same=[], other=[], ql=q.toLowerCase();
-    all.forEach(function(m){ if(ql&&m.m.toLowerCase().indexOf(ql)<0) return; (b!==null&&m.b===b?same:other).push(m); });
+  var ser=document.querySelector('#product-form [data-series-input]');
+  function norm(v){ return String(v||'').trim().replace(/\s+/g,' ').toUpperCase(); }
+  /* with a series picked, its models come first, then the brand's other models, then other brands */
+  function build(q){ var b=brandId(), sk=b!==null&&ser?norm(ser.value):'', inSer=[], same=[], other=[], ql=q.toLowerCase();
+    all.forEach(function(m){ if(ql&&m.m.toLowerCase().indexOf(ql)<0) return; if(b!==null&&m.b===b){ (sk&&norm(m.series)===sk?inSer:same).push(m); } else other.push(m); });
     if(b===null){ other=same.concat(other); same=[]; }
-    items=same.concat(other).slice(0,60); sel=-1; var h='';
+    items=inSer.concat(same,other).slice(0,60); sel=-1; var h='', name=ser?ser.value.trim():'';
     function grp(lbl,arr,off){ if(!arr.length) return; if(b!==null) h+='<div class="grp"><span>'+esc(lbl)+'</span></div>'; arr.forEach(function(m,i){ h+='<div class="opt" role="option" data-i="'+(off+i)+'"><span class="mono">'+mark(m.m,q)+'</span><span class="m">'+meta(m)+'</span></div>'; }); }
-    grp(L.lSame,same,0); grp(L.lOther,other.slice(0,60-same.length),same.length);
-    if(!items.length) h='<div class="none">'+esc(q?L.lNone:'—')+'</div>';
+    if(sk){ if(inSer.length) grp(L.lSeries.replace('{s}',name),inSer.slice(0,60),0); else if(!ql) h+='<div class="grp-note">'+esc(L.lSeriesEmpty.replace('{s}',name))+'</div>'; }
+    var rest=Math.max(0,60-inSer.length); grp(sk?L.lBrandRest:L.lSame,same.slice(0,rest),inSer.length); grp(L.lOther,other.slice(0,Math.max(0,rest-same.length)),inSer.length+Math.min(same.length,rest));
+    if(!items.length) h=(h||'')+'<div class="none">'+esc(q?L.lNone:'—')+'</div>';
     pop.innerHTML=h; }
   function open(){ build(inp.value.trim()); pop.hidden=false; inp.setAttribute('aria-expanded','true'); }
   function close(){ pop.hidden=true; inp.setAttribute('aria-expanded','false'); sel=-1; }
@@ -231,6 +235,11 @@
   tog.addEventListener('click',function(){ if(pop.hidden){ inp.focus(); open(); } else close(); });
   document.addEventListener('click',function(e){ if(!box.contains(e.target)) close(); });
   if(bs) bs.addEventListener('change',function(){ if(!pop.hidden) open(); });
+  if(ser) ser.addEventListener('input',function(){
+    if(!pop.hidden) open();
+    /* new product: brand → series → model; once a series is picked from the menu, the model list opens on its models */
+    else if(L.prefill==='on'&&!inp.value&&ser.value.trim()&&document.activeElement&&document.activeElement.matches('[data-series-trigger]')) setTimeout(function(){ inp.focus(); open(); },0);
+  });
 })();
 (function(){
   /* capacity: number + TB/GB segmented unit; presets follow the unit */

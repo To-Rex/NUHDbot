@@ -238,7 +238,10 @@
       "series_choose": "Choose a series",
       "series_typed": "typed by hand",
       "series_clear": "No series",
-      "series_other_long": "Other — type it"
+      "series_other_long": "Other — type it",
+      "model_in_series": "{s} models",
+      "model_brand_rest": "The brand's other models",
+      "model_series_empty": "No {s} models yet — type a new one or pick below"
     },
     "ord": {
       "title": "Orders",

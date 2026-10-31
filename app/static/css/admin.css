@@ -571,6 +571,7 @@ dialog.dlg::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(2px);b
 .combo-pop .opt b{color:var(--accent);font-weight:700}
 .combo-pop .opt .m{margin-left:auto;color:var(--ink-3);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .combo-pop .none{padding:14px;text-align:center;color:var(--ink-3);font-size:12.5px}
+.combo-pop .grp-note{margin:4px 4px 6px;padding:8px 10px;border-radius:8px;background:var(--sunken);color:var(--ink-3);font-size:12px}
 
 /* ---------- number + unit (TB / GB) ---------- */
 .unit-input{display:flex;gap:8px;align-items:stretch}

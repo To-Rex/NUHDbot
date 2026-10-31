@@ -238,7 +238,10 @@
       "series_choose": "Выберите серию",
       "series_typed": "введена вручную",
       "series_clear": "Без серии",
-      "series_other_long": "Другая — ввести вручную"
+      "series_other_long": "Другая — ввести вручную",
+      "model_in_series": "Модели серии {s}",
+      "model_brand_rest": "Другие модели бренда",
+      "model_series_empty": "В серии {s} пока нет моделей — впишите новую или выберите ниже"
     },
     "ord": {
       "title": "Заказы",
