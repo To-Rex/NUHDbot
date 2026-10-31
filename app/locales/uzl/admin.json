@@ -476,7 +476,7 @@
       "group_support": "Qo'llab-quvvatlash",
       "group_links": "Havolalar",
       "key_advance_percent": "Avans ulushi, %",
-      "key_currency": "Asosiy valyuta",
+      "key_currency": "Valyutalar",
       "key_working_hours": "Ish vaqti",
       "key_reply_time": "Javob berish muddati",
       "key_delivery_text": "Yetkazish shartlari matni",
@@ -490,7 +490,7 @@
       "key_seagate_check_url": "Seagate kafolat tekshirish havolasi",
       "key_support_group_id": "Telegram guruh ID (murojaatlar)",
       "help_advance_percent": "30/70 qoidasi. Mavjud buyurtmalarga ta'sir qilmaydi.",
-      "help_currency": "Narxlar shu valyutada kiritiladi. Boshqa valyutalar va kurslar — «Valyutalar» bo'limida.",
+      "help_currency": "Narxlar shu valyutada kiritiladi; Mini App'da avval asosiy valyuta ko'rsatiladi. Sozlash — «Valyutalar» bo'limida.",
       "help_working_hours": "Mijozga chatda ko'rsatiladi.",
       "help_reply_time": "Mijozga chatda ko'rsatiladi.",
       "help_delivery_text": "Mahsulot kartochkasi va buyurtma sahifasida chiqadi.",
@@ -772,7 +772,7 @@
       "symbol": "Belgi",
       "rate": "Kurs",
       "decimals": "Tiyin / sent",
-      "base": "Asosiy",
+      "base": "Narx valyutasi",
       "active_hint": "Mijozlar Mini App'da bu valyutani tanlay oladimi",
       "delete": "O'chirish",
       "delete_q": "{code} valyutasi o'chirilsinmi?",
@@ -785,7 +785,8 @@
         "name_required": "Nomini kiriting",
         "rate_invalid": "Kursni to'g'ri kiriting: noldan katta son",
         "base_locked": "Asosiy valyutani o'chirib bo'lmaydi",
-        "in_use": "{n} ta mahsulot narxi shu valyutada. O'chirish o'rniga «Mijozlarga ko'rinadi» belgisini olib tashlang."
+        "in_use": "{n} ta mahsulot narxi shu valyutada. O'chirish o'rniga «Mijozlarga ko'rinadi» belgisini olib tashlang.",
+        "default_hidden": "Asosiy valyutani yashirib bo'lmaydi — avval boshqasini asosiy qiling"
       },
       "add_btn": "Valyuta qo'shish",
       "step1": "Narxlar {base} da",
@@ -793,10 +794,10 @@
       "step2": "Kursni shu yerda yozasiz",
       "step2_sub": "Kurs o'zgarsa, yangi sonni yozing va Enter bosing — darhol saqlanadi.",
       "step3": "Mijoz valyutani tanlaydi",
-      "step3_sub": "Mini App'da narxlar tanlangan valyutada ko'rinadi. Buyurtma va to'lov {base} da qoladi.",
+      "step3_sub": "Mini App'da narx avval {main} da ko'rinadi, mijoz boshqasini tanlashi mumkin. Buyurtma va to'lov {base} da qoladi.",
       "list_title": "Valyutalar va kurslar",
       "list_hint": "Kursni shu ro'yxatning o'zida o'zgartirish mumkin",
-      "base_meta": "Asosiy valyuta · {n} ta mahsulot narxi shu valyutada",
+      "base_meta": "Narxlar shu valyutada kiritiladi · {n} ta mahsulot",
       "base_rate_note": "Kurs kerak emas — narxlar shu valyutada kiritiladi",
       "rate_today": "Kurs bugun {time} da yangilandi",
       "rate_days": "Kurs {n} kun oldin yangilandi",
@@ -833,7 +834,12 @@
       "used_cant_delete": "{n} ta mahsulot narxi shu valyutada — o'chirib bo'lmaydi, yashirib qo'yish mumkin",
       "rate_saved": "{code} kursi saqlandi",
       "shown_toast": "{code} endi mijozlarga ko'rinadi",
-      "hidden_toast": "{code} mijozlardan yashirildi"
+      "hidden_toast": "{code} mijozlardan yashirildi",
+      "default": "Asosiy",
+      "make_default": "Asosiy qilish",
+      "default_label": "Asosiy valyuta",
+      "default_hint": "Mini App'da narx birinchi shu valyutada ko'rinadi, mijoz boshqasini tanlashi mumkin",
+      "default_toast": "{code} endi asosiy valyuta"
     }
   }
 }

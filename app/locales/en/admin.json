@@ -476,7 +476,7 @@
       "group_support": "Support",
       "group_links": "Links",
       "key_advance_percent": "Advance share, %",
-      "key_currency": "Base currency",
+      "key_currency": "Currencies",
       "key_working_hours": "Working hours",
       "key_reply_time": "Reply time",
       "key_delivery_text": "Delivery terms text",
@@ -490,7 +490,7 @@
       "key_seagate_check_url": "Seagate warranty check link",
       "key_support_group_id": "Telegram group ID (support)",
       "help_advance_percent": "The 30/70 rule. Does not affect existing orders.",
-      "help_currency": "Prices are entered in this currency. Other currencies and rates live under «Currencies».",
+      "help_currency": "Prices are entered in this currency; the Mini App shows the main one first. Set up under «Currencies».",
       "help_working_hours": "Shown to the customer in chat.",
       "help_reply_time": "Shown to the customer in chat.",
       "help_delivery_text": "Shown on the product card and order page.",
@@ -772,7 +772,7 @@
       "symbol": "Symbol",
       "rate": "Rate",
       "decimals": "Cents",
-      "base": "Base",
+      "base": "Pricing currency",
       "active_hint": "Whether customers can pick this currency in the Mini App",
       "delete": "Delete",
       "delete_q": "Delete currency {code}?",
@@ -785,7 +785,8 @@
         "name_required": "Enter a name",
         "rate_invalid": "Enter the rate: a number above zero",
         "base_locked": "The base currency cannot be deleted",
-        "in_use": "{n} products are priced in it. Untick «Visible to customers» instead of deleting."
+        "in_use": "{n} products are priced in it. Untick «Visible to customers» instead of deleting.",
+        "default_hidden": "The main currency cannot be hidden — make another one main first"
       },
       "add_btn": "Add currency",
       "step1": "Prices in {base}",
@@ -793,10 +794,10 @@
       "step2": "You type the rate here",
       "step2_sub": "When the rate changes, type the new number and press Enter — saved at once.",
       "step3": "The customer picks a currency",
-      "step3_sub": "The Mini App shows prices in the chosen currency. Orders and payments stay in {base}.",
+      "step3_sub": "The Mini App shows prices in {main} first; customers can pick another. Orders and payments stay in {base}.",
       "list_title": "Currencies and rates",
       "list_hint": "Change a rate right in this list",
-      "base_meta": "Base currency · {n} products are priced in it",
+      "base_meta": "Prices are entered in it · {n} products",
       "base_rate_note": "No rate needed — prices are entered in this currency",
       "rate_today": "Rate updated today at {time}",
       "rate_days": "Rate updated {n} days ago",
@@ -833,7 +834,12 @@
       "used_cant_delete": "{n} products are priced in it — it cannot be deleted, hide it instead",
       "rate_saved": "{code} rate saved",
       "shown_toast": "{code} is now shown to customers",
-      "hidden_toast": "{code} is hidden from customers"
+      "hidden_toast": "{code} is hidden from customers",
+      "default": "Main",
+      "make_default": "Make main",
+      "default_label": "Main currency",
+      "default_hint": "The Mini App shows prices in it first; customers can pick another",
+      "default_toast": "{code} is now the main currency"
     }
   }
 }

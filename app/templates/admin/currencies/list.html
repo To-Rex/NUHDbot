@@ -4,7 +4,7 @@
 {% block content %}
 <div class="cur-steps">
   {% for n, ic in ((1, 'tag'), (2, 'edit'), (3, 'user')) %}
-  <div class="cur-step"><span class="cur-step-ic">{{ icon(ic, 17) }}</span><div><b>{{ t('admin.cur.step' ~ n, base=bc) }}</b><p>{{ t('admin.cur.step' ~ n ~ '_sub', base=bc) }}</p></div></div>
+  <div class="cur-step"><span class="cur-step-ic">{{ icon(ic, 17) }}</span><div><b>{{ t('admin.cur.step' ~ n, base=bc) }}</b><p>{{ t('admin.cur.step' ~ n ~ '_sub', base=bc, main=main.name if main else bc) }}</p></div></div>
   {% endfor %}
 </div>
 
@@ -59,6 +59,7 @@
           <div class="seg" role="radiogroup"><label class="seg-opt"><input type="radio" name="decimals" value="0" checked><span class="mono">1 280 000</span></label><label class="seg-opt"><input type="radio" name="decimals" value="2"><span class="mono">40.50</span></label><label class="seg-opt" data-dec-other hidden><input type="radio" name="decimals" value="3"><span class="mono">3</span></label></div>
           <span class="hint">{{ t('admin.cur.decimals_hint') }}</span></div>
         <div class="cur-dlg-out"><span>{{ t('admin.cur.you_see') }}</span><b class="mono" data-dlg-out>—</b></div>
+        <label class="cur-dlg-main"><input type="checkbox" name="is_default" value="1"><span class="switch"></span><span><b>{{ t('admin.cur.default_label') }}</b><small>{{ t('admin.cur.default_hint') }}</small></span></label>
       </div>
       <p class="cur-dlg-err" data-dlg-err role="alert" hidden></p>
     </div>
@@ -84,7 +85,7 @@
     return c.first ? c.sym+s : s.replace(/,/g,NB)+NB+c.sym;
   }
   function rows(){ return Array.prototype.slice.call(document.querySelectorAll('[data-cur-row]')); }
-  function curOf(r){ var d=r.dataset; return {id:d.id, code:d.code, name:d.name, sym:d.symbol, first:d.first==='1', dec:+d.dec, rate:num(d.rate), active:d.active==='1', base:d.base==='1', used:+d.used}; }
+  function curOf(r){ var d=r.dataset; return {id:d.id, code:d.code, name:d.name, sym:d.symbol, first:d.first==='1', dec:+d.dec, rate:num(d.rate), active:d.active==='1', base:d.base==='1', main:d.default==='1', used:+d.used}; }
   function base(){ var b=rows().map(curOf).find(function(c){ return c.base; }); return b||{code:'USD', name:'Dollar', sym:'$', first:true, dec:2, rate:1, active:true, base:true}; }
 
   /* sample product price, in the base currency */
@@ -100,7 +101,7 @@
   function renderPhone(){
     if(!phone) return;
     var act=rows().map(curOf).filter(function(c){ return c.active && c.rate>0; }), src=sampleSrc(), b=base(), inBase=sampleBase();
-    var cur=act.find(function(c){ return c.code===shown; }) || act.find(function(c){ return !c.base; }) || act[0] || b;
+    var cur=act.find(function(c){ return c.code===shown; }) || act.find(function(c){ return c.main; }) || src;  /* customers see the main currency first */
     shown=cur.code;
     phone.querySelector('[data-pv-price]').textContent=fmt(inBase*cur.rate, cur);
     phone.querySelector('[data-pv-alt]').textContent = cur.code!==src.code ? fmt(inBase*src.rate, src)+' · '+fmt(1, b)+' = '+fmt(cur.rate, cur, true) : '';
@@ -163,7 +164,7 @@
     else {
       form.action='/admin/currencies/'+editing.id;
       F('name').value=editing.name; F('code').value=editing.code; F('symbol').value=editing.sym;
-      radio('symbol_first', editing.first?'1':'0'); setDec(editing.dec); F('rate').value=row.dataset.rate;
+      radio('symbol_first', editing.first?'1':'0'); setDec(editing.dec); F('rate').value=row.dataset.rate; F('is_default').checked=editing.main;
       if(!editing.base){
         if(editing.used>0){ used.textContent=D.tUsed.replace('{n}', editing.used); used.hidden=false; }
         else del.hidden=false;

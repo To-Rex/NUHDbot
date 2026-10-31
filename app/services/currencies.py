@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import Currency
 
 COOKIE = "nuhd_cur"
+ORDER = (Currency.is_default.desc(), Currency.is_base.desc(), Currency.sort, Currency.id)  # the main one first
 TTL = 60
 NBSP = " "
 
@@ -29,6 +30,7 @@ class Cur:
     decimals: int
     is_base: bool
     is_active: bool
+    is_default: bool = False
 
 
 _cache: dict[str, Cur] = {}
@@ -37,8 +39,8 @@ _loaded_at = 0.0
 
 async def load(db: AsyncSession) -> None:
     global _cache, _loaded_at
-    rows = (await db.execute(select(Currency).order_by(Currency.is_base.desc(), Currency.sort, Currency.id))).scalars().all()
-    _cache = {r.code: Cur(r.code, r.name, r.symbol, r.symbol_first, Decimal(r.rate), r.decimals, r.is_base, r.is_active) for r in rows}
+    rows = (await db.execute(select(Currency).order_by(*ORDER))).scalars().all()
+    _cache = {r.code: Cur(r.code, r.name, r.symbol, r.symbol_first, Decimal(r.rate), r.decimals, r.is_base, r.is_active, r.is_default) for r in rows}
     _loaded_at = time.monotonic()
 
 
@@ -61,6 +63,11 @@ def active() -> list[Cur]:
 
 def base_code() -> str:
     return next((c.code for c in _cache.values() if c.is_base), "USD")
+
+
+def default_code() -> str | None:
+    """The currency the Mini App shows prices in until a customer picks one (None = as priced)."""
+    return next((c.code for c in _cache.values() if c.is_default and c.is_active), None)
 
 
 def convert(value, from_code: str | None, to_code: str | None) -> Decimal | None:
@@ -126,7 +133,7 @@ class Prices:
     """Template helper bound to one viewer: price(p.price, p.currency), price.original(...), price.cur."""
 
     def __init__(self, viewer: str | None):
-        self.cur = get(viewer)
+        self.cur = get(viewer) or get(default_code())  # the customer's pick, else the shop's main currency
         self.base = get(base_code())
         self.shown = self.cur or self.base  # what the customer sees now (as priced = base)
         self.choices = active()

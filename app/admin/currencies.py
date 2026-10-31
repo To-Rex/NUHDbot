@@ -3,7 +3,7 @@ import re
 from decimal import Decimal, InvalidOperation
 
 from fastapi import Depends, HTTPException, Request
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from app.admin.common import ADMIN, DB, back, f_bool, f_int, f_str, render, snapshot, staff_dep, toast
 from app.admin.router import router
@@ -12,7 +12,7 @@ from app.models import Currency, Product, User
 from app.models.base import utcnow
 from app.services import audit, currencies
 
-FIELDS = ["code", "name", "symbol", "symbol_first", "rate", "decimals", "is_active"]
+FIELDS = ["code", "name", "symbol", "symbol_first", "rate", "decimals", "is_active", "is_default"]
 MAX_RATE = Decimal("1000000000000")
 # quick picks in the add dialog: code, symbol, symbol first, decimals (names come from the locale)
 PRESETS = [("UZS", "so'm", False, 0), ("RUB", "₽", False, 0), ("CNY", "¥", True, 2), ("KZT", "₸", False, 0), ("EUR", "€", True, 2), ("KGS", "сом", False, 0)]
@@ -52,6 +52,15 @@ def _apply(c: Currency, form) -> str | None:
     return None
 
 
+async def _set_default(db, c: Currency, on: bool) -> None:
+    """Make c the currency the Mini App shows first (only one is), or stop it being that."""
+    if on:
+        await db.execute(update(Currency).where(Currency.id != c.id).values(is_default=False))
+        c.is_default, c.is_active = True, True
+    else:
+        c.is_default = False
+
+
 async def _usage(db) -> dict[str, int]:
     rows = await db.execute(select(Product.currency, func.count()).group_by(Product.currency))
     return {code: n for code, n in rows.all()}
@@ -64,14 +73,15 @@ async def _row(request: Request, db, staff: User, c: Currency, msg: str, kind: s
 
 @router.get("/currencies")
 async def currencies_page(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
-    rows = (await db.execute(select(Currency).order_by(Currency.is_base.desc(), Currency.sort, Currency.id))).scalars().all()
+    rows = (await db.execute(select(Currency).order_by(*currencies.ORDER))).scalars().all()
     base = next((c for c in rows if c.is_base), None)
+    main = next((c for c in rows if c.is_default and c.is_active), None) or base
     have = {c.code for c in rows}
     presets = [{"code": code, "name": t(staff.lang, f"admin.cur.preset.{code}"), "symbol": sym, "first": first, "dec": dec, "exists": code in have} for code, sym, first, dec in PRESETS]
     p = (await db.execute(select(Product).where(Product.is_active.is_(True), Product.price.is_not(None)).order_by(Product.sort, Product.id).limit(1))).scalars().first()
     sample = {"title": f"{p.brand} {p.model}", "price": str(p.price), "currency": p.currency} if p else None
     return render(request, staff, "admin/currencies/list.html", {
-        "page_title": t(staff.lang, "admin.cur.title"), "rows": rows, "base": base, "usage": await _usage(db), "presets": presets, "sample": sample,
+        "page_title": t(staff.lang, "admin.cur.title"), "rows": rows, "base": base, "main": main, "usage": await _usage(db), "presets": presets, "sample": sample,
     })
 
 
@@ -89,6 +99,8 @@ async def currency_add(request: Request, db: DB, staff: User = Depends(staff_dep
         return back(request, "/admin/currencies", t(staff.lang, f"admin.cur.err.{err}"), "bad")
     db.add(c)
     await db.flush()
+    if f_bool(form, "is_default"):
+        await _set_default(db, c, True)
     await audit.log(db, staff.id, "currency.create", "currency", c.id, None, snapshot(c, FIELDS))
     await db.commit()
     await currencies.load(db)
@@ -106,6 +118,8 @@ async def currency_save(cid: int, request: Request, db: DB, staff: User = Depend
     if err:
         await db.rollback()
         return back(request, "/admin/currencies", t(staff.lang, f"admin.cur.err.{err}"), "bad")
+    if f_bool(form, "is_default") != c.is_default:
+        await _set_default(db, c, f_bool(form, "is_default"))
     await audit.log(db, staff.id, "currency.update", "currency", c.id, before, snapshot(c, FIELDS))
     await db.commit()
     await currencies.load(db)
@@ -135,11 +149,27 @@ async def currency_toggle(cid: int, request: Request, db: DB, staff: User = Depe
     c = await db.get(Currency, cid)
     if c is None or c.is_base:
         raise HTTPException(404)
+    if c.is_default and c.is_active:
+        return await _row(request, db, staff, c, t(staff.lang, "admin.cur.err.default_hidden"), "bad")
     c.is_active = not c.is_active
     await audit.log(db, staff.id, "currency.toggle", "currency", c.id, {"is_active": not c.is_active}, {"is_active": c.is_active})
     await db.commit()
     await currencies.load(db)
     return await _row(request, db, staff, c, t(staff.lang, "admin.cur.shown_toast" if c.is_active else "admin.cur.hidden_toast", code=c.code))
+
+
+@router.post("/currencies/{cid}/default")
+async def currency_default(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Show prices in this currency first in the Mini App (customers can still pick another)."""
+    c = await db.get(Currency, cid)
+    if c is None:
+        return back(request, "/admin/currencies", t(staff.lang, "admin.flash.error"), "bad")
+    before = snapshot(c, FIELDS)
+    await _set_default(db, c, True)
+    await audit.log(db, staff.id, "currency.default", "currency", c.id, before, snapshot(c, FIELDS))
+    await db.commit()
+    await currencies.load(db)
+    return back(request, "/admin/currencies", t(staff.lang, "admin.cur.default_toast", code=c.code))
 
 
 @router.post("/currencies/{cid}/delete")

@@ -7,7 +7,7 @@
 <div class="split-eq">
 <div class="stack">
   <section class="fsection"><h2>{{ t('admin.set.group_general') }}</h2>
-    <div class="form-grid mt">{{ num('advance_percent') }}{% set bc = currency_list()|selectattr('is_base')|first %}<div class="field"><label>{{ t('admin.set.key_currency') }}</label><a class="input" href="/admin/currencies" style="display:flex;align-items:center;gap:8px;text-decoration:none">{{ icon('money', 15) }}<span class="mono">{{ bc.code if bc else 'USD' }}</span><span class="faint">· {{ t('admin.nav.currencies') }} →</span></a><span class="hint">{{ t('admin.set.help_currency') }}</span></div></div>
+    <div class="form-grid mt">{{ num('advance_percent') }}{% set bc = currency_list()|selectattr('is_base')|first %}{% set mc = currency_list()|selectattr('is_default')|selectattr('is_active')|first %}<div class="field"><label>{{ t('admin.set.key_currency') }}</label><a class="input" href="/admin/currencies" style="display:flex;align-items:center;gap:8px;text-decoration:none">{{ icon('money', 15) }}<span class="faint">{{ t('admin.cur.base') }}:</span><span class="mono">{{ bc.code if bc else 'USD' }}</span>{% if mc and (not bc or mc.code != bc.code) %}<span class="faint">· {{ t('admin.cur.default') }}:</span><span class="mono">{{ mc.code }}</span>{% endif %}<span class="faint" style="margin-left:auto">→</span></a><span class="hint">{{ t('admin.set.help_currency') }}</span></div></div>
     <div class="mt">{{ str('warehouse_address') }}</div>
   </section>
   <section class="fsection"><h2>{{ t('admin.set.group_payments') }}</h2>

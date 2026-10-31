@@ -68,3 +68,20 @@ async def test_price_in_every_currency(rates):
     plain = cur.Prices(None)  # nothing picked: the main price stays as priced
     assert plain.others(68, "USD") == f"870{NB}400{NB}so'm · 6{NB}562{NB}₽"
     assert plain.all(68, "CNY") == [] and p.all(None, "USD") == []  # no rate for it / price on request
+
+
+async def test_main_currency_shown_first(rates, db):
+    from sqlalchemy import update
+
+    await db.execute(update(Currency).where(Currency.code == "RUB").values(is_default=True))
+    await db.commit()
+    await cur.load(db)
+    p = cur.Prices(None)  # a customer who never picked: the shop's main currency
+    assert p.cur.code == "RUB" and [c.code for c in p.choices] == ["RUB", "USD", "UZS"]
+    assert p(68, "USD") == f"6{NB}562{NB}₽" and p.others(68, "USD") == f"$68 · 870{NB}400{NB}so'm"
+    assert cur.Prices("UZS")(68, "USD") == f"870{NB}400{NB}so'm"  # their own pick still wins
+    await db.execute(update(Currency).values(is_default=False))
+    await db.execute(update(Currency).where(Currency.code == "EUR").values(is_default=True))  # hidden: ignored
+    await db.commit()
+    await cur.load(db)
+    assert cur.Prices(None)(68, "USD") == "$68"

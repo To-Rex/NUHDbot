@@ -476,7 +476,7 @@
       "group_support": "客服",
       "group_links": "链接",
       "key_advance_percent": "预付款比例，%",
-      "key_currency": "主要货币",
+      "key_currency": "货币",
       "key_working_hours": "工作时间",
       "key_reply_time": "回复时效",
       "key_delivery_text": "配送条款文案",
@@ -490,7 +490,7 @@
       "key_seagate_check_url": "Seagate 保修查询链接",
       "key_support_group_id": "Telegram 群组 ID（客服）",
       "help_advance_percent": "30/70 规则。不影响已有订单。",
-      "help_currency": "价格以此货币录入。其他货币和汇率请在“货币”中设置。",
+      "help_currency": "价格以此货币录入；小程序优先显示主要货币。在“货币”中设置。",
       "help_working_hours": "在聊天中向客户显示。",
       "help_reply_time": "在聊天中向客户显示。",
       "help_delivery_text": "显示在商品页和订单页。",
@@ -772,7 +772,7 @@
       "symbol": "符号",
       "rate": "汇率",
       "decimals": "小数",
-      "base": "基准",
+      "base": "定价货币",
       "active_hint": "客户能否在小程序中选择此货币",
       "delete": "删除",
       "delete_q": "删除货币 {code}？",
@@ -785,7 +785,8 @@
         "name_required": "请输入名称",
         "rate_invalid": "请输入大于零的汇率",
         "base_locked": "基准货币不能删除",
-        "in_use": "{n} 个商品以此货币定价。请取消“对客户可见”，而不是删除。"
+        "in_use": "{n} 个商品以此货币定价。请取消“对客户可见”，而不是删除。",
+        "default_hidden": "主要货币不能隐藏——请先将其他货币设为主要"
       },
       "add_btn": "添加货币",
       "step1": "价格以 {base} 计",
@@ -793,10 +794,10 @@
       "step2": "在这里填写汇率",
       "step2_sub": "汇率变化时，输入新数字并按回车，立即保存。",
       "step3": "客户选择货币",
-      "step3_sub": "小程序按所选货币显示价格。订单和付款仍以 {base} 结算。",
+      "step3_sub": "小程序优先以 {main} 显示价格，客户可选择其他货币。订单和付款仍以 {base} 结算。",
       "list_title": "货币与汇率",
       "list_hint": "可直接在列表中修改汇率",
-      "base_meta": "基准货币 · {n} 个商品以此定价",
+      "base_meta": "价格以此货币录入 · {n} 个商品",
       "base_rate_note": "无需汇率——价格以此货币录入",
       "rate_today": "汇率今天 {time} 更新",
       "rate_days": "汇率 {n} 天前更新",
@@ -833,7 +834,12 @@
       "used_cant_delete": "{n} 个商品以此货币定价——不能删除，可以隐藏",
       "rate_saved": "{code} 汇率已保存",
       "shown_toast": "{code} 已对客户显示",
-      "hidden_toast": "{code} 已对客户隐藏"
+      "hidden_toast": "{code} 已对客户隐藏",
+      "default": "主要",
+      "make_default": "设为主要",
+      "default_label": "主要货币",
+      "default_hint": "小程序优先以此货币显示价格，客户可选择其他货币",
+      "default_toast": "{code} 已设为主要货币"
     }
   }
 }

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, DateTime, Integer, Numeric, String, func
+from sqlalchemy import Boolean, DateTime, Integer, Numeric, String, false, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, utcnow
@@ -21,6 +21,7 @@ class Currency(Base, TimestampMixin):
     rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal(1))  # units for 1 base currency
     rate_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), default=utcnow)  # when the rate was last typed in
     decimals: Mapped[int] = mapped_column(Integer, default=2)
-    is_base: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_base: Mapped[bool] = mapped_column(Boolean, default=False)  # prices are entered in it; every rate is against it
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())  # Mini App shows prices in it first
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort: Mapped[int] = mapped_column(Integer, default=100)

@@ -831,7 +831,10 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .cur-row.is-base .cur-sym{background:var(--sunken);color:var(--ink)}
 .cur-info{min-width:0}
 .cur-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14.5px}
-.cur-chip-base{background:var(--accent-soft);color:var(--accent)}
+.cur-chip-base{background:var(--sunken);color:var(--ink-2)}
+.cur-chip-main{gap:4px;background:var(--accent-soft);color:var(--accent)}
+.cur-row.is-main .cur-sym{background:var(--accent);color:var(--accent-ink)}
+.cur-star{color:var(--ink-3)}.cur-star:hover{color:var(--warn)}
 .cur-meta{display:flex;align-items:center;gap:5px;margin-top:3px;font-size:12px;color:var(--ink-3)}
 .cur-meta svg{flex:0 0 auto}
 .cur-meta .stale{display:inline-flex;align-items:center;gap:5px;color:var(--warn);font-weight:600}
@@ -886,6 +889,14 @@ dialog.cur-dlg{width:min(580px,calc(100vw - 32px))}
 .cur-dlg-grid .seg-opt span{width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cur-dlg-out{display:flex;flex-direction:column;justify-content:center;gap:3px;align-self:stretch;padding:10px 14px;border-radius:12px;background:var(--sunken);font-size:12px;color:var(--ink-3);min-width:0}
 .cur-dlg-out b{font-size:14.5px;color:var(--ink);overflow-wrap:anywhere}
+.cur-dlg-main{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--hairline);border-radius:12px;cursor:pointer;transition:border-color var(--t-fast),background var(--t-fast)}
+.cur-dlg-main input{position:absolute;opacity:0;pointer-events:none}
+.cur-dlg-main b{display:block;font-size:13.5px}
+.cur-dlg-main small{display:block;margin-top:2px;font-size:12px;color:var(--ink-3)}
+.cur-dlg-main:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.cur-dlg-main:has(input:checked) .switch{background:var(--ok)}
+.cur-dlg-main:has(input:checked) .switch::after{transform:translateX(16px)}
+.cur-dlg-main:has(input:focus-visible){box-shadow:var(--ring)}
 .cur-dlg-err{margin:10px 0 0;color:var(--bad);font-size:12.5px;font-weight:600}
 .cur-dlg-del{color:var(--bad)}.cur-dlg-del:hover{background:var(--bad-bg)}
 .cur-dlg-used{max-width:250px}

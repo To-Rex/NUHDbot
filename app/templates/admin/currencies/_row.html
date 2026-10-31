@@ -1,11 +1,11 @@
 {# One currency in the list; re-rendered alone after an inline rate / visibility change #}
 {% set rtxt = cur_rate_text(c.rate) %}{% set used = usage.get(c.code, 0) %}
-<div class="cur-row{{ ' is-off' if not c.is_active }}{{ ' is-base' if c.is_base }}" id="cur-{{ c.id }}" data-cur-row
+<div class="cur-row{{ ' is-off' if not c.is_active }}{{ ' is-base' if c.is_base }}{{ ' is-main' if c.is_default }}" id="cur-{{ c.id }}" data-cur-row data-default="{{ '1' if c.is_default else '0' }}"
      data-id="{{ c.id }}" data-code="{{ c.code }}" data-name="{{ c.name }}" data-symbol="{{ c.symbol }}" data-first="{{ '1' if c.symbol_first else '0' }}"
      data-dec="{{ c.decimals }}" data-rate="{{ rtxt }}" data-active="{{ '1' if c.is_active else '0' }}" data-base="{{ '1' if c.is_base else '0' }}" data-used="{{ used }}">
   <span class="cur-sym" aria-hidden="true">{{ c.symbol }}</span>
   <div class="cur-info">
-    <div class="cur-title"><b>{{ c.name }}</b><span class="mono faint">{{ c.code }}</span>{% if c.is_base %}<span class="chip cur-chip-base">{{ t('admin.cur.base') }}</span>{% endif %}</div>
+    <div class="cur-title"><b>{{ c.name }}</b><span class="mono faint">{{ c.code }}</span>{% if c.is_default %}<span class="chip cur-chip-main">{{ icon('star-fill', 11) }}{{ t('admin.cur.default') }}</span>{% endif %}{% if c.is_base %}<span class="chip cur-chip-base">{{ t('admin.cur.base') }}</span>{% endif %}</div>
     <div class="cur-meta">
       {% if c.is_base %}{{ t('admin.cur.base_meta', n=used) }}
       {% else %}{% set days = (now() - c.rate_at).days if c.rate_at else 0 %}
@@ -25,7 +25,8 @@
   </form>
   {% endif %}
   <div class="cur-acts">
-    {% if c.is_base %}<span class="cur-vis on">{{ icon('check', 14) }}{{ t('admin.cur.always_shown') }}</span>
+    {% if not c.is_default %}<button type="button" class="icon-btn sm cur-star" hx-post="/admin/currencies/{{ c.id }}/default" title="{{ t('admin.cur.make_default') }}" aria-label="{{ t('admin.cur.make_default') }}: {{ c.name }}">{{ icon('star', 15) }}</button>{% endif %}
+    {% if c.is_base or c.is_default %}<span class="cur-vis on">{{ icon('check', 14) }}{{ t('admin.cur.always_shown') }}</span>
     {% else %}<button type="button" class="cur-vis{{ ' on' if c.is_active }}" role="switch" aria-checked="{{ 'true' if c.is_active else 'false' }}" title="{{ t('admin.cur.active_hint') }}" hx-post="/admin/currencies/{{ c.id }}/toggle" hx-target="#cur-{{ c.id }}" hx-swap="outerHTML"><span class="switch{{ ' on' if c.is_active }}"></span>{{ t('admin.cur.shown') if c.is_active else t('admin.cur.hidden') }}</button>{% endif %}
     <button type="button" class="icon-btn sm" data-cur-edit title="{{ t('admin.edit') }}" aria-label="{{ t('admin.edit') }}: {{ c.name }}">{{ icon('edit', 15) }}</button>
   </div>
