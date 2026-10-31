@@ -1,8 +1,11 @@
+from collections import Counter
+from datetime import UTC, datetime, timedelta
+
 from fastapi import Request
 from sqlalchemy import func, select
 
 from app.deps import DB, CurrentUser, Lang
-from app.enums import AuctionStatus
+from app.enums import AuctionStatus, Purpose
 from app.models import Auction, Product
 from app.services import auctions, catalog
 from app.services.settings_service import get_setting
@@ -20,21 +23,23 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.stock - Product.reserved > 0))
     ).scalar_one()
     live_auctions = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE))).scalar_one()
-    # capacity shortcuts: only sizes that are actually in stock
+    in_stock = (Product.is_active.is_(True), Product.stock - Product.reserved > 0)
+    # shortcuts only for what is actually on the shelf
     capacities = (
-        await db.execute(
-            select(Product.capacity_gb, func.count())
-            .where(Product.is_active.is_(True), Product.stock - Product.reserved > 0)
-            .group_by(Product.capacity_gb)
-            .order_by(Product.capacity_gb)
-            .limit(8)
-        )
+        await db.execute(select(Product.capacity_gb, func.count()).where(*in_stock).group_by(Product.capacity_gb).order_by(Product.capacity_gb).limit(10))
     ).all()
+    use_counts: Counter[str] = Counter()
+    for (purposes,) in (await db.execute(select(Product.purposes).where(*in_stock))).all():
+        use_counts.update(set(purposes or []))
+    uses = sorted(((u, use_counts[u.value]) for u in Purpose if use_counts[u.value]), key=lambda x: -x[1])[:4]
+    popular = (await db.execute(select(Product).where(*in_stock).order_by(Product.views.desc(), Product.id.desc()).limit(4))).scalars().unique().all()
+    month_ago = datetime.now(UTC) - timedelta(days=30)
+    new_count = (await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.arrived_at >= month_ago))).scalar_one()
     return render(
         request,
         "miniapp/home.html",
         {
             "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
-            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities,
+            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
         },
     )

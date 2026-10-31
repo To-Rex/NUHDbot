@@ -24,7 +24,21 @@
     "new_arrivals_eyebrow": "Warehouse",
     "conditions_eyebrow": "Conditions",
     "by_capacity": "By capacity",
-    "cap_models": "{n} models"
+    "cap_models": "{n} models",
+    "promo_new_text": "Arrived this month: {n} models",
+    "purpose_title": "What do you need it for?",
+    "popular": "Popular",
+    "why_title": "Why buy here",
+    "why_1_t": "Tested before you pay in full",
+    "why_1_d": "You see results and serial numbers",
+    "why_2_t": "Warranty",
+    "why_2_d": "Term shown on every item",
+    "why_3_t": "Delivery ≈20 days",
+    "why_3_d": "From Guangzhou to Uzbekistan",
+    "why_4_t": "Wholesale prices",
+    "why_4_d": "Straight from the Guangzhou warehouse",
+    "help_title": "Have a question?",
+    "help_text": "Our admin will reply in chat and help you choose"
   },
   "catalog": {
     "title": "Catalog",

@@ -24,7 +24,21 @@
     "new_arrivals_eyebrow": "Ombor",
     "conditions_eyebrow": "Holatlar",
     "by_capacity": "Hajm bo'yicha",
-    "cap_models": "{n} ta model"
+    "cap_models": "{n} ta model",
+    "promo_new_text": "Oxirgi oyda keldi: {n} ta model",
+    "purpose_title": "Disk nima uchun kerak?",
+    "popular": "Ommabop",
+    "why_title": "Nega bizdan",
+    "why_1_t": "To'liq to'lovdan oldin test",
+    "why_1_d": "Natijalar va seriya raqamlarini ko'rasiz",
+    "why_2_t": "Kafolat",
+    "why_2_d": "Muddati har bir tovarda ko'rsatilgan",
+    "why_3_t": "Yetkazish ≈20 kun",
+    "why_3_d": "Guanchjoudan O'zbekistonga",
+    "why_4_t": "Ulgurji narxlar",
+    "why_4_d": "To'g'ridan-to'g'ri Guanchjou omboridan",
+    "help_title": "Savolingiz bormi?",
+    "help_text": "Admin chatda javob beradi va disk tanlashga yordam beradi"
   },
   "catalog": {
     "title": "Katalog",
