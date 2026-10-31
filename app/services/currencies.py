@@ -89,6 +89,15 @@ def fmt(value, cur: Cur, *, exact: bool = False) -> str:
     return f"{s.replace(',', NBSP)}{NBSP}{cur.symbol}"
 
 
+def rate_text(value) -> str:
+    """A rate for an input box: 12800 → "12 800", 96.5 → "96.5"."""
+    if value is None:
+        return ""
+    v = Decimal(value).normalize()
+    whole, _, frac = f"{v:,f}".partition(".")
+    return whole.replace(",", " ") + (f".{frac}" if frac.strip("0") else "")
+
+
 def display(value, from_code: str | None, to_code: str | None = None, *, dash: str = "—") -> str:
     """A price in the viewer's currency when a rate exists, else as priced."""
     from app.templating import money

@@ -179,4 +179,13 @@ def _currency_list():
     return currencies.all_()
 
 
-env.globals["currency_list"] = _currency_list
+def _cur(name: str):
+    def call(*a, **kw):
+        from app.services import currencies
+
+        return getattr(currencies, name)(*a, **kw)
+
+    return call
+
+
+env.globals.update(currency_list=_currency_list, cur_display=_cur("display"), cur_rate_text=_cur("rate_text"), cur_base_code=_cur("base_code"))

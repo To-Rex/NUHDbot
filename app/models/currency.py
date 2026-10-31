@@ -1,9 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, Integer, Numeric, String
+from sqlalchemy import Boolean, DateTime, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, TimestampMixin
+from app.models.base import Base, TimestampMixin, utcnow
 
 
 class Currency(Base, TimestampMixin):
@@ -18,6 +19,7 @@ class Currency(Base, TimestampMixin):
     symbol: Mapped[str] = mapped_column(String(8))  # "$", "so'm"
     symbol_first: Mapped[bool] = mapped_column(Boolean, default=False)  # "$40" vs "40 so'm"
     rate: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=Decimal(1))  # units for 1 base currency
+    rate_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), default=utcnow)  # when the rate was last typed in
     decimals: Mapped[int] = mapped_column(Integer, default=2)
     is_base: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)

@@ -1,66 +1,201 @@
 {% extends "admin/base.html" %}
-{% set bsym = base.symbol if base else '$' %}{% set bfirst = base.symbol_first if base else true %}
-{% macro fields(c, is_new=false) %}
-  <div class="cur-fields">
-    {% if is_new %}
-    <div class="field"><label>{{ t('admin.cur.name') }} <span class="req">*</span></label><input class="input" name="name" maxlength="40" required placeholder="So'm" data-cur="name"></div>
-    <div class="field"><label>{{ t('admin.cur.code') }} <span class="req">*</span></label><input class="input mono" name="code" maxlength="3" required placeholder="UZS" pattern="[A-Za-z]{3}" style="text-transform:uppercase" data-cur="code"><span class="hint">{{ t('admin.cur.code_hint') }}</span></div>
-    {% else %}
-    <div class="field"><label>{{ t('admin.cur.name') }}</label><input class="input" name="name" maxlength="40" required value="{{ c.name }}" data-cur="name"></div>
-    {% endif %}
-    <div class="field"><label>{{ t('admin.cur.symbol') }}</label><input class="input" name="symbol" maxlength="8" value="{{ c.symbol if c else '' }}" placeholder="so'm" data-cur="symbol"></div>
-    <div class="field f-rate"><label>{{ t('admin.cur.rate') }}{% if not is_new and c.is_base %} <span class="hint">({{ t('admin.cur.base_rate') }})</span>{% elif is_new %} <span class="req">*</span>{% endif %}</label>
-      <div class="cur-rate"><span class="mono">{{ '%s1'|format(bsym) if bfirst else '1 %s'|format(bsym) }} =</span><input class="input mono" name="rate" inputmode="decimal" value="{{ ('%f'|format(c.rate)).rstrip('0').rstrip('.') if c else '' }}" placeholder="12 800" {{ 'readonly' if c and c.is_base }} {{ 'required' if is_new }} data-cur="rate"></div></div>
-    <div class="field f-dec"><label>{{ t('admin.cur.decimals') }}</label><select class="select" name="decimals" data-cur="dec">{% for d in range(0, 5) %}<option value="{{ d }}" {{ 'selected' if (c.decimals if c else 0) == d }}>{{ d }}{% if d == 0 %} · 1 280 000{% elif d == 2 %} · 40.50{% endif %}</option>{% endfor %}</select></div>
-    <label class="check f-first"><input type="checkbox" name="symbol_first" {{ 'checked' if c and c.symbol_first }} data-cur="first">{{ t('admin.cur.symbol_first') }}</label>
-  </div>
-  <div class="cur-preview" data-cur-preview><span class="faint">{{ t('admin.cur.preview') }}:</span> <b class="mono" data-out></b></div>
-{% endmacro %}
-{% block topbar_actions %}<span class="faint small">{{ rows|length }} {{ t('admin.cur.count') }}</span>{% endblock %}
+{% set bc = base.code if base else 'USD' %}{% set base1 = cur_display(1, bc) %}
+{% block topbar_actions %}<button type="button" class="btn btn-primary btn-sm" data-cur-add>{{ icon('plus', 15) }}{{ t('admin.cur.add_btn') }}</button>{% endblock %}
 {% block content %}
-<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.cur.help', base=base.code if base else 'USD') }}</span></div>
-<div class="cur-grid" data-base-sym="{{ bsym }}" data-base-first="{{ '1' if bfirst else '0' }}">
-  {% for c in rows %}
-  <form class="card cur-card{{ ' off' if not c.is_active }}" id="cur-{{ c.id }}" method="post" action="/admin/currencies/{{ c.id }}" data-cur-form><input type="hidden" name="_csrf" value="{{ csrf }}">
-    <div class="cur-head">
-      <span class="cur-sym">{{ c.symbol }}</span>
-      <div class="flex1"><div class="cur-title">{{ c.name }} <span class="mono faint">{{ c.code }}</span>{% if c.is_base %}<span class="chip cur-base">{{ t('admin.cur.base') }}</span>{% endif %}</div>
-        <div class="hint">{% if usage.get(c.code) %}{{ t('admin.cur.used_by', n=usage[c.code]) }} · {% endif %}{{ t('admin.cur.updated') }} {{ c.updated_at|dt }}</div></div>
-    </div>
-    {{ fields(c) }}
-    <div class="cur-foot">
-      {% if not c.is_base %}<label class="check cur-active" title="{{ t('admin.cur.active_hint') }}"><input type="checkbox" name="is_active" {{ 'checked' if c.is_active }}>{{ t('admin.cur.active') }}</label>{% endif %}
-      {% if not c.is_base %}<button class="icon-btn sm danger" type="submit" form="cur-del-{{ c.id }}" title="{{ t('admin.cur.delete') }}" aria-label="{{ t('admin.cur.delete') }}" data-confirm="{{ t('admin.cur.delete_q', code=c.code) }}" data-confirm-danger="1">{{ icon('trash', 15) }}</button>{% endif %}
-      <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
-    </div>
-  </form>
-  {% if not c.is_base %}<form id="cur-del-{{ c.id }}" method="post" action="/admin/currencies/{{ c.id }}/delete" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endif %}
+<div class="cur-steps">
+  {% for n, ic in ((1, 'tag'), (2, 'edit'), (3, 'user')) %}
+  <div class="cur-step"><span class="cur-step-ic">{{ icon(ic, 17) }}</span><div><b>{{ t('admin.cur.step' ~ n, base=bc) }}</b><p>{{ t('admin.cur.step' ~ n ~ '_sub', base=bc) }}</p></div></div>
   {% endfor %}
-  <form class="card cur-card cur-new" id="add" method="post" action="/admin/currencies" data-cur-form><input type="hidden" name="_csrf" value="{{ csrf }}">
-    <div class="cur-head"><span class="cur-sym">{{ icon('plus', 18) }}</span><div class="flex1"><div class="cur-title">{{ t('admin.cur.add_title') }}</div><div class="hint">{{ t('admin.cur.add_hint') }}</div></div></div>
-    {{ fields(none, true) }}
-    <div class="cur-foot"><button class="btn btn-primary btn-sm" type="submit">{{ icon('plus', 15) }}{{ t('admin.cur.add') }}</button></div>
-  </form>
 </div>
+
+<div class="cur-layout">
+  <section class="card cur-list" id="cur-list">
+    <div class="cur-list-head"><h2>{{ t('admin.cur.list_title') }}</h2><span class="hint">{{ t('admin.cur.list_hint') }}</span></div>
+    {% for c in rows %}{% include "admin/currencies/_row.html" %}{% endfor %}
+    {% if not rows|rejectattr('is_base')|list %}
+    <div class="cur-empty">
+      <span class="cur-empty-ic">{{ icon('money', 22) }}</span>
+      <div class="flex1"><b>{{ t('admin.cur.empty_title') }}</b><p>{{ t('admin.cur.empty_text') }}</p></div>
+      <button type="button" class="btn btn-primary btn-sm" data-cur-add data-preset="UZS">{{ icon('plus', 15) }}{{ t('admin.cur.empty_btn') }}</button>
+    </div>
+    {% endif %}
+  </section>
+
+  <aside class="card cur-phone" data-sample-price="{{ sample.price if sample else '100' }}" data-sample-code="{{ sample.currency if sample else bc }}">
+    <div><div class="eyebrow">{{ t('admin.cur.preview_title') }}</div><p class="hint">{{ t('admin.cur.preview_hint') }}</p></div>
+    <div class="phone-mock">
+      <div class="pm-card">
+        <div class="pm-title">{{ sample.title if sample else 'WD Purple 4TB' }}</div>
+        <div class="pm-price"><span data-pv-price>—</span> <small>/ {{ t('common.per_unit') }}</small></div>
+        <div class="pm-alt mono" data-pv-alt></div>
+        <div class="pm-seg" data-pv-seg role="radiogroup"></div>
+      </div>
+    </div>
+    <p class="hint">{{ icon('info', 13) }}<span>{{ t('admin.cur.preview_note', base=bc) }}</span></p>
+  </aside>
+</div>
+
+<dialog class="dlg cur-dlg" id="cur-dlg"
+  data-t-add="{{ t('admin.cur.dlg_add') }}" data-t-add-sub="{{ t('admin.cur.dlg_add_sub') }}" data-t-edit="{{ t('admin.cur.dlg_edit') }}" data-t-edit-sub="{{ t('admin.cur.dlg_edit_sub') }}"
+  data-t-add-btn="{{ t('admin.cur.add') }}" data-t-save-btn="{{ t('admin.save') }}" data-t-used="{{ t('admin.cur.used_cant_delete', n='{n}') }}"
+  data-err-name="{{ t('admin.cur.err.name_required') }}" data-err-code="{{ t('admin.cur.err.code_invalid') }}" data-err-taken="{{ t('admin.cur.err.code_taken', code='{code}') }}" data-err-rate="{{ t('admin.cur.err.rate_invalid') }}">
+  <form method="post" action="/admin/currencies" id="cur-form" novalidate><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="dlg-body">
+      <div class="dlg-head"><div><h3 data-dlg-title>{{ t('admin.cur.dlg_add') }}</h3><p data-dlg-sub>{{ t('admin.cur.dlg_add_sub') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 18) }}</button></div>
+      <div class="cur-presets" data-add-only>
+        <span class="eyebrow">{{ t('admin.cur.presets') }}</span>
+        <div class="cur-preset-list">{% for p in presets %}<button type="button" class="cur-preset" data-preset="{{ p|tojson|forceescape }}" {{ 'disabled' if p.exists }} {% if p.exists %}title="{{ t('admin.cur.preset_exists') }}"{% endif %}><b>{{ p.symbol }}</b><span>{{ p.name }}</span><small class="mono">{{ p.code }}{% if p.exists %} · {{ t('admin.cur.preset_exists') }}{% endif %}</small></button>{% endfor %}</div>
+      </div>
+      <div class="cur-dlg-grid">
+        <div class="field"><label>{{ t('admin.cur.name') }} <span class="req">*</span></label><input class="input" name="name" maxlength="40" placeholder="So'm" autocomplete="off"><span class="hint">{{ t('admin.cur.name_hint') }}</span></div>
+        <div class="field"><label>{{ t('admin.cur.code') }} <span class="req">*</span></label><input class="input mono" name="code" maxlength="3" placeholder="UZS" autocomplete="off" style="text-transform:uppercase"><span class="hint" data-code-hint>{{ t('admin.cur.code_hint') }}</span></div>
+        <div class="field"><label>{{ t('admin.cur.symbol') }}</label><input class="input" name="symbol" maxlength="8" placeholder="so'm" autocomplete="off"><span class="hint">{{ t('admin.cur.symbol_hint') }}</span></div>
+        <div class="field"><label>{{ t('admin.cur.symbol_pos') }}</label>
+          <div class="seg" role="radiogroup"><label class="seg-opt"><input type="radio" name="symbol_first" value="0" checked><span class="mono" data-pos="after">100 so'm</span></label><label class="seg-opt"><input type="radio" name="symbol_first" value="1"><span class="mono" data-pos="before">so'm100</span></label></div></div>
+        <div class="field cur-dlg-rate" data-rate-field><label>{{ t('admin.cur.rate') }} <span class="req">*</span></label>
+          <label class="rate-pill lg"><span class="mono">{{ base1 }} =</span><input class="mono" name="rate" inputmode="decimal" autocomplete="off" placeholder="12 800"><span class="unit" data-unit>so'm</span></label>
+          <span class="hint">{{ t('admin.cur.rate_hint', base=bc) }}</span></div>
+        <div class="field"><label>{{ t('admin.cur.decimals') }}</label>
+          <div class="seg" role="radiogroup"><label class="seg-opt"><input type="radio" name="decimals" value="0" checked><span class="mono">1 280 000</span></label><label class="seg-opt"><input type="radio" name="decimals" value="2"><span class="mono">40.50</span></label><label class="seg-opt" data-dec-other hidden><input type="radio" name="decimals" value="3"><span class="mono">3</span></label></div>
+          <span class="hint">{{ t('admin.cur.decimals_hint') }}</span></div>
+        <div class="cur-dlg-out"><span>{{ t('admin.cur.you_see') }}</span><b class="mono" data-dlg-out>—</b></div>
+      </div>
+      <p class="cur-dlg-err" data-dlg-err role="alert" hidden></p>
+    </div>
+    <div class="dlg-acts">
+      <button type="button" class="btn btn-ghost btn-sm cur-dlg-del" data-dlg-del hidden>{{ icon('trash', 15) }}{{ t('admin.cur.delete') }}</button>
+      <span class="hint cur-dlg-used" data-dlg-used hidden></span>
+      <span class="flex1"></span>
+      <button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button>
+      <button class="btn btn-primary" type="submit" data-dlg-submit>{{ icon('check', 16) }}<span>{{ t('admin.cur.add') }}</span></button>
+    </div>
+  </form>
+</dialog>
+{% for c in rows if not c.is_base %}<form id="cur-del-{{ c.id }}" method="post" action="/admin/currencies/{{ c.id }}/delete" data-confirm="{{ t('admin.cur.delete_q', code=c.code) }}" data-confirm-danger="1" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endfor %}
+
 <script>
 (function(){
-  /* live sample: a $40 drive shown in this currency, same formatting as the Mini App */
-  var grid=document.querySelector('.cur-grid'); if(!grid) return;
-  var bsym=grid.dataset.baseSym, bfirst=grid.dataset.baseFirst==='1', NB=' ';
-  function fmt(v, sym, first, dec){
-    var r=Math.round(v*Math.pow(10,dec))/Math.pow(10,dec), whole=r===Math.round(r);
-    var s=r.toLocaleString('en-US',{minimumFractionDigits:whole?0:dec,maximumFractionDigits:whole?0:dec});
-    return first ? sym+s : s.replace(/,/g,NB)+NB+sym;
+  var NB=' ', SAMPLE_BASE=100;
+  var num=function(s){ return parseFloat(String(s==null?'':s).replace(/[\s  ']/g,'').replace(',','.')); };
+  /* same formatting as the Mini App: "$40", "1 280 000 so'm"; exact keeps up to 4 decimals (rates) */
+  function fmt(v, c, exact){
+    var dec=exact?Math.max(c.dec,4):c.dec, p=Math.pow(10,dec), r=Math.round(v*p)/p, whole=r===Math.round(r);
+    var s=r.toLocaleString('en-US',{minimumFractionDigits:whole||exact?0:dec,maximumFractionDigits:whole?0:dec});
+    return c.first ? c.sym+s : s.replace(/,/g,NB)+NB+c.sym;
   }
-  function q(f,k){ return f.querySelector('[data-cur="'+k+'"]'); }
-  function upd(f){
-    var out=f.querySelector('[data-out]'); if(!out) return;
-    var rate=parseFloat(String(q(f,'rate').value).replace(/[\s ']/g,'').replace(',','.'));
-    var sym=q(f,'symbol').value.trim()||(q(f,'code')?q(f,'code').value.trim().toUpperCase():'')||'?';
-    if(!(rate>0)){ out.textContent='—'; return; }
-    out.textContent=fmt(40,bsym,bfirst,2)+' = '+fmt(40*rate,sym,q(f,'first').checked,parseInt(q(f,'dec').value,10)||0);
+  function rows(){ return Array.prototype.slice.call(document.querySelectorAll('[data-cur-row]')); }
+  function curOf(r){ var d=r.dataset; return {id:d.id, code:d.code, name:d.name, sym:d.symbol, first:d.first==='1', dec:+d.dec, rate:num(d.rate), active:d.active==='1', base:d.base==='1', used:+d.used}; }
+  function base(){ var b=rows().map(curOf).find(function(c){ return c.base; }); return b||{code:'USD', name:'Dollar', sym:'$', first:true, dec:2, rate:1, active:true, base:true}; }
+
+  /* sample product price, in the base currency */
+  var phone=document.querySelector('.cur-phone'), shown=null;
+  function sampleBase(){
+    if(!phone) return SAMPLE_BASE;
+    var src=rows().map(curOf).find(function(c){ return c.code===phone.dataset.sampleCode; });
+    return num(phone.dataset.samplePrice)/((src&&src.rate)||1);
   }
-  grid.querySelectorAll('[data-cur-form]').forEach(function(f){ upd(f); f.addEventListener('input',function(){ upd(f); }); f.addEventListener('change',function(){ upd(f); }); });
+  function sampleSrc(){ var src=phone&&rows().map(curOf).find(function(c){ return c.code===phone.dataset.sampleCode; }); return src||base(); }
+
+  /* "how the customer sees it": a Mini App price card with the currency switch */
+  function renderPhone(){
+    if(!phone) return;
+    var act=rows().map(curOf).filter(function(c){ return c.active && c.rate>0; }), src=sampleSrc(), b=base(), inBase=sampleBase();
+    var cur=act.find(function(c){ return c.code===shown; }) || act.find(function(c){ return !c.base; }) || act[0] || b;
+    shown=cur.code;
+    phone.querySelector('[data-pv-price]').textContent=fmt(inBase*cur.rate, cur);
+    phone.querySelector('[data-pv-alt]').textContent = cur.code!==src.code ? fmt(inBase*src.rate, src)+' · '+fmt(1, b)+' = '+fmt(cur.rate, cur, true) : '';
+    var seg=phone.querySelector('[data-pv-seg]'); seg.textContent=''; seg.hidden=act.length<2;
+    act.forEach(function(c){ var x=document.createElement('button'); x.type='button'; x.textContent=c.name; x.dataset.pv=c.code; x.setAttribute('role','radio'); x.setAttribute('aria-checked', c.code===cur.code?'true':'false'); if(c.code===cur.code) x.className='on'; seg.appendChild(x); });
+  }
+  phone && phone.addEventListener('click', function(e){ var x=e.target.closest('[data-pv]'); if(x){ shown=x.dataset.pv; renderPhone(); } });
+
+  /* list row: live sample under the rate, Save appears once the number changes; Esc puts it back */
+  function bindRow(row){
+    var f=row.querySelector('[data-rate-form]'); if(!f||f.dataset.bound) return; f.dataset.bound='1';
+    var c=curOf(row), inp=f.querySelector('[name=rate]'), save=f.querySelector('[data-rate-save]'), out=f.querySelector('[data-sample]');
+    function upd(){
+      var r=num(inp.value), ok=r>0, b=base();
+      out.textContent = ok ? fmt(SAMPLE_BASE, b)+' → '+fmt(SAMPLE_BASE*r, c) : '—';
+      var changed=ok && Math.abs(r-c.rate)>1e-9; save.hidden=!changed; f.classList.toggle('dirty', changed);
+      f.classList.toggle('bad', !ok && inp.value.trim()!=='');
+    }
+    inp.addEventListener('input', upd);
+    inp.addEventListener('keydown', function(e){ if(e.key==='Escape'){ inp.value=row.dataset.rate; upd(); inp.blur(); } });
+    upd();
+  }
+  document.addEventListener('htmx:beforeRequest', function(e){ var f=e.detail.elt; if(f.matches && f.matches('[data-rate-form]') && !(num(f.querySelector('[name=rate]').value)>0)){ e.preventDefault(); f.querySelector('[name=rate]').focus(); } });
+  document.addEventListener('htmx:afterSettle', function(){ rows().forEach(bindRow); renderPhone(); });
+  rows().forEach(bindRow); renderPhone();
+
+  /* add / edit dialog */
+  var dlg=document.getElementById('cur-dlg'), form=document.getElementById('cur-form'); if(!dlg) return;
+  var D=dlg.dataset, mode='add', editing=null;
+  var F=function(n){ return form.elements[n]; };
+  var q=function(s){ return dlg.querySelector(s); };
+  function radio(n,v){ var r=form.querySelector('[name="'+n+'"][value="'+v+'"]'); if(r) r.checked=true; }
+  function setDec(d){
+    var other=q('[data-dec-other]');
+    if(d===0||d===2){ other.hidden=true; radio('decimals', String(d)); }
+    else { other.hidden=false; var i=other.querySelector('input'); i.value=d; other.querySelector('span').textContent=d; i.checked=true; }
+  }
+  function draft(){
+    var sym=F('symbol').value.trim()||F('code').value.trim().toUpperCase()||F('symbol').placeholder;
+    var dec=+(form.querySelector('[name=decimals]:checked')||{value:0}).value;
+    return {sym:sym, first:(form.querySelector('[name=symbol_first]:checked')||{}).value==='1', dec:dec, rate:editing&&editing.base?1:num(F('rate').value)};
+  }
+  function upd(){
+    var c=draft(), b=base(), inBase=sampleBase();
+    q('[data-pos=after]').textContent='100'+NB+c.sym; q('[data-pos=before]').textContent=c.sym+'100'; q('[data-unit]').textContent=c.sym;
+    q('[data-dlg-out]').textContent = c.rate>0 ? (editing&&editing.base ? fmt(inBase, c) : fmt(inBase, b)+' → '+fmt(inBase*c.rate, c)) : '—';
+    q('[data-dlg-err]').hidden=true;
+  }
+  function open(m, row, presetCode){
+    mode=m; editing=row?curOf(row):null; form.reset(); setDec(0);
+    dlg.querySelectorAll('.cur-preset').forEach(function(p){ p.classList.remove('on'); });
+    q('[data-dlg-title]').textContent = m==='add' ? D.tAdd : D.tEdit;
+    q('[data-dlg-sub]').textContent = m==='add' ? D.tAddSub : D.tEditSub;
+    q('[data-dlg-submit] span').textContent = m==='add' ? D.tAddBtn : D.tSaveBtn;
+    q('[data-add-only]').hidden = m!=='add';
+    F('code').readOnly = m!=='add'; q('[data-code-hint]').hidden = m!=='add';
+    var del=q('[data-dlg-del]'), used=q('[data-dlg-used]'); del.hidden=true; used.hidden=true;
+    q('[data-rate-field]').hidden = !!(editing && editing.base);
+    if(m==='add'){ form.action='/admin/currencies'; }
+    else {
+      form.action='/admin/currencies/'+editing.id;
+      F('name').value=editing.name; F('code').value=editing.code; F('symbol').value=editing.sym;
+      radio('symbol_first', editing.first?'1':'0'); setDec(editing.dec); F('rate').value=row.dataset.rate;
+      if(!editing.base){
+        if(editing.used>0){ used.textContent=D.tUsed.replace('{n}', editing.used); used.hidden=false; }
+        else del.hidden=false;
+      }
+    }
+    upd(); dlg.showModal();
+    if(presetCode){ var p=dlg.querySelector('.cur-preset[data-preset*=\'"'+presetCode+'"\']'); if(p && !p.disabled) p.click(); }
+    else (m==='add' ? F('name') : (editing.base ? F('name') : F('rate'))).focus();
+  }
+  function close(){ dlg.close(); }
+  dlg.addEventListener('click', function(e){
+    if(e.target===dlg || e.target.closest('[data-dlg-close]')) return close();
+    if(e.target.closest('[data-dlg-del]')){ var df=document.getElementById('cur-del-'+editing.id); if(df) df.requestSubmit(); return; }  /* asks to confirm first */
+    var p=e.target.closest('.cur-preset'); if(!p||p.disabled) return;
+    var d=JSON.parse(p.dataset.preset);
+    dlg.querySelectorAll('.cur-preset').forEach(function(x){ x.classList.toggle('on', x===p); });
+    F('name').value=d.name; F('code').value=d.code; F('symbol').value=d.symbol; radio('symbol_first', d.first?'1':'0'); setDec(d.dec);
+    upd(); F('rate').focus();
+  });
+  form.addEventListener('input', upd); form.addEventListener('change', upd);
+  form.addEventListener('submit', function(e){
+    var err='', code=F('code').value.trim().toUpperCase();
+    if(!F('name').value.trim()) err=D.errName;
+    else if(mode==='add' && !/^[A-Z]{3}$/.test(code)) err=D.errCode;
+    else if(mode==='add' && rows().some(function(r){ return r.dataset.code===code; })) err=D.errTaken.replace('{code}', code);
+    else if(!(editing&&editing.base) && !(num(F('rate').value)>0)) err=D.errRate;
+    if(err){ e.preventDefault(); var box=q('[data-dlg-err]'); box.textContent=err; box.hidden=false; }
+  });
+  document.addEventListener('click', function(e){
+    var a=e.target.closest('[data-cur-add]'); if(a){ open('add', null, a.dataset.preset); return; }
+    var ed=e.target.closest('[data-cur-edit]'); if(ed){ open('edit', ed.closest('[data-cur-row]')); }
+  });
 })();
 </script>
 {% endblock %}
