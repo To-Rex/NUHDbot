@@ -41,9 +41,12 @@
     "help_text": "Admin chatda javob beradi va disk tanlashga yordam beradi",
     "slider": "Takliflar",
     "slide": {
+      "new": "Yangi kelganlar",
       "hot": "Qaynoq taklif",
       "sale": "Chegirma",
-      "new": "Yangi",
+      "auction": "Auksion",
+      "tips": "Foydali ma'lumot",
+      "catalog": "Katalog",
       "info": "E'lon"
     },
     "slide_cta": "Ko'rish",

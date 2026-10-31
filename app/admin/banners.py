@@ -32,7 +32,7 @@ async def _ctx(db, staff: User, b: Banner, is_new: bool, errors: list[str] | Non
         products = [b.product, *products]
     return {
         "page_title": t(staff.lang, "admin.ban.new" if is_new else "admin.ban.edit"), "b": b, "is_new": is_new, "errors": errors or [],
-        "products": products, "kinds": svc.KINDS, "kind_icons": svc.KIND_ICONS, "colors": svc.COLORS, "dt_local": dt_local,
+        "products": products, "kinds": svc.KINDS, "kind_icons": svc.KIND_ICONS, "kind_defaults": svc.KIND_DEFAULTS, "colors": svc.COLORS, "dt_local": dt_local,
     }
 
 

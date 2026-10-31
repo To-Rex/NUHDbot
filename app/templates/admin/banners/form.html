@@ -1,12 +1,12 @@
 {% extends "admin/base.html" %}
-{% set target = 'product' if b.product_id else ('link' if b.link else 'none') %}
+{% set target = 'product' if b.product_id else ('link' if b.link else ('product' if is_new and b.kind in ('hot', 'sale') and not errors else 'none')) %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/banners">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
 {% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{% for e in errors %}{{ t('admin.ban.err.' ~ e) }}{% if not loop.last %} · {% endif %}{% endfor %}</span></div>{% endif %}
 <div class="split bn-edit">
 <form method="post" enctype="multipart/form-data" id="banner-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection"><h2 data-n="01">{{ t('admin.ban.sec_kind') }}</h2>
-    <div class="bn-kinds mt">{% for k in kinds %}<label class="bn-kind"><input type="radio" name="kind" value="{{ k }}" {{ 'checked' if b.kind == k }} data-label="{{ t('admin.ban.kind.' ~ k) }}" data-icon="{{ kind_icons[k] }}"><span>{{ icon(kind_icons[k], 18) }}<b>{{ t('admin.ban.kind.' ~ k) }}</b><small>{{ t('admin.ban.kind_hint.' ~ k) }}</small></span></label>{% endfor %}</div>
+    <div class="bn-kinds mt">{% for k in kinds %}<label class="bn-kind"><input type="radio" name="kind" value="{{ k }}" {{ 'checked' if b.kind == k }} data-label="{{ t('admin.ban.kind.' ~ k) }}" data-icon="{{ kind_icons[k] }}" data-link="{{ kind_defaults[k][0] or '' }}" data-target="{{ 'link' if kind_defaults[k][0] else ('product' if k in ('hot', 'sale') else 'none') }}" data-color="{{ kind_defaults[k][1] }}"><span>{{ icon(kind_icons[k], 18) }}<b>{{ t('admin.ban.kind.' ~ k) }}</b><small>{{ t('admin.ban.kind_hint.' ~ k) }}</small></span></label>{% endfor %}</div>
   </section>
 
   <section class="fsection"><h2 data-n="02">{{ t('admin.ban.sec_text') }}</h2>
@@ -38,7 +38,7 @@
     </div>
     <div class="field mt" data-target-pane="link" {% if target != 'link' %}hidden{% endif %}>
       <label>{{ t('admin.ban.f_link') }}</label><input class="input mono" name="link" value="{{ b.link or '' }}" placeholder="/app/catalog?use=nas" data-bn-link>
-      <div class="bn-presets">{% for key, url in (('catalog', '/app/catalog'), ('new', '/app/new'), ('auctions', '/app/auctions'), ('cctv', '/app/catalog?use=cctv'), ('nas', '/app/catalog?use=nas'), ('used', '/app/catalog?cond=used')) %}<button type="button" class="fchip" data-link="{{ url }}">{{ t('admin.ban.preset.' ~ key) }}</button>{% endfor %}</div>
+      <div class="bn-presets">{% for key, url in (('catalog', '/app/catalog'), ('new', '/app/new'), ('auctions', '/app/auctions'), ('tips', '/app/info'), ('cctv', '/app/catalog?use=cctv'), ('nas', '/app/catalog?use=nas'), ('used', '/app/catalog?cond=used')) %}<button type="button" class="fchip" data-link="{{ url }}">{{ t('admin.ban.preset.' ~ key) }}</button>{% endfor %}</div>
       <span class="hint">{{ t('admin.ban.f_link_hint') }}</span></div>
     <p class="hint mt" data-target-pane="none" {% if target != 'none' %}hidden{% endif %}>{{ t('admin.ban.target_none_hint') }}</p>
   </section>
@@ -90,6 +90,17 @@
     var art=q('[data-bn-art]'); art.hidden=!!(opt||img); if(kind) art.innerHTML=iconSvg[kind.value].replace(/width="\d+"/,'width="54"').replace(/height="\d+"/,'height="54"');
     var media=q('[data-bn-media]'); media.innerHTML=opt&&!img?(opt.dataset.thumb?'<img src="'+esc(opt.dataset.thumb)+'" alt="">':'<span class="bn-cap">'+esc(opt.dataset.cap)+'</span>'):'';
   }
+  /* a new banner: picking a kind fills in its usual page and colour until those are set by hand */
+  var isNew={{ 'true' if is_new else 'false' }}, linkTouched=!!F('link').value.trim(), colorTouched=!isNew;
+  form.querySelectorAll('[name=color]').forEach(function(r){ r.addEventListener('change',function(e){ if(e.isTrusted) colorTouched=true; }); });
+  F('link').addEventListener('input',function(e){ if(e.isTrusted) linkTouched=true; });
+  form.querySelectorAll('[name=target]').forEach(function(r){ r.addEventListener('change',function(e){ if(e.isTrusted) linkTouched=true; }); });
+  form.querySelectorAll('[name=kind]').forEach(function(r){ r.addEventListener('change',function(){
+    if(!isNew) return;
+    if(!colorTouched&&r.dataset.color){ var c=form.querySelector('[name=color][value="'+r.dataset.color+'"]'); if(c) c.checked=true; }
+    if(!linkTouched){ var tr=form.querySelector('[name=target][value="'+r.dataset.target+'"]'); if(tr) tr.checked=true; F('link').value=r.dataset.link||''; }
+    render();
+  }); });
   form.addEventListener('input',render); form.addEventListener('change',render);
   form.querySelector('[data-bn-image]').addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; if(f){ imageUrl=URL.createObjectURL(f); var r=form.querySelector('[data-bn-remove]'); if(r) r.checked=false; } render(); });
   form.querySelectorAll('[data-link]').forEach(function(b){ b.addEventListener('click',function(){ var l=F('link'); l.value=b.dataset.link; l.dispatchEvent(new Event('input',{bubbles:true})); }); });

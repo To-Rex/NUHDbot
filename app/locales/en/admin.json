@@ -941,15 +941,21 @@
       "shown": "Banner shown",
       "hidden": "Banner hidden",
       "kind": {
-        "hot": "Hot offer",
+        "new": "New arrivals",
+        "hot": "Hot offers",
         "sale": "Sale",
-        "new": "New",
+        "auction": "Auctions",
+        "tips": "Useful info",
+        "catalog": "Catalogue",
         "info": "Notice"
       },
       "kind_hint": {
+        "new": "A new batch arrived",
         "hot": "Best price, limited batch",
         "sale": "Price cut, promotion",
-        "new": "A new batch arrived",
+        "auction": "Lots and bidding",
+        "tips": "Tips and guides",
+        "catalog": "A product section",
         "info": "News or a reminder"
       },
       "title_ph": "Title",
@@ -995,7 +1001,8 @@
         "auctions": "Auctions",
         "cctv": "Surveillance drives",
         "nas": "NAS drives",
-        "used": "Used drives"
+        "used": "Used drives",
+        "tips": "Useful info"
       },
       "f_link_hint": "Starts with /app. Pick a ready one if you like.",
       "target_none_hint": "The slide is only shown, not tappable — for notices.",

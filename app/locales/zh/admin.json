@@ -941,15 +941,21 @@
       "shown": "横幅已显示",
       "hidden": "横幅已隐藏",
       "kind": {
+        "new": "新品到货",
         "hot": "热门优惠",
         "sale": "折扣",
-        "new": "新品",
+        "auction": "拍卖",
+        "tips": "实用信息",
+        "catalog": "目录",
         "info": "公告"
       },
       "kind_hint": {
+        "new": "新批次到货",
         "hot": "最优价格，数量有限",
         "sale": "降价促销",
-        "new": "新批次到货",
+        "auction": "拍品与竞拍",
+        "tips": "建议与指南",
+        "catalog": "商品分类",
         "info": "新闻或提醒"
       },
       "title_ph": "标题",
@@ -995,7 +1001,8 @@
         "auctions": "拍卖",
         "cctv": "监控硬盘",
         "nas": "NAS 硬盘",
-        "used": "二手硬盘"
+        "used": "二手硬盘",
+        "tips": "实用信息"
       },
       "f_link_hint": "以 /app 开头，可选择现成选项。",
       "target_none_hint": "仅展示，不可点击——用于公告。",

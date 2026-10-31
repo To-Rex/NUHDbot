@@ -41,9 +41,12 @@
     "help_text": "管理员会在聊天中解答并帮您挑选",
     "slider": "优惠",
     "slide": {
+      "new": "新品到货",
       "hot": "热门优惠",
       "sale": "折扣",
-      "new": "新品",
+      "auction": "拍卖",
+      "tips": "实用信息",
+      "catalog": "目录",
       "info": "公告"
     },
     "slide_cta": "查看",

@@ -41,9 +41,12 @@
     "help_text": "Our admin will reply in chat and help you choose",
     "slider": "Offers",
     "slide": {
+      "new": "New arrivals",
       "hot": "Hot offer",
       "sale": "Sale",
-      "new": "New",
+      "auction": "Auction",
+      "tips": "Good to know",
+      "catalog": "Catalogue",
       "info": "Notice"
     },
     "slide_cta": "View",

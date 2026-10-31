@@ -6,8 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Banner
 
-KINDS = ("hot", "sale", "new", "info")
-KIND_ICONS = {"hot": "fire", "sale": "percent", "new": "sparkle", "info": "bell"}
+KINDS = ("new", "hot", "sale", "auction", "tips", "catalog", "info")
+KIND_ICONS = {"new": "sparkle", "hot": "fire", "sale": "percent", "auction": "gavel", "tips": "lightbulb", "catalog": "grid", "info": "bell"}
+# what a new banner of each kind usually points to and looks like (the form fills these in, staff can change them)
+KIND_DEFAULTS = {"new": ("/app/new", "green"), "hot": (None, "red"), "sale": (None, "purple"), "auction": ("/app/auctions", "orange"),
+                 "tips": ("/app/info", "teal"), "catalog": ("/app/catalog", "blue"), "info": (None, "black")}
 COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black")
 
 

@@ -40,3 +40,10 @@ def test_links_stay_in_the_mini_app():
     assert svc.clean_link(" /app/new ") == "/app/new"
     for bad in ("https://evil.example", "//evil.example", "/admin", "/app//evil.example", "", None):
         assert svc.clean_link(bad) is None
+
+
+def test_every_kind_has_an_icon_and_a_valid_default_page():
+    assert set(svc.KINDS) == set(svc.KIND_ICONS) == set(svc.KIND_DEFAULTS)
+    assert {"new", "hot", "sale", "auction", "tips", "catalog", "info"} == set(svc.KINDS)
+    for link, color in svc.KIND_DEFAULTS.values():
+        assert color in svc.COLORS and (link is None or svc.clean_link(link) == link)

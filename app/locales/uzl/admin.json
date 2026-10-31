@@ -941,15 +941,21 @@
       "shown": "Banner ko'rinadi",
       "hidden": "Banner yashirildi",
       "kind": {
-        "hot": "Qaynoq taklif",
+        "new": "Yangi kelgan mahsulotlar",
+        "hot": "Qaynoq takliflar",
         "sale": "Chegirma",
-        "new": "Yangi",
+        "auction": "Auksionlar",
+        "tips": "Foydali ma'lumotlar",
+        "catalog": "Katalog",
         "info": "E'lon"
       },
       "kind_hint": {
+        "new": "Yangi partiya keldi",
         "hot": "Eng yaxshi narx, cheklangan partiya",
         "sale": "Narx tushdi, aksiya",
-        "new": "Yangi partiya keldi",
+        "auction": "Lotlar va savdolar",
+        "tips": "Maslahat va qo'llanmalar",
+        "catalog": "Mahsulotlar bo'limi",
         "info": "Yangilik yoki eslatma"
       },
       "title_ph": "Sarlavha",
@@ -995,7 +1001,8 @@
         "auctions": "Auksionlar",
         "cctv": "Videokuzatuv disklari",
         "nas": "NAS disklari",
-        "used": "B/u disklar"
+        "used": "B/u disklar",
+        "tips": "Foydali ma'lumotlar"
       },
       "f_link_hint": "/app bilan boshlanadi. Tayyor variantlardan birini tanlash mumkin.",
       "target_none_hint": "Slayd faqat ko'rsatiladi, bosilmaydi — e'lonlar uchun.",

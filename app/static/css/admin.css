@@ -1060,7 +1060,7 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .bn-switch{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 8px;border-radius:8px;font-size:12px;font-weight:600;color:var(--ink-2)}
 .bn-switch:hover{background:var(--sunken)}
 .bn-edit{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
-.bn-kinds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.bn-kinds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
 .bn-kind{position:relative;cursor:pointer}
 .bn-kind input{position:absolute;opacity:0;pointer-events:none}
 .bn-kind>span{display:flex;flex-direction:column;gap:4px;height:100%;padding:12px;border-radius:12px;border:1.5px solid var(--hairline);transition:border-color var(--t-fast),background var(--t-fast)}
