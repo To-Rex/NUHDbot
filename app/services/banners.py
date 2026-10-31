@@ -24,6 +24,14 @@ def clean_style(value: str | None) -> str:
     return value if value in STYLES else STYLES[0]
 
 
+# how the home slider banners look (Banners page → Banner design); the first is the default
+DESIGNS = ("classic", "card", "glass", "light", "neon", "poster")
+
+
+def clean_design(value: str | None) -> str:
+    return value if value in DESIGNS else DESIGNS[0]
+
+
 def clean_seconds(value, default: int | None = None) -> int | None:
     """Seconds a slide stays, kept within 1–60; anything else gives the default."""
     try:

@@ -1068,9 +1068,9 @@
       "f_seconds_where": "Bannerlar sahifasida o'zgartiriladi",
       "sec_short": "{n} s",
       "sec_other": "Boshqa",
-      "style_title": "Slayder ko'rinishi",
-      "style_hint": "Bosh sahifadagi bannerlar qanday almashadi — birini tanlang, darhol saqlanadi.",
-      "style_saved": "Slayder ko'rinishi saqlandi: {name}",
+      "style_title": "Almashish effekti",
+      "style_hint": "Bannerlar bir-biriga qanday almashadi — birini tanlang, darhol saqlanadi.",
+      "style_saved": "Almashish effekti saqlandi: {name}",
       "style": {
         "parallax": "Parallaks",
         "parallax_d": "Surilganda chuqurlikka biroz buriladi, matn va rasm har xil tezlikda suriladi",
@@ -1096,6 +1096,23 @@
         "roll_d": "Kub yuqoridan pastga aylanadi, keyingi banner tepadan tushadi",
         "spiral": "Spiral",
         "spiral_d": "Bannerlar spiral zinadek: har keyingisi balandroq va chuqurroq"
+      },
+      "design_title": "Banner dizayni",
+      "design_hint": "Bannerlar qanday ko'rinadi — rang, shisha, yorug' vitrina… Birini tanlang, darhol saqlanadi.",
+      "design_saved": "Banner dizayni saqlandi: {name}",
+      "design": {
+        "classic": "Klassik",
+        "classic_d": "To'liq rangli banner, rasm o'ngda",
+        "card": "Kartochka",
+        "card_d": "Yo'nalishlar uslubida: rasm ramkada, pastda strelkali tugma",
+        "glass": "Liquid Glass",
+        "glass_d": "Rangli fonda shishasimon panellar va yumshoq shakllar",
+        "light": "Vitrina",
+        "light_d": "Oq (tunda qora) karta, rang faqat urg'u sifatida",
+        "neon": "Neon",
+        "neon_d": "Qora karta, rangli nur va halqalar",
+        "poster": "Poster",
+        "poster_d": "Katta shrift, chegirma ulkan konturli raqam bilan"
       }
     }
   }

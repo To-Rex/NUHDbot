@@ -9,6 +9,22 @@
     <label class="bn-secs-own"><input class="input mono" type="number" name="slider_seconds" min="{{ seconds_min }}" max="{{ seconds_max }}" value="{{ slider_seconds if slider_seconds not in seconds_choices else '' }}" placeholder="{{ t('admin.ban.sec_other') }}" data-secs-own {{ 'disabled' if slider_seconds in seconds_choices }}></label></div>
   <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
 </form>
+{# how the banners look on the Mini App home: a click saves it; each tile shows a small banner in that design #}
+<form class="card ds-card mb" method="post" action="/admin/banners/design"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="ds-head"><span class="bn-timing-ic">{{ icon('image', 18) }}</span><div class="flex1"><b>{{ t('admin.ban.design_title') }}</b><p>{{ t('admin.ban.design_hint') }}</p></div></div>
+  <div class="ds-opts ds-opts-3" role="radiogroup" aria-label="{{ t('admin.ban.design_title') }}">
+    {% for dn in designs %}
+    <label class="ds-opt"><input type="radio" name="design" value="{{ dn }}" {{ 'checked' if banner_design == dn }} onchange="this.form.requestSubmit()">
+      <span class="ds-box">
+        <span class="bdv bdv-{{ dn }}" aria-hidden="true"><span class="mb c-red"><i class="o"></i><i class="g"></i><b></b><b></b><i class="p"></i><i class="c"></i><em>-15%</em></span></span>
+        <span class="ds-txt"><b>{{ t('admin.ban.design.' ~ dn) }}</b><small>{{ t('admin.ban.design.' ~ dn ~ '_d') }}</small></span>
+        <span class="ds-check">{{ icon('check', 12) }}</span>
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+</form>
+
 {# how the slides change on the Mini App home: a click saves it; each tile shows a small model of the motion #}
 <form class="card ds-card mb" method="post" action="/admin/banners/style"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <div class="ds-head"><span class="bn-timing-ic">{{ icon('sparkle', 18) }}</span><div class="flex1"><b>{{ t('admin.ban.style_title') }}</b><p>{{ t('admin.ban.style_hint') }}</p></div></div>

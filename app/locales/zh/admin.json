@@ -1068,9 +1068,9 @@
       "f_seconds_where": "在“横幅”页面修改",
       "sec_short": "{n} 秒",
       "sec_other": "其他",
-      "style_title": "滑块样式",
-      "style_hint": "首页横幅的切换方式——选择一种，立即保存。",
-      "style_saved": "滑块样式已保存：{name}",
+      "style_title": "切换效果",
+      "style_hint": "横幅之间如何切换——选择一种，立即保存。",
+      "style_saved": "切换效果已保存：{name}",
       "style": {
         "parallax": "视差",
         "parallax_d": "滑动时幻灯片微微向纵深转动，文字和图片以不同速度移动",
@@ -1096,6 +1096,23 @@
         "roll_d": "立方体自上而下翻转，下一张从上方滚落",
         "spiral": "螺旋",
         "spiral_d": "横幅沿螺旋阶梯排列：后一张更高更深"
+      },
+      "design_title": "横幅设计",
+      "design_hint": "横幅的外观——纯色、玻璃、浅色橱窗……选择一种，立即保存。",
+      "design_saved": "横幅设计已保存：{name}",
+      "design": {
+        "classic": "经典",
+        "classic_d": "整幅彩色横幅，图片在右侧",
+        "card": "卡片",
+        "card_d": "「产品方向」风格：图片装框，下方箭头按钮",
+        "glass": "Liquid Glass",
+        "glass_d": "彩色背景上的玻璃面板与柔和图形",
+        "light": "橱窗",
+        "light_d": "白色（夜间深色）卡片，颜色仅作点缀",
+        "neon": "霓虹",
+        "neon_d": "黑色卡片，彩色光晕与圆环",
+        "poster": "海报",
+        "poster_d": "大字号，折扣以巨大的描边数字呈现"
       }
     }
   }

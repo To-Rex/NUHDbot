@@ -3,7 +3,7 @@
 {% set lot = lots[0] if lots else None %}
 {% set n = banners|length + (1 if lot else 0) + (1 if new_count else 0) %}{% set first = namespace(on=True) %}
 {% set look = slider_style if n > 1 and slider_style != 'parallax' else '' %}{# the look picked on the Banners page; parallax is the plain swipe #}
-<div class="hs{{ ' hs-fx hs-look-' ~ look if look }}" data-slider data-style="{{ look or 'parallax' }}" aria-roledescription="carousel" aria-label="{{ t('home.slider') }}">
+<div class="hs{{ ' hs-fx hs-look-' ~ look if look }}{{ ' hs-d-' ~ banner_design if banner_design and banner_design != 'classic' }}" data-slider data-style="{{ look or 'parallax' }}" aria-roledescription="carousel" aria-label="{{ t('home.slider') }}">
   <div class="hs-track" data-slider-track>
     {% for b in banners %}{% set multi = b.id in offers %}{% set prod = None if multi else b.product %}{% set items = offers[b.id][0] if multi else [] %}{% set go = (multi and items) or b.product_id or b.link %}
     <{{ 'a' if go else 'div' }} class="hs-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or items) and not b.image }}{{ ' is-active' if first.on }}"{% set first.on = False %}{% if go %} href="/app/promo/{{ b.id }}"{% endif %} data-ms="{{ slider_seconds * 1000 }}" aria-roledescription="slide">
