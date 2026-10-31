@@ -389,7 +389,7 @@
       "inbox": "Murojaatlar",
       "select_thread": "Chapdan murojaatni tanlang",
       "attach": "Rasm biriktirish",
-      "press_enter": "Yuborish: Ctrl+Enter",
+      "press_enter": "Enter — yuborish · Shift+Enter — yangi qator",
       "you": "Siz",
       "admin_label": "Admin",
       "quick_title": "Tayyor javoblar",
@@ -399,7 +399,10 @@
       "quick_4": "Yuk jo'natildi. Trek raqami buyurtma sahifasida ko'rsatilgan.",
       "quick_5": "Ish vaqtimiz: Dushanba–Shanba, 09:00–19:00 (Pekin vaqti). Tez orada javob beramiz.",
       "customer_lang": "Mijoz tili",
-      "unread_n": "o'qilmagan"
+      "unread_n": "o'qilmagan",
+      "new_message": "Yangi xabar",
+      "retry": "Qayta yuborish",
+      "failed": "Yuborilmadi"
     },
     "cust": {
       "title": "Mijozlar",

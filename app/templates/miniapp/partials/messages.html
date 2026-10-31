@@ -1,8 +1,12 @@
+{# Chat bubbles. Own messages carry a tick: one check = sent, two = the admin has read it
+   (the customer's last `unread_for_staff` messages are still unread). #}
+{% set mine = th.messages|rejectattr('from_staff')|map(attribute='id')|list %}
+{% set unread_ids = mine[-th.unread_for_staff:] if th.unread_for_staff else [] %}
 {% for m in messages %}
 <div class="msg {{ 'them' if m.from_staff else 'me' }}" data-id="{{ m.id }}">
   {% if m.from_staff %}<div class="xs semibold" style="opacity:.7;margin-bottom:2px">{{ t('support.admin') }}</div>{% endif %}
   {% if m.attachment %}{% if m.kind.value == 'photo' %}<img src="{{ m.attachment_url }}" alt="" loading="lazy" data-lightbox="{{ m.attachment_url }}">{% else %}<a href="{{ m.attachment_url }}" target="_blank" hx-boost="false" class="row" style="gap:6px">{{ icon('paperclip', 14) }}{{ t('support.attachment') }}</a>{% endif %}{% endif %}
   {% if m.text %}<div>{{ m.text|nl2br }}</div>{% endif %}
-  <time>{{ m.created_at|dt('%H:%M') }}</time>
+  <time>{{ m.created_at|dt('%H:%M') }}{% if not m.from_staff %}<span class="tick{{ '' if m.id in unread_ids else ' read' }}" aria-hidden="true"><svg viewBox="0 0 18 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 6.5l3 3 6.5-7"/><path class="p2" d="M8.5 9.5l7-7"/></svg></span>{% endif %}</time>
 </div>
 {% endfor %}

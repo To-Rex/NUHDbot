@@ -495,6 +495,21 @@ button.list-item{width:100%;text-align:left}
 .chat-bar textarea:focus{box-shadow:none;border-color:transparent}
 .chat-bar .btn{width:44px;height:44px;padding:0;border-radius:50%}
 .chat-bar .icon-btn{width:44px;height:44px;cursor:pointer;border-radius:50%}
+.chat-bar.htmx-request .btn{pointer-events:none;opacity:.75}
+.chat-bar.htmx-request .btn .label{display:none}
+.chat-bar.htmx-request .btn .spinner{display:inline-block}
+/* read ticks: one check = sent, two = read */
+.msg time{display:flex;align-items:center;justify-content:flex-end;gap:4px}
+.tick{display:inline-flex;width:16px;height:11px}
+.tick svg{width:16px;height:11px}
+.tick .p2{opacity:0;transition:opacity var(--t-med)}
+.tick.read .p2{opacity:1}
+/* optimistic bubbles: sending → (arrived) → real message; failed keeps the text with a retry */
+.msg.pending{opacity:.72}
+.msg.pending.arrived{display:none}
+.msg time .spinner{width:11px;height:11px;border-width:1.5px}
+.msg.failed{opacity:1;background:var(--bad-bg)!important;color:var(--bad)!important;box-shadow:none}
+.msg .retry{font:inherit;font-weight:700;text-decoration:underline;color:inherit;padding:0}
 
 /* ===== misc components ===== */
 .pill-tabs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}

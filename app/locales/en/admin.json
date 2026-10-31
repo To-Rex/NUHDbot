@@ -389,7 +389,7 @@
       "inbox": "Inbox",
       "select_thread": "Pick a conversation on the left",
       "attach": "Attach photo",
-      "press_enter": "Send: Ctrl+Enter",
+      "press_enter": "Enter to send · Shift+Enter for a new line",
       "you": "You",
       "admin_label": "Admin",
       "quick_title": "Quick replies",
@@ -399,7 +399,10 @@
       "quick_4": "Your shipment is on its way. The tracking number is on the order page.",
       "quick_5": "Our hours: Mon–Sat, 09:00–19:00 (Beijing time). We will reply shortly.",
       "customer_lang": "Customer language",
-      "unread_n": "unread"
+      "unread_n": "unread",
+      "new_message": "New message",
+      "retry": "Retry",
+      "failed": "Not sent"
     },
     "cust": {
       "title": "Customers",

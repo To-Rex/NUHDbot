@@ -1,4 +1,4 @@
-<div class="chat" id="chat" hx-get="/admin/support/{{ th.id }}?partial=messages" hx-trigger="every 10s" hx-swap="outerHTML">
-{% for m in th.messages %}<div class="msg {{ 'staff' if m.from_staff else 'cust' }}">{% if m.attachment %}{% if m.attachment.endswith('.webp') %}<a href="#" data-lightbox="{{ m.attachment_url }}"><img src="{{ m.attachment_url }}" alt=""></a>{% else %}<a href="{{ m.attachment_url }}" target="_blank" class="bold">{{ icon('download', 14) }} {{ m.kind.value }}</a>{% endif %}{% elif m.tg_file_id and m.kind.value != 'text' %}<span class="faint">{{ icon('paperclip', 14) }} {{ m.kind.value }} (Telegram)</span>{% endif %}{% if m.text %}<div>{{ m.text|nl2br }}</div>{% endif %}<time>{{ m.created_at|dt('%d.%m %H:%M') }}{% if m.from_staff and m.sender %} · {{ m.sender.full_name }}{% endif %}</time></div>
-{% else %}<div class="empty">{{ icon('message', 26) }}<b>{{ t('admin.sup.no_messages') }}</b></div>{% endfor %}
+{# Live chat: no polling — admin.js appends new messages when the support stream says so. #}
+<div class="chat" id="chat" data-thread="{{ th.id }}">
+{% with items=th.messages %}{% include "admin/support/_msg_items.html" %}{% endwith %}{% if not th.messages %}<div class="empty" data-chat-empty>{{ icon('message', 26) }}<b>{{ t('admin.sup.no_messages') }}</b></div>{% endif %}
 </div>

@@ -389,7 +389,7 @@
       "inbox": "会话",
       "select_thread": "请在左侧选择会话",
       "attach": "附加图片",
-      "press_enter": "发送：Ctrl+Enter",
+      "press_enter": "回车发送 · Shift+回车换行",
       "you": "您",
       "admin_label": "管理员",
       "quick_title": "快捷回复",
@@ -399,7 +399,10 @@
       "quick_4": "货物已发出。运单号见订单页面。",
       "quick_5": "工作时间：周一至周六 09:00–19:00（北京时间）。我们会尽快回复。",
       "customer_lang": "客户语言",
-      "unread_n": "未读"
+      "unread_n": "未读",
+      "new_message": "新消息",
+      "retry": "重试",
+      "failed": "发送失败"
     },
     "cust": {
       "title": "客户",

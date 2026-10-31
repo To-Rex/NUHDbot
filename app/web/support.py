@@ -5,6 +5,7 @@ from app.deps import DB, Lang, redirect, require_user
 from app.enums import MessageKind
 from app.i18n import t
 from app.models import Order, Product, SupportMessage, User
+from app.services import chat_events
 from app.services.media import ALLOWED_TYPES, MediaError, save_document
 from app.services.settings_service import get_setting
 from app.services.support import add_message, get_or_create_thread, mark_read, user_threads
@@ -74,6 +75,15 @@ async def support_thread(thread_id: int, request: Request, db: DB, lang: Lang, u
     await db.commit()
     title = t(lang, "support.about_order", number=th.order.number) if th.order else t(lang, "support.general")
     return render(request, "miniapp/support_thread.html", {"lang": lang, "th": th, "messages": th.messages, "page_title": title, "back_url": "/app/support", "hide_nav": True, "working_hours": await get_setting(db, "working_hours"), "reply_time": await get_setting(db, "reply_time")})
+
+
+@router.get("/support/{thread_id}/stream")
+async def support_stream(thread_id: int, request: Request, db: DB, user: User = Depends(require_user)):
+    th = await _thread_for(db, thread_id, user)
+    if th is None:
+        return HTMLResponse("", status_code=404)
+    await db.close()  # the stream may stay open for hours: give the pooled connection back now
+    return chat_events.stream(request, chat_events.thread_channel(thread_id))
 
 
 @router.get("/support/{thread_id}/messages")

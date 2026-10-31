@@ -1,4 +1,4 @@
-<div id="thread-list" class="inbox-list" hx-get="/admin/support?status={{ status }}{% if th is defined and th %}&current={{ th.id }}{% endif %}" hx-trigger="every 15s" hx-swap="outerHTML" hx-select="#thread-list">
+<div id="thread-list" class="inbox-list" data-list-url="/admin/support?status={{ status }}{% if th is defined and th %}&current={{ th.id }}{% endif %}">
   <div class="tabs"><a href="/admin/support?status=open" class="{{ 'active' if status=='open' }}">{{ t('admin.sup.open') }}</a><a href="/admin/support?status=closed" class="{{ 'active' if status=='closed' }}">{{ t('admin.sup.closed') }}</a><a href="/admin/support?status=all" class="{{ 'active' if status=='all' }}">{{ t('admin.all') }}</a></div>
   <ul>
   {% for x in threads %}{% set last = x.messages[-1] if x.messages else None %}

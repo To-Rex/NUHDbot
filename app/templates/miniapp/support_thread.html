@@ -4,28 +4,106 @@
 {% block content %}
 <div class="page" style="padding-bottom:calc(var(--nav-h) + var(--nav-gap) + 90px)">
   <p class="xs faint center mb-3">{{ t('support.anon_note') }}</p>
-  <div class="chat" id="chat" hx-get="/app/support/{{ th.id }}/messages" hx-trigger="every 5s" hx-vals='js:{"after": lastMsgId()}' hx-swap="beforeend">
+  <div class="chat" id="chat" data-thread="{{ th.id }}">
     {% include "miniapp/partials/messages.html" %}
   </div>
 </div>
-<form class="chat-bar" id="chat-form" hx-post="/app/support/{{ th.id }}/send" hx-target="#chat" hx-swap="beforeend" hx-encoding="multipart/form-data">
-  <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only" onchange="this.form.requestSubmit()">{{ icon('paperclip', 20) }}</label>
+<form class="chat-bar" id="chat-form" hx-boost="false" data-retry="{{ t('support.retry') }}" data-failed="{{ t('support.failed') }}">
+  <label class="icon-btn" aria-label="{{ t('support.attach') }}"><input type="file" name="attachment" accept="image/*,.pdf" class="sr-only">{{ icon('paperclip', 20) }}</label>
   <textarea class="textarea" name="text" rows="1" placeholder="{{ t('support.write') }}" enterkeyhint="send"></textarea>
   <button class="btn btn-primary" type="submit" aria-label="{{ t('support.send') }}">{{ icon('send', 18) }}</button>
 </form>
 {% endblock %}
 {% block scripts %}
 <script>
-function lastMsgId(){ var all = document.querySelectorAll('#chat .msg'); return all.length ? Number(all[all.length-1].dataset.id) : 0; }
 (function(){
-  var chat = document.getElementById('chat'); var form = document.getElementById('chat-form'); var ta = form.querySelector('textarea');
-  function bottom(){ window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'}); }
-  bottom();
+  /* live chat: the stream says "something changed", we fetch only messages newer than the last one on screen */
+  var chat = document.getElementById('chat'), form = document.getElementById('chat-form'), ta = form.querySelector('textarea');
+  var base = '/app/support/' + chat.dataset.thread, es = null, busy = false, again = false;
+  function lastId(){ var n = 0; chat.querySelectorAll('.msg[data-id]').forEach(function(m){ n = Math.max(n, Number(m.dataset.id)); }); return n; }
+  function nearEnd(){ return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 160; }
+  function toEnd(smooth){ window.scrollTo({top: document.documentElement.scrollHeight, behavior: smooth ? 'smooth' : 'auto'}); }
+  function insert(html){  // id order, no duplicates (the send reply and the stream can both bring a message)
+    var tpl = document.createElement('template'); tpl.innerHTML = html || ''; var added = 0;
+    tpl.content.querySelectorAll('.msg[data-id]').forEach(function(m){
+      if (chat.querySelector('.msg[data-id="' + m.dataset.id + '"]')) return;
+      var next = Array.prototype.find.call(chat.querySelectorAll('.msg[data-id]'), function(x){ return Number(x.dataset.id) > Number(m.dataset.id); });
+      chat.insertBefore(m, next || null); added++;
+      if (m.classList.contains('me')) {  // the stream may bring our own message before the send reply: drop its "sending" twin
+        var body = m.querySelector('time') ? norm(Array.prototype.filter.call(m.children, function(c){ return c.tagName === 'DIV'; }).map(function(c){ return c.textContent; }).join(' ')) : '';
+        var twin = Array.prototype.find.call(chat.querySelectorAll('.msg.pending:not(.failed)'), function(p){ return p.dataset.text && p.dataset.text === body; });
+        if (twin) twin.classList.add('arrived');
+      }
+    });
+    return added;
+  }
+  function catchUp(){
+    if (busy) { again = true; return; }
+    busy = true; var stick = nearEnd();
+    fetch(base + '/messages?after=' + lastId(), {credentials: 'same-origin', headers: {'HX-Request': 'true'}})
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(html){ if (insert(html) && stick) toEnd(true); })
+      .catch(function(){})
+      .finally(function(){ busy = false; if (again) { again = false; catchUp(); } });
+  }
+  function read(){ chat.querySelectorAll('.msg.me .tick').forEach(function(t){ t.classList.add('read'); }); }
+  if (window.EventSource) {
+    es = new EventSource(base + '/stream');
+    es.addEventListener('ready', catchUp);  // first connect and every reconnect: pick up anything missed
+    es.addEventListener('msg', catchUp);
+    es.addEventListener('read', function(e){ try { if (JSON.parse(e.data).by === 'staff') read(); } catch (_) {} });
+  }
+  function onVisible(){ if (document.visibilityState === 'visible') catchUp(); }
+  document.addEventListener('visibilitychange', onVisible);
+  var safety = setInterval(catchUp, 30000);  // safety net if a proxy ever blocks the stream
+  // leaving the chat (boosted navigation swaps the body): stop the stream and timers
+  document.body.addEventListener('htmx:beforeSwap', function leave(e){
+    if (e.detail.target !== document.body) return;
+    if (es) es.close(); clearInterval(safety); document.removeEventListener('visibilitychange', onVisible); document.body.removeEventListener('htmx:beforeSwap', leave);
+  });
+
+  toEnd(false);
   ta.addEventListener('input', function(){ ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
-  ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey && window.innerWidth > 600) { e.preventDefault(); form.requestSubmit(); } });
-  document.body.addEventListener('htmx:afterSwap', function(e){ if (e.detail.target === chat) { bottom(); } });
-  document.body.addEventListener('htmx:afterRequest', function(e){ if (e.detail.elt === form && e.detail.successful) { form.reset(); ta.style.height = 'auto'; } });
-  document.body.addEventListener('htmx:beforeSwap', function(e){ if (e.detail.target === chat && e.detail.xhr.status === 422) e.detail.shouldSwap = false; });
+  ta.addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && window.innerWidth > 600) { e.preventDefault(); form.requestSubmit(); } });
+
+  /* sending works like a messenger: the box clears at once, the bubble shows "sending", messages go out
+     one after another in order, and a failed one keeps its text with a retry button */
+  var fileIn = form.querySelector('input[type=file]'), jobs = [], sending = false;
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function norm(s){ return String(s || '').replace(/\s+/g, ' ').trim(); }
+  function pendingBubble(text, file){
+    var b = document.createElement('div'); b.className = 'msg me pending'; b.dataset.text = norm(text);
+    b.innerHTML = (file ? '<div class="xs" style="opacity:.85">' + esc(file.name) + '</div>' : '') + (text ? '<div>' + esc(text).replace(/\n/g, '<br>') + '</div>' : '') + '<time><span class="spinner"></span></time>';
+    chat.appendChild(b); return b;
+  }
+  function pump(){
+    if (sending || !jobs.length) return;
+    sending = true; var job = jobs[0];
+    fetch(base + '/send', {method: 'POST', body: job.fd, credentials: 'same-origin', headers: {'HX-Request': 'true'}})
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then(function(html){ jobs.shift(); job.b.remove(); insert(html); toEnd(true); })
+      .catch(function(){
+        jobs.shift(); job.b.classList.add('failed');
+        job.b.querySelector('time').innerHTML = '<span>' + esc(form.dataset.failed) + '</span> <button type="button" class="retry">' + esc(form.dataset.retry) + '</button>';
+        job.b._job = job;
+      })
+      .finally(function(){ sending = false; pump(); });
+  }
+  form.addEventListener('submit', function(e){
+    e.preventDefault(); e.stopImmediatePropagation();
+    var text = ta.value.trim(), file = fileIn.files[0] || null;
+    if (!text && !file) return;
+    var fd = new FormData(); fd.append('text', text); if (file) fd.append('attachment', file);
+    jobs.push({fd: fd, b: pendingBubble(text, file)});
+    ta.value = ''; fileIn.value = ''; ta.style.height = 'auto'; toEnd(true); ta.focus();
+    pump();
+  }, true);
+  fileIn.addEventListener('change', function(){ if (fileIn.files.length) form.requestSubmit(); });
+  chat.addEventListener('click', function(e){
+    var r = e.target.closest('.retry'); if (!r) return;
+    var b = r.closest('.msg'); b.classList.remove('failed'); b.querySelector('time').innerHTML = '<span class="spinner"></span>';
+    jobs.push(b._job); pump();
+  });
 })();
 </script>
 {% endblock %}

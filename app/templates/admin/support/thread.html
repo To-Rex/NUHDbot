@@ -18,7 +18,7 @@
     </div>
     <div class="help" style="margin:10px 16px 0;border-radius:10px">{{ icon('shield', 16) }}<span>{{ t('admin.sup.anon_hint') }}</span></div>
     {% include "admin/support/_messages.html" %}
-    <form class="composer" hx-post="/admin/support/{{ th.id }}/reply" hx-target="#chat" hx-swap="outerHTML" hx-encoding="multipart/form-data" hx-on::after-request="if(event.detail.successful){this.reset();}">
+    <form class="composer" method="post" action="/admin/support/{{ th.id }}/reply" enctype="multipart/form-data" data-retry="{{ t('admin.sup.retry') }}" data-failed="{{ t('admin.sup.failed') }}">
       <input type="hidden" name="_csrf" value="{{ csrf }}">
       <textarea class="textarea" name="text" rows="2" placeholder="{{ t('admin.sup.reply') }}…"></textarea>
       <div class="row-nw">

@@ -371,7 +371,9 @@
       "empty": "消息不能为空",
       "file": "文件上传失败"
     },
-    "attachment": "附件"
+    "attachment": "附件",
+    "retry": "重试",
+    "failed": "发送失败"
   },
   "misc": {
     "error_generic": "出错了，请重试。",

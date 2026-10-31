@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.enums import MessageKind, ThreadStatus
 from app.models import SupportMessage, SupportThread, User
+from app.services import chat_events
 
 
 async def get_or_create_thread(db: AsyncSession, user: User, order_id: int | None = None) -> SupportThread:
@@ -40,6 +41,8 @@ async def add_message(
     )
     db.add(msg)
     thread.last_message_at = datetime.now(UTC)
+    # replying also means the other side's messages have been read
+    read_by = ("staff" if thread.unread_for_staff else None) if from_staff else ("customer" if thread.unread_for_customer else None)
     if from_staff:
         thread.unread_for_customer += 1
         thread.unread_for_staff = 0
@@ -48,7 +51,15 @@ async def add_message(
         thread.unread_for_customer = 0
         thread.status = ThreadStatus.OPEN
     await db.flush()
+    if read_by:
+        chat_events.queue(db, {"type": "read", "thread_id": thread.id, "by": read_by})
+    chat_events.queue(db, {"type": "msg", "thread_id": thread.id, "id": msg.id, "from_staff": from_staff})
     return msg
+
+
+def thread_changed(db: AsyncSession, thread: SupportThread) -> None:
+    """Status / assignee changed: live inboxes refresh after the commit."""
+    chat_events.queue(db, {"type": "thread", "thread_id": thread.id})
 
 
 async def user_threads(db: AsyncSession, user_id: int) -> list[SupportThread]:
@@ -65,8 +76,11 @@ async def staff_threads(db: AsyncSession, status: ThreadStatus | None = ThreadSt
 
 
 async def mark_read(db: AsyncSession, thread: SupportThread, *, by_staff: bool) -> None:
+    changed = bool(thread.unread_for_staff if by_staff else thread.unread_for_customer)
     if by_staff:
         thread.unread_for_staff = 0
     else:
         thread.unread_for_customer = 0
     await db.flush()
+    if changed:  # the other side's ticks turn "read"
+        chat_events.queue(db, {"type": "read", "thread_id": thread.id, "by": "staff" if by_staff else "customer"})

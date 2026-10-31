@@ -253,13 +253,118 @@
   bindDrop();
   document.addEventListener('htmx:afterSettle', (e) => { bindSortable(e.target); bindDrop(e.target); });
 
-  // ---------- composer: Ctrl+Enter sends, autosize ----------
-  document.querySelectorAll('.composer textarea').forEach((ta) => {
-    ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); ta.form.requestSubmit(); } });
+  // ---------- support chat: live updates over SSE, no polling ----------
+  const chatEl = () => document.getElementById('chat');
+  const chatTid = () => { const c = chatEl(); return c ? Number(c.dataset.thread) || 0 : 0; };
+  const chatLast = () => { let n = 0; const c = chatEl(); if (c) c.querySelectorAll('.msg[data-id]').forEach((m) => { n = Math.max(n, Number(m.dataset.id)); }); return n; };
+  const nearEnd = (c) => c.scrollHeight - c.scrollTop - c.clientHeight < 140;
+  // add bubbles in id order, skipping ones already on screen (the composer reply and the stream may both bring a message)
+  function chatInsert(html) {
+    const c = chatEl(); if (!c || !html) return 0;
+    const tpl = document.createElement('template'); tpl.innerHTML = html; let added = 0;
+    tpl.content.querySelectorAll('.msg[data-id]').forEach((m) => {
+      if (c.querySelector('.msg[data-id="' + m.dataset.id + '"]')) return;
+      const next = Array.from(c.querySelectorAll('.msg[data-id]')).find((x) => Number(x.dataset.id) > Number(m.dataset.id));
+      c.insertBefore(m, next || null); added++;
+      if (m.classList.contains('staff')) {
+        const body = Array.from(m.children).filter((x) => x.tagName === 'DIV').map((x) => x.textContent).join(' ').replace(/\s+/g, ' ').trim();
+        const twin = Array.from(c.querySelectorAll('.msg.pending:not(.failed)')).find((p) => p.dataset.text && p.dataset.text.trim() === body);
+        if (twin) twin.classList.add('arrived');
+      }
+    });
+    if (added) { const e = c.querySelector('[data-chat-empty]'); if (e) e.remove(); }
+    return added;
+  }
+  let chatBusy = false, chatAgain = false;
+  function chatCatchUp() {
+    const id = chatTid(); if (!id) return;
+    if (chatBusy) { chatAgain = true; return; }
+    chatBusy = true; const c = chatEl(); const stick = nearEnd(c);
+    fetch('/admin/support/' + id + '?partial=messages&after=' + chatLast(), { headers: { 'HX-Request': 'true' }, credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.text() : '')).then((html) => { if (chatInsert(html) && stick) c.scrollTop = c.scrollHeight; }).catch(() => {})
+      .finally(() => { chatBusy = false; if (chatAgain) { chatAgain = false; chatCatchUp(); } });
+  }
+  let listTimer, listSeq = 0;
+  function refreshList() {
+    clearTimeout(listTimer);
+    listTimer = setTimeout(() => {
+      const l = document.getElementById('thread-list'); if (!l || !l.dataset.listUrl) return;
+      const seq = ++listSeq; // a slower, older response must not overwrite a newer list
+      fetch(l.dataset.listUrl, { headers: { 'HX-Request': 'true' }, credentials: 'same-origin' }).then((r) => (r.ok ? r.text() : '')).then((html) => {
+        const cur = document.getElementById('thread-list'); if (!html || !cur || seq !== listSeq) return;
+        const tpl = document.createElement('template'); tpl.innerHTML = html.trim(); const fresh = tpl.content.querySelector('#thread-list'); if (!fresh) return;
+        const ul = cur.querySelector('ul'), top = ul ? ul.scrollTop : 0;
+        cur.replaceWith(fresh); const nu = fresh.querySelector('ul'); if (nu) nu.scrollTop = top;
+      }).catch(() => {});
+    }, 200);
+  }
+  function refreshBadge() {
+    fetch('/admin/support/badge', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (!d) return; const a = document.querySelector('.sb-item[href="/admin/support"]'); if (!a) return;
+      let cnt = a.querySelector('.cnt'); if (!d.support) { if (cnt) cnt.remove(); return; }
+      if (!cnt) { cnt = document.createElement('span'); cnt.className = 'cnt'; a.appendChild(cnt); }
+      cnt.textContent = d.support;
+    }).catch(() => {});
+  }
+  if (document.body.dataset.supportStream && window.EventSource) {
+    const es = new EventSource('/admin/support/stream');
+    const data = (e) => { try { return JSON.parse(e.data); } catch (_) { return {}; } };
+    es.addEventListener('ready', () => { chatCatchUp(); refreshList(); refreshBadge(); }); // first connect + every reconnect
+    es.addEventListener('msg', (e) => {
+      const ev = data(e);
+      if (ev.thread_id === chatTid()) chatCatchUp();
+      refreshList();
+      if (!ev.from_staff) { refreshBadge(); if (ev.thread_id !== chatTid()) toast(T('sup_new', 'New message'), 'info'); }
+    });
+    es.addEventListener('read', (e) => {
+      const ev = data(e);
+      if (ev.by === 'customer' && ev.thread_id === chatTid()) document.querySelectorAll('#chat .msg.staff .tick').forEach((x) => x.classList.add('read'));
+      refreshList(); refreshBadge();
+    });
+    es.addEventListener('thread', () => { refreshList(); refreshBadge(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { chatCatchUp(); refreshList(); } });
+  }
+  if (chatTid()) setInterval(chatCatchUp, 30000); // safety net if a proxy ever blocks the stream
+
+  // composer: Enter sends (Shift+Enter = new line). Like a messenger: the box clears at once, the bubble
+  // shows "sending", replies go out one by one in order, and a failed one keeps its text with a retry button.
+  document.querySelectorAll('form.composer').forEach((f) => {
+    const ta = f.querySelector('textarea'), fileIn = f.querySelector('input[type=file]'); const jobs = []; let sending = false;
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); f.requestSubmit(); } });
     ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 180) + 'px'; });
+    function pump() {
+      if (sending || !jobs.length) return;
+      sending = true; const job = jobs[0];
+      fetch(f.action, { method: 'POST', body: job.fd, credentials: 'same-origin', headers: { 'HX-Request': 'true', 'X-CSRF': csrf } })
+        .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
+        .then((html) => { jobs.shift(); job.b.remove(); chatInsert(html); const c = chatEl(); if (c) c.scrollTop = c.scrollHeight; refreshList(); })
+        .catch(() => {
+          jobs.shift(); job.b.classList.add('failed'); job.b._job = job;
+          job.b.querySelector('time').innerHTML = '<span>' + esc(f.dataset.failed || 'Not sent') + '</span> <button type="button" class="retry">' + esc(f.dataset.retry || 'Retry') + '</button>';
+        })
+        .finally(() => { sending = false; pump(); });
+    }
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const text = ta.value.trim(), file = fileIn && fileIn.files[0];
+      if (!text && !file) { ta.focus(); return; }
+      const fd = new FormData(); fd.append('_csrf', csrf); fd.append('text', text); if (file) fd.append('file', file);
+      const c = chatEl(); const b = document.createElement('div'); b.className = 'msg staff pending'; b.dataset.text = text.replace(/\s+/g, ' ');
+      b.innerHTML = (file ? '<div class="small" style="opacity:.85">' + esc(file.name) + '</div>' : '') + (text ? '<div>' + esc(text).replace(/\n/g, '<br>') + '</div>' : '') + '<time><span class="spinner"></span></time>';
+      if (c) { const em = c.querySelector('[data-chat-empty]'); if (em) em.remove(); c.appendChild(b); c.scrollTop = c.scrollHeight; }
+      jobs.push({ fd, b });
+      ta.value = ''; ta.style.height = 'auto'; if (fileIn) fileIn.value = ''; const cnt = f.querySelector('[data-count]'); if (cnt) cnt.textContent = '';
+      ta.focus(); pump();
+    });
+    const c = chatEl();
+    if (c) c.addEventListener('click', (e) => {
+      const r = e.target.closest('.retry'); if (!r) return;
+      const b = r.closest('.msg'); b.classList.remove('failed'); b.querySelector('time').innerHTML = '<span class="spinner"></span>';
+      jobs.push(b._job); pump();
+    });
   });
-  const chat = document.getElementById('chat'); if (chat) chat.scrollTop = chat.scrollHeight;
-  document.addEventListener('htmx:afterSettle', (e) => { if (e.target.id === 'chat') e.target.scrollTop = e.target.scrollHeight; });
+  const chat = chatEl(); if (chat) chat.scrollTop = chat.scrollHeight;
 
   // ---------- model chips: type a model + Enter (or paste a list); keeps the hidden `lines` textarea in sync ----------
   const CAP_RE = /^(\d+(?:[.,]\d+)?)\s*(tb|gb|тб|гб)$/i;

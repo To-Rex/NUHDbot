@@ -371,7 +371,9 @@
       "empty": "Xabar bo'sh bo'lishi mumkin emas",
       "file": "Faylni yuklab bo'lmadi"
     },
-    "attachment": "Fayl"
+    "attachment": "Fayl",
+    "retry": "Qayta yuborish",
+    "failed": "Yuborilmadi"
   },
   "misc": {
     "error_generic": "Xatolik. Qayta urinib ko'ring.",

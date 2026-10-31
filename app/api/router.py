@@ -43,8 +43,9 @@ async def auction_stream(auction_id: int, request: Request, db: DB):
     a = await auctions.get_auction(db, auction_id)
     if a is None:
         raise HTTPException(404)
-    q = auctions.subscribe(auction_id)
     initial = auctions.snapshot(a)
+    await db.close()  # the stream stays open: give the pooled connection back now
+    q = auctions.subscribe(auction_id)
 
     async def gen():
         try:

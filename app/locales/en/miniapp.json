@@ -371,7 +371,9 @@
       "empty": "Message cannot be empty",
       "file": "Could not upload the file"
     },
-    "attachment": "File"
+    "attachment": "File",
+    "retry": "Retry",
+    "failed": "Not sent"
   },
   "misc": {
     "error_generic": "Error. Please try again.",

@@ -766,3 +766,15 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .mitem-meta{font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mitem form{flex:0 0 auto}
 .mitem .icon-btn{border-color:transparent;background:transparent;color:var(--ink-3)}
+/* support chat read ticks: one check = delivered, two = read by the customer */
+.chat .msg time{display:flex;align-items:center;gap:4px}
+.chat .msg.staff time{justify-content:flex-end}
+.tick{display:inline-flex;width:16px;height:11px;color:inherit;opacity:.8}
+.tick svg{width:16px;height:11px}
+.tick .p2{opacity:0;transition:opacity var(--t-med)}
+.tick.read{opacity:1}.tick.read .p2{opacity:1}
+.msg.pending{opacity:.72}
+.msg.pending.arrived{display:none}
+.msg time .spinner{width:11px;height:11px;border-width:1.5px}
+.msg.failed{opacity:1;background:var(--bad-bg)!important;color:var(--bad)!important}
+.msg .retry{font:inherit;font-weight:700;text-decoration:underline;color:inherit}

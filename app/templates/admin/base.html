@@ -11,10 +11,10 @@
 <link rel="stylesheet" href="{{ asset('css/tokens.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 <script src="/static/js/htmx.min.js" defer></script>
-<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }}};</script>
+<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }},sup_new:{{ t('admin.sup.new_message')|tojson }}};</script>
 {% block head %}{% endblock %}
 </head>
-<body>
+<body{% if staff is defined and staff and can(roles.SUPPORT_ROLES) %} data-support-stream="1"{% endif %}>
 <div class="shell">
   <aside class="sidebar" id="sidebar" aria-label="{{ t('admin.top.menu') }}">
     <a class="sb-brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>NUHD<small>{{ t('admin.title') }}</small></span></a>
