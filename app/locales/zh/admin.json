@@ -226,10 +226,10 @@
       "sec_terms_hint": "起订量、整箱、质保",
       "sec_tech": "参数与检测",
       "sec_tech_hint": "系列、接口、用途、检测结果",
-      "series_hint": "从列表选择——颜色会自动设置。",
-      "series_color": "系列颜色：{name}——已设为商品颜色。可在上方“颜色”中改为其他颜色。",
-      "series_color_diff": "系列颜色：{name}，商品颜色不同。",
-      "series_apply": "使用系列颜色"
+      "series_hint": "从列表选择——方向颜色会自动设置。",
+      "series_color": "系列方向：{name}——已设为商品颜色。可在上方“方向颜色”中改为其他颜色。",
+      "series_color_diff": "系列方向：{name}，商品为其他方向。",
+      "series_apply": "使用系列方向"
     },
     "ord": {
       "title": "订单",
@@ -847,27 +847,26 @@
       "default_toast": "{code} 已设为主要货币"
     },
     "ser": {
-      "title": "系列",
+      "title": "系列与方向",
       "count": "个系列",
       "add_btn": "添加系列",
       "add_short": "添加",
-      "help": "系列是品牌的产品线（WD Purple、Seagate IronWolf、Exos）。为每个系列设置颜色：添加或编辑商品时选择系列会自动设置该颜色，商品仍可单独选择其他颜色。",
+      "help": "颜色由方向决定：每个方向一种颜色（如 NAS 为红色）。将系列（Red、Red Pro、IronWolf…）加入对应方向——在商品中选择系列会自动设置该颜色，商品仍可选择其他颜色。",
       "unlisted_title": "商品中有、列表中没有",
       "unlisted_hint": "点击添加到列表并设置颜色",
       "n_products": "{n} 个商品",
-      "no_color": "无颜色",
-      "brand_empty": "还没有系列",
+      "no_color": "无方向",
       "dlg_add": "新系列",
       "dlg_edit": "编辑系列",
-      "dlg_sub": "品牌、系列名称和颜色。颜色决定小程序中商品页的外观。",
+      "dlg_sub": "品牌、系列名称和方向。颜色来自方向。",
       "add": "添加",
       "brand": "品牌",
       "name": "系列名称",
-      "color": "颜色",
+      "color": "方向",
       "no_color_desc": "商品不从系列获取颜色",
-      "color_hint": "仅为建议：每个商品仍可选择其他颜色。",
+      "color_hint": "颜色来自方向。仅为建议：每个商品仍可选择其他颜色。",
       "apply": "同时应用到该系列的商品",
-      "apply_n": "同时将颜色应用到该系列的 {n} 个商品",
+      "apply_n": "同时将方向颜色应用到该系列的 {n} 个商品",
       "apply_hint": "手动改过颜色的商品保持不变。",
       "delete_q": "删除系列“{name}”？",
       "delete_text": "商品不受影响：保留其系列名称和颜色。",
@@ -880,10 +879,21 @@
         "name": "请输入系列名称",
         "taken": "{brand} 已有“{name}”系列"
       },
-      "uncoloured": "{n} 个商品未选颜色，但其系列有颜色",
+      "uncoloured": "{n} 个商品未选颜色，但其系列有方向",
       "uncoloured_sub": "一键为它们设置系列颜色。已选颜色的商品保持不变。",
-      "uncoloured_btn": "设置系列颜色",
-      "applied_all": "已为 {n} 个商品设置系列颜色。"
+      "uncoloured_btn": "设置方向颜色",
+      "applied_all": "已为 {n} 个商品设置方向颜色。",
+      "dir_foot": "{s} 个系列 · {n} 个商品",
+      "none_title": "无方向的系列",
+      "none_hint": "点击并选择方向",
+      "colorname": {
+        "blue": "蓝色",
+        "purple": "紫色",
+        "red": "红色",
+        "gold": "金色",
+        "silver": "银白色",
+        "black": "黑色"
+      }
     }
   }
 }

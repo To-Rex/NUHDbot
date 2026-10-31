@@ -17,29 +17,29 @@
 </section>
 {% endif %}
 
-<div class="ser-groups">
-{% for b, items in groups %}
-<section class="card ser-group">
-  <div class="ser-group-head">
-    <h2>{{ b.name }}</h2><span class="cnt">{{ items|length }}</span>{% if not b.is_active %}<span class="chip">{{ t('admin.brands.hidden') }}</span>{% endif %}
-    <button type="button" class="btn btn-ghost btn-sm" data-ser-add data-brand="{{ b.id }}">{{ icon('plus', 14) }}{{ t('admin.ser.add_short') }}</button>
+{% macro chip(s) %}{% set n = used.get((s.brand_id, s.key), 0) %}<button type="button" class="dir-chip" data-ser-edit data-id="{{ s.id }}" data-brand="{{ s.brand_id }}" data-name="{{ s.name }}" data-color="{{ s.color or '' }}" data-products="{{ n }}" title="{{ t('admin.edit') }}"><small>{{ names.get(s.brand_id, '') }}</small><b>{{ s.name }}</b>{% if n %}<span class="ser-n" title="{{ t('admin.ser.n_products', n=n) }}">{{ n }}</span>{% endif %}</button>{% endmacro %}
+<div class="dir-grid">
+{% for d in directions %}{% set c = d.c %}
+<section class="card dir-card dir-{{ c.value }}">
+  <div class="dir-head">
+    <span class="dir-ic">{{ icon('dir-' ~ c.value, 24) }}</span>
+    <div class="flex1"><h2>{{ color_dir[c] }}</h2><p>{{ t('admin.prod.color_' ~ c.value) }}</p></div>
+    <span class="dir-pill">{{ t('admin.ser.colorname.' ~ c.value) }}</span>
   </div>
-  {% if items %}
-  <div class="ser-grid">
-    {% for s in items %}{% set n = used.get((s.brand_id, s.key), 0) %}
-    <button type="button" class="ser-tile" data-ser-edit data-id="{{ s.id }}" data-brand="{{ s.brand_id }}" data-name="{{ s.name }}" data-color="{{ s.color or '' }}" data-products="{{ n }}" title="{{ t('admin.edit') }}">
-      <span class="sw sw-{{ s.color or 'none' }}"></span>
-      <span class="ser-info"><b>{{ s.name }}</b><small>{{ color_dir[s.color] if s.color else t('admin.ser.no_color') }}</small></span>
-      {% if n %}<span class="ser-n" title="{{ t('admin.ser.n_products', n=n) }}">{{ icon('drive', 12) }}{{ n }}</span>{% endif %}
-    </button>
-    {% endfor %}
+  <div class="dir-series">
+    {% for s in d['items'] %}{{ chip(s) }}{% endfor %}
+    <button type="button" class="dir-add" data-ser-add data-color="{{ c.value }}">{{ icon('plus', 13) }}{{ t('admin.ser.add_short') }}</button>
   </div>
-  {% else %}
-  <p class="ser-empty">{{ t('admin.ser.brand_empty') }}</p>
-  {% endif %}
+  <div class="dir-foot">{{ t('admin.ser.dir_foot', s=d['items']|length, n=d.products) }}</div>
 </section>
 {% endfor %}
 </div>
+{% if undirected %}
+<section class="card dir-card dir-none mt-lg">
+  <div class="dir-head"><span class="dir-ic">{{ icon('question', 22) }}</span><div class="flex1"><h2>{{ t('admin.ser.none_title') }}</h2><p>{{ t('admin.ser.none_hint') }}</p></div></div>
+  <div class="dir-series">{% for s in undirected %}{{ chip(s) }}{% endfor %}</div>
+</section>
+{% endif %}
 
 <dialog class="dlg ser-dlg" id="ser-dlg" data-t-add="{{ t('admin.ser.dlg_add') }}" data-t-edit="{{ t('admin.ser.dlg_edit') }}" data-t-add-btn="{{ t('admin.ser.add') }}" data-t-save-btn="{{ t('admin.save') }}"
   data-t-apply-n="{{ t('admin.ser.apply_n', n='{n}') }}" data-t-apply="{{ t('admin.ser.apply') }}" data-err-brand="{{ t('admin.ser.err.brand') }}" data-err-name="{{ t('admin.ser.err.name') }}">
@@ -53,8 +53,8 @@
       </div>
       <div class="field"><label>{{ t('admin.ser.color') }}</label>
         <div class="color-pick ser-colors">
-          <label class="color-opt"><input type="radio" name="color" value="" checked><span class="sw sw-none"></span><span class="color-txt"><b>{{ t('admin.prod.color_none') }}</b><small>{{ t('admin.ser.no_color_desc') }}</small></span></label>
-          {% for c in colors %}<label class="color-opt"><input type="radio" name="color" value="{{ c.value }}"><span class="sw sw-{{ c.value }}"></span><span class="color-txt"><b>{{ color_dir[c] }}</b><small>{{ t('admin.prod.color_' ~ c.value) }} · {{ color_examples[c] }}</small></span></label>{% endfor %}
+          <label class="color-opt"><input type="radio" name="color" value="" checked><span class="sw sw-none"></span><span class="color-txt"><b>{{ t('admin.ser.no_color') }}</b><small>{{ t('admin.ser.no_color_desc') }}</small></span></label>
+          {% for c in colors %}<label class="color-opt"><input type="radio" name="color" value="{{ c.value }}"><span class="sw sw-{{ c.value }}"></span><span class="color-txt"><b>{{ color_dir[c] }} · {{ t('admin.ser.colorname.' ~ c.value) }}</b><small>{{ t('admin.prod.color_' ~ c.value) }} · {{ color_examples[c] }}</small></span></label>{% endfor %}
         </div>
         <span class="hint">{{ t('admin.ser.color_hint') }}</span></div>
       <label class="sw-row ser-apply"><span><b data-apply-text>{{ t('admin.ser.apply') }}</b><small>{{ t('admin.ser.apply_hint') }}</small></span><input type="checkbox" name="apply" value="1" checked><span class="switch"></span></label>
@@ -68,7 +68,7 @@
     </div>
   </form>
 </dialog>
-{% for b, items in groups %}{% for s in items %}<form id="ser-del-{{ s.id }}" method="post" action="/admin/series/{{ s.id }}/delete" data-confirm="{{ t('admin.ser.delete_q', name=s.name) }}" data-confirm-text="{{ t('admin.ser.delete_text') }}" data-confirm-danger="1" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endfor %}{% endfor %}
+{% for s in all_series %}<form id="ser-del-{{ s.id }}" method="post" action="/admin/series/{{ s.id }}/delete" data-confirm="{{ t('admin.ser.delete_q', name=s.name) }}" data-confirm-text="{{ t('admin.ser.delete_text') }}" data-confirm-danger="1" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endfor %}
 
 <script>
 (function(){

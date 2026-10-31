@@ -226,10 +226,10 @@
       "sec_terms_hint": "Minimum order, box, warranty",
       "sec_tech": "Specs and testing",
       "sec_tech_hint": "Series, interface, use, test results",
-      "series_hint": "Pick from the list — the colour is set for you.",
-      "series_color": "Series colour: {name} — set on the product. You can pick another under «Colour» above.",
-      "series_color_diff": "Series colour: {name}; the product has another.",
-      "series_apply": "Use the series colour"
+      "series_hint": "Pick from the list — the direction colour is set for you.",
+      "series_color": "Series direction: {name} — its colour is set on the product. You can pick another under «Direction colour» above.",
+      "series_color_diff": "Series direction: {name}; the product has another.",
+      "series_apply": "Use the series direction"
     },
     "ord": {
       "title": "Orders",
@@ -847,27 +847,26 @@
       "default_toast": "{code} is now the main currency"
     },
     "ser": {
-      "title": "Series",
+      "title": "Series and directions",
       "count": "series",
       "add_btn": "Add series",
       "add_short": "Add",
-      "help": "A series is a brand's product line (WD Purple, Seagate IronWolf, Exos). Give each a colour: picking the series when adding or editing a product sets that colour, and you can still choose another one for the product.",
+      "help": "The colour belongs to the direction: each direction has one colour (NAS is red). Add a series (Red, Red Pro, IronWolf…) to its direction — picking the series on a product sets that colour, and the product can still get another one.",
       "unlisted_title": "On products, not in the list",
       "unlisted_hint": "Click to add it to the list and give it a colour",
       "n_products": "{n} products",
-      "no_color": "No colour",
-      "brand_empty": "No series yet",
+      "no_color": "No direction",
       "dlg_add": "New series",
       "dlg_edit": "Edit series",
-      "dlg_sub": "Brand, series name and colour. The colour sets the look of the product page in the Mini App.",
+      "dlg_sub": "Brand, series name and direction. The colour comes from the direction.",
       "add": "Add",
       "brand": "Brand",
       "name": "Series name",
-      "color": "Colour",
+      "color": "Direction",
       "no_color_desc": "Products don't take a colour from it",
-      "color_hint": "A suggestion: each product can still have another colour.",
+      "color_hint": "The colour comes from the direction. A suggestion: each product can still have another colour.",
       "apply": "Also apply to products of this series",
-      "apply_n": "Also apply the colour to {n} products of this series",
+      "apply_n": "Also apply the direction colour to {n} products of this series",
       "apply_hint": "Products recoloured by hand keep their colour.",
       "delete_q": "Delete the «{name}» series?",
       "delete_text": "Products stay as they are: they keep the series name and colour.",
@@ -880,10 +879,21 @@
         "name": "Enter the series name",
         "taken": "{brand} already has a «{name}» series"
       },
-      "uncoloured": "{n} products have no colour, but their series has one",
+      "uncoloured": "{n} products have no colour, but their series has a direction",
       "uncoloured_sub": "One click gives them the series colour. Products with a colour stay as they are.",
-      "uncoloured_btn": "Give the series colour",
-      "applied_all": "{n} products got their series colour."
+      "uncoloured_btn": "Give the direction colour",
+      "applied_all": "{n} products got their direction colour.",
+      "dir_foot": "{s} series · {n} products",
+      "none_title": "Series without a direction",
+      "none_hint": "Click one and pick its direction",
+      "colorname": {
+        "blue": "Blue",
+        "purple": "Purple",
+        "red": "Red",
+        "gold": "Gold",
+        "silver": "Silver white",
+        "black": "Black"
+      }
     }
   }
 }

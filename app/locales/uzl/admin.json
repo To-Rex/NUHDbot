@@ -226,10 +226,10 @@
       "sec_terms_hint": "Minimal buyurtma, quti, kafolat",
       "sec_tech": "Texnik ma'lumotlar va test",
       "sec_tech_hint": "Seriya, interfeys, maqsad, test natijalari",
-      "series_hint": "Ro'yxatdan tanlang — rang avtomatik qo'yiladi.",
-      "series_color": "Seriya rangi: {name} — mahsulot rangi shunga o'rnatildi. Yuqoridagi «Rang» qismida boshqasini tanlash mumkin.",
-      "series_color_diff": "Seriya rangi: {name}, mahsulotniki boshqa.",
-      "series_apply": "Seriya rangini qo'yish"
+      "series_hint": "Ro'yxatdan tanlang — yo'nalish rangi avtomatik qo'yiladi.",
+      "series_color": "Seriya yo'nalishi: {name} — mahsulotga shu rang qo'yildi. Yuqoridagi «Yo'nalish rangi» qismida boshqasini tanlash mumkin.",
+      "series_color_diff": "Seriya yo'nalishi: {name}, mahsulotniki boshqa.",
+      "series_apply": "Seriya yo'nalishini qo'yish"
     },
     "ord": {
       "title": "Buyurtmalar",
@@ -847,27 +847,26 @@
       "default_toast": "{code} endi asosiy valyuta"
     },
     "ser": {
-      "title": "Seriyalar",
+      "title": "Seriyalar va yo'nalishlar",
       "count": "ta seriya",
       "add_btn": "Seriya qo'shish",
       "add_short": "Qo'shish",
-      "help": "Seriya — brendning mahsulot liniyasi (WD Purple, Seagate IronWolf, Exos). Har biriga rang bering: mahsulot qo'shish yoki tahrirlashda seriya tanlanganda rang avtomatik qo'yiladi, xohlasangiz mahsulotning o'zida boshqa rang tanlaysiz.",
+      "help": "Rang yo'nalishga bog'liq: har bir yo'nalishning bitta rangi bor (masalan NAS — qizil). Seriyani (Red, Red Pro, IronWolf…) kerakli yo'nalishga qo'shing — mahsulotda seriya tanlanganda yo'nalish rangi avtomatik qo'yiladi, xohlasangiz mahsulotda boshqasini tanlaysiz.",
       "unlisted_title": "Mahsulotlarda bor, ro'yxatda yo'q",
       "unlisted_hint": "Bosing — ro'yxatga qo'shib, rang bering",
       "n_products": "{n} ta mahsulot",
-      "no_color": "Rangsiz",
-      "brand_empty": "Hali seriya qo'shilmagan",
+      "no_color": "Yo'nalishsiz",
       "dlg_add": "Yangi seriya",
       "dlg_edit": "Seriyani tahrirlash",
-      "dlg_sub": "Brend, seriya nomi va rangi. Rang Mini App'dagi mahsulot sahifasi ko'rinishini belgilaydi.",
+      "dlg_sub": "Brend, seriya nomi va yo'nalishi. Rang yo'nalishdan olinadi.",
       "add": "Qo'shish",
       "brand": "Brend",
       "name": "Seriya nomi",
-      "color": "Rang",
+      "color": "Yo'nalish",
       "no_color_desc": "Mahsulot rangi seriyadan olinmaydi",
-      "color_hint": "Bu tavsiya: mahsulotning o'zida boshqa rang tanlash mumkin.",
+      "color_hint": "Rang yo'nalishdan keladi. Bu tavsiya: mahsulotning o'zida boshqa rang tanlash mumkin.",
       "apply": "Shu seriyadagi mahsulotlarga ham qo'llash",
-      "apply_n": "Rangni shu seriyadagi {n} ta mahsulotga ham qo'llash",
+      "apply_n": "Yo'nalish rangini shu seriyadagi {n} ta mahsulotga ham qo'llash",
       "apply_hint": "Rangi qo'lda o'zgartirilgan mahsulotlar o'zgarmaydi.",
       "delete_q": "«{name}» seriyasi o'chirilsinmi?",
       "delete_text": "Mahsulotlar o'zgarmaydi: seriya nomi va rangi o'zida qoladi.",
@@ -880,10 +879,21 @@
         "name": "Seriya nomini kiriting",
         "taken": "{brand} brendida «{name}» seriyasi allaqachon bor"
       },
-      "uncoloured": "{n} ta mahsulotda rang tanlanmagan, lekin seriyasining rangi bor",
+      "uncoloured": "{n} ta mahsulotda rang tanlanmagan, lekin seriyasining yo'nalishi bor",
       "uncoloured_sub": "Bir bosishda ularga seriya rangini beramiz. Rangi tanlangan mahsulotlar o'zgarmaydi.",
-      "uncoloured_btn": "Seriya rangini berish",
-      "applied_all": "{n} ta mahsulotga seriya rangi berildi."
+      "uncoloured_btn": "Yo'nalish rangini berish",
+      "applied_all": "{n} ta mahsulotga yo'nalish rangi berildi.",
+      "dir_foot": "{s} ta seriya · {n} ta mahsulot",
+      "none_title": "Yo'nalish berilmagan seriyalar",
+      "none_hint": "Bosing va yo'nalishini tanlang",
+      "colorname": {
+        "blue": "Ko'k",
+        "purple": "Binafsha",
+        "red": "Qizil",
+        "gold": "Oltin",
+        "silver": "Kumushsimon oq",
+        "black": "Qora"
+      }
     }
   }
 }

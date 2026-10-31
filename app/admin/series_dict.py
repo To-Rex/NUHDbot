@@ -20,16 +20,19 @@ def _lang(request: Request, staff: User) -> str:
 @router.get("/series")
 async def series_page(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     brands = await brand_service.list_brands(db, active_only=False)
-    rows = await series_service.list_series(db)
-    by_brand: dict[int, list[Series]] = {}
-    for s in rows:
-        by_brand.setdefault(s.brand_id, []).append(s)
+    order = {b.id: i for i, b in enumerate(brands)}
+    rows = sorted(await series_service.list_series(db), key=lambda s: (order.get(s.brand_id, 999), s.sort, s.name.lower()))
+    used = await series_service.product_counts(db)
     names = {b.id: b.name for b in brands}
+    # the colour belongs to the direction (NAS is red); a series only says which direction it is in
+    directions = []
+    for c in ProductColor:
+        items = [s for s in rows if s.color == c.value]
+        directions.append({"c": c, "items": items, "products": sum(used.get((s.brand_id, s.key), 0) for s in items)})
     return render(request, staff, "admin/series/list.html", {
-        "page_title": t(_lang(request, staff), "admin.ser.title"), "brands": brands, "total": len(rows),
-        # brands with series first, then active brands still without any
-        "groups": [(b, by_brand.get(b.id, [])) for b in brands if by_brand.get(b.id)] + [(b, []) for b in brands if b.is_active and not by_brand.get(b.id)],
-        "used": await series_service.product_counts(db), "uncoloured": await series_service.uncoloured_count(db),
+        "page_title": t(_lang(request, staff), "admin.ser.title"), "brands": brands, "names": names, "total": len(rows),
+        "directions": directions, "undirected": [s for s in rows if not s.color], "all_series": rows,
+        "used": used, "uncoloured": await series_service.uncoloured_count(db),
         "unlisted": [(b, names.get(b, "?"), n, c) for b, n, c in await series_service.unlisted(db) if b in names],
         "colors": list(ProductColor), "color_dir": COLOR_DIRECTION, "color_examples": COLOR_EXAMPLES,
     })
