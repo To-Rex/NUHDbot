@@ -47,7 +47,7 @@
   </div>
 
   <div id="grid-wrap">
-    {% include "miniapp/partials/product_grid.html" %}
+    {% with in_page=True %}{% include "miniapp/partials/product_grid.html" %}{% endwith %}
   </div>
 </div>
 

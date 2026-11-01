@@ -28,7 +28,7 @@
     </div>
 
     {% if locked %}
-    <input type="hidden" name="product_id" value="{{ a.product_id }}">
+    <input type="hidden" name="product_id" value="{{ a.product_id or '' }}">
     {% if picked %}<span hidden data-lot-fixed {{ lot_data(picked) }}></span>{% endif %}
     <p class="hint mt-sm row" style="gap:6px">{{ icon('lock', 13) }}{{ t('admin.auc.locked') }}</p>
     {% else %}

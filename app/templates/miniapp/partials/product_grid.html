@@ -9,4 +9,4 @@
 {% if not products %}
 <div id="grid-empty">{% with glyph='search', title=t('catalog.nothing'), text=t('catalog.nothing_text'), cta_url='/app/catalog', cta_text=t('common.reset') %}{% include "miniapp/partials/empty.html" %}{% endwith %}</div>
 {% endif %}
-<div id="result-count" hx-swap-oob="true" class="small muted num">{{ t('catalog.found', n=total) }}</div>
+{% if not in_page %}<div id="result-count" hx-swap-oob="true" class="small muted num">{{ t('catalog.found', n=total) }}</div>{% endif %}
