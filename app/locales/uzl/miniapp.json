@@ -350,7 +350,11 @@
     "all": "Hammasi",
     "notify_title": "Yangi lotlar haqida xabar oling",
     "notify_text": "Auksion boshlanishi bilan botga xabar keladi",
-    "show_more": "Yana {n} ta ko'rsatish"
+    "show_more": "Yana {n} ta ko'rsatish",
+    "details": "Lot haqida batafsil",
+    "starts_note": "Stavka auksion boshlangandan keyin qo'yiladi",
+    "pay_deposit": "Depozitni to'lash",
+    "recent": "So'nggi stavkalar"
   },
   "info": {
     "title": "Foydali ma'lumotlar",

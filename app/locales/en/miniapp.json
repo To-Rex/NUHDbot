@@ -350,7 +350,11 @@
     "all": "All",
     "notify_title": "Hear about new lots",
     "notify_text": "The bot tells you as soon as an auction starts",
-    "show_more": "Show {n} more"
+    "show_more": "Show {n} more",
+    "details": "Lot details",
+    "starts_note": "Bids open when the auction starts",
+    "pay_deposit": "Pay the deposit",
+    "recent": "Latest bids"
   },
   "info": {
     "title": "Useful info",

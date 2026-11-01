@@ -61,6 +61,15 @@ async def auction_page(auction_id: int, request: Request, db: DB, user: CurrentU
     return render(request, "miniapp/auction.html", ctx)
 
 
+@router.get("/auctions/{auction_id}/sheet")
+async def auction_sheet(auction_id: int, request: Request, db: DB, user: CurrentUser, lang: Lang):
+    """The bid sheet on the auctions page: the lot, where it stands and where the viewer stands, and the bid form — no page change."""
+    a = await auctions.get_auction(db, auction_id)
+    if a is None or a.status == AuctionStatus.DRAFT:
+        return HTMLResponse("", status_code=404)
+    return render(request, "miniapp/partials/auction_sheet.html", await _ctx(db, a, user, lang))
+
+
 @router.get("/auctions/{auction_id}/bids")
 async def auction_bids(auction_id: int, request: Request, db: DB, user: CurrentUser, lang: Lang):
     a = await auctions.get_auction(db, auction_id)
@@ -78,7 +87,8 @@ async def auction_price(auction_id: int, request: Request, db: DB, user: Current
 
 
 @router.post("/auctions/{auction_id}/bid")
-async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, user: User = Depends(require_registered), amount: str = Form("")):
+async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, user: User = Depends(require_registered), amount: str = Form(""), view: str = Form("")):
+    tpl = "miniapp/partials/auction_sheet.html" if view == "sheet" else "miniapp/partials/auction_price.html"  # the bid sheet answers with itself
     amt = None
     if amount.strip():
         try:
@@ -96,7 +106,7 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
         a = await auctions.get_auction(db, auction_id)
         if a is None:
             return HTMLResponse("", status_code=404)
-        resp = render(request, "miniapp/partials/auction_price.html", await _ctx(db, a, user, lang), status_code=200)
+        resp = render(request, tpl, await _ctx(db, a, user, lang), status_code=200)
         return toast(resp, t(lang, f"auction.errors.{e.code}", **e.ctx), "bad", "error")
     auctions.publish(a.id, {"type": "bid", **auctions.snapshot(a)})
     if prev is not None and prev.id != user.id:
@@ -105,7 +115,7 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
             await db.commit()
         except Exception:  # noqa: BLE001
             pass
-    resp = render(request, "miniapp/partials/auction_price.html", await _ctx(db, a, user, lang))
+    resp = render(request, tpl, await _ctx(db, a, user, lang))
     return hx_trigger(resp, toast={"msg": t(lang, "auction.bid_ok"), "type": "ok"}, haptic="success", bidPlaced=True)
 
 

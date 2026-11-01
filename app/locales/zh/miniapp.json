@@ -350,7 +350,11 @@
     "all": "全部",
     "notify_title": "接收新拍品通知",
     "notify_text": "拍卖一开始，机器人就会通知您",
-    "show_more": "再显示 {n} 个"
+    "show_more": "再显示 {n} 个",
+    "details": "拍品详情",
+    "starts_note": "拍卖开始后才能出价",
+    "pay_deposit": "支付保证金",
+    "recent": "最新出价"
   },
   "info": {
     "title": "实用资讯",

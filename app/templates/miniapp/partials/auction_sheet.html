@@ -1,0 +1,77 @@
+{#- The bid sheet on the auctions page (and its answer to a bid): the lot, its price and clock, where the viewer stands, the bid
+    form, the last few bids (numbers, no names) and a link to the full lot page (rules, deposit, whole history).
+    data-* on the root let the page update the lot's card after a bid. -#}
+{% set st = a.status.value %}{% set pc = a.product.color if a.product and a.product.color else '' %}
+<div class="bs{{ ' c-' ~ pc if pc }}" data-bs data-lot="{{ a.id }}" data-version="{{ a.version }}" data-status="{{ st }}"
+     data-total="{{ a.current_price_total|money(a.currency) }}" data-unit="{{ a.current_price_unit|money(a.currency) }}" data-bids="{{ a.bids_count }}" data-people="{{ stats.participants }}"
+     data-label="{{ t('auction.current') if a.bids_count else t('auction.start_price') }}">
+  <div class="bs-head">
+    <span class="bs-img">{% if a.cover_url %}<img src="{{ a.cover_url }}" alt="">{% else %}<em>{{ a.capacity_gb|capacity }}</em>{% endif %}</span>
+    <div class="bs-title">
+      <small>{% if pc %}<i class="hl-dot"></i>{{ COLOR_DIRECTION[pc] }} · {% endif %}{{ a.brand }}</small>
+      <b>{{ a.model }} <span>{{ a.capacity_gb|capacity }}</span></b>
+      <span class="bs-chips">{% if st == 'live' %}<span class="chip chip-live">{{ t('auction.live') }}</span>{% elif st == 'scheduled' %}<span class="chip chip-info">{{ t('auction.scheduled') }}</span>{% else %}<span class="chip chip-soft">{{ t('auction.ended') }}</span>{% endif %}<span class="chip chip-soft">{{ t('auction.qty', n=a.qty) }}</span></span>
+    </div>
+    <button type="button" class="icon-btn bs-close" data-close-sheet="bid-sheet" aria-label="{{ t('common.close') }}">{{ icon('x', 18) }}</button>
+  </div>
+
+  <div class="bs-price">
+    <span class="eyebrow">{% if st == 'ended' %}{{ t('auction.final_price') }}{% elif a.bids_count %}{{ t('auction.current') }}{% else %}{{ t('auction.start_price') }}{% endif %} · {{ t('auction.lot_total') }}</span>
+    <b class="auction-price">{{ a.current_price_total|money(a.currency) }}</b>
+    <span class="bs-sub"><span class="mono">{{ a.current_price_unit|money(a.currency) }} / {{ t('auction.per_unit') }}</span>{% if stats.growth > 0 %}<span class="ap-growth">{{ icon('arrow-up', 13) }}+{{ stats.growth_pct }}%</span>{% endif %}</span>
+  </div>
+
+  {% if st == 'live' %}
+  <div class="countdown" data-countdown="{{ a.ends_at|iso }}"><span data-u="d">00<small>{{ t('auction.days') }}</small></span><span data-u="h">00<small>{{ t('auction.hours') }}</small></span><span data-u="m">00<small>{{ t('auction.mins') }}</small></span><span data-u="s">00<small>{{ t('auction.secs') }}</small></span></div>
+  {% if me_id %}
+    {% if leader_id and leader_id == me_id %}<div class="ap-me ok">{{ icon('trophy', 18) }}<div><b>{{ t('auction.you_lead') }}</b>{% if my_best %}<small>{{ t('auction.your_best', amount=my_best|money(a.currency)) }}</small>{% endif %}</div></div>
+    {% elif my_best %}<div class="ap-me bad">{{ icon('alert', 18) }}<div><b>{{ t('auction.outbid_cta') }}</b><small>{{ t('auction.your_best', amount=my_best|money(a.currency)) }}</small></div></div>{% endif %}
+  {% endif %}
+
+  {% if not user or not user.is_registered %}
+  <a class="btn btn-primary btn-lg btn-block" href="/app/register?next=/app/auctions">{{ t('register.required_cta') }} → {{ t('auction.bid_now') }}</a>
+  {% elif not can_bid %}
+  <div class="notice notice-warn">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
+  <a class="btn btn-secondary btn-block" href="/app/auctions/{{ a.id }}">{{ t('auction.pay_deposit') }}</a>
+  {% elif not (leader_id and leader_id == me_id) %}
+  <form class="bs-form" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#bid-sheet-body" hx-swap="innerHTML" hx-disabled-elt="find button">
+    <input type="hidden" name="view" value="sheet">
+    <button class="btn btn-primary btn-lg btn-block" type="submit"><span class="label">{{ t('auction.bid_now') }} · <span class="mono">{{ a.next_bid_total|money(a.currency) }}</span></span><span class="spinner"></span></button>
+  </form>
+  <details class="bs-custom">
+    <summary>{{ icon('edit', 15) }}{{ t('auction.bid_custom') }}{{ icon('chevron-down', 15, 'chev') }}</summary>
+    <form class="bs-custom-form" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#bid-sheet-body" hx-swap="innerHTML" hx-disabled-elt="find button">
+      <input type="hidden" name="view" value="sheet">
+      <div class="field"><label>{{ t('auction.lot_total') }} ({{ a.currency }})</label><input class="input mono" name="amount" inputmode="decimal" value="{{ a.next_bid_total }}" required data-bs-amount></div>
+      <div class="bs-steps">{% for k in (1, 2, 5, 10) %}<button type="button" class="chip-btn" data-bs-plus="{{ (a.next_bid_total + a.step_total * (k - 1))|round(2) }}">+{{ k }} {{ t('auction.step')|lower }}</button>{% endfor %}</div>
+      <span class="hint">{{ t('auction.step') }}: {{ a.step_total|money(a.currency) }}</span>
+      <button class="btn btn-secondary btn-block" type="submit"><span class="label">{{ t('auction.bid_now') }}</span><span class="spinner"></span></button>
+    </form>
+  </details>
+  {% endif %}
+
+  {% elif st == 'scheduled' %}
+  <span class="eyebrow">{{ t('auction.starts_in') }}</span>
+  <div class="countdown" data-countdown="{{ a.starts_at|iso }}"><span data-u="d">00<small>{{ t('auction.days') }}</small></span><span data-u="h">00<small>{{ t('auction.hours') }}</small></span><span data-u="m">00<small>{{ t('auction.mins') }}</small></span><span data-u="s">00<small>{{ t('auction.secs') }}</small></span></div>
+  <p class="bs-note">{{ icon('clock', 14) }}{{ t('auction.starts_note') }}</p>
+
+  {% else %}
+  {% if a.winner_user_id %}
+    {% if a.winner_user_id == me_id %}<div class="winner-banner me">{{ icon('trophy', 20) }}{{ t('auction.you_won') }}</div>
+    {% else %}{% set wn = numbers.get(a.winner_user_id) %}<div class="winner-banner"><span class="bidder b{{ (wn or 0) % 8 }}">{{ wn or '?' }}</span><div>{{ t('auction.winner') }}: <b>{{ t('auction.participant', n=wn) if wn else '—' }}</b></div></div>{% endif %}
+  {% else %}<div class="chip chip-soft chip-lg">{{ t('auction.no_winner') }}</div>{% endif %}
+  {% endif %}
+
+  <div class="bs-stats"><span>{{ icon('users', 15) }}<b>{{ stats.participants }}</b> {{ t('auction.participants')|lower }}</span><span>{{ icon('gavel', 15) }}<b>{{ a.bids_count }}</b> {{ t('auction.bids')|lower }}</span>{% if st == 'live' %}<span>{{ icon('arrow-up-right', 15) }}{{ t('auction.step') }} {{ a.step_total|money(a.currency) }}</span>{% endif %}</div>
+
+  {% if bids %}
+  <div class="bs-recent">
+    <span class="eyebrow">{{ t('auction.recent') }}</span>
+    {% for b in bids[:3] %}{% set n = numbers.get(b.user_id, 0) %}{% set mine = b.user_id == me_id %}
+    <div class="bs-bid{{ ' me' if mine }}"><span class="bidder b{{ n % 8 }}{{ ' is-me' if mine }}">{% if mine %}{{ icon('user', 13) }}{% else %}{{ n }}{% endif %}</span><span class="flex-1">{{ t('auction.your_bid') if mine else t('auction.participant', n=n) }}{% if loop.first %} <span class="chip chip-ok ap-lead">{{ icon('trophy', 11) }}{{ t('auction.leader') }}</span>{% endif %}</span><b class="mono">{{ b.amount_total|money(a.currency) }}</b></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <a class="bs-more" href="/app/auctions/{{ a.id }}">{{ icon('info', 15) }}{{ t('auction.details') }}{{ icon('chevron-right', 15, 'chev') }}</a>
+</div>
