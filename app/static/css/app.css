@@ -409,9 +409,6 @@ button.list-item{width:100%;text-align:left}
 .home-head .hello small{display:block;font-size:13.5px;color:var(--ink-2);font-weight:500}
 .home-head .hello h1{font-size:28px;letter-spacing:-.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .home-head .icon-btn{width:42px;height:42px;background:var(--surface);box-shadow:var(--shadow-card)}
-.home-search{display:flex;align-items:center;gap:10px;height:48px;padding:0 16px;border-radius:var(--r-pill);background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);color:var(--ink-3);font-size:16px}
-.home-search svg{width:19px;height:19px;color:var(--ink-2);flex:0 0 auto}
-.home-search span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .terms-row{display:flex;gap:12px;align-items:flex-start}
 .terms-row svg{width:18px;height:18px;color:var(--ink-3);flex:0 0 auto;margin-top:2px}
 
@@ -421,6 +418,7 @@ button.list-item{width:100%;text-align:left}
 .home-sec .section-title{margin-top:0}
 /* home auto slider: staff banners, the live auction, new arrivals (solid colours, no gradients) */
 .hs{margin:16px calc(-1 * var(--sp-4)) 0}
+.page>.hs:first-child{margin-top:2px}  /* first on the home page: right under the greeting */
 .hs-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:0 var(--sp-4) 2px;scroll-padding:0 var(--sp-4);overscroll-behavior-x:contain}
 .hs-track::-webkit-scrollbar{display:none}
 .c-red{--bc:#E5392F;--bi:#fff}.c-orange{--bc:#E05A1F;--bi:#fff}.c-gold{--bc:#F2B400;--bi:#2B2100}.c-green{--bc:#1C8C4E;--bi:#fff}

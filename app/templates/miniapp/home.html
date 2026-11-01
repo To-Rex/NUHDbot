@@ -12,7 +12,6 @@
 {% block content %}
 {% set use_icons = {'cctv': ('camera', ''), 'pc': ('cpu', 'indigo'), 'nas': ('layers', 'green'), 'server': ('cube', 'orange'), 'storage': ('box', 'teal')} %}
 <div class="page" style="padding-top:14px">
-  <a class="home-search" href="/app/catalog?focus=1">{{ icon('search', 19) }}<span>{{ t('catalog.search_ph') }}</span></a>
 
   {# auto slider: staff banners (hot offers, sales, news), the live auction, new arrivals #}
   {% include "miniapp/partials/home_slider.html" %}
