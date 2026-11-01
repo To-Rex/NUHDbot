@@ -85,7 +85,7 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
         "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
         "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
-        "shapes": svc.SHAPES,
+        "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
     })
@@ -100,6 +100,17 @@ async def banners_settings(request: Request, db: DB, staff: User = Depends(staff
     await audit.log(db, staff.id, "settings.update", "settings", None, {"slider_seconds": before}, {"slider_seconds": n})
     await db.commit()
     return back(request, "/admin/banners", t(staff.lang, "admin.ban.seconds_saved", n=n))
+
+
+@router.post("/banners/shape")
+async def banners_shape(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """The banner slider's card shape (tall / wide), separate from the Directions slider's."""
+    before = await get_setting(db, "banner_slider_shape")
+    shape = svc.clean_shape((await request.form()).get("shape"))
+    await set_setting(db, "banner_slider_shape", shape)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"banner_slider_shape": before}, {"banner_slider_shape": shape})
+    await db.commit()
+    return back(request, "/admin/banners", t(staff.lang, "admin.shape.saved", name=t(staff.lang, "admin.shape." + shape)))
 
 
 @router.post("/banners/style")
@@ -126,7 +137,7 @@ async def directions_style(request: Request, db: DB, staff: User = Depends(staff
 
 @router.post("/banners/dir-shape")
 async def directions_shape(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
-    """The card shape of both home sliders (Directions, and the banners above, which are as tall): tall portrait or wide landscape."""
+    """The Directions slider's card shape on the Mini App home: tall portrait cards or wide landscape ones."""
     before = await get_setting(db, "dir_slider_shape")
     shape = svc.clean_shape((await request.form()).get("shape"))
     await set_setting(db, "dir_slider_shape", shape)

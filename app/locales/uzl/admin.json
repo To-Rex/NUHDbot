@@ -1131,8 +1131,7 @@
       "title": "Karta shakli",
       "tall": "Vertikal",
       "wide": "Gorizontal",
-      "saved": "Karta shakli saqlandi: {name}",
-      "both_hint": "Kartalar shakli bannerlar uchun ham amal qiladi: yuqoridagi bannerlar Yo'nalishlar kartasi bilan bir xil bo'yda."
+      "saved": "Karta shakli saqlandi: {name}"
     }
   }
 }

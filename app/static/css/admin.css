@@ -1318,4 +1318,3 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .auc-facts div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--hairline);font-size:12.5px}
 .auc-facts dt{color:var(--ink-3)}
 .auc-facts dd{margin:0;font-weight:650;text-align:right;font-variant-numeric:tabular-nums}
-.ds-both{display:flex;align-items:center;gap:6px;margin:8px 0 0}
