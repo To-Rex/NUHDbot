@@ -1131,7 +1131,8 @@
       "title": "Card shape",
       "tall": "Tall",
       "wide": "Wide",
-      "saved": "Card shape saved: {name}"
+      "saved": "Card shape saved: {name}",
+      "both_hint": "The card shape applies to the banners too: the banners on top are as tall as the Directions cards."
     }
   }
 }

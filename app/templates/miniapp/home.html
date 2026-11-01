@@ -116,6 +116,13 @@
 {% block scripts %}
 <script>
 (function(){
+  /* the banner cards are as tall as the Directions cards below: measure one (its height does not depend on the turn) */
+  var hs = document.querySelector('.hs-fx'); if (!hs) return;
+  function fit() { var c = document.querySelector('.cf-card'); if (!c || !document.body.contains(hs)) return; hs.style.setProperty('--hs-h', c.offsetHeight + 'px'); hs.classList.add('sized'); }
+  fit(); window.addEventListener('resize', fit);
+  var c = document.querySelector('.cf-card'); if (c && window.ResizeObserver) new ResizeObserver(fit).observe(c);  /* fonts arriving late, a turned phone */
+})();
+(function(){
   /* home slider: the banners turn like the Directions slider below — a ring of compact cards; pos is the (fractional)
      index of the one in front and each card is placed by its distance d from it, in the look picked on the Banners page
      (data-style: cover flow, orbit, card stack, fan, drum, spiral, cascade, pile). Each banner stays its own seconds (data-ms); a touch pauses it,

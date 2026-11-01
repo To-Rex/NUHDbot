@@ -471,11 +471,10 @@ button.list-item{width:100%;text-align:left}
 .hs-slide:active{transform:scale(.985)}
 /* home: directions as a 3D slider (home.html script). Cover-flow by default: the middle card faces you, its neighbours
    turn away into depth and darken; drag or tap a side card to bring it forward, tap the middle one to open its catalogue */
-:root{--hc-w:min(58vw,236px);--hc-h:calc(var(--hc-w) + 118px);--hc-ww:min(84vw,340px);--hc-wh:176px}  /* the home sliders' card: banners and directions alike */
 .cf{margin:-14px calc(-1 * var(--sp-4)) 0;overflow:hidden;padding:18px 0 14px}  /* room for the card shadow inside the clip */
 .cf-stage{display:grid;justify-items:center;padding-bottom:22px;perspective:1000px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;outline:0}
 .cf-stage.dragging{cursor:grabbing}
-.cf-card{grid-area:1/1;position:relative;width:var(--hc-w);height:var(--hc-h);overflow:hidden;display:flex;flex-direction:column;padding:10px;border-radius:26px;background:var(--bc);color:var(--bi);box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;will-change:transform;transform-origin:50% 50%}
+.cf-card{grid-area:1/1;position:relative;width:min(58vw,236px);display:flex;flex-direction:column;padding:10px;border-radius:26px;background:var(--bc);color:var(--bi);box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;will-change:transform;transform-origin:50% 50%}
 .cf-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#000;opacity:var(--cf-dim,0);pointer-events:none}
 .c-black.cf-card{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
 .cf:not(.ready) .cf-card:not(:first-child){visibility:hidden}
@@ -498,16 +497,18 @@ button.list-item{width:100%;text-align:left}
 .cf-orbit .cf-stage{padding-top:48px}
 .cf-stack .cf-stage{padding-top:34px}
 .cf-stack .cf-card{transform-origin:50% 0}
-.cf-fan .cf-card{transform-origin:50% 175%}
+.cf-orbit .cf-card{width:min(46vw,190px)}
+.cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
 .cf-fan .cf-stage{padding-top:22px;padding-bottom:54px}
 /* wide cards (Series page → card shape): the picture on the left, the text beside it */
-.cf-wide .cf-card{width:var(--hc-ww);height:var(--hc-wh);flex-direction:row;align-items:stretch}
+.cf-wide .cf-card{width:min(82vw,340px);flex-direction:row;align-items:stretch}
 .cf-wide .cf-pic{flex:0 0 40%;align-self:center}
 .cf-wide .cf-body{flex:1;padding:4px 4px 2px 12px}
 .cf-wide .cf-body b{font-size:20px}
 .cf-wide .cf-body small{min-height:0;-webkit-line-clamp:3}
 .cf-wide .cf-meta{margin-top:auto}
 .cf-wide.cf-orbit .cf-stage{padding-top:52px}
+.cf-wide.cf-orbit .cf-card{width:min(74vw,300px)}
 .cf-wide.cf-stack .cf-stage{padding-top:30px}
 .cf-wide.cf-fan .cf-card{transform-origin:50% 330%}
 .cf-wide.cf-fan .cf-stage{padding-top:14px;padding-bottom:44px}
@@ -515,7 +516,7 @@ button.list-item{width:100%;text-align:left}
 /* two or more banners turn like the Directions slider (home.html script): compact portrait cards in one grid cell, the
    picture framed on top, the neighbours turning away into depth (Banners page → Slider animation); --hs-dim darkens them */
 .hs-fx .hs-track{display:grid;justify-items:center;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1000px;user-select:none;-webkit-user-select:none;padding:4px 0 22px;margin-bottom:-12px}
-.hs-fx .hs-slide{grid-area:1/1;flex:none;width:var(--hc-w);height:var(--hc-h);min-height:0;flex-direction:column;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;will-change:transform}
+.hs-fx .hs-slide{grid-area:1/1;flex:none;width:min(62vw,250px);min-height:0;flex-direction:column;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;will-change:transform}
 .hs-fx .hs-slide.c-black{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
 .hs-fx .hs-slide::after{content:"";position:absolute;inset:0;z-index:5;border-radius:inherit;background:#000;opacity:var(--hs-dim,0);pointer-events:none}
 .hs-fx:not(.ready) .hs-slide:not(.is-active){visibility:hidden}
@@ -546,7 +547,7 @@ button.list-item{width:100%;text-align:left}
 .hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{-webkit-backface-visibility:hidden;backface-visibility:hidden}
 /* wide cards (Banners page → card shape): the picture framed on the left, the text beside it; a picture banner
    keeps its picture across the whole card with the text on a dark glass panel */
-.hs-fx.hs-wide .hs-slide{width:var(--hc-ww);height:var(--hc-wh);flex-direction:row;min-height:0}
+.hs-fx.hs-wide .hs-slide{width:min(84vw,340px);flex-direction:row;min-height:168px}
 .hs-fx.hs-wide .hs-media,.hs-fx.hs-wide .hs-art{width:40%;flex:0 0 40%;aspect-ratio:auto;align-self:stretch}
 .hs-fx.hs-wide .hs-stack>*{width:66%}
 .hs-fx.hs-wide .hs-stack>:nth-child(1){left:2%}.hs-fx.hs-wide .hs-stack>:nth-child(2){left:16%}.hs-fx.hs-wide .hs-stack>:nth-child(3){left:30%}
@@ -561,6 +562,21 @@ button.list-item{width:100%;text-align:left}
 .hs-fx.hs-wide.hs-look-fan .hs-track{padding-top:16px;padding-bottom:46px}
 .hs-fx.hs-wide.hs-look-orbit .hs-track{padding-top:54px}
 .hs-fx.hs-wide.hs-look-stack .hs-track{padding-top:32px}
+.hs-fx.hs-wide.hs-look-orbit .hs-slide{width:min(76vw,310px)}
+/* as tall as the Directions cards below (home.html measures them): the text keeps its height, the picture takes the rest */
+.hs-fx.sized .hs-slide{height:var(--hs-h);min-height:0}
+.hs-fx.sized:not(.hs-wide) .hs-media,.hs-fx.sized:not(.hs-wide) .hs-art,.hs-fx.sized:not(.hs-wide) .hs-bg{aspect-ratio:auto;flex:1 1 0;min-height:0}
+.hs-fx.sized:not(.hs-wide) .hs-body{flex:none}
+/* a short wide card: the text tightens (title 2 lines, one line of subtitle) */
+.hs-fx.sized.hs-wide .hs-body{padding:2px 42px 2px 12px;gap:1px;justify-content:center}
+.hs-fx.sized.hs-wide .hs-body:has(.hs-price) .hs-sub{display:none}
+.hs-fx.sized.hs-wide .hs-count{display:none}
+.hs-fx.sized.hs-wide .hs-kicker{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs-fx.sized.hs-wide .hs-kicker svg{display:inline-block;vertical-align:-2px;margin-right:4px}
+.hs-fx.sized.hs-wide .hs-slide h2{font-size:16px;line-height:1.15;-webkit-line-clamp:2}
+.hs-fx.sized.hs-wide .hs-sub{font-size:12px;-webkit-line-clamp:1}
+.hs-fx.sized.hs-wide .hs-price{margin-top:3px;padding-right:0;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+.hs-fx.sized.hs-wide .hs-price b{font-size:15px}
 .hs-look-spiral .hs-track{padding-top:44px;padding-bottom:40px;margin-bottom:-14px}
 .hs-look-cascade .hs-track{padding-top:30px}
 .hs-look-pile .hs-track{padding-top:26px;padding-bottom:34px;margin-bottom:-18px}
