@@ -404,10 +404,10 @@ button.list-item{width:100%;text-align:left}
 .section-title a svg{width:15px;height:15px}
 
 /* ===== home ===== */
-.home-head{display:flex;align-items:center;gap:12px;padding:calc(10px + var(--safe-t)) 18px 0;max-width:720px;margin:0 auto}
+.home-head{display:flex;align-items:center;gap:12px;padding:calc(6px + var(--safe-t)) 18px 0;max-width:720px;margin:0 auto}
 .home-head .hello{flex:1;min-width:0}
-.home-head .hello small{display:block;font-size:13.5px;color:var(--ink-2);font-weight:500}
-.home-head .hello h1{font-size:28px;letter-spacing:-.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-head .hello small{display:block;font-size:13px;color:var(--ink-2);font-weight:500}
+.home-head .hello h1{font-size:25px;line-height:1.15;letter-spacing:-.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .home-head .icon-btn{width:42px;height:42px;background:var(--surface);box-shadow:var(--shadow-card)}
 .terms-row{display:flex;gap:12px;align-items:flex-start}
 .terms-row svg{width:18px;height:18px;color:var(--ink-3);flex:0 0 auto;margin-top:2px}
@@ -473,17 +473,17 @@ button.list-item{width:100%;text-align:left}
 .cf{margin:-10px calc(-1 * var(--sp-4)) 0;overflow:hidden;padding:6px 0 8px}  /* room for the card shadow inside the clip */
 .cf-stage{display:grid;justify-items:center;padding-bottom:16px;perspective:1000px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;outline:0}
 .cf-stage.dragging{cursor:grabbing}
-.cf-card{grid-area:1/1;position:relative;width:min(58vw,236px);display:flex;flex-direction:column;padding:10px;border-radius:26px;background:var(--bc);color:var(--bi);box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;will-change:transform;transform-origin:50% 50%}
+.cf-card{grid-area:1/1;position:relative;width:min(58vw,236px,max(150px,calc((100dvh - 478px) * 1.2)));display:flex;flex-direction:column;padding:10px;border-radius:26px;background:var(--bc);color:var(--bi);box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;will-change:transform;transform-origin:50% 50%}
 .cf-card::after{content:"";position:absolute;inset:0;border-radius:inherit;background:#000;opacity:var(--cf-dim,0);pointer-events:none}
 .c-black.cf-card{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
 .cf:not(.ready) .cf-card:not(:first-child){visibility:hidden}
-.cf-pic{display:grid;place-items:center;aspect-ratio:1;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.14)}
+.cf-pic{display:grid;place-items:center;aspect-ratio:1/.86;border-radius:18px;overflow:hidden;background:rgba(255,255,255,.14)}
 .cf-pic img{width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
 .cf-pic svg{width:56px;height:56px;opacity:.55}
-.cf-body{display:flex;flex-direction:column;gap:2px;padding:11px 6px 3px;min-width:0}
-.cf-body b{font-family:var(--font-display);font-size:21px;font-weight:750;letter-spacing:-.03em;line-height:1.15}
+.cf-body{display:flex;flex-direction:column;gap:2px;padding:10px 6px 2px;min-width:0}
+.cf-body b{font-family:var(--font-display);font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:750;letter-spacing:-.03em;line-height:1.15}
 .cf-body small{font-size:13px;line-height:1.3;opacity:.82;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
-.cf-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cf-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
 .cf-go{display:grid;place-items:center;width:30px;height:30px;margin-left:auto;border-radius:50%;background:rgba(255,255,255,.22)}
 .cf-go svg{width:15px;height:15px}
 .c-gold .cf-go,.c-silver .cf-go{background:rgba(0,0,0,.1)}
@@ -496,8 +496,8 @@ button.list-item{width:100%;text-align:left}
 .cf-orbit .cf-stage{padding-top:48px}
 .cf-stack .cf-stage{padding-top:34px}
 .cf-stack .cf-card{transform-origin:50% 0}
-.cf-orbit .cf-card{width:min(46vw,190px)}
-.cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
+.cf-orbit .cf-card{width:min(46vw,190px,max(140px,calc((100dvh - 470px) * 1)))}
+.cf-fan .cf-card{width:min(54vw,220px,max(150px,calc((100dvh - 470px) * 1.1)));transform-origin:50% 175%}
 .cf-fan .cf-stage{padding-top:8px;padding-bottom:40px}
 /* wide cards (Series page → card shape): the picture on the left, the text beside it */
 .cf-wide .cf-card{width:min(82vw,340px);flex-direction:row;align-items:stretch}
@@ -515,7 +515,7 @@ button.list-item{width:100%;text-align:left}
 /* two or more banners turn like the Directions slider (home.html script): compact portrait cards in one grid cell, the
    picture framed on top, the neighbours turning away into depth (Banners page → Slider animation); --hs-dim darkens them */
 .hs-fx .hs-track{display:grid;justify-items:center;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1000px;user-select:none;-webkit-user-select:none;padding:4px 0 14px;margin-bottom:-14px}
-.hs-fx .hs-slide{grid-area:1/1;flex:none;width:min(62vw,250px);min-height:0;flex-direction:column;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;will-change:transform}
+.hs-fx .hs-slide{grid-area:1/1;flex:none;width:min(62vw,250px,max(160px,calc((100dvh - 470px) * 1.2)));min-height:0;flex-direction:column;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;will-change:transform}
 .hs-fx .hs-slide.c-black{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
 .hs-fx .hs-slide::after{content:"";position:absolute;inset:0;z-index:5;border-radius:inherit;background:#000;opacity:var(--hs-dim,0);pointer-events:none}
 .hs-fx:not(.ready) .hs-slide:not(.is-active){visibility:hidden}
@@ -560,6 +560,14 @@ button.list-item{width:100%;text-align:left}
 .hs-fx.hs-wide.hs-look-fan .hs-slide{transform-origin:50% 330%}
 .hs-fx.hs-wide.hs-look-fan .hs-track{padding-top:12px;padding-bottom:38px}
 .hs-fx.hs-wide.hs-look-orbit .hs-track{padding-top:54px}
+/* a short screen (a small phone, Telegram's own header): the wide banner tightens so the Directions cards below show whole */
+@media (max-height:720px){
+  .hs-fx.hs-wide .hs-slide{min-height:140px}
+  .hs-fx.hs-wide .hs-slide h2{font-size:17px;-webkit-line-clamp:2}
+  .hs-fx.hs-wide .hs-slide:not(.has-img) .hs-sub{display:none}
+  .hs-fx.hs-wide .hs-body{padding-top:4px;padding-bottom:4px;gap:2px}
+  .hs-fx.hs-wide .hs-price b{font-size:15px}
+}
 .hs-fx.hs-wide.hs-look-stack .hs-track{padding-top:32px}
 .hs-fx.hs-wide.hs-look-orbit .hs-slide{width:min(76vw,310px)}
 /* as tall as the Directions cards below (home.html measures them): the text keeps its height, the picture takes the rest */
