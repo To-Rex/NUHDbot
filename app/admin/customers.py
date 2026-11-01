@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy import func, or_, select
 
 from app.admin.common import (
+    ADMIN,
     CUSTOMER_ROLES,
     DB,
     back,
@@ -16,7 +17,7 @@ from app.config import settings
 from app.enums import Role
 from app.i18n import normalize_lang, t
 from app.models import Auction, AuctionDeposit, Bid, Order, Subscription, SupportThread, User
-from app.services import audit
+from app.services import audit, deletion
 
 
 @router.get("/customers")
@@ -57,6 +58,10 @@ async def customer_detail(uid: int, request: Request, db: DB, staff: User = Depe
     return render(request, staff, "admin/customers/detail.html", {"page_title": u.full_name, "u": u, "orders": orders, "bids": bids, "deposits": deposits, "subs": subs, "threads": threads, "all_roles": list(Role), "langs": settings.langs})
 
 
+# what staff may correct on a customer's card (the name and phone come from Telegram / registration)
+PROFILE_FIELDS = (("first_name", 100), ("last_name", 100), ("phone", 32), ("last_receiver_name", 120), ("last_receiver_phone", 32), ("last_address", 2000), ("last_cargo_company", 120), ("last_cargo_code", 64))
+
+
 @router.post("/customers/{uid}/update")
 async def customer_update(uid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*CUSTOMER_ROLES))):
     u = await db.get(User, uid)
@@ -76,9 +81,30 @@ async def customer_update(uid: int, request: Request, db: DB, staff: User = Depe
             return back(request, f"/admin/customers/{uid}", t(staff.lang, "admin.staff.self_guard"), "bad")
         u.role = Role(form.get("role") or "customer")
     else:
+        before |= {f: getattr(u, f) for f, _ in PROFILE_FIELDS}
+        for f, n in PROFILE_FIELDS:
+            v = f_opt(form, f, n)
+            setattr(u, f, v or ("" if f in ("first_name", "last_name") else None))
         u.country = (f_opt(form, "country", 2) or "").upper() or None
         u.city = f_opt(form, "city", 100)
         u.lang = normalize_lang(form.get("lang"))
-    await audit.log(db, staff.id, f"customer.{action or 'update'}", "user", u.id, before, {"country": u.country, "city": u.city, "lang": u.lang, "is_blocked": u.is_blocked, "role": u.role})
+    after = {"country": u.country, "city": u.city, "lang": u.lang, "is_blocked": u.is_blocked, "role": u.role} | ({f: getattr(u, f) for f, _ in PROFILE_FIELDS} if not action else {})
+    await audit.log(db, staff.id, f"customer.{action or 'update'}", "user", u.id, before, after)
     await db.commit()
     return back(request, f"/admin/customers/{uid}", t(staff.lang, "admin.flash.saved"))
+
+
+@router.post("/customers/{uid}/delete")
+async def customer_delete(uid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """The customer and everything that is only theirs. Opening the bot again later starts a fresh registration."""
+    u = await db.get(User, uid)
+    if not u or u.is_staff:
+        raise HTTPException(404)
+    snap = {"name": u.full_name, "phone": u.phone, "tg_id": u.tg_id, "tg_username": u.tg_username, "country": u.country, "city": u.city,
+            "orders": (await db.execute(select(func.count()).select_from(Order).where(Order.user_id == uid))).scalar_one()}
+    touched = await deletion.delete_customer(db, u)
+    await audit.log(db, staff.id, "customer.delete", "user", uid, snap, None)
+    await db.commit()
+    for a in touched:
+        deletion.announce_auction(a)
+    return back(request, "/admin/customers", t(staff.lang, "admin.cust.deleted", name=snap["name"]))

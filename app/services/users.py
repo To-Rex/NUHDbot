@@ -77,6 +77,10 @@ async def ensure_initial_admin(db: AsyncSession, login: str, password: str) -> U
     existing = (await db.execute(select(User).where(User.login == login))).scalar_one_or_none()
     if existing:
         return existing
+    # renamed or replaced in the admin panel: do not bring the .env account back next to it
+    other = (await db.execute(select(User).where(User.role == Role.ADMIN).order_by(User.id).limit(1))).scalar_one_or_none()
+    if other:
+        return other
     admin = User(first_name="Admin", role=Role.ADMIN, login=login, password_hash=hash_password(password), lang="uz")
     db.add(admin)
     await db.flush()

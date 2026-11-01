@@ -59,6 +59,7 @@
     es.addEventListener('ready', catchUp);  // first connect and every reconnect: pick up anything missed
     es.addEventListener('msg', catchUp);
     es.addEventListener('read', function(e){ try { if (JSON.parse(e.data).by === 'staff') read(); } catch (_) {} });
+    es.addEventListener('del', function(e){ try { var m = chat.querySelector('.msg[data-id="' + Number(JSON.parse(e.data).id) + '"]'); if (m) m.remove(); } catch (_) {} });
   }
   connect();
   function onVisible(){ if (document.visibilityState === 'visible') catchUp(); }

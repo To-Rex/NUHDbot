@@ -44,7 +44,7 @@ from app.enums import (
 )
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
-from app.services import audit, media, model_dict
+from app.services import audit, deletion, media, model_dict
 from app.services import brands as brand_service
 from app.services import series as series_service
 from app.services.catalog import capacity_presets
@@ -236,6 +236,17 @@ async def product_update(pid: int, request: Request, db: DB, staff: User = Depen
     return back(request, f"/admin/products/{p.id}", t(staff.lang, "admin.flash.saved"))
 
 
+@router.post("/products/{pid}/delete")
+async def product_delete(pid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
+    p = await db.get(Product, pid)
+    if not p:
+        raise HTTPException(404)
+    await audit.log(db, staff.id, "product.delete", "product", p.id, snapshot(p, PRODUCT_FIELDS), None)
+    await deletion.delete_product(db, p)
+    await db.commit()
+    return back(request, "/admin/products", t(staff.lang, "admin.prod.deleted"))
+
+
 @router.post("/products/{pid}/toggle")
 async def product_toggle(pid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES, Role.WAREHOUSE))):
     p = await db.get(Product, pid)
@@ -257,6 +268,13 @@ async def product_bulk(request: Request, db: DB, staff: User = Depends(staff_dep
     form = await request.form()
     ids = [int(x) for x in form.getlist("ids") if x.isdigit()]
     action = form.get("action")
+    if ids and action == "delete":
+        rows = (await db.execute(select(Product).where(Product.id.in_(ids)))).scalars().unique().all()
+        for p in rows:
+            await audit.log(db, staff.id, "product.delete", "product", p.id, snapshot(p, PRODUCT_FIELDS), None)
+            await deletion.delete_product(db, p)
+        await db.commit()
+        return back(request, "/admin/products", t(staff.lang, "admin.prod.bulk_deleted", n=len(rows)))
     if ids and action in ("activate", "deactivate", "allow_sale", "stop_sale"):
         rows = (await db.execute(select(Product).where(Product.id.in_(ids)))).scalars().all()
         for p in rows:

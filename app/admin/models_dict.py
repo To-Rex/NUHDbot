@@ -106,6 +106,23 @@ async def model_series(mid: int, request: Request, db: DB, staff: User = Depends
     return back(request, url + ("&" if "?" in url else "?") + f"moved={m.id}", t(lang, "admin.models.dir_saved", m=m.name, s=label))
 
 
+@router.post("/models/{mid}/edit")
+async def model_edit(mid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
+    m = await model_dict.get_model(db, mid)
+    if not m:
+        raise HTTPException(404)
+    form = await request.form()
+    lang, before = _lang(request, staff), model_dict.as_dict(m)
+    cap_raw = (form.get("capacity") or "").strip()
+    cap = model_dict.parse_capacity_token(cap_raw) or (f_int(form, "capacity", None) if cap_raw.isdigit() else None)
+    nxt = _next_url(form, f"/admin/models?brand_id={m.brand_id}")
+    if not await model_dict.update_model(db, m, form.get("name") or "", cap, (form.get("interface") or "").upper() or None, form.get("form_factor") or None):
+        return back(request, nxt, t(lang, "admin.models.name_taken"), "bad")
+    await audit.log(db, staff.id, "model.update", "brand_model", mid, before, model_dict.as_dict(m))
+    await db.commit()
+    return back(request, nxt, t(lang, "admin.models.saved"))
+
+
 @router.post("/models/{mid}/delete")
 async def model_delete(mid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     m = await model_dict.get_model(db, mid)

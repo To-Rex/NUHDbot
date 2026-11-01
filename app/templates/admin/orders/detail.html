@@ -19,6 +19,7 @@
 <a class="btn btn-secondary btn-sm" href="/admin/orders">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>
 {% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-secondary btn-sm" href="{{ chat_url }}">{{ icon('message', 15) }}{{ t('admin.ord.open_chat') }}</a>{% endif %}
 {% if ns.opts or staff.is_admin %}<button type="button" class="btn btn-secondary btn-sm" id="status-open">{{ icon('refresh', 15) }}{{ t('admin.ord.change_status') }}</button>{% endif %}
+{% if staff.is_admin %}<form method="post" action="/admin/orders/{{ o.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger btn-sm" data-confirm="{{ t('admin.ord.delete_q', n=o.number) }}" data-confirm-text="{{ t('admin.ord.delete_text') }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 15) }}{{ t('admin.delete') }}</button></form>{% endif %}
 {% endblock %}
 {% block content %}
 {# ---------- journey ---------- #}
@@ -49,15 +50,16 @@
   {# ---------- items ---------- #}
   <div class="card" id="items"><h2>{{ t('admin.ord.items') }} <span class="sub">{{ o.items|length }} {{ t('admin.ord.items_count') }} · {{ o.total_qty }} {{ t('admin.ord.pcs') }}</span></h2>
     <form method="post" action="/admin/orders/{{ o.id }}/items"><input type="hidden" name="_csrf" value="{{ csrf }}">
-    <div class="tbl-wrap"><table><thead><tr><th>#</th><th></th><th class="right">{{ t('admin.ord.qty') }}</th><th class="right">{{ t('admin.ord.unit_price') }}</th><th class="right">{{ t('admin.total') }}</th></tr></thead><tbody>
+    <div class="tbl-wrap"><table><thead><tr><th>#</th><th></th><th class="right">{{ t('admin.ord.qty') }}</th><th class="right">{{ t('admin.ord.unit_price') }}</th><th class="right">{{ t('admin.total') }}</th>{% if items_editable and o.items|length > 1 %}<th></th>{% endif %}</tr></thead><tbody>
     {% for i in o.items %}<tr><td class="faint">{{ loop.index }}</td>
       <td>{% if i.product_id %}<a class="row-main" href="/admin/products/{{ i.product_id }}">{{ i.brand }} {{ i.model }}</a>{% else %}<span class="row-main">{{ i.brand }} {{ i.model }}</span>{% endif %}<span class="chip cond-{{ i.condition.value }}">{{ i.condition.value|upper }}</span><div class="row-sub">{{ i.capacity_gb|capacity }}{% if i.product and i.product.label_model %} · <span style="color:var(--refresh-fg)">{{ t('common.label_model') }}: {{ i.product.label_model }}</span>{% endif %}</div></td>
       <td class="num">{% if items_editable %}<input class="input sm num mono" style="width:72px" type="number" name="qty_{{ i.id }}" value="{{ i.qty }}" min="1">{% else %}<span class="mono">{{ i.qty }}</span>{% endif %}</td>
       <td class="num">{% if items_editable %}<input class="input sm num mono" style="width:104px" name="price_{{ i.id }}" value="{{ i.unit_price }}">{% else %}<span class="mono">{{ i.unit_price|money(o.currency) }}</span>{% endif %}</td>
-      <td class="num bold mono">{{ i.line_total|money(o.currency) }}</td></tr>{% endfor %}
-    </tbody><tfoot><tr><td colspan="4" class="right muted">{{ t('admin.ord.subtotal') }}</td><td class="num mono">{{ o.subtotal|money(o.currency) }}</td></tr></tfoot></table></div>
+      <td class="num bold mono">{{ i.line_total|money(o.currency) }}</td>{% if items_editable and o.items|length > 1 %}<td class="right"><button class="icon-btn sm danger" form="item-del-{{ i.id }}" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}" data-confirm="{{ t('admin.ord.item_delete_q') }}" data-confirm-text="{{ i.brand }} {{ i.model }} × {{ i.qty }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></td>{% endif %}</tr>{% endfor %}
+    </tbody><tfoot><tr><td colspan="4" class="right muted">{{ t('admin.ord.subtotal') }}</td><td class="num mono">{{ o.subtotal|money(o.currency) }}</td>{% if items_editable and o.items|length > 1 %}<td></td>{% endif %}</tr></tfoot></table></div>
     {% if items_editable %}<div class="between mt"><span class="hint">{{ t('admin.ord.items_hint') }}</span><button class="btn btn-secondary btn-sm">{{ t('admin.save') }}</button></div>{% endif %}
     </form>
+    {% if items_editable and o.items|length > 1 %}{% for i in o.items %}<form method="post" action="/admin/orders/{{ o.id }}/items/{{ i.id }}/delete" id="item-del-{{ i.id }}" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"></form>{% endfor %}{% endif %}
     {% if o.customer_note %}<div class="notice notice-info mt">{{ icon('message', 18) }}<span><b>{{ t('admin.ord.customer_note') }}:</b> {{ o.customer_note }}</span></div>{% endif %}
   </div>
 
@@ -95,7 +97,7 @@
       {% for p in o.payments %}<tr><td class="faint small nowrap">{{ p.created_at|dt }}</td><td><span class="chip chip-info">{{ t('payment.' ~ p.kind.value) }}</span></td>
         <td class="num bold mono">{{ p.amount|money(p.currency) }}</td>
         <td class="small">{{ p.method or '—' }}{% if p.note %}<div class="row-sub">{{ p.note }}</div>{% endif %}</td>
-        <td class="nowrap right">{% if p.status.value == 'pending' %}{% if can_pay %}<form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/confirm" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-ok" data-confirm="{{ t('admin.pay.confirm') }}" data-confirm-text="{{ p.amount|money(p.currency) }}">{{ icon('check', 14) }}{{ t('admin.ord.confirm') }}</button></form> <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/reject" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-danger" data-confirm="{{ t('admin.pay.reject') }}" data-confirm-reason="note" data-confirm-danger="1">{{ icon('x', 14) }}</button></form>{% else %}<span class="chip chip-warn">{{ t('payment.pending') }}</span>{% endif %}{% elif p.status.value == 'rejected' %}<span class="chip chip-bad">{{ t('payment.rejected') }}</span>{% endif %}</td></tr>{% endfor %}
+        <td class="nowrap right">{% if p.status.value == 'pending' %}{% if can_pay %}<form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/confirm" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-ok" data-confirm="{{ t('admin.pay.confirm') }}" data-confirm-text="{{ p.amount|money(p.currency) }}">{{ icon('check', 14) }}{{ t('admin.ord.confirm') }}</button></form> <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/reject" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-sm btn-danger" data-confirm="{{ t('admin.pay.reject') }}" data-confirm-reason="note" data-confirm-danger="1">{{ icon('x', 14) }}</button></form>{% else %}<span class="chip chip-warn">{{ t('payment.pending') }}</span>{% endif %}{% elif p.status.value == 'rejected' %}<span class="chip chip-bad">{{ t('payment.rejected') }}</span>{% endif %}{% if can_pay %} <form method="post" action="/admin/orders/{{ o.id }}/payments/{{ p.id }}/delete" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}" data-confirm="{{ t('admin.ord.payment_delete_q') }}" data-confirm-text="{{ p.amount|money(p.currency) }} · {{ t('payment.' ~ p.kind.value) }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>{% endif %}</td></tr>{% endfor %}
     </tbody></table></div>{% elif not (can_pay and not closed) %}<div class="empty">{{ icon('wallet', 28) }}<b>{{ t('admin.none') }}</b></div>{% endif %}
     </div>
   </details>
@@ -119,13 +121,32 @@
       <dt>{{ t('admin.ord.previous_orders') }}</dt><dd>{{ prev_count }}</dd><dt>{{ t('admin.cust.bought_before') }}</dt><dd>{{ t('admin.yes') if o.user.bought_from_china_before else t('admin.no') }}</dd>{% if o.source %}<dt>{{ t('admin.cust.source') }}</dt><dd class="mono">{{ o.source }}</dd>{% endif %}</dl>
   </div>
   {# ---------- delivery (what the customer entered at checkout) ---------- #}
-  <div class="card"><h2>{{ t('admin.ord.delivery_card') }}</h2>
+  <div class="card"><h2>{{ t('admin.ord.delivery_card') }}{% if can_edit %} <button type="button" class="btn btn-xs btn-ghost" data-dlg-open="delivery-dlg">{{ icon('edit', 12) }}{{ t('admin.edit') }}</button>{% endif %}</h2>
     <dl class="kv"><dt>{{ t('admin.ord.receiver') }}</dt><dd>{{ o.receiver_name }}<br><span class="copyable" data-copy="{{ o.receiver_phone }}">{{ o.receiver_phone }}{{ icon('copy', 13) }}</span></dd>
       <dt>{{ t('admin.ord.address') }}</dt><dd>{{ t('country.' ~ (o.country or 'OT')) }}{% if o.city %}, {{ o.city }}{% endif %}<br>{{ o.address }}</dd>
-      {% if o.cargo_company or o.cargo_code %}<dt>{{ t('admin.ord.cargo') }}</dt><dd>{{ o.cargo_company or '' }}{% if o.cargo_code %}{% if o.cargo_company %}<br>{% endif %}<span class="copyable mono" data-copy="{{ o.cargo_code }}">{{ o.cargo_code }}{{ icon('copy', 13) }}</span>{% endif %}</dd>{% endif %}</dl>
+      {% if o.cargo_company or o.cargo_code %}<dt>{{ t('admin.ord.cargo') }}</dt><dd>{{ o.cargo_company or '' }}{% if o.cargo_code %}{% if o.cargo_company %}<br>{% endif %}<span class="copyable mono" data-copy="{{ o.cargo_code }}">{{ o.cargo_code }}{{ icon('copy', 13) }}</span>{% endif %}</dd>{% endif %}
+      {% if o.tracking_number %}<dt>{{ t('admin.ord.tracking') }}</dt><dd><span class="copyable mono" data-copy="{{ o.tracking_number }}">{{ o.tracking_number }}{{ icon('copy', 13) }}</span></dd>{% endif %}</dl>
   </div>
 </div>
 </div>
+
+{# ---------- delivery dialog ---------- #}
+{% if can_edit %}
+<dialog class="dlg" id="delivery-dlg">
+  <form method="post" action="/admin/orders/{{ o.id }}/delivery"><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="dlg-body">
+      <div class="dlg-head"><div><h3>{{ t('admin.ord.delivery_edit') }}</h3><p>{{ t('admin.ord.delivery_edit_text') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
+      <div class="form-grid tight mt"><div class="field"><label>{{ t('admin.ord.receiver') }}</label><input class="input" name="receiver_name" value="{{ o.receiver_name }}" maxlength="120"></div><div class="field"><label>{{ t('admin.phone') }}</label><input class="input mono" name="receiver_phone" value="{{ o.receiver_phone }}" maxlength="32"></div></div>
+      <div class="form-grid tight"><div class="field"><label>{{ t('admin.country') }}</label><input class="input mono" name="country" value="{{ o.country or '' }}" maxlength="2" placeholder="UZ"></div><div class="field"><label>{{ t('admin.city') }}</label><input class="input" name="city" value="{{ o.city or '' }}" maxlength="100"></div></div>
+      <div class="field"><label>{{ t('admin.ord.address') }}</label><textarea class="textarea" name="address" rows="2">{{ o.address }}</textarea></div>
+      <div class="form-grid tight"><div class="field"><label>{{ t('admin.ord.cargo') }}</label><input class="input" name="cargo_company" value="{{ o.cargo_company or '' }}" maxlength="120"></div><div class="field"><label>{{ t('admin.ord.cargo_code') }}</label><input class="input mono" name="cargo_code" value="{{ o.cargo_code or '' }}" maxlength="64"></div></div>
+      <div class="field"><label>{{ t('admin.ord.tracking') }}</label><input class="input mono" name="tracking_number" value="{{ o.tracking_number or '' }}" maxlength="120"></div>
+      <div class="field"><label>{{ t('admin.ord.customer_note') }}</label><textarea class="textarea" name="customer_note" rows="2">{{ o.customer_note or '' }}</textarea></div>
+    </div>
+    <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+  </form>
+</dialog>
+{% endif %}
 
 {# ---------- status dialog ---------- #}
 {% if ns.opts or staff.is_admin %}

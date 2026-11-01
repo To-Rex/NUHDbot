@@ -5,6 +5,7 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy import func, or_, select, update
 
 from app.admin.common import (
+    ADMIN,
     DB,
     ORDER_EDIT_ROLES,
     ORDER_ROLES,
@@ -33,7 +34,7 @@ from app.enums import (
 )
 from app.i18n import t
 from app.models import Order, Payment, Product, SupportThread, User
-from app.services import audit, notifications
+from app.services import audit, deletion, notifications
 from app.services import orders as osvc
 
 EDITABLE_ITEMS = (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE)
@@ -136,6 +137,50 @@ async def order_items(oid: int, request: Request, db: DB, staff: User = Depends(
     return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.items_saved"))
 
 
+@router.post("/orders/{oid}/items/{iid}/delete")
+async def order_item_delete(oid: int, iid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ORDER_EDIT_ROLES))):
+    o = await _load(db, oid)
+    it = next((i for i in o.items if i.id == iid), None)
+    if not it:
+        raise HTTPException(404)
+    if o.status not in EDITABLE_ITEMS:
+        return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.no_items_edit"), "bad")
+    if len(o.items) < 2:
+        return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.item_last"), "warn")
+    await audit.log(db, staff.id, "order.item.delete", "order", o.id, {"item": it.id, "title": f"{it.brand} {it.model}", "qty": it.qty, "unit_price": str(it.unit_price)}, None)
+    await deletion.delete_order_item(db, o, it)
+    await db.commit()
+    return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.item_deleted"))
+
+
+DELIVERY_FIELDS = (("receiver_name", 120), ("receiver_phone", 32), ("city", 100), ("address", 2000), ("cargo_company", 120), ("cargo_code", 64), ("tracking_number", 120), ("customer_note", 2000))
+
+
+@router.post("/orders/{oid}/delivery")
+async def order_delivery(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ORDER_EDIT_ROLES))):
+    """What the customer typed at checkout (receiver, address, cargo), corrected by staff."""
+    o = await _load(db, oid)
+    form = await request.form()
+    before = {f: getattr(o, f) for f, _ in DELIVERY_FIELDS} | {"country": o.country}
+    for f, n in DELIVERY_FIELDS:
+        v = f_opt(form, f, n)
+        setattr(o, f, v or ("" if f in ("receiver_name", "receiver_phone", "address") else None))
+    o.country = (f_opt(form, "country", 2) or "").upper() or None
+    await audit.log(db, staff.id, "order.delivery", "order", o.id, before, {f: getattr(o, f) for f, _ in DELIVERY_FIELDS} | {"country": o.country})
+    await db.commit()
+    return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.flash.saved"))
+
+
+@router.post("/orders/{oid}/delete")
+async def order_delete(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    o = await _load(db, oid)
+    snap = {"number": o.number, "status": o.status, "user_id": o.user_id, "total": str(o.total), "paid": str(o.paid_amount), "items": [f"{i.brand} {i.model} x{i.qty}" for i in o.items]}
+    await deletion.delete_order(db, o)
+    await audit.log(db, staff.id, "order.delete", "order", oid, snap, None)
+    await db.commit()
+    return back(request, "/admin/orders", t(staff.lang, "admin.ord.deleted", n=snap["number"]))
+
+
 @router.post("/orders/{oid}/offer")
 async def order_offer(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ORDER_EDIT_ROLES))):
     o = await _load(db, oid)
@@ -217,8 +262,13 @@ async def order_payment_record(oid: int, request: Request, db: DB, staff: User =
 async def order_payment_action(oid: int, pid: int, action: str, request: Request, db: DB, staff: User = Depends(staff_dep(*PAYMENT_ROLES))):
     o = await _load(db, oid)
     pay = await db.get(Payment, pid)
-    if not pay or pay.order_id != o.id or action not in ("confirm", "reject"):
+    if not pay or pay.order_id != o.id or action not in ("confirm", "reject", "delete"):
         raise HTTPException(404)
+    if action == "delete":  # a mistyped or duplicate record; the order's paid sum follows
+        await audit.log(db, staff.id, "payment.delete", "payment", pay.id, {"order": o.number, "kind": pay.kind, "status": pay.status, "amount": str(pay.amount), "method": pay.method}, None)
+        await deletion.delete_payment(db, o, pay)
+        await db.commit()
+        return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.ord.payment_deleted"))
     if pay.status != PaymentStatus.PENDING:
         return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.flash.error", e="already processed"), "warn")
     form = await request.form()

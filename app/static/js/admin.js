@@ -77,6 +77,13 @@
       setTimeout(() => { delete f.dataset.confirmed; }, 500);
     });
   }, true);
+  // plain edit dialogs: [data-dlg-open="<dialog id>"] opens one, [data-dlg-close] inside closes it
+  document.addEventListener('click', (e) => {
+    const op = e.target.closest('[data-dlg-open]');
+    if (op) { const d = document.getElementById(op.dataset.dlgOpen); if (d && d.showModal) { e.preventDefault(); d.showModal(); } return; }
+    const cl = e.target.closest('[data-dlg-close]');
+    if (cl) { const d = cl.closest('dialog'); if (d) { e.preventDefault(); d.close(); } }
+  });
   document.addEventListener('htmx:confirm', (e) => {
     const el = e.detail.elt; if (!el.dataset.confirm) return; e.preventDefault();
     askConfirm({ title: el.dataset.confirm, text: el.dataset.confirmText, danger: el.dataset.confirmDanger === '1' }).then((r) => { if (r.ok) e.detail.issueRequest(true); });
@@ -430,9 +437,24 @@
       refreshList(); refreshBadge();
     });
     es.addEventListener('thread', () => { refreshList(); refreshBadge(); });
+    es.addEventListener('del', (e) => {
+      const ev = data(e), c = chatEl();
+      if (c && ev.thread_id === chatTid()) { const m = c.querySelector('.msg[data-id="' + ev.id + '"]'); if (m) m.remove(); }
+      refreshList(); refreshBadge();
+    });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { chatCatchUp(); refreshList(); } });
   }
   if (chatTid()) setInterval(chatCatchUp, 30000); // safety net if a proxy ever blocks the stream
+  // deleting one message: confirm, post, drop the bubble (the stream drops it in other open windows and the Mini App)
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-msg-del]'); if (!b) return; e.preventDefault();
+    askConfirm({ title: b.dataset.confirm, text: b.dataset.confirmText, danger: true, okText: b.dataset.confirmOk }).then((r) => {
+      if (!r.ok) return;
+      fetch(b.dataset.msgDel, { method: 'POST', credentials: 'same-origin', headers: { 'HX-Request': 'true', 'X-CSRF': csrf } })
+        .then((res) => { if (!res.ok) throw new Error(res.status); const m = b.closest('.msg'); if (m) m.remove(); refreshList(); })
+        .catch(() => toast(T('error', 'Error'), 'bad'));
+    });
+  });
 
   // composer: Enter sends (Shift+Enter = new line). Like a messenger: the box clears at once, the bubble
   // shows "sending", replies go out one by one in order, and a failed one keeps its text with a retry button.

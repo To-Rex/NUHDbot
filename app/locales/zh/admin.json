@@ -240,7 +240,12 @@
       "series_clear": "无系列",
       "series_other_long": "其他——手动输入",
       "model_in_series": "{s} 系列型号",
-      "model_series_empty": "{s} 系列暂无型号——请输入新型号名称"
+      "model_series_empty": "{s} 系列暂无型号——请输入新型号名称",
+      "delete_q": "删除该商品？",
+      "delete_text": "图片和价格历史也将删除。订单和拍卖中保留名称。",
+      "deleted": "商品已删除",
+      "bulk_delete_q": "删除所选商品？",
+      "bulk_deleted": "已删除 {n} 个商品"
     },
     "ord": {
       "title": "订单",
@@ -332,7 +337,19 @@
       "open_chat": "打开聊天",
       "customer_agreed": "客户已同意 — 进入尾款阶段",
       "amount_received": "实收金额",
-      "stage_pay": "付款"
+      "stage_pay": "付款",
+      "delete_q": "删除订单 {n}？",
+      "delete_text": "其商品行、付款和历史也将删除，预留库存将释放。此操作无法撤销。",
+      "deleted": "订单 {n} 已删除",
+      "item_delete_q": "从订单中移除此行？",
+      "item_deleted": "已移除该行，金额已重新计算",
+      "item_last": "订单至少保留一行。可以删除整个订单。",
+      "payment_delete_q": "删除此付款记录？",
+      "payment_deleted": "付款记录已删除",
+      "delivery_edit": "配送信息",
+      "delivery_edit_text": "客户下单时填写的信息，可在此更正。",
+      "cargo_code": "货运代码",
+      "tracking": "运单号"
     },
     "auc": {
       "title": "拍卖",
@@ -423,7 +440,13 @@
       "duration": "时长",
       "dur_m": "{n} 分钟",
       "rules_more": "规则（可选）",
-      "no_deposit": "无"
+      "no_deposit": "无",
+      "delete_q": "删除该拍品？",
+      "delete_text": "所有出价、保证金和图片也将删除。此操作无法撤销。",
+      "deleted": "拍品已删除",
+      "bid_delete_q": "删除该出价？",
+      "bid_delete_text": "价格、领先者和中标者将按剩余出价重新计算。",
+      "bid_deleted": "出价已删除，价格已重新计算"
     },
     "sup": {
       "title": "客服消息",
@@ -457,7 +480,12 @@
       "unread_n": "未读",
       "new_message": "新消息",
       "retry": "重试",
-      "failed": "发送失败"
+      "failed": "发送失败",
+      "delete_thread_q": "删除该对话？",
+      "delete_thread_text": "所有消息和文件将删除。客户再发消息将开始新对话。",
+      "thread_deleted": "对话已删除",
+      "delete_msg_q": "删除该消息？客户端也会消失。",
+      "msg_deleted": "消息已删除"
     },
     "cust": {
       "title": "客户",
@@ -484,7 +512,13 @@
       "block_q": "确定拉黑该客户？其将无法使用机器人和 Mini App。",
       "profile": "资料",
       "edit": "编辑信息",
-      "no_orders": "暂无订单"
+      "no_orders": "暂无订单",
+      "first_name": "名",
+      "last_name": "姓",
+      "last_delivery": "最近配送地址",
+      "delete_q": "删除该客户？",
+      "delete_text": "其订单、付款、出价和聊天也将删除。再次打开机器人需重新注册。此操作无法撤销。",
+      "deleted": "{name} 已删除"
     },
     "staff": {
       "title": "员工",
@@ -506,7 +540,12 @@
       "role_finance": "确认付款、保证金、报表、成本价。",
       "role_marketing": "推广帖与客户库。",
       "password_hint": "至少 6 个字符",
-      "tg_hint": "Telegram ID — 用于接收机器人通知"
+      "tg_hint": "Telegram ID — 用于接收机器人通知",
+      "edit": "编辑员工",
+      "delete_q": "删除该员工？",
+      "deleted": "{name} 已删除",
+      "last_admin": "不能删除最后一位管理员",
+      "password_keep": "留空则保留原密码"
     },
     "set": {
       "title": "设置",
@@ -564,7 +603,13 @@
       "region": "州 / 地区",
       "no_region": "未分区",
       "geo_filter": "搜索城市或国家…",
-      "geo_hint": "城市按地区分组。隐藏比删除更安全。"
+      "geo_hint": "城市按地区分组。隐藏比删除更安全。",
+      "country_edit": "编辑国家",
+      "country_delete_q": "删除该国家？",
+      "country_delete_text": "其 {n} 个城市也将删除。如需暂时隐藏，请使用“启用”开关。",
+      "city_edit": "编辑城市",
+      "names_hint": "各语言名称。留空则保留原名称。",
+      "flag": "国旗"
     },
     "art": {
       "title": "资讯文章",
@@ -818,7 +863,12 @@
       "dir_change": "更改方向",
       "dir_pick": "{m} — 系列（方向）",
       "dir_empty": "该品牌暂无系列——请在“系列”页面添加",
-      "dir_saved": "{m}：方向已更改 — {s}"
+      "dir_saved": "{m}：方向已更改 — {s}",
+      "edit_title": "编辑型号",
+      "edit_text": "名称、容量、接口和尺寸。方向由系列决定。",
+      "name": "型号名称",
+      "saved": "型号已保存",
+      "name_taken": "该品牌已有同名型号"
     },
     "nav_edit": {
       "hint": "拖动栏目到任意位置",

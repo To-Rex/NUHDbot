@@ -240,7 +240,12 @@
       "series_clear": "No series",
       "series_other_long": "Other — type it",
       "model_in_series": "{s} models",
-      "model_series_empty": "No {s} models yet — type the new model's name"
+      "model_series_empty": "No {s} models yet — type the new model's name",
+      "delete_q": "Delete the product?",
+      "delete_text": "Its photos and price history go too. Orders and auctions keep its name.",
+      "deleted": "Product deleted",
+      "bulk_delete_q": "Delete the selected products?",
+      "bulk_deleted": "{n} products deleted"
     },
     "ord": {
       "title": "Orders",
@@ -332,7 +337,19 @@
       "open_chat": "Open chat",
       "customer_agreed": "Customer agreed — move to balance payment",
       "amount_received": "Amount received",
-      "stage_pay": "Payment"
+      "stage_pay": "Payment",
+      "delete_q": "Delete order {n}?",
+      "delete_text": "Its lines, payments and history go too, and reserved stock is released. This cannot be undone.",
+      "deleted": "Order {n} deleted",
+      "item_delete_q": "Remove this line from the order?",
+      "item_deleted": "Line removed, total recalculated",
+      "item_last": "An order keeps at least one line. You can delete the whole order instead.",
+      "payment_delete_q": "Delete this payment record?",
+      "payment_deleted": "Payment record deleted",
+      "delivery_edit": "Delivery details",
+      "delivery_edit_text": "What the customer entered at checkout. Correct mistakes here.",
+      "cargo_code": "Cargo code",
+      "tracking": "Tracking number"
     },
     "auc": {
       "title": "Auctions",
@@ -423,7 +440,13 @@
       "duration": "Length",
       "dur_m": "{n} min",
       "rules_more": "Rules (optional)",
-      "no_deposit": "None"
+      "no_deposit": "None",
+      "delete_q": "Delete the lot?",
+      "delete_text": "All bids, deposits and photos go too. This cannot be undone.",
+      "deleted": "Lot deleted",
+      "bid_delete_q": "Delete the bid?",
+      "bid_delete_text": "The price, leader and winner are recalculated from the remaining bids.",
+      "bid_deleted": "Bid deleted, price recalculated"
     },
     "sup": {
       "title": "Support",
@@ -457,7 +480,12 @@
       "unread_n": "unread",
       "new_message": "New message",
       "retry": "Retry",
-      "failed": "Not sent"
+      "failed": "Not sent",
+      "delete_thread_q": "Delete the conversation?",
+      "delete_thread_text": "All messages and files go. The customer's next message starts a new conversation.",
+      "thread_deleted": "Conversation deleted",
+      "delete_msg_q": "Delete the message? It disappears for the customer too.",
+      "msg_deleted": "Message deleted"
     },
     "cust": {
       "title": "Customers",
@@ -484,7 +512,13 @@
       "block_q": "Block this customer? They will lose access to the bot and Mini App.",
       "profile": "Profile",
       "edit": "Edit details",
-      "no_orders": "No orders yet"
+      "no_orders": "No orders yet",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "last_delivery": "Last delivery address",
+      "delete_q": "Delete the customer?",
+      "delete_text": "Their orders, payments, bids and chat go too. Opening the bot again starts a new registration. This cannot be undone.",
+      "deleted": "{name} deleted"
     },
     "staff": {
       "title": "Staff",
@@ -506,7 +540,12 @@
       "role_finance": "Confirm payments, deposits, reports, cost prices.",
       "role_marketing": "Ad posts and the customer base.",
       "password_hint": "At least 6 characters",
-      "tg_hint": "Telegram ID — so the bot can notify this person"
+      "tg_hint": "Telegram ID — so the bot can notify this person",
+      "edit": "Edit staff member",
+      "delete_q": "Delete the staff member?",
+      "deleted": "{name} deleted",
+      "last_admin": "The last admin cannot be deleted",
+      "password_keep": "leave empty to keep the current one"
     },
     "set": {
       "title": "Settings",
@@ -564,7 +603,13 @@
       "region": "Region / oblast",
       "no_region": "No region",
       "geo_filter": "Search city or country…",
-      "geo_hint": "Cities are grouped by region. Hiding is safer than deleting."
+      "geo_hint": "Cities are grouped by region. Hiding is safer than deleting.",
+      "country_edit": "Edit country",
+      "country_delete_q": "Delete the country?",
+      "country_delete_text": "Its {n} cities go too. To hide it for now, use the Active toggle instead.",
+      "city_edit": "Edit city",
+      "names_hint": "The name in each language. An empty field keeps the old spelling.",
+      "flag": "Flag"
     },
     "art": {
       "title": "Articles",
@@ -818,7 +863,12 @@
       "dir_change": "Change direction",
       "dir_pick": "{m} — series (direction)",
       "dir_empty": "This brand has no series yet — add them on the Series page",
-      "dir_saved": "{m}: direction changed — {s}"
+      "dir_saved": "{m}: direction changed — {s}",
+      "edit_title": "Edit model",
+      "edit_text": "Name, capacity, interface and form factor. The direction comes from the series.",
+      "name": "Model name",
+      "saved": "Model saved",
+      "name_taken": "This brand already has a model with that name"
     },
     "nav_edit": {
       "hint": "Drag a section to any place",

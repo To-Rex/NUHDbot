@@ -40,8 +40,9 @@
     <div class="msub-h"><span class="sw sw-{{ sub.color or 'none' }}"></span><b>{{ sub.name or t('admin.models.no_series') }}</b>{% if sub.color %}<span class="msub-dir">{{ color_dir[sub.color] }}</span>{% endif %}<span class="cnt">{{ sub.models|length }}</span></div>
     <div class="msub-items">
       {% for m in sub.models %}{% set meta = [m.capacity_gb|capacity if m.capacity_gb else '', m.interface or '', (m.form_factor ~ '"') if m.form_factor else '']|select|join(' · ') %}
-      <div class="mitem" data-mid="{{ m.id }}" data-b="{{ b.id }}" data-model="{{ m.name }}" data-series="{{ m.series or '' }}" data-name="{{ (b.name ~ ' ' ~ m.name ~ ' ' ~ (m.series or ''))|lower }}">
+      <div class="mitem" data-mid="{{ m.id }}" data-b="{{ b.id }}" data-model="{{ m.name }}" data-cap="{{ m.capacity_gb or '' }}" data-if="{{ m.interface or '' }}" data-ff="{{ m.form_factor or '' }}" data-series="{{ m.series or '' }}" data-name="{{ (b.name ~ ' ' ~ m.name ~ ' ' ~ (m.series or ''))|lower }}">
         <div class="mitem-main"><span class="mono bold" title="{{ m.name }}">{{ m.name }}</span>{% if meta %}<span class="mitem-meta">{{ meta }}</span>{% endif %}</div>
+        <button type="button" class="icon-btn sm" data-medit title="{{ t('admin.edit') }}" aria-label="{{ t('admin.edit') }}">{{ icon('edit', 14) }}</button>
         <button type="button" class="mdir-btn" data-mdir title="{{ t('admin.models.dir_change') }}" aria-label="{{ t('admin.models.dir_change') }}" aria-haspopup="listbox" aria-expanded="false"><span class="sw sw-{{ sub.color or 'none' }}"></span>{{ icon('chevron-down', 12) }}</button>
         <form method="post" action="/admin/models/{{ m.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="{{ here }}"><button class="icon-btn sm danger" data-confirm="{{ t('admin.models.delete_q') }}" data-confirm-text="{{ b.name }} {{ m.name }}" data-confirm-danger="1" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>
       </div>{% endfor %}
@@ -52,6 +53,21 @@
 </section>
 {% endfor %}
 <div class="card empty" data-models-none hidden>{{ icon('search', 22) }}<b>{{ t('admin.nothing_found') }}</b></div>
+{# edit one model: the dialog is filled from the row's data-* #}
+<dialog class="dlg" id="model-dlg">
+  <form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="next" value="{{ here }}">
+    <div class="dlg-body">
+      <div class="dlg-head"><div><h3>{{ t('admin.models.edit_title') }}</h3><p>{{ t('admin.models.edit_text') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
+      <div class="field mt"><label>{{ t('admin.models.name') }} <span class="req">*</span></label><input class="input mono" name="name" required maxlength="120" autocomplete="off"></div>
+      <div class="form-grid tight">
+        <div class="field"><label>{{ t('admin.prod.capacity') }}</label><input class="input mono" name="capacity" placeholder="4TB / 500GB" autocomplete="off"></div>
+        <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface"><option value="">—</option><option>SATA</option><option>SAS</option></select></div>
+        <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor"><option value="">—</option><option value="3.5">3.5"</option><option value="2.5">2.5"</option></select></div>
+      </div>
+    </div>
+    <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+  </form>
+</dialog>
 {# direction menu: the brand's series with their colour; picking one posts this form #}
 <form method="post" id="mdir-form" hidden><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="series"><input type="hidden" name="next" value="{{ here }}"></form>
 {% set mdirs = {} %}{% for c in colors %}{% set _ = mdirs.update({c.value: color_dir[c]}) %}{% endfor %}
@@ -65,6 +81,14 @@
 <div class="card empty">{{ icon('layers', 28) }}<b>{{ t('admin.models.empty_title') }}</b><p class="sub" style="max-width:480px;margin:6px auto 0">{{ t('admin.models.empty_text') }}</p></div>
 {% endif %}
 <script>
+(function(){
+  /* edit: fill the dialog from the row (capacity shown the way it is typed: 4TB, 500GB) */
+  var dlg=document.getElementById('model-dlg'); if(!dlg) return; var f=dlg.querySelector('form');
+  document.addEventListener('click',function(e){ var b=e.target.closest('[data-medit]'); if(!b) return; var it=b.closest('.mitem'), cap=Number(it.dataset.cap||0);
+    f.action='/admin/models/'+it.dataset.mid+'/edit'; f.elements.name.value=it.dataset.model;
+    f.elements.capacity.value=cap?(cap>=1000&&cap%100===0?(cap/1000)+'TB':cap+'GB'):''; f.elements.interface.value=it.dataset.if||''; f.elements.form_factor.value=it.dataset.ff||'';
+    dlg.showModal(); f.elements.name.focus(); });
+})();
 (function(){
   /* instant filter by model name, series or brand; empty series and brands fold away */
   var q=document.querySelector('[data-model-search]'); if(!q) return; var none=document.querySelector('[data-models-none]');

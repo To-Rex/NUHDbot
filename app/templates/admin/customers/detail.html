@@ -1,7 +1,8 @@
 {% extends "admin/base.html" %}
 {% block heading %}{{ u.full_name }} {% if u.is_blocked %}<span class="chip chip-bad">{{ t('admin.cust.blocked') }}</span>{% elif u.is_registered %}<span class="chip chip-ok">{{ t('admin.cust.registered') }}</span>{% else %}<span class="chip chip-soft">{{ t('admin.cust.not_registered') }}</span>{% endif %}{% endblock %}
 {% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/customers">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-secondary btn-sm" href="/admin/support?user={{ u.id }}">{{ icon('message', 15) }}{{ t('admin.nav.support') }}</a>{% endif %}
-<form method="post" action="/admin/customers/{{ u.id }}/update"><input type="hidden" name="_csrf" value="{{ csrf }}">{% if u.is_blocked %}<button class="btn btn-ok btn-sm" name="action" value="unblock">{{ icon('check', 15) }}{{ t('admin.cust.unblock') }}</button>{% else %}<button class="btn btn-danger btn-sm" name="action" value="block" data-confirm="{{ t('admin.cust.block') }}" data-confirm-text="{{ t('admin.cust.block_q') }}" data-confirm-danger="1">{{ icon('lock', 15) }}{{ t('admin.cust.block') }}</button>{% endif %}</form>{% endblock %}
+<form method="post" action="/admin/customers/{{ u.id }}/update"><input type="hidden" name="_csrf" value="{{ csrf }}">{% if u.is_blocked %}<button class="btn btn-ok btn-sm" name="action" value="unblock">{{ icon('check', 15) }}{{ t('admin.cust.unblock') }}</button>{% else %}<button class="btn btn-danger btn-sm" name="action" value="block" data-confirm="{{ t('admin.cust.block') }}" data-confirm-text="{{ t('admin.cust.block_q') }}" data-confirm-danger="1">{{ icon('lock', 15) }}{{ t('admin.cust.block') }}</button>{% endif %}</form>
+{% if staff.is_admin and not u.is_staff %}<form method="post" action="/admin/customers/{{ u.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger btn-sm" data-confirm="{{ t('admin.cust.delete_q') }}" data-confirm-text="{{ u.full_name }} — {{ t('admin.cust.delete_text') }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 15) }}{{ t('admin.delete') }}</button></form>{% endif %}{% endblock %}
 {% block content %}
 <div class="split-rev">
 <aside class="stack">
@@ -15,8 +16,16 @@
   </div>
   <div class="card"><h2>{{ t('admin.cust.edit') }}</h2>
     <form method="post" action="/admin/customers/{{ u.id }}/update" class="stack"><input type="hidden" name="_csrf" value="{{ csrf }}">
+      <div class="form-grid tight"><div class="field"><label>{{ t('admin.cust.first_name') }}</label><input class="input" name="first_name" value="{{ u.first_name }}" maxlength="100"></div><div class="field"><label>{{ t('admin.cust.last_name') }}</label><input class="input" name="last_name" value="{{ u.last_name }}" maxlength="100"></div></div>
+      <div class="field"><label>{{ t('admin.phone') }}</label><input class="input mono" name="phone" value="{{ u.phone or '' }}" maxlength="32" inputmode="tel"></div>
       <div class="form-grid tight"><div class="field"><label>{{ t('admin.country') }}</label><input class="input mono" name="country" value="{{ u.country or '' }}" maxlength="2" placeholder="UZ"></div><div class="field"><label>{{ t('admin.city') }}</label><input class="input" name="city" value="{{ u.city or '' }}"></div></div>
       <div class="field"><label>{{ t('admin.lang') }}</label><select class="select" name="lang">{% for l in langs %}<option value="{{ l }}" {{ 'selected' if u.lang==l }}>{{ t('lang.' ~ l) }}</option>{% endfor %}</select></div>
+      <details class="acc"><summary>{{ t('admin.cust.last_delivery') }}</summary>
+        <div class="stack mt-sm">
+        <div class="form-grid tight"><div class="field"><label>{{ t('admin.ord.receiver') }}</label><input class="input" name="last_receiver_name" value="{{ u.last_receiver_name or '' }}" maxlength="120"></div><div class="field"><label>{{ t('admin.phone') }}</label><input class="input mono" name="last_receiver_phone" value="{{ u.last_receiver_phone or '' }}" maxlength="32"></div></div>
+        <div class="field"><label>{{ t('admin.ord.address') }}</label><textarea class="textarea" name="last_address" rows="2">{{ u.last_address or '' }}</textarea></div>
+        <div class="form-grid tight"><div class="field"><label>{{ t('admin.ord.cargo') }}</label><input class="input" name="last_cargo_company" value="{{ u.last_cargo_company or '' }}" maxlength="120"></div><div class="field"><label>{{ t('admin.ord.cargo_code') }}</label><input class="input mono" name="last_cargo_code" value="{{ u.last_cargo_code or '' }}" maxlength="64"></div></div>
+        </div></details>
       <button class="btn btn-secondary">{{ t('admin.save') }}</button></form>
     {% if staff.role.value=='admin' %}<div class="divider"></div><form method="post" action="/admin/customers/{{ u.id }}/update" class="row"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="action" value="role"><select class="select flex1" name="role">{% for r in all_roles %}<option value="{{ r.value }}" {{ 'selected' if u.role==r }}>{{ t('roles.' ~ r.value) }}</option>{% endfor %}</select><button class="btn btn-secondary btn-sm" data-confirm="{{ t('admin.cust.change_role') }}">{{ t('admin.cust.change_role') }}</button></form>{% endif %}
   </div>

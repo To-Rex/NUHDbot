@@ -2,7 +2,7 @@ import functools
 import html
 
 from fastapi import Depends, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from sqlalchemy import func, select
 from starlette.datastructures import UploadFile
 
@@ -12,7 +12,7 @@ from app.bot.instance import get_bot
 from app.enums import MessageKind, ThreadStatus
 from app.i18n import t
 from app.models import SupportThread, User
-from app.services import audit, chat_events, media, notifications, support_delivery
+from app.services import audit, chat_events, deletion, media, notifications, support_delivery
 from app.services import support as ssvc
 
 
@@ -121,11 +121,31 @@ async def support_reply(tid: int, request: Request, db: DB, staff: User = Depend
     return back(request, f"/admin/support/{tid}", t(staff.lang, "admin.sup.sent"))
 
 
+@router.post("/support/{tid}/messages/{mid}/delete")
+async def support_message_delete(tid: int, mid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*SUPPORT_ROLES))):
+    """One message out of the conversation, for staff and the customer alike (open chats drop it live)."""
+    th = await db.get(SupportThread, tid)
+    m = next((x for x in th.messages if x.id == mid), None) if th else None
+    if not m:
+        raise HTTPException(404)
+    await audit.log(db, staff.id, "support.message.delete", "thread", th.id, {"message": m.id, "from_staff": m.from_staff, "text": (m.text or "")[:500], "attachment": m.attachment}, None)
+    await deletion.delete_message(db, th, m)
+    await db.commit()
+    if request.headers.get("HX-Request"):
+        return Response(status_code=200)
+    return back(request, f"/admin/support/{tid}", t(staff.lang, "admin.sup.msg_deleted"))
+
+
 @router.post("/support/{tid}/{action}")
 async def support_action(tid: int, action: str, request: Request, db: DB, staff: User = Depends(staff_dep(*SUPPORT_ROLES))):
     th = await db.get(SupportThread, tid)
     if not th:
         raise HTTPException(404)
+    if action == "delete":  # the whole conversation; the customer's next message starts a new one
+        await audit.log(db, staff.id, "support.delete", "thread", th.id, {"user_id": th.user_id, "messages": len(th.messages)}, None)
+        await deletion.delete_thread(db, th)
+        await db.commit()
+        return back(request, "/admin/support", t(staff.lang, "admin.sup.thread_deleted"))
     if action == "close":
         th.status = ThreadStatus.CLOSED
     elif action == "reopen":

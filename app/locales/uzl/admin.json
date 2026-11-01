@@ -240,7 +240,12 @@
       "series_clear": "Seriyasiz",
       "series_other_long": "Boshqa — qo'lda yozish",
       "model_in_series": "{s} seriyasi modellari",
-      "model_series_empty": "{s} seriyasida hali model yo'q — yangi model nomini yozing"
+      "model_series_empty": "{s} seriyasida hali model yo'q — yangi model nomini yozing",
+      "delete_q": "Mahsulot o'chirilsinmi?",
+      "delete_text": "Rasmlari va narx tarixi ham o'chadi. Buyurtma va auksionlarda nomi saqlanib qoladi.",
+      "deleted": "Mahsulot o'chirildi",
+      "bulk_delete_q": "Tanlangan mahsulotlar o'chirilsinmi?",
+      "bulk_deleted": "{n} ta mahsulot o'chirildi"
     },
     "ord": {
       "title": "Buyurtmalar",
@@ -332,7 +337,19 @@
       "open_chat": "Chatni ochish",
       "customer_agreed": "Mijoz rozi — qoldiq to'lovga o'tish",
       "amount_received": "Kelib tushgan summa",
-      "stage_pay": "To'lov"
+      "stage_pay": "To'lov",
+      "delete_q": "{n} buyurtmasi o'chirilsinmi?",
+      "delete_text": "Qatorlari, to'lovlari va tarixi ham o'chadi, band qilingan zaxira bo'shatiladi. Bu amalni ortga qaytarib bo'lmaydi.",
+      "deleted": "{n} buyurtmasi o'chirildi",
+      "item_delete_q": "Bu qator buyurtmadan olib tashlansinmi?",
+      "item_deleted": "Qator olib tashlandi, summa qayta hisoblandi",
+      "item_last": "Buyurtmada kamida bitta qator qolishi kerak. Butun buyurtmani o'chirish mumkin.",
+      "payment_delete_q": "To'lov yozuvi o'chirilsinmi?",
+      "payment_deleted": "To'lov yozuvi o'chirildi",
+      "delivery_edit": "Yetkazish ma'lumotlari",
+      "delivery_edit_text": "Mijoz buyurtmada kiritgan ma'lumotlar. Xatoni shu yerda tuzating.",
+      "cargo_code": "Kargo kodi",
+      "tracking": "Trek raqami"
     },
     "auc": {
       "title": "Auksionlar",
@@ -423,7 +440,13 @@
       "duration": "Davomiyligi",
       "dur_m": "{n} daqiqa",
       "rules_more": "Qoidalar (ixtiyoriy)",
-      "no_deposit": "Yo'q"
+      "no_deposit": "Yo'q",
+      "delete_q": "Lot o'chirilsinmi?",
+      "delete_text": "Barcha stavkalar, depozitlar va rasmlar ham o'chadi. Bu amalni ortga qaytarib bo'lmaydi.",
+      "deleted": "Lot o'chirildi",
+      "bid_delete_q": "Stavka o'chirilsinmi?",
+      "bid_delete_text": "Narx, yetakchi va g'olib qolgan stavkalardan qayta hisoblanadi.",
+      "bid_deleted": "Stavka o'chirildi, narx qayta hisoblandi"
     },
     "sup": {
       "title": "Murojaatlar",
@@ -457,7 +480,12 @@
       "unread_n": "o'qilmagan",
       "new_message": "Yangi xabar",
       "retry": "Qayta yuborish",
-      "failed": "Yuborilmadi"
+      "failed": "Yuborilmadi",
+      "delete_thread_q": "Suhbat o'chirilsinmi?",
+      "delete_thread_text": "Barcha xabarlar va fayllar o'chadi. Mijoz yangi xabar yozsa, yangi suhbat boshlanadi.",
+      "thread_deleted": "Suhbat o'chirildi",
+      "delete_msg_q": "Xabar o'chirilsinmi? Mijozda ham o'chadi.",
+      "msg_deleted": "Xabar o'chirildi"
     },
     "cust": {
       "title": "Mijozlar",
@@ -484,7 +512,13 @@
       "block_q": "Mijozni bloklaysizmi? U bot va Mini App'ga kira olmaydi.",
       "profile": "Profil",
       "edit": "Ma'lumotlarni tahrirlash",
-      "no_orders": "Hali buyurtma yo'q"
+      "no_orders": "Hali buyurtma yo'q",
+      "first_name": "Ism",
+      "last_name": "Familiya",
+      "last_delivery": "Oxirgi yetkazish manzili",
+      "delete_q": "Mijoz o'chirilsinmi?",
+      "delete_text": "Buyurtmalari, to'lovlari, stavkalari va chati ham o'chadi. Botni qayta ochsa, yangidan ro'yxatdan o'tadi. Bu amalni ortga qaytarib bo'lmaydi.",
+      "deleted": "{name} o'chirildi"
     },
     "staff": {
       "title": "Xodimlar",
@@ -506,7 +540,12 @@
       "role_finance": "To'lovlarni tasdiqlash, depozitlar, hisobotlar, tannarx.",
       "role_marketing": "Reklama postlari va mijozlar bazasi.",
       "password_hint": "Kamida 6 ta belgi",
-      "tg_hint": "Telegram ID — xodimga bot orqali xabar borishi uchun"
+      "tg_hint": "Telegram ID — xodimga bot orqali xabar borishi uchun",
+      "edit": "Xodimni tahrirlash",
+      "delete_q": "Xodim o'chirilsinmi?",
+      "deleted": "{name} o'chirildi",
+      "last_admin": "Oxirgi adminni o'chirib bo'lmaydi",
+      "password_keep": "bo'sh qoldirilsa, eski parol qoladi"
     },
     "set": {
       "title": "Sozlamalar",
@@ -564,7 +603,13 @@
       "region": "Viloyat / hudud",
       "no_region": "Hududsiz",
       "geo_filter": "Shahar yoki davlat bo'yicha qidirish…",
-      "geo_hint": "Shaharlar viloyat bo'yicha guruhlangan. O'chirish o'rniga yashirish xavfsizroq."
+      "geo_hint": "Shaharlar viloyat bo'yicha guruhlangan. O'chirish o'rniga yashirish xavfsizroq.",
+      "country_edit": "Mamlakatni tahrirlash",
+      "country_delete_q": "Mamlakat o'chirilsinmi?",
+      "country_delete_text": "Uning {n} ta shahri ham o'chadi. Vaqtincha yashirish uchun \"Faol\" tugmasini bosing.",
+      "city_edit": "Shaharni tahrirlash",
+      "names_hint": "Har til uchun nomi. Bo'sh qoldirilgan maydon eski yozuvni saqlaydi.",
+      "flag": "Bayroq"
     },
     "art": {
       "title": "Foydali ma'lumotlar",
@@ -818,7 +863,12 @@
       "dir_change": "Yo'nalishni o'zgartirish",
       "dir_pick": "{m} — seriya (yo'nalish)",
       "dir_empty": "Bu brendda hali seriya yo'q — Seriyalar sahifasida qo'shing",
-      "dir_saved": "{m}: yo'nalish o'zgardi — {s}"
+      "dir_saved": "{m}: yo'nalish o'zgardi — {s}",
+      "edit_title": "Modelni tahrirlash",
+      "edit_text": "Nomi, sig'imi, interfeysi va form-faktori. Yo'nalish seriya orqali o'zgaradi.",
+      "name": "Model nomi",
+      "saved": "Model saqlandi",
+      "name_taken": "Bu brendda shunday nomli model bor"
     },
     "nav_edit": {
       "hint": "Bo'limni ushlab, kerakli joyga suring",

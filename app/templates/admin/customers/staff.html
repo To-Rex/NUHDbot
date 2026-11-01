@@ -5,9 +5,23 @@
 {% for u in rows %}<tr><td><div class="row-nw"><div class="avatar">{{ (u.full_name or '?')[:1]|upper }}</div><div><div class="row-main">{{ u.full_name }}{% if u.id==staff.id %} <span class="chip chip-accent">{{ t('admin.sup.you') }}</span>{% endif %}</div><div class="row-sub mono">{{ u.tg_id or '—' }}</div></div></div></td><td class="mono">{{ u.login or '—' }}</td>
 <td><form method="post" action="/admin/staff/{{ u.id }}/role" class="row-nw"><input type="hidden" name="_csrf" value="{{ csrf }}"><select class="select sm" name="role" style="width:auto" {{ 'disabled' if u.id==staff.id }}>{% for r in staff_roles %}<option value="{{ r.value }}" {{ 'selected' if u.role==r }}>{{ t('roles.' ~ r.value) }}</option>{% endfor %}</select><input class="input sm mono" name="tg_id" value="{{ u.tg_id or '' }}" placeholder="tg id" style="width:110px">{% if u.id!=staff.id %}<button class="icon-btn sm" title="{{ t('admin.save') }}">{{ icon('check', 14) }}</button>{% endif %}</form></td>
 <td>{% if u.is_blocked %}<span class="chip chip-bad">{{ t('admin.inactive') }}</span>{% else %}<span class="chip chip-ok">{{ t('admin.active') }}</span>{% endif %}</td>
-<td class="nowrap"><form method="post" action="/admin/staff/{{ u.id }}/password" class="row-nw" style="display:inline-flex"><input type="hidden" name="_csrf" value="{{ csrf }}"><input class="input sm" type="password" name="password" placeholder="{{ t('admin.password') }}" style="width:130px" minlength="6" autocomplete="new-password"><button class="btn btn-xs btn-secondary">{{ icon('lock', 12) }}{{ t('admin.staff.reset_password') }}</button></form>
-{% if u.id!=staff.id %} <form method="post" action="/admin/staff/{{ u.id }}/{{ 'activate' if u.is_blocked else 'deactivate' }}" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-xs {{ 'btn-ok' if u.is_blocked else 'btn-danger' }}" data-confirm="{{ t('admin.staff.activate') if u.is_blocked else t('admin.staff.deactivate') }}" data-confirm-text="{{ u.full_name }}" {{ 'data-confirm-danger=1' if not u.is_blocked }}>{{ t('admin.staff.activate') if u.is_blocked else t('admin.staff.deactivate') }}</button></form>{% endif %}</td></tr>{% endfor %}
+<td class="nowrap"><button type="button" class="btn btn-xs btn-secondary" data-dlg-open="staff-dlg-{{ u.id }}">{{ icon('edit', 12) }}{{ t('admin.edit') }}</button> 
+{% if u.id!=staff.id %} <form method="post" action="/admin/staff/{{ u.id }}/{{ 'activate' if u.is_blocked else 'deactivate' }}" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-xs {{ 'btn-ok' if u.is_blocked else 'btn-danger' }}" data-confirm="{{ t('admin.staff.activate') if u.is_blocked else t('admin.staff.deactivate') }}" data-confirm-text="{{ u.full_name }}" {{ 'data-confirm-danger=1' if not u.is_blocked }}>{{ t('admin.staff.activate') if u.is_blocked else t('admin.staff.deactivate') }}</button></form>
+ <form method="post" action="/admin/staff/{{ u.id }}/delete" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}" data-confirm="{{ t('admin.staff.delete_q') }}" data-confirm-text="{{ u.full_name }} ({{ u.login or '—' }})" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>{% endif %}</td></tr>{% endfor %}
 </tbody></table></div></div>
+{% for u in rows %}
+<dialog class="dlg" id="staff-dlg-{{ u.id }}">
+  <form method="post" action="/admin/staff/{{ u.id }}/profile"><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="dlg-body">
+      <div class="dlg-head"><div><h3>{{ t('admin.staff.edit') }}</h3><p>{{ t('roles.' ~ u.role.value) }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
+      <div class="form-grid tight mt"><div class="field"><label>{{ t('admin.name') }} <span class="req">*</span></label><input class="input" name="first_name" value="{{ u.first_name }}" required maxlength="100"></div><div class="field"><label>&nbsp;</label><input class="input" name="last_name" value="{{ u.last_name }}" placeholder="—" maxlength="100"></div></div>
+      <div class="field"><label>{{ t('admin.login') }} <span class="req">*</span></label><input class="input mono" name="login" value="{{ u.login or '' }}" required maxlength="64" autocomplete="off"></div>
+      <div class="field"><label>{{ t('admin.staff.reset_password') }}</label><input class="input" type="password" name="password" minlength="6" autocomplete="new-password" placeholder="••••••"><span class="hint">{{ t('admin.staff.password_hint') }} · {{ t('admin.staff.password_keep') }}</span></div>
+    </div>
+    <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+  </form>
+</dialog>
+{% endfor %}
 
 {# add form and role guide side by side, equal heights #}
 <div class="grid g2 mt">

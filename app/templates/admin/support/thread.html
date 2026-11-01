@@ -3,6 +3,7 @@
 {% block topbar_actions %}
 <form method="post" action="/admin/support/{{ th.id }}/assign"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-secondary btn-sm">{{ icon('user', 15) }}{{ t('admin.sup.assign_me') }}</button></form>
 {% if th.status.value=='open' %}<form method="post" action="/admin/support/{{ th.id }}/close"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-secondary btn-sm">{{ icon('check', 15) }}{{ t('admin.sup.close') }}</button></form>{% else %}<form method="post" action="/admin/support/{{ th.id }}/reopen"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok btn-sm">{{ t('admin.sup.reopen') }}</button></form>{% endif %}
+<form method="post" action="/admin/support/{{ th.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger btn-sm" data-confirm="{{ t('admin.sup.delete_thread_q') }}" data-confirm-text="{{ th.user.full_name if th.user else '' }} — {{ t('admin.sup.delete_thread_text') }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 15) }}{{ t('admin.delete') }}</button></form>
 {% endblock %}
 {% block content %}
 <div class="inbox has-thread">

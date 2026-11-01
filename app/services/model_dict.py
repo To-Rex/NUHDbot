@@ -111,6 +111,21 @@ async def set_series(db: AsyncSession, m: BrandModel, name: str | None) -> None:
     await db.flush()
 
 
+async def update_model(db: AsyncSession, m: BrandModel, name: str, capacity_gb: int | None, interface: str | None, form_factor: str | None) -> bool:
+    """Correct a dictionary entry. False when the brand already has another model with this name."""
+    name = re.sub(r"\s+", " ", name.strip())[:120]
+    key = norm_key(name)
+    taken = (await db.execute(select(BrandModel.id).where(BrandModel.brand_id == m.brand_id, BrandModel.key == key, BrandModel.id != m.id))).first()
+    if not name or taken:
+        return False
+    m.name, m.key = name, key
+    m.capacity_gb = capacity_gb if capacity_gb and capacity_gb > 0 else None
+    m.interface = interface if interface in [i.value for i in Interface] else None
+    m.form_factor = form_factor if form_factor in [f.value for f in FormFactor] else None
+    await db.flush()
+    return True
+
+
 async def delete_model(db: AsyncSession, m: BrandModel) -> None:
     await db.delete(m)
     await db.flush()

@@ -39,7 +39,7 @@ from app.models import (
     User,
 )
 from app.services import auctions as asvc
-from app.services import audit, media, notifications
+from app.services import audit, deletion, media, notifications
 from app.services import orders as osvc
 from app.templating import capacity
 
@@ -171,8 +171,6 @@ async def auction_edit(aid: int, request: Request, db: DB, staff: User = Depends
 async def auction_update(aid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
     a = await _get(db, aid)
     form = await request.form()
-    if a.status in (AuctionStatus.ENDED, AuctionStatus.CANCELLED):
-        return back(request, f"/admin/auctions/{aid}", t(staff.lang, "admin.forbidden"), "bad")
     before = {"start": str(a.start_price_total), "ends_at": a.ends_at.isoformat(), "qty": a.qty}
     errors = await _apply(db, a, form)
     if errors:
@@ -199,6 +197,32 @@ async def auction_images(aid: int, request: Request, db: DB, staff: User = Depen
             await db.refresh(a)
     await db.commit()
     return back(request, f"/admin/auctions/{aid}", t(staff.lang, "admin.flash.saved"))
+
+
+@router.post("/auctions/{aid}/delete")
+async def auction_delete(aid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
+    a = await _get(db, aid)
+    snap = {"title": a.title, "status": a.status, "qty": a.qty, "start": str(a.start_price_total), "current": str(a.current_price_total), "bids": a.bids_count}
+    gone = {"type": "ended", **asvc.snapshot(a), "status": AuctionStatus.CANCELLED}  # open lot pages reload onto "not found"
+    await deletion.delete_auction(db, a)
+    await audit.log(db, staff.id, "auction.delete", "auction", aid, snap, None)
+    await db.commit()
+    asvc.publish(aid, gone)
+    return back(request, "/admin/auctions", t(staff.lang, "admin.auc.deleted"))
+
+
+@router.post("/auctions/{aid}/bids/{bid_id}/delete")
+async def auction_bid_delete(aid: int, bid_id: int, request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
+    """A wrong or fake bid out: the price, the leader and (once ended) the winner move to the bids that are left."""
+    a = await _get(db, aid)
+    bid = await db.get(Bid, bid_id)
+    if not bid or bid.auction_id != a.id:
+        raise HTTPException(404)
+    await audit.log(db, staff.id, "auction.bid.delete", "auction", a.id, {"bid": bid.id, "user_id": bid.user_id, "amount": str(bid.amount_total)}, None)
+    await deletion.delete_bid(db, a, bid)
+    await db.commit()
+    deletion.announce_auction(a)
+    return back(request, f"/admin/auctions/{aid}", t(staff.lang, "admin.auc.bid_deleted"))
 
 
 @router.post("/auctions/{aid}/images/{iid}/delete")

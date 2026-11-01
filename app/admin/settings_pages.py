@@ -4,7 +4,8 @@ from sqlalchemy import select
 
 from app.admin.common import ADMIN, DB, back, f_i18n, f_int, f_opt, f_str, render, staff_dep
 from app.admin.router import router
-from app.i18n import pick, t
+from app.deps import ADMIN_LANG_COOKIE
+from app.i18n import normalize_lang, pick, t
 from app.models import City, Country, User
 from app.services import audit
 from app.services.settings_service import DEFAULTS, get_all_settings, set_setting
@@ -63,6 +64,9 @@ async def geo_page(request: Request, db: DB, staff: User = Depends(staff_dep(*AD
     return render(request, staff, "admin/settings/geo.html", {"page_title": t(staff.lang, "admin.set.geo"), "countries": countries, "by_country": by_country, "regions": regions})
 
 
+GEO_LANGS = ("uzl", "uz", "ru", "en", "zh")  # names are stored per language; an empty field keeps the old spelling
+
+
 @router.post("/settings/geo/country")
 async def geo_country(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
     form = await request.form()
@@ -71,6 +75,12 @@ async def geo_country(request: Request, db: DB, staff: User = Depends(staff_dep(
     c = await db.get(Country, code) if code else None
     if action == "toggle" and c:
         c.is_active = not c.is_active
+    elif action == "edit" and c:
+        c.name = {**(c.name or {}), **{lg: v for lg in GEO_LANGS if (v := f_str(form, f"name_{lg}", maxlen=60))}}
+        c.flag, c.phone_code = f_str(form, "flag", maxlen=8), f_str(form, "phone_code", maxlen=8)
+        c.sort = f_int(form, "sort", c.sort) or 0
+    elif action == "delete" and c:  # its cities go with it (ON DELETE CASCADE); customers and orders keep the code as text
+        await db.delete(c)
     elif action == "add" and code and not c:
         name = f_str(form, "name", maxlen=60)
         db.add(Country(code=code, name={"uz": name, "ru": name, "en": name}, flag=f_str(form, "flag", maxlen=8), phone_code=f_str(form, "phone_code", maxlen=8), sort=f_int(form, "sort", 50) or 50))
@@ -111,6 +121,16 @@ async def geo_city(request: Request, db: DB, staff: User = Depends(staff_dep(*AD
             c.is_active = not c.is_active
         elif c and action == "delete":
             await db.delete(c)
+        elif c and action == "edit":
+            view_lang = normalize_lang(request.cookies.get(ADMIN_LANG_COOKIE) or staff.lang)  # the language the page showed the region in
+            c.name = {**(c.name or {}), **{lg: v for lg in GEO_LANGS if (v := f_str(form, f"name_{lg}", maxlen=100))}}
+            region = f_str(form, "region", maxlen=100)
+            if not region:
+                c.region = None
+            elif region != pick(c.region, view_lang):  # another region: reuse its stored names when it exists
+                same = next((x.region for x in (await db.execute(select(City).where(City.country_code == c.country_code, City.region.is_not(None)))).scalars() if pick(x.region, view_lang) == region), None)
+                c.region = same or {"uz": region, "uzl": region, "ru": region, "en": region}
+            c.sort = f_int(form, "sort", c.sort) or 0
     await audit.log(db, staff.id, f"geo.city.{action}", "city", form.get("id") or form.get("name"))
     await db.commit()
     return back(request, "/admin/settings/geo", t(staff.lang, "admin.flash.saved"))

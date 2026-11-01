@@ -15,7 +15,7 @@ from app.db import session_scope
 from app.enums import Condition, FormFactor, ImageKind, Interface, Purpose, TestStatus
 from app.models import Article, City, Country, Product, ProductImage
 from app.services import media
-from app.services.settings_service import DEFAULTS, set_setting
+from app.services.settings_service import DEFAULTS, get_setting, set_setting
 from scripts.geo_data import COUNTRIES, iter_places
 
 ARTICLES = [
@@ -228,16 +228,24 @@ async def seed_geography(db) -> dict:
     return added
 
 
+# Countries, cities and help articles are written once per version: after that staff edit and delete them in the
+# admin panel and a restart must not bring them back. Bump when scripts/geo_data or ARTICLES change on purpose.
+REFERENCE_VERSION = 1
+REFERENCE_KEY = "reference_version"
+
+
 async def seed_reference() -> None:
     async with session_scope() as db:
-        await seed_geography(db)
-        for a in ARTICLES:
-            existing = (await db.execute(select(Article).where(Article.slug == a["slug"]))).scalar_one_or_none()
-            if existing is None:
-                db.add(Article(**a))
-            else:
-                for k, v in a.items():
-                    setattr(existing, k, v)
+        if int(await get_setting(db, REFERENCE_KEY, 0) or 0) < REFERENCE_VERSION:
+            await seed_geography(db)
+            for a in ARTICLES:
+                existing = (await db.execute(select(Article).where(Article.slug == a["slug"]))).scalar_one_or_none()
+                if existing is None:
+                    db.add(Article(**a))
+                else:
+                    for k, v in a.items():
+                        setattr(existing, k, v)
+            await set_setting(db, REFERENCE_KEY, REFERENCE_VERSION, "Version of the countries / cities / articles last written by scripts/seed.py")
         for key, spec in DEFAULTS.items():
             from app.models import Setting
 

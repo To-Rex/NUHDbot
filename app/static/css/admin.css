@@ -869,6 +869,12 @@ details.fsection.plain{counter-increment:none}details.fsection.plain>summary::be
 .tick.read{opacity:1}.tick.read .p2{opacity:1}
 .msg.pending{opacity:.72}
 .msg.pending.arrived{display:none}
+/* delete one message: shows on hover (always faintly on touch screens) */
+.msg-del{display:inline-flex;align-items:center;border:0;background:none;color:inherit;padding:0 2px;margin-left:2px;cursor:pointer;opacity:0;transition:opacity var(--t-fast)}
+.msg-del svg{width:12px;height:12px}
+.msg:hover .msg-del,.msg-del:focus-visible{opacity:.75}
+.msg-del:hover{opacity:1}
+@media (hover:none){.msg-del{opacity:.5}}
 .msg time .spinner{width:11px;height:11px;border-width:1.5px}
 .msg.failed{opacity:1;background:var(--bad-bg)!important;color:var(--bad)!important}
 .msg .retry{font:inherit;font-weight:700;text-decoration:underline;color:inherit}
