@@ -16,7 +16,9 @@ from app.web.router import router
 
 @router.get("/home")
 async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
-    lots = await auctions.list_auctions(db, statuses=(AuctionStatus.LIVE, AuctionStatus.SCHEDULED), limit=3)
+    lots = await auctions.list_auctions(db, statuses=(AuctionStatus.LIVE, AuctionStatus.SCHEDULED), limit=8)
+    # the Auctions section under Directions: live and upcoming lots; with none, the latest finished ones (what they went for)
+    home_lots = lots or await auctions.list_auctions(db, statuses=(AuctionStatus.ENDED,), limit=3)
     delivery = await get_setting(db, "delivery_text")
     payment = await get_setting(db, "payment_text")
     in_stock_models = (
@@ -29,7 +31,8 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         request,
         "miniapp/home.html",
         {
-            "lang": lang, "lots": lots, "delivery": delivery, "payment": payment,
+            "lang": lang, "lots": lots, "home_lots": home_lots, "lot_people": await auctions.participant_counts(db, [x.id for x in home_lots]),
+            "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "new_count": new_count,
             "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db),
             "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),

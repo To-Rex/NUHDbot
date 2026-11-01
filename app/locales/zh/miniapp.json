@@ -64,7 +64,8 @@
       "gold": "适用于企业服务器",
       "silver": "适用于数据中心",
       "black": "适用于游戏电脑"
-    }
+    },
+    "auctions_title": "拍卖"
   },
   "catalog": {
     "title": "商品目录",
@@ -341,7 +342,9 @@
     "outbid_cta": "您已被超越——再出一次价",
     "extended_by": "已延长 {n} 分钟",
     "starts": "开始",
-    "ends": "结束"
+    "ends": "结束",
+    "final_price": "成交价",
+    "open_lot": "查看拍品"
   },
   "info": {
     "title": "实用资讯",

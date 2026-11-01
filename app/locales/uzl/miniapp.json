@@ -64,7 +64,8 @@
       "gold": "Korporativ serverlar uchun",
       "silver": "Ma'lumotlar markazlari uchun",
       "black": "O'yin kompyuterlari uchun"
-    }
+    },
+    "auctions_title": "Auksionlar"
   },
   "catalog": {
     "title": "Katalog",
@@ -341,7 +342,9 @@
     "outbid_cta": "Sizdan o'zib ketishdi — yana stavka qo'ying",
     "extended_by": "Vaqt {n} daqiqaga uzaytirilgan",
     "starts": "Boshlanish",
-    "ends": "Tugash"
+    "ends": "Tugash",
+    "final_price": "Yakuniy narx",
+    "open_lot": "Lotga o'tish"
   },
   "info": {
     "title": "Foydali ma'lumotlar",

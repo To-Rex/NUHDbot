@@ -140,3 +140,16 @@ async def test_bidders_are_numbered_not_named(db):
     await db.flush()
     assert await svc.bidder_numbers(db, a.id) == {u2.id: 1, u1.id: 2, u3.id: 3}
     assert await svc.best_bid(db, a.id, u2.id) == a.current_price_total - a.step_total * 1
+
+
+async def test_participant_counts(db):
+    """The home page's lot cards show how many people bid on each lot (a number, no names)."""
+    from app.services import auctions as svc
+
+    a, b = await make_auction(db, qty=2, start="100", step="1"), await make_auction(db, qty=2, start="100", step="1")
+    u1, u2 = await make_user(db, 3201), await make_user(db, 3202)
+    for u in (u1, u2, u1):
+        await svc.place_bid(db, a.id, u, None)
+    await db.flush()
+    assert await svc.participant_counts(db, [a.id, b.id]) == {a.id: 2}
+    assert await svc.participant_counts(db, []) == {}

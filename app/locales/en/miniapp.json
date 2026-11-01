@@ -64,7 +64,8 @@
       "gold": "For business servers",
       "silver": "For data centres",
       "black": "For gaming PCs"
-    }
+    },
+    "auctions_title": "Auctions"
   },
   "catalog": {
     "title": "Catalog",
@@ -341,7 +342,9 @@
     "outbid_cta": "You've been outbid — bid again",
     "extended_by": "Extended by {n} min",
     "starts": "Starts",
-    "ends": "Ends"
+    "ends": "Ends",
+    "final_price": "Final price",
+    "open_lot": "Open the lot"
   },
   "info": {
     "title": "Useful info",

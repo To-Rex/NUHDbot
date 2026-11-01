@@ -77,6 +77,14 @@ async def recent_bids(db: AsyncSession, auction_id: int, limit: int = 20) -> lis
     return list((await db.execute(stmt)).scalars().all())
 
 
+async def participant_counts(db: AsyncSession, auction_ids: list[int]) -> dict[int, int]:
+    """How many people have bid on each lot (no names: just the number)."""
+    if not auction_ids:
+        return {}
+    rows = (await db.execute(select(Bid.auction_id, func.count(func.distinct(Bid.user_id))).where(Bid.auction_id.in_(auction_ids)).group_by(Bid.auction_id))).all()
+    return dict(rows)
+
+
 async def bidder_numbers(db: AsyncSession, auction_id: int) -> dict[int, int]:
     """Customers never see each other's names: each bidder is "Participant №N", N = the order of their first bid here."""
     rows = (await db.execute(select(Bid.user_id, func.min(Bid.id).label("first")).where(Bid.auction_id == auction_id).group_by(Bid.user_id).order_by("first"))).all()

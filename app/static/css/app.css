@@ -642,6 +642,41 @@ button.list-item{width:100%;text-align:left}
 .winner-banner.me{background:var(--ok-bg);color:var(--ok)}
 .winner-banner.me svg{width:20px;height:20px}
 .lot-head h1{text-wrap:balance}
+/* home: auction lots under Directions — a swipeable row of cards in the product's direction colour (--bc) */
+.hl-track{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;margin:0 calc(-1 * var(--sp-4));padding:4px var(--sp-4) 14px;scroll-padding:0 var(--sp-4)}
+.hl-track::-webkit-scrollbar{display:none}
+.hl-card{position:relative;flex:0 0 min(80vw,320px);scroll-snap-align:start;display:flex;flex-direction:column;border-radius:24px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);overflow:hidden;color:var(--ink);transition:transform var(--t-fast) var(--ease)}
+.hl-card:only-child{flex-basis:100%}
+.hl-card:active{transform:scale(.98)}
+.hl-card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--bc,var(--accent));z-index:2}
+.hl-media{position:relative;display:grid;place-items:center;aspect-ratio:16/9;background:color-mix(in srgb,var(--bc,var(--accent)) 14%,var(--surface));overflow:hidden}
+.hl-media img{position:absolute;top:14px;bottom:12px;left:50%;transform:translateX(-50%);height:calc(100% - 26px);width:auto;max-width:64%;object-fit:contain;border-radius:10px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.18))}
+.hl-media em{font-style:normal;font-family:var(--font-display);font-size:34px;font-weight:800;color:var(--ink-3)}
+.hl-card.is-ended .hl-media img,.hl-card.is-ended .hl-media em{filter:grayscale(.6);opacity:.75}
+.hl-status{position:absolute;left:12px;top:14px}
+.hl-status .chip{box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.hl-soon{background:var(--surface);color:var(--ink);gap:4px}
+.hl-soon svg{width:12px;height:12px}
+.hl-qty{position:absolute;right:12px;top:14px;height:26px;padding:0 10px;border-radius:999px;display:grid;place-items:center;background:rgba(10,10,12,.62);color:#fff;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.hl-body{display:flex;flex-direction:column;gap:2px;padding:12px 14px 14px;min-width:0}
+.hl-brand{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl-dot{width:8px;height:8px;flex:0 0 auto;border-radius:50%;background:var(--bc,var(--accent));box-shadow:inset 0 0 0 1px rgba(128,128,128,.35)}
+.hl-title{font-family:var(--font-display);font-size:18px;font-weight:750;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hl-title span{color:var(--ink-3);font-weight:650}
+.hl-price-label,.hl-clock-label{margin-top:8px;font-size:11px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3)}
+.hl-price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+.hl-price b{font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-.03em}
+.hl-price small{font-size:12.5px;color:var(--ink-2)}
+.hl-clock{display:flex;gap:5px;margin-top:4px;font-variant-numeric:tabular-nums}
+.hl-clock span{flex:1;padding:6px 0 5px;border-radius:11px;background:var(--fill);text-align:center;font-family:var(--font-display);font-weight:750;font-size:16px;line-height:1}
+.hl-clock span small{display:block;margin-top:3px;font-family:var(--font-body);font-size:9px;font-weight:600;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.hl-clock.urgent span{color:var(--bad);background:var(--bad-bg)}
+.hl-foot{display:flex;align-items:center;gap:14px;margin-top:12px}
+.hl-stat{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:650;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.hl-stat svg{width:14px;height:14px;color:var(--ink-3)}
+.hl-go{margin-left:auto;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--bc,var(--accent));color:var(--bi,#fff)}
+.hl-go svg{width:15px;height:15px}
+.hl-card.c-gold .hl-go,.hl-card.c-silver .hl-go{color:#1C1C1E}
 .lot-card{display:flex;gap:14px;padding:10px;align-items:stretch}
 .lot-img{position:relative;width:96px;border-radius:16px;overflow:hidden;background:var(--media);display:grid;place-items:center;color:var(--ink-3);flex:0 0 auto}
 .lot-img img{width:100%;height:100%;object-fit:contain;padding:6px}
