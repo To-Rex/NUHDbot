@@ -1,13 +1,12 @@
-from collections import Counter
 from datetime import UTC, datetime, timedelta
 
 from fastapi import Request
 from sqlalchemy import func, select
 
 from app.deps import DB, CurrentUser, Lang, redirect
-from app.enums import COLOR_DIRECTION, AuctionStatus, ProductColor, Purpose
+from app.enums import COLOR_DIRECTION, AuctionStatus, ProductColor
 from app.models import Auction, Banner, Product
-from app.services import auctions, catalog, discounts, storage
+from app.services import auctions, discounts, storage
 from app.services import banners as banner_service
 from app.services import series as series_service
 from app.services.settings_service import get_setting
@@ -17,7 +16,6 @@ from app.web.router import router
 
 @router.get("/home")
 async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
-    arrivals = await catalog.new_arrivals(db, limit=10)
     lots = await auctions.list_auctions(db, statuses=(AuctionStatus.LIVE, AuctionStatus.SCHEDULED), limit=3)
     delivery = await get_setting(db, "delivery_text")
     payment = await get_setting(db, "payment_text")
@@ -25,24 +23,14 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
         await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.stock - Product.reserved > 0))
     ).scalar_one()
     live_auctions = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE))).scalar_one()
-    in_stock = (Product.is_active.is_(True), Product.stock - Product.reserved > 0)
-    # shortcuts only for what is actually on the shelf
-    capacities = (
-        await db.execute(select(Product.capacity_gb, func.count()).where(*in_stock).group_by(Product.capacity_gb).order_by(Product.capacity_gb).limit(10))
-    ).all()
-    use_counts: Counter[str] = Counter()
-    for (purposes,) in (await db.execute(select(Product.purposes).where(*in_stock))).all():
-        use_counts.update(set(purposes or []))
-    uses = sorted(((u, use_counts[u.value]) for u in Purpose if use_counts[u.value]), key=lambda x: -x[1])[:4]
-    popular = (await db.execute(select(Product).where(*in_stock).order_by(Product.views.desc(), Product.id.desc()).limit(4))).scalars().unique().all()
     month_ago = datetime.now(UTC) - timedelta(days=30)
     new_count = (await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.arrived_at >= month_ago))).scalar_one()
     return render(
         request,
         "miniapp/home.html",
         {
-            "lang": lang, "arrivals": arrivals, "lots": lots, "delivery": delivery, "payment": payment,
-            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "capacities": capacities, "uses": uses, "popular": popular, "new_count": new_count,
+            "lang": lang, "lots": lots, "delivery": delivery, "payment": payment,
+            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "new_count": new_count,
             "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db),
             "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
             "dir_shape": banner_service.clean_shape(await get_setting(db, "dir_slider_shape")), **(await _slider(db)),

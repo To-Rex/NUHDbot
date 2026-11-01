@@ -10,7 +10,6 @@
 </header>
 {% endblock %}
 {% block content %}
-{% set use_icons = {'cctv': ('camera', ''), 'pc': ('cpu', 'indigo'), 'nas': ('layers', 'green'), 'server': ('cube', 'orange'), 'storage': ('box', 'teal')} %}
 <div class="page" style="padding-top:14px">
 
   {# auto slider: staff banners (hot offers, sales, news), the live auction, new arrivals #}
@@ -38,54 +37,11 @@
   </section>
   {% endif %}
 
-  {% if uses %}
-  <section class="home-sec">
-    <div class="section-title"><h2>{{ t('home.purpose_title') }}</h2></div>
-    <div class="use-grid stagger">
-      {% for u, n in uses %}{% set ic, color = use_icons.get(u.value, ('drive', '')) %}
-      <a class="use-tile" href="/app/catalog?use={{ u.value }}"><span class="list-icon {{ color }}">{{ icon(ic, 19) }}</span><span><b>{{ t('purpose.' ~ u.value) }}</b><small>{{ t('home.cap_models', n=n) }}</small></span></a>
-      {% endfor %}
-    </div>
-  </section>
-  {% endif %}
-
-  {% if capacities %}
-  <section class="home-sec">
-    <div class="section-title"><h2>{{ t('home.by_capacity') }}</h2></div>
-    <div class="scroller">{% for gb, n in capacities %}<a class="fchip" href="/app/catalog?gb={{ gb }}">{{ gb|capacity }}</a>{% endfor %}</div>
-  </section>
-  {% endif %}
-
-  {% if arrivals %}
-  <section class="home-sec">
-    <div class="section-title"><h2>{{ t('home.new_arrivals') }}</h2><a href="/app/new">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
-    <div class="scroller" style="padding-bottom:10px">
-      {% for p in arrivals %}<div class="rail-item">{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}
-    </div>
-  </section>
-  {% endif %}
-
-  {% if popular %}
-  <section class="home-sec">
-    <div class="section-title"><h2>{{ t('home.popular') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
-    <div class="product-grid">{% for p in popular %}{% with i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}{% endfor %}</div>
-  </section>
-  {% endif %}
-
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.conditions_title') }}</h2><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('chevron-right', 15) }}</a></div>
     <div class="list">
       {% for c in ('new', 'used', 'refresh') %}
       <a class="list-item cond-row" href="/app/catalog?cond={{ c }}"><span class="chip cond-{{ c }}">{{ t('condition.' ~ c) }}</span><span class="flex-1 small muted clamp-2">{{ t('condition.' ~ c ~ '_desc') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="home-sec">
-    <div class="section-title"><h2>{{ t('home.why_title') }}</h2></div>
-    <div class="why-track">
-      {% for n, ic, color in [(1, 'check-circle', 'green'), (2, 'shield', ''), (3, 'truck', 'orange'), (4, 'tag', 'purple')] %}
-      <div class="why-card"><span class="list-icon {{ color }}">{{ icon(ic, 18) }}</span><b>{{ t('home.why_' ~ n ~ '_t') }}</b><span>{{ t('home.why_' ~ n ~ '_d') }}</span></div>
       {% endfor %}
     </div>
   </section>
