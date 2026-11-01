@@ -414,7 +414,7 @@ button.list-item{width:100%;text-align:left}
 
 /* ===== home: banners, needs, benefits, help ===== */
 .home-sec{margin-top:var(--sp-6)}
-.hs+.home-sec{margin-top:14px}  /* the slider's dots already leave air below it */
+.hs+.home-sec{margin-top:6px}  /* the slider's dots already leave air below it */
 .home-sec .section-title{margin-top:0}
 /* home auto slider: staff banners, the live auction, new arrivals (solid colours, no gradients) */
 .hs{margin:16px calc(-1 * var(--sp-4)) 0}
@@ -470,7 +470,7 @@ button.list-item{width:100%;text-align:left}
 .hs-slide:active{transform:scale(.985)}
 /* home: directions as a 3D slider (home.html script). Cover-flow by default: the middle card faces you, its neighbours
    turn away into depth and darken; drag or tap a side card to bring it forward, tap the middle one to open its catalogue */
-.cf{margin:-12px calc(-1 * var(--sp-4)) 0;overflow:hidden;padding:12px 0 8px}  /* room for the card shadow inside the clip */
+.cf{margin:-10px calc(-1 * var(--sp-4)) 0;overflow:hidden;padding:6px 0 8px}  /* room for the card shadow inside the clip */
 .cf-stage{display:grid;justify-items:center;padding-bottom:16px;perspective:1000px;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab;outline:0}
 .cf-stage.dragging{cursor:grabbing}
 .cf-card{grid-area:1/1;position:relative;width:min(58vw,236px);display:flex;flex-direction:column;padding:10px;border-radius:26px;background:var(--bc);color:var(--bi);box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;will-change:transform;transform-origin:50% 50%}
@@ -498,7 +498,7 @@ button.list-item{width:100%;text-align:left}
 .cf-stack .cf-card{transform-origin:50% 0}
 .cf-orbit .cf-card{width:min(46vw,190px)}
 .cf-fan .cf-card{width:min(54vw,220px);transform-origin:50% 175%}
-.cf-fan .cf-stage{padding-top:12px;padding-bottom:40px}
+.cf-fan .cf-stage{padding-top:8px;padding-bottom:40px}
 /* wide cards (Series page → card shape): the picture on the left, the text beside it */
 .cf-wide .cf-card{width:min(82vw,340px);flex-direction:row;align-items:stretch}
 .cf-wide .cf-pic{flex:0 0 40%;align-self:center}
@@ -514,7 +514,7 @@ button.list-item{width:100%;text-align:left}
 .dir-dot{display:inline-block;flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:var(--bc);box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
 /* two or more banners turn like the Directions slider (home.html script): compact portrait cards in one grid cell, the
    picture framed on top, the neighbours turning away into depth (Banners page → Slider animation); --hs-dim darkens them */
-.hs-fx .hs-track{display:grid;justify-items:center;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1000px;user-select:none;-webkit-user-select:none;padding:4px 0 16px;margin-bottom:-12px}
+.hs-fx .hs-track{display:grid;justify-items:center;overflow:hidden;scroll-snap-type:none;touch-action:pan-y;perspective:1000px;user-select:none;-webkit-user-select:none;padding:4px 0 14px;margin-bottom:-14px}
 .hs-fx .hs-slide{grid-area:1/1;flex:none;width:min(62vw,250px);min-height:0;flex-direction:column;padding:10px;box-shadow:0 10px 24px rgba(0,0,0,.18);-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;will-change:transform}
 .hs-fx .hs-slide.c-black{box-shadow:0 10px 24px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.1)}
 .hs-fx .hs-slide::after{content:"";position:absolute;inset:0;z-index:5;border-radius:inherit;background:#000;opacity:var(--hs-dim,0);pointer-events:none}
@@ -541,7 +541,7 @@ button.list-item{width:100%;text-align:left}
 .hs-look-orbit .hs-track{padding-top:52px}
 .hs-look-stack .hs-track{padding-top:38px}
 .hs-look-stack .hs-slide{transform-origin:50% 0}
-.hs-look-fan .hs-track{padding-top:20px;padding-bottom:44px;margin-bottom:-28px}
+.hs-look-fan .hs-track{padding-top:20px;padding-bottom:34px;margin-bottom:-22px}  /* the fanned cards are clipped above the dots, clear of the next title */
 .hs-look-fan .hs-slide{transform-origin:50% 175%}
 .hs-look-cylinder .hs-slide,.hs-look-spiral .hs-slide{-webkit-backface-visibility:hidden;backface-visibility:hidden}
 /* wide cards (Banners page → card shape): the picture framed on the left, the text beside it; a picture banner
