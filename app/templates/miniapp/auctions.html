@@ -1,34 +1,72 @@
 {% extends "miniapp/base.html" %}
 {% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
 {% block content %}
+{#- Auctions: the live lot ending soonest shown big, a summary (live, upcoming, people bidding now), then every lot as a horizontal
+    card, filtered by Live / Upcoming / Finished. Nobody's name is shown — participants are a number. -#}
 <div class="page stack-lg">
   {% if not groups.live and not groups.scheduled and not groups.ended %}
-  {% with glyph='gavel', title=t('auction.empty'), text=t('auction.empty_text'), cta_url='/app/profile', cta_text=t('profile.subscriptions') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% with glyph='gavel', title=t('auction.empty'), text=t('auction.empty_text'), cta_url='/app/profile/subscriptions', cta_text=t('profile.subscriptions') %}{% include "miniapp/partials/empty.html" %}{% endwith %}
+  {% else %}
+
+  {% if hero %}{% set a = hero %}{% set pc = a.product.color if a.product and a.product.color else '' %}
+  <a class="ax-hero{{ ' c-' ~ pc if pc }}" href="/app/auctions/{{ a.id }}">
+    <span class="ax-hero-top"><span class="chip chip-live">{{ t('auction.live') }}</span><span class="ax-hero-tag">{{ icon('bolt', 13) }}{{ t('auction.ending_soon') }}</span></span>
+    <span class="ax-hero-main">
+      <span class="ax-hero-img">{% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" decoding="async">{% else %}<em>{{ a.capacity_gb|capacity }}</em>{% endif %}</span>
+      <span class="ax-hero-info">
+        <small>{% if pc %}{{ COLOR_DIRECTION[pc] }} · {% endif %}{{ a.brand }}</small>
+        <b>{{ a.model }} <span>{{ a.capacity_gb|capacity }}</span></b>
+        <span class="ax-hero-qty">{{ t('auction.qty', n=a.qty) }}</span>
+        <span class="ax-hero-label">{{ t('auction.current') if a.bids_count else t('auction.start_price') }}</span>
+        <span class="ax-hero-price">{{ a.current_price_total|money(a.currency) }}</span>
+        <small class="ax-hero-unit">{{ a.current_price_unit|money(a.currency) }} / {{ t('auction.per_unit') }}</small>
+      </span>
+    </span>
+    <span class="ax-hero-clock" data-countdown="{{ a.ends_at|iso }}"><span data-u="d">00<small>{{ t('auction.days') }}</small></span><span data-u="h">00<small>{{ t('auction.hours') }}</small></span><span data-u="m">00<small>{{ t('auction.mins') }}</small></span><span data-u="s">00<small>{{ t('auction.secs') }}</small></span></span>
+    <span class="ax-hero-foot"><span>{{ icon('users', 14) }}{{ lot_people.get(a.id, 0) }} {{ t('auction.participants')|lower }}</span><span>{{ icon('gavel', 14) }}{{ a.bids_count }} {{ t('auction.bids')|lower }}</span><span class="ax-hero-cta">{{ t('auction.bid_now') }}{{ icon('arrow-right', 15) }}</span></span>
+  </a>
   {% endif %}
+
+  <div class="ax-stats">
+    <div class="ax-stat live"><b class="num">{{ groups.live|length }}</b><span>{{ t('auction.live') }}</span></div>
+    <div class="ax-stat"><b class="num">{{ groups.scheduled|length }}</b><span>{{ t('auction.scheduled') }}</span></div>
+    <div class="ax-stat"><b class="num">{{ live_people }}</b><span>{{ t('auction.bidding_now') }}</span></div>
+  </div>
+
+  <div class="ax-tabs" role="tablist" data-ax-tabs>
+    <button type="button" class="on" data-tab="all">{{ t('auction.all') }}<b>{{ groups.live|length + groups.scheduled|length + groups.ended|length }}</b></button>
+    {% for key, label in [('live','auction.live'),('scheduled','auction.scheduled'),('ended','auction.ended')] if groups[key] %}
+    <button type="button" data-tab="{{ key }}">{{ t(label) }}<b>{{ groups[key]|length }}</b></button>
+    {% endfor %}
+  </div>
+
   {% for key, label in [('live','auction.live'),('scheduled','auction.scheduled'),('ended','auction.ended')] %}
   {% if groups[key] %}
-  <section>
-    <div class="section-title" style="margin-top:0"><h2 class="row" style="gap:8px">{{ t(label) }}{% if key=='live' %}<span class="chip chip-live">{{ groups[key]|length }}</span>{% else %}<span class="chip chip-soft mono">{{ groups[key]|length }}</span>{% endif %}</h2></div>
-    <div class="stack stagger">
-      {% for a in groups[key] %}
-      <a class="card card-hover lot-card {{ key }}" href="/app/auctions/{{ a.id }}">
-        <div class="lot-img">{% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" loading="lazy">{% else %}{{ icon('drive', 28) }}{% endif %}<span class="chip {{ CONDITION_CLASS[a.condition] }}" style="position:absolute;left:4px;top:4px">{{ t('condition.' ~ a.condition.value) }}</span></div>
-        <div class="flex-1" style="min-width:0">
-          <div class="pcard-brand">{{ a.brand }}</div>
-          <div class="semibold truncate display">{{ a.model }} · {{ a.capacity_gb|capacity }} × {{ a.qty }}</div>
-          <div class="row mt-1" style="gap:6px"><span class="chip chip-soft">{{ t('test.' ~ a.test_status.value) }}</span><span class="chip chip-soft mono">{{ a.bids_count }} {{ t('auction.bids')|lower }}</span></div>
-          <div class="row-between mt-2" style="align-items:flex-end">
-            <div><div class="xs faint">{{ t('auction.current') if a.bids_count else t('auction.start_price') }}</div><div class="display bold num" style="font-size:17px">{{ a.current_price_total|money(a.currency) }}</div><div class="xs muted mono">{{ a.current_price_unit|money(a.currency) }}/{{ t('auction.per_unit') }}</div></div>
-            {% if key == 'live' %}<div class="right"><div class="xs faint">{{ t('auction.ends_in') }}</div><div class="mono semibold" data-countdown="{{ a.ends_at|iso }}"></div></div>
-            {% elif key == 'scheduled' %}<div class="right"><div class="xs faint">{{ t('auction.starts_in') }}</div><div class="mono semibold" data-countdown="{{ a.starts_at|iso }}"></div></div>
-            {% else %}<div class="right"><div class="xs faint">{{ t('auction.ended_at') }}</div><div class="small semibold mono">{{ a.ends_at|date }}</div></div>{% endif %}
-          </div>
-        </div>
-      </a>
-      {% endfor %}
-    </div>
+  <section class="ax-group" data-group="{{ key }}">
+    <div class="ax-group-head"><h2>{{ t(label) }}</h2><span class="chip {{ 'chip-live' if key == 'live' else 'chip-soft' }} mono">{{ groups[key]|length }}</span></div>
+    <div class="ax-list">{% for a in groups[key] %}{% include "miniapp/partials/lot_card.html" %}{% endfor %}</div>
+    {% if key == 'ended' and groups[key]|length > 6 %}<button type="button" class="btn btn-secondary btn-block ax-more" data-ax-more>{{ t('auction.show_more', n=groups[key]|length - 6) }}</button>{% endif %}
   </section>
   {% endif %}
   {% endfor %}
+
+  <a class="ax-notify" href="/app/profile/subscriptions"><span class="ax-notify-ic">{{ icon('bell', 18) }}</span><span class="flex-1"><b>{{ t('auction.notify_title') }}</b><small>{{ t('auction.notify_text') }}</small></span>{{ icon('chevron-right', 16, 'chev') }}</a>
+  {% endif %}
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+  /* tabs: all lots grouped, or one group alone */
+  var tabs = document.querySelector('[data-ax-tabs]'); if (!tabs) return;
+  tabs.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab]'); if (!b) return;
+    tabs.querySelectorAll('[data-tab]').forEach(function (x) { x.classList.toggle('on', x === b); });
+    document.querySelectorAll('[data-group]').forEach(function (g) { g.hidden = b.dataset.tab !== 'all' && g.dataset.group !== b.dataset.tab; if (b.dataset.tab === 'ended' && g.dataset.group === 'ended') g.classList.add('open'); });
+  });
+  /* finished lots: the first six, the rest on request (all of them on the Finished tab) */
+  var more = document.querySelector('[data-ax-more]');
+  if (more) more.addEventListener('click', function () { more.closest('[data-group]').classList.add('open'); });
+})();
+</script>
 {% endblock %}

@@ -22,7 +22,14 @@ async def auctions_page(request: Request, db: DB, user: CurrentUser, lang: Lang)
     for a in lots:
         key = a.status.value if a.status.value in groups else "ended"
         groups[key].append(a)
-    return render(request, "miniapp/auctions.html", {"lang": lang, "groups": groups, "page_title": t(lang, "auction.title")})
+    groups["live"].sort(key=lambda a: a.ends_at)  # ending soonest first
+    groups["scheduled"].sort(key=lambda a: a.starts_at)  # starting soonest first
+    people = await auctions.participant_counts(db, [a.id for a in lots])
+    return render(request, "miniapp/auctions.html", {
+        "lang": lang, "groups": groups, "page_title": t(lang, "auction.title"), "lot_people": people,
+        "hero": groups["live"][0] if groups["live"] else None,  # the lot ending soonest, shown big on top
+        "live_people": sum(people.get(a.id, 0) for a in groups["live"]),
+    })
 
 
 async def _ctx(db, a, user, lang):

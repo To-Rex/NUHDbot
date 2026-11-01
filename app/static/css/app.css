@@ -673,6 +673,57 @@ button.list-item{width:100%;text-align:left}
 .hl-go{margin-left:auto;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--bc,var(--accent));color:var(--bi,#fff)}
 .hl-go svg{width:14px;height:14px}
 .hl-card.c-gold .hl-go,.hl-card.c-silver .hl-go{color:#1C1C1E}
+/* auctions page: the live lot ending soonest (hero), a summary, tabs, and the lots as horizontal cards in a list */
+.ax-hero{position:relative;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:28px;background:var(--bc,var(--accent));color:var(--bi,#fff);overflow:hidden;isolation:isolate;box-shadow:0 14px 34px -14px var(--bc,var(--accent))}
+.ax-hero:active{transform:scale(.99)}
+.ax-hero-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ax-hero-top .chip-live{background:#fff}
+.ax-hero-tag{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:650;opacity:.92}
+.ax-hero-tag svg{width:13px;height:13px}
+.ax-hero-main{display:flex;gap:14px;align-items:center}
+.ax-hero-img{flex:0 0 42%;aspect-ratio:1;border-radius:20px;background:rgba(255,255,255,.16);display:grid;place-items:center;overflow:hidden}
+.ax-hero-img img{width:100%;height:100%;object-fit:contain;padding:8px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}
+.ax-hero-img em{font-style:normal;font-family:var(--font-display);font-size:28px;font-weight:800;opacity:.7}
+.ax-hero-info{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
+.ax-hero-info small{font-size:12px;font-weight:600;opacity:.82}
+.ax-hero-info>b{font-family:var(--font-display);font-size:19px;font-weight:800;letter-spacing:-.02em;line-height:1.15;overflow:hidden;text-overflow:ellipsis}
+.ax-hero-info>b span{opacity:.7}
+.ax-hero-qty{align-self:flex-start;margin-top:4px;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,.2);font-size:12px;font-weight:700}
+.ax-hero-label{margin-top:8px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
+.ax-hero-price{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.ax-hero-unit{font-variant-numeric:tabular-nums}
+.ax-hero-clock{display:flex;gap:6px;font-variant-numeric:tabular-nums}
+.ax-hero-clock span{flex:1;padding:9px 0 8px;border-radius:14px;background:rgba(255,255,255,.18);text-align:center;font-family:var(--font-display);font-weight:800;font-size:20px;line-height:1}
+.ax-hero-clock span small{display:block;margin-top:4px;font-family:var(--font-body);font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;opacity:.8}
+.ax-hero-clock.urgent span{background:#fff;color:var(--bad)}
+.ax-hero-foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:13px;font-weight:650}
+.ax-hero-foot>span{display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums}
+.ax-hero-foot svg{width:14px;height:14px}
+.ax-hero-cta{margin-left:auto;height:38px;padding:0 15px;border-radius:999px;background:#fff;color:#111}
+.ax-hero-cta svg{width:15px;height:15px}
+.c-gold.ax-hero .ax-hero-top .chip-live,.c-silver.ax-hero .ax-hero-top .chip-live{background:rgba(255,255,255,.75)}
+.ax-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ax-stat{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);text-align:center}
+.ax-stat b{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.ax-stat span{font-size:11.5px;font-weight:600;color:var(--ink-2)}
+.ax-stat.live b{color:var(--bad)}
+.ax-tabs{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--fill);overflow-x:auto;scrollbar-width:none}
+.ax-tabs::-webkit-scrollbar{display:none}
+.ax-tabs button{flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 12px;border:0;border-radius:999px;background:none;font:inherit;font-size:13.5px;font-weight:650;color:var(--ink-2);cursor:pointer;transition:background var(--t-fast),color var(--t-fast)}
+.ax-tabs button b{font-size:11.5px;font-weight:700;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.ax-tabs button.on{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-card)}
+.ax-group{display:flex;flex-direction:column;gap:10px}
+.ax-group-head{display:flex;align-items:center;gap:8px}
+.ax-group-head h2{font-size:19px}
+.ax-list{display:flex;flex-direction:column;gap:10px}
+.ax-list .hl-card{flex:none;width:100%}
+.ax-group[data-group=ended]:not(.open) .ax-list>:nth-child(n+7){display:none}
+.ax-group.open .ax-more{display:none}
+.ax-notify{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);color:var(--ink)}
+.ax-notify-ic{width:40px;height:40px;flex:0 0 auto;border-radius:13px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+.ax-notify-ic svg{width:18px;height:18px}
+.ax-notify b{display:block;font-size:14.5px}
+.ax-notify small{display:block;margin-top:1px;font-size:12.5px;color:var(--ink-2)}
 .lot-card{display:flex;gap:14px;padding:10px;align-items:stretch}
 .lot-img{position:relative;width:96px;border-radius:16px;overflow:hidden;background:var(--media);display:grid;place-items:center;color:var(--ink-3);flex:0 0 auto}
 .lot-img img{width:100%;height:100%;object-fit:contain;padding:6px}

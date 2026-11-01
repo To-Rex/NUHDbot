@@ -344,7 +344,13 @@
     "starts": "Boshlanish",
     "ends": "Tugash",
     "final_price": "Yakuniy narx",
-    "open_lot": "Lotga o'tish"
+    "open_lot": "Lotga o'tish",
+    "ending_soon": "Tez orada tugaydi",
+    "bidding_now": "Hozir ishtirok etmoqda",
+    "all": "Hammasi",
+    "notify_title": "Yangi lotlar haqida xabar oling",
+    "notify_text": "Auksion boshlanishi bilan botga xabar keladi",
+    "show_more": "Yana {n} ta ko'rsatish"
   },
   "info": {
     "title": "Foydali ma'lumotlar",

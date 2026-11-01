@@ -344,7 +344,13 @@
     "starts": "开始",
     "ends": "结束",
     "final_price": "成交价",
-    "open_lot": "查看拍品"
+    "open_lot": "查看拍品",
+    "ending_soon": "即将结束",
+    "bidding_now": "正在参与",
+    "all": "全部",
+    "notify_title": "接收新拍品通知",
+    "notify_text": "拍卖一开始，机器人就会通知您",
+    "show_more": "再显示 {n} 个"
   },
   "info": {
     "title": "实用资讯",
