@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
 
 from app.config import APP_DIR, settings
-from app.enums import COLOR_DIRECTION, Condition, OrderStatus, TestStatus
+from app.enums import COLOR_DIRECTION, ORDER_STAGES, Condition, OrderStatus, TestStatus, order_stage
 from app.i18n import pick, t
 from app.services.cart import get_cart
 
@@ -19,20 +19,6 @@ env.lstrip_blocks = True
 
 CONDITION_CLASS = {Condition.NEW: "cond-new", Condition.USED: "cond-used", Condition.REFRESH: "cond-refresh"}
 TEST_CLASS = {TestStatus.UNTESTED: "test-untested", TestStatus.TESTING: "test-testing", TestStatus.TESTED: "test-tested"}
-ORDER_STEPS = [
-    OrderStatus.AWAITING_ADMIN,
-    OrderStatus.AWAITING_ADVANCE,
-    OrderStatus.ADVANCE_CONFIRMED,
-    OrderStatus.TESTING,
-    OrderStatus.TEST_READY,
-    OrderStatus.AWAITING_CUSTOMER,
-    OrderStatus.AWAITING_BALANCE,
-    OrderStatus.PAID,
-    OrderStatus.PACKING,
-    OrderStatus.SHIPPED,
-    OrderStatus.DELIVERED,
-    OrderStatus.COMPLETED,
-]
 
 
 def money(value, currency: str | None = None, *, dash: str = "—") -> str:
@@ -98,7 +84,8 @@ env.globals.update(
     CONDITION_CLASS=CONDITION_CLASS,
     TEST_CLASS=TEST_CLASS,
     COLOR_DIRECTION={c.value: name for c, name in COLOR_DIRECTION.items()},
-    ORDER_STEPS=ORDER_STEPS,
+    ORDER_STAGES=ORDER_STAGES,
+    order_stage=order_stage,
     now=lambda: datetime.now(UTC),
 )
 

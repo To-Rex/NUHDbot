@@ -257,19 +257,27 @@
     "pay_note": "Izoh",
     "pay_details": "To'lov rekvizitlari",
     "status_hint": {
-      "awaiting_advance": "Avans summasini to'lab, chekni chatga yuboring.",
+      "awaiting_advance": "Summani to'lab, chekni chatga yuboring. Qisman to'lash ham mumkin — to'liq to'lovdan keyin yuk jo'natiladi.",
       "awaiting_balance": "Qoldiq summani to'lab, chekni chatga yuboring. To'liq to'lovsiz yuk jo'natilmaydi.",
       "testing": "Disklar tekshirilmoqda. Natijalar tayyor bo'lgach xabar beramiz.",
-      "shipped": "Yuk yo'lda. Savol bo'lsa, chatga yozing.",
+      "shipped": "Yuk jo'natildi. Savol bo'lsa, chatga yozing.",
       "packing": "Buyurtmangiz qadoqlanmoqda.",
       "delivered": "Yuk yetkazildi. Muammo bo'lsa 48 soat ichida murojaat qiling.",
-      "awaiting_customer": "Test natijalari tayyor. Admin siz bilan chatda bog'lanadi."
+      "awaiting_customer": "Test natijalari tayyor. Admin siz bilan chatda bog'lanadi.",
+      "paid": "To'lov qabul qilindi. Buyurtmangiz jo'natishga tayyorlanmoqda."
     },
     "not_found": "Buyurtma topilmadi",
     "ask_about": "Buyurtma bo'yicha savol",
     "open_chat": "Admin bilan chat",
     "send_receipt": "Chekni chatga yuborish",
-    "pay_chat_hint": "To'lov qilgach, chek suratini chatga yuboring. Admin pul tushganini tekshirib, tasdiqlaydi."
+    "pay_chat_hint": "To'lov qilgach, chek suratini chatga yuboring. Admin pul tushganini tekshirib, tasdiqlaydi.",
+    "pay_title": "To'lov",
+    "due": "To'lanishi kerak",
+    "stage": {
+      "order": "Buyurtma",
+      "pay": "To'lov",
+      "ship": "Jo'natish"
+    }
   },
   "auction": {
     "title": "Auksion",

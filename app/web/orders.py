@@ -1,12 +1,14 @@
+from decimal import Decimal
+
 from fastapi import Depends, Request
 
 from app.deps import DB, Lang, redirect, require_registered, require_user
-from app.enums import OrderStatus, PaymentKind
+from app.enums import ORDER_STAGES, PAYMENT_STAGE_STATUSES, order_stage
 from app.i18n import t
 from app.models import User
 from app.services.orders import OrderError, customer_confirm_offer, get_order_for_user, user_orders
 from app.services.settings_service import get_setting
-from app.templating import ORDER_STEPS, render
+from app.templating import render
 from app.web.common import hx_trigger, toast
 from app.web.router import router
 
@@ -19,9 +21,8 @@ async def orders_page(request: Request, db: DB, lang: Lang, user: User = Depends
 
 
 def _progress(order) -> tuple[int, int]:
-    if order.status in ORDER_STEPS:
-        return ORDER_STEPS.index(order.status) + 1, len(ORDER_STEPS)
-    return 0, len(ORDER_STEPS)
+    """Which of the three stages (Order, Payment, Shipping) the order is in; past the last when shipped, 0 when cancelled."""
+    return min(order_stage(order.status), len(ORDER_STAGES)), len(ORDER_STAGES)
 
 
 async def _chat_url(db, order, user: User) -> str:
@@ -31,14 +32,11 @@ async def _chat_url(db, order, user: User) -> str:
 
 async def _detail_ctx(request, db, lang, order, user):
     step, total_steps = _progress(order)
-    pay_kind = pay_amount = None
-    if order.status == OrderStatus.AWAITING_ADVANCE:
-        pay_kind, pay_amount = PaymentKind.ADVANCE, order.advance_amount
-    elif order.status == OrderStatus.AWAITING_BALANCE:
-        pay_kind, pay_amount = PaymentKind.BALANCE, order.balance_amount
+    due = max(Decimal(order.total or 0) - order.paid_amount, Decimal(0))
+    pay_amount = due if order.status in PAYMENT_STAGE_STATUSES and due > 0 else None  # the payment stage: what is left to pay
     hint_key = f"orders.status_hint.{order.status.value}"
     return {
-        "lang": lang, "order": order, "step": step, "total_steps": total_steps, "pay_kind": pay_kind, "pay_amount": pay_amount,
+        "lang": lang, "order": order, "step": step, "total_steps": total_steps, "pay_amount": pay_amount, "due": due,
         "methods": await get_setting(db, "payment_methods", []), "chat_url": await _chat_url(db, order, user),
         "page_title": t(lang, "orders.detail_title", number=order.number), "back_url": "/app/orders",
         "hint": t(lang, hint_key) if t(lang, hint_key) != hint_key else None,

@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 
 from app.admin.common import DB, nav_badges, render, staff_dep
 from app.admin.router import router
-from app.enums import AuctionStatus, OrderStatus, ThreadStatus
+from app.enums import PAYMENT_STAGE_STATUSES, AuctionStatus, OrderStatus, ThreadStatus
 from app.models import Auction, Order, SupportThread, User
 from app.services import reports
 
@@ -22,7 +22,7 @@ async def dashboard(request: Request, db: DB, staff: User = Depends(staff_dep())
     # every card lists the newest four; task badges show the full count
     awaiting_q = (Order.status == OrderStatus.AWAITING_ADMIN,)
     # money is agreed in chat; these orders are waiting for staff to record what arrived
-    awaiting_pay_q = (Order.status.in_((OrderStatus.AWAITING_ADVANCE, OrderStatus.AWAITING_BALANCE)),)
+    awaiting_pay_q = (Order.status.in_(PAYMENT_STAGE_STATUSES),)  # the payment stage
     threads_q = (SupportThread.status == ThreadStatus.OPEN, SupportThread.unread_for_staff > 0)
     awaiting = (await db.execute(select(Order).where(*awaiting_q).order_by(Order.id.desc()).limit(4))).scalars().unique().all()
     awaiting_pay = (await db.execute(select(Order).where(*awaiting_pay_q).order_by(Order.id.desc()).limit(4))).scalars().unique().all()

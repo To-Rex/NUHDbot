@@ -96,29 +96,45 @@ class OrderStatus(StrEnum):
     DISPUTED = "disputed"
 
 
-# Allowed forward transitions for staff. Admin may also jump to CANCELLED/DISPUTED from any active state.
+# The order journey has three stages — Order, Payment, Shipping — and a way out (cancel):
+#   Order: NEW → AWAITING_ADMIN (the admin checks it and sends the offer, the customer accepts)
+#   Payment: AWAITING_ADVANCE (awaiting payment of the full total; partial payments add up) → PAID
+#   Shipping: PAID → SHIPPED (the end)
+# The other values (testing, 30/70 balance, packing, delivered, completed, disputed, returned) only remain for old history rows;
+# migration a3c9e5f1b207 moved every order out of them, and if one ever shows up it can still move on.
 ORDER_FLOW: dict[OrderStatus, tuple[OrderStatus, ...]] = {
     OrderStatus.NEW: (OrderStatus.AWAITING_ADMIN,),
     OrderStatus.AWAITING_ADMIN: (OrderStatus.AWAITING_ADVANCE,),
-    OrderStatus.AWAITING_ADVANCE: (OrderStatus.ADVANCE_CONFIRMED,),
-    OrderStatus.ADVANCE_CONFIRMED: (OrderStatus.TESTING,),
-    OrderStatus.TESTING: (OrderStatus.TEST_READY,),
-    OrderStatus.TEST_READY: (OrderStatus.AWAITING_CUSTOMER,),
-    OrderStatus.AWAITING_CUSTOMER: (OrderStatus.AWAITING_BALANCE,),
-    OrderStatus.AWAITING_BALANCE: (OrderStatus.PAID,),
-    OrderStatus.PAID: (OrderStatus.PACKING,),
-    OrderStatus.PACKING: (OrderStatus.SHIPPED,),
-    OrderStatus.SHIPPED: (OrderStatus.DELIVERED,),
-    OrderStatus.DELIVERED: (OrderStatus.COMPLETED,),
-    OrderStatus.COMPLETED: (OrderStatus.RETURNED,),
+    OrderStatus.AWAITING_ADVANCE: (OrderStatus.PAID,),
+    OrderStatus.PAID: (OrderStatus.SHIPPED,),
+    OrderStatus.SHIPPED: (),
     OrderStatus.CANCELLED: (),
+    **{legacy: (OrderStatus.PAID,) for legacy in (OrderStatus.ADVANCE_CONFIRMED, OrderStatus.TESTING, OrderStatus.TEST_READY, OrderStatus.AWAITING_CUSTOMER, OrderStatus.AWAITING_BALANCE)},
+    OrderStatus.PACKING: (OrderStatus.SHIPPED,),
+    OrderStatus.DELIVERED: (),
+    OrderStatus.COMPLETED: (),
     OrderStatus.RETURNED: (),
-    OrderStatus.DISPUTED: (OrderStatus.CANCELLED, OrderStatus.RETURNED, OrderStatus.COMPLETED),
+    OrderStatus.DISPUTED: (OrderStatus.CANCELLED,),
 }
-
-ACTIVE_ORDER_STATUSES = tuple(
-    s for s in OrderStatus if s not in (OrderStatus.COMPLETED, OrderStatus.CANCELLED, OrderStatus.RETURNED)
+# the three stages and the statuses that make them up (the stepper on the admin order page, the dots in the Mini App)
+ORDER_STAGES: tuple[tuple[str, tuple[OrderStatus, ...]], ...] = (
+    ("order", (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN)),
+    ("pay", (OrderStatus.AWAITING_ADVANCE,)),
+    ("ship", (OrderStatus.PAID,)),
 )
+PAYMENT_STAGE_STATUSES = tuple(s for s, nxt in ORDER_FLOW.items() if nxt == (OrderStatus.PAID,))  # waiting for money (incl. old 30/70 states)
+FINISHED_ORDER_STATUSES = (OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.COMPLETED)  # shipped is the end of the journey
+ACTIVE_ORDER_STATUSES = tuple(s for s in OrderStatus if s not in (*FINISHED_ORDER_STATUSES, OrderStatus.CANCELLED, OrderStatus.RETURNED))
+
+
+def order_stage(status: OrderStatus) -> int:
+    """1 Order, 2 Payment, 3 Shipping (paid, waiting to ship), 4 = all done (shipped); 0 for cancelled."""
+    if status in FINISHED_ORDER_STATUSES:
+        return len(ORDER_STAGES) + 1
+    for n, (_, members) in enumerate(ORDER_STAGES, start=1):
+        if status in members:
+            return n
+    return 2 if status in PAYMENT_STAGE_STATUSES else (3 if status == OrderStatus.PACKING else 0)
 
 
 class PaymentKind(StrEnum):

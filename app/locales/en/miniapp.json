@@ -257,19 +257,27 @@
     "pay_note": "Note",
     "pay_details": "Payment details",
     "status_hint": {
-      "awaiting_advance": "Pay the advance and send the receipt in chat.",
+      "awaiting_advance": "Pay the amount and send the receipt in the chat. You can pay in parts — the goods ship once it is paid in full.",
       "awaiting_balance": "Pay the balance and send the receipt in chat. Nothing ships before full payment.",
       "testing": "Drives are being tested. We'll notify you when results are ready.",
-      "shipped": "Your order is on its way. Questions? Write in chat.",
+      "shipped": "The goods have shipped. Questions? Write in the chat.",
       "packing": "Your order is being packed.",
       "delivered": "Delivered. Report any issue within 48 hours.",
-      "awaiting_customer": "Test results are ready. The admin will contact you in chat."
+      "awaiting_customer": "Test results are ready. The admin will contact you in chat.",
+      "paid": "Payment received. Your order is being prepared for shipping."
     },
     "not_found": "Order not found",
     "ask_about": "Ask about this order",
     "open_chat": "Chat with admin",
     "send_receipt": "Send receipt in chat",
-    "pay_chat_hint": "After paying, send a photo of the receipt in chat. The admin checks the money arrived and confirms."
+    "pay_chat_hint": "After paying, send a photo of the receipt in chat. The admin checks the money arrived and confirms.",
+    "pay_title": "Payment",
+    "due": "Left to pay",
+    "stage": {
+      "order": "Order",
+      "pay": "Payment",
+      "ship": "Shipping"
+    }
   },
   "auction": {
     "title": "Auction",

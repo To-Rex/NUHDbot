@@ -10,6 +10,8 @@
     "outbid": "🔨 您的出价已被超过：<b>{title}</b>\n当前价格：<b>{amount}</b>",
     "auction_won": "🏆 恭喜！您赢得了 <b>{title}</b> 的拍卖。成交价：<b>{amount}</b>。管理员将与您联系。",
     "auction_lost": "拍卖 <b>{title}</b> 已结束。这次未能中标，请关注后续拍品。",
-    "support_reply": "💬 管理员回复：\n{preview}"
+    "support_reply": "💬 管理员回复：\n{preview}",
+    "order_awaiting_payment": "订单已确认。应付金额：<b>{amount}</b>。付款信息见订单页面。付款后请在聊天中发送凭证。",
+    "order_paid": "已收到付款。您的订单正在准备发货。"
   }
 }

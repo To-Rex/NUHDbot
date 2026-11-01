@@ -1,6 +1,7 @@
 """Telegram notifications to customers. Never raises; logs to notification_log."""
 import html
 import logging
+from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -47,13 +48,11 @@ async def notify_order_status(db: AsyncSession, order, user: User) -> None:
     lang = user.lang
     status_txt = t(lang, f"order_status.{order.status}")
     text = t(lang, "notify.order_status", number=esc(order.number), status=esc(status_txt))
-    extra_key = {
-        OrderStatus.AWAITING_ADVANCE: "notify.order_awaiting_advance",
-        OrderStatus.AWAITING_CUSTOMER: "notify.order_awaiting_customer",
-        OrderStatus.AWAITING_BALANCE: "notify.order_awaiting_balance",
-    }.get(order.status)
-    if extra_key:
-        text += "\n\n" + t(lang, extra_key, advance=f"{order.advance_amount} {order.currency}", balance=f"{order.balance_amount} {order.currency}")
+    if order.status == OrderStatus.AWAITING_ADVANCE:  # the payment stage: what is left to pay (the full total, less what has arrived)
+        due = max(Decimal(order.total or 0) - order.paid_amount, Decimal(0))
+        text += "\n\n" + t(lang, "notify.order_awaiting_payment", amount=f"{due} {order.currency}")
+    elif order.status == OrderStatus.PAID:
+        text += "\n\n" + t(lang, "notify.order_paid")
     await send(db, user, text, kind="order_status", reply_markup=miniapp_button(t(lang, "notify.open_order"), f"/app/orders/{order.id}"))
 
 

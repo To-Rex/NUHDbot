@@ -595,6 +595,13 @@ button.list-item{width:100%;text-align:left}
 .countdown span{min-width:50px;flex:1;padding:10px 0 9px;border-radius:16px;background:var(--fill);text-align:center;font-family:var(--font-display);font-weight:700;font-size:21px;letter-spacing:-.02em;line-height:1}
 .countdown span small{display:block;font-family:var(--font-body);font-size:10px;font-weight:600;color:var(--ink-3);margin-top:5px;letter-spacing:.04em;text-transform:uppercase}
 .countdown.urgent span{color:var(--bad);background:var(--bad-bg)}
+/* order page: the three stages (Order → Payment → Shipping) */
+.o-stages{display:flex;gap:6px}
+.o-stages span{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--ink-3);text-align:center}
+.o-stages i{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;background:var(--fill);color:var(--ink-3)}
+.o-stages i svg{width:12px;height:12px}
+.o-stages .done{color:var(--ok)}.o-stages .done i{background:var(--ok);color:#fff}
+.o-stages .cur{color:var(--accent)}.o-stages .cur i{background:var(--accent);color:var(--accent-ink)}
 .bid-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--sep);animation:slide-in var(--t-med) var(--ease-out)}
 .bid-row:last-child{border-bottom:0}
 .bid-row.leader .amt{color:var(--accent)}

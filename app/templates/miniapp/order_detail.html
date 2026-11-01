@@ -6,19 +6,18 @@
   <div class="card">
     <div class="row-between"><span class="eyebrow">{{ t('common.status') }}</span><span class="xs faint mono">{{ order.created_at|dt }}</span></div>
     <h2 class="mt-1" style="color:{{ 'var(--bad)' if order.status.value in ('cancelled','disputed','returned') else 'var(--accent)' }}">{{ t('order_status.' ~ order.status.value) }}</h2>
-    {% if step %}<div class="steps-dots mt-3">{% for i in range(total_steps) %}<i class="{{ 'on' if i < step }}"></i>{% endfor %}</div><div class="xs faint mt-1 mono">{{ step }} / {{ total_steps }}</div>{% endif %}
+    {% if step %}<div class="o-stages mt-3">{% for key, _ in ORDER_STAGES %}{% set n = loop.index %}<span class="{{ 'done' if n < step or order_stage(order.status) > total_steps else ('cur' if n == step) }}"><i>{% if n < step or order_stage(order.status) > total_steps %}{{ icon('check', 11) }}{% else %}{{ n }}{% endif %}</i>{{ t('orders.stage.' ~ key) }}</span>{% endfor %}</div>{% endif %}
     {% if hint %}<div class="notice notice-info mt-3">{{ icon('info', 18) }}<span>{{ hint }}</span></div>{% endif %}
     {% if order.status.value == 'awaiting_admin' and not order.confirmed_at %}<div class="notice notice-plain mt-3">{{ icon('clock', 18) }}<span>{{ t('orders.waiting_admin') }}</span></div>{% endif %}
-    {% if order.status.value == 'awaiting_customer' %}<a class="btn btn-primary btn-block mt-3" href="{{ chat_url }}">{{ icon('message', 18) }}{{ t('orders.open_chat') }}</a>{% endif %}
   </div>
 
   {% if order.status.value == 'awaiting_admin' and order.confirmed_at %}
   <form hx-post="/app/orders/{{ order.id }}/accept" hx-target="body"><button class="btn btn-primary btn-lg btn-block"><span class="label">{{ t('orders.accept_offer') }}</span><span class="spinner"></span></button><p class="hint center mt-2">{{ t('orders.accept_offer_hint') }}</p></form>
   {% endif %}
 
-  {% if pay_kind %}
+  {% if pay_amount %}
   <div class="card">
-    <div class="row-between"><h3>{{ t('payment.' ~ pay_kind.value) }}</h3><span class="price-big" style="font-size:22px">{{ pay_amount|money(order.currency) }}</span></div>
+    <div class="row-between"><h3>{{ t('orders.pay_title') }}</h3><span class="price-big" style="font-size:22px">{{ pay_amount|money(order.currency) }}</span></div>
     {% if methods %}
     <span class="filter-label mt-3">{{ t('orders.pay_details') }}</span>
     <div class="stack" style="gap:6px">{% for m in methods %}<div class="sunken row-between"><span class="semibold small">{{ m.name }}</span>{% if m.details %}<span class="copyable" data-copy="{{ m.details }}" data-copied-text="{{ t('common.copied') }}"><span>{{ m.details }}</span>{{ icon('copy', 14) }}</span>{% endif %}</div>{% endfor %}</div>
@@ -39,9 +38,8 @@
     <dl class="kv mt-3">
       {% if order.subtotal != order.total %}<dt>{{ t('orders.subtotal') }}</dt><dd class="mono">{{ order.subtotal|money(order.currency) }}</dd>{% endif %}
       <dt>{{ t('orders.total') }}</dt><dd class="mono" style="font-size:17px;font-weight:600">{{ order.total|money(order.currency) }}</dd>
-      <dt>{{ t('orders.advance') }}</dt><dd class="mono">{{ order.advance_amount|money(order.currency) }}</dd>
-      <dt>{{ t('orders.balance') }}</dt><dd class="mono">{{ order.balance_amount|money(order.currency) }}</dd>
       <dt>{{ t('orders.paid') }}</dt><dd class="mono" style="color:var(--ok)">{{ order.paid_amount|money(order.currency) }}</dd>
+      {% if due > 0 and order.status.value not in ('cancelled','returned') %}<dt>{{ t('orders.due') }}</dt><dd class="mono">{{ due|money(order.currency) }}</dd>{% endif %}
     </dl>
   </div>
 

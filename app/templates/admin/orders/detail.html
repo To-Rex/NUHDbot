@@ -1,16 +1,15 @@
 {% extends "admin/base.html" %}
 {% set st = o.status.value %}
 {% set pending_claims = o.payments|selectattr('status.value', 'equalto', 'pending')|list %}
-{% set closed = st in ('completed','cancelled','returned') %}
+{% set closed = st in ('shipped','delivered','completed','cancelled','returned') %}
 {% set trouble = st in ('cancelled','disputed','returned') %}
-{# which of the 7 stages the order is in #}
-{% set stage_of = {'new':1,'awaiting_admin':1,'awaiting_advance':2,'advance_confirmed':2,'testing':3,'test_ready':3,'awaiting_customer':3,'awaiting_balance':4,'paid':4,'packing':5,'shipped':5,'delivered':6,'completed':7} %}
-{% set stage = stage_of.get(st, 0) %}
-{% set stages = [('stage_order','awaiting_admin'),('stage_advance','awaiting_advance'),('stage_test','testing'),('stage_balance','awaiting_balance'),('stage_ship','packing'),('stage_delivered','delivered'),('stage_done','completed')] %}
+{# the three stages — Order, Payment, Shipping; 4 = all done (shipped) #}
+{% set stage = order_stage(o.status) %}
+{% set stages = [('stage_order','awaiting_admin'),('stage_pay','awaiting_advance'),('stage_ship','paid')] %}
 {# role filter for the status dialog #}
 {% set ns = namespace(opts=[]) %}
 {% for s in transitions %}{% set v = s.value %}
-  {% if (v in ('packing','shipped','delivered') and can_ship) or (v in ('testing','test_ready') and (can_test or can_edit)) or (v in ('advance_confirmed','paid') and can_pay) or (v not in ('packing','shipped','delivered','testing','test_ready','advance_confirmed','paid') and can_edit) %}{% set ns.opts = ns.opts + [s] %}{% endif %}
+  {% if (v == 'shipped' and can_ship) or (v == 'paid' and can_pay) or (v not in ('shipped','paid') and can_edit) %}{% set ns.opts = ns.opts + [s] %}{% endif %}
 {% endfor %}
 {% macro trans(to, label, cls='btn-primary', confirm=False, ico=None) -%}
 {% if to in transitions %}<form method="post" action="/admin/orders/{{ o.id }}/status" style="display:inline"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="to_status" value="{{ to.value }}"><button class="btn btn-lg {{ cls }}" {% if confirm %}data-confirm="{{ t('admin.confirm_q') }}" data-confirm-text="{{ label }}"{% endif %}>{% if ico %}{{ icon(ico, 18) }}{% endif %}{{ label }}</button></form>{% endif %}
@@ -30,23 +29,16 @@
 {% endif %}
 
 {# ---------- next step ---------- #}
-{% set tone = 'ok' if st in ('paid','completed','delivered','advance_confirmed') else ('bad' if trouble else ('muted' if st in ('awaiting_customer','awaiting_advance','awaiting_balance','shipped') else 'accent')) %}
+{% set tone = 'ok' if st in ('paid','shipped','delivered','completed') else ('bad' if trouble else ('muted' if st == 'awaiting_advance' else 'accent')) %}
 <section class="next {{ tone }} mb">
   <div class="ic">{{ icon('bolt' if tone=='accent' else ('check-circle' if tone=='ok' else ('alert' if tone=='bad' else 'clock')), 20) }}</div>
   <div><div class="eyebrow">{{ t('admin.next.title') }}</div><h2>{{ t('admin.next.' ~ st) }}</h2><p>{{ t('admin.nexthelp.' ~ st) }}</p>
     <div class="acts">
       {% set chat_btn %}{% if can(roles.SUPPORT_ROLES) %}<a class="btn btn-lg btn-secondary" href="{{ chat_url }}">{{ icon('message', 18) }}{{ t('admin.ord.open_chat') }}</a>{% endif %}{% endset %}
       {% if st in ('new','awaiting_admin') %}{% if can_edit %}<a class="btn btn-lg btn-primary" href="#offer">{{ icon('send', 18) }}{{ t('admin.ord.send_offer') }}</a>{% endif %}
-      {% elif st in ('awaiting_advance','awaiting_balance') %}{% if can_pay %}<a class="btn btn-lg btn-primary" href="#payments">{{ icon('wallet', 18) }}{{ t('admin.ord.record_payment') }}</a>{% endif %}{{ chat_btn }}
-      {% elif st == 'advance_confirmed' %}{% if can_test or can_edit %}{{ trans(OrderStatus.TESTING, t('admin.ord.take_to_testing'), 'btn-primary', False, 'drive') }}{% endif %}
-      {% elif st == 'testing' %}{% if can_test or can_edit %}{{ trans(OrderStatus.TEST_READY, t('order_status.test_ready'), 'btn-primary', True, 'check') }}{% endif %}
-      {% elif st == 'test_ready' %}{% if can_edit or can_test %}{{ trans(OrderStatus.AWAITING_CUSTOMER, t('admin.ord.send_results'), 'btn-primary', True, 'send') }}{% endif %}{{ chat_btn }}
-      {% elif st == 'awaiting_customer' %}{% if can_edit %}{{ trans(OrderStatus.AWAITING_BALANCE, t('admin.ord.customer_agreed'), 'btn-primary', True, 'check') }}{% endif %}{{ chat_btn }}
-      {% elif st == 'paid' %}{% if can_ship %}{{ trans(OrderStatus.PACKING, t('admin.ord.start_packing'), 'btn-primary', False, 'package') }}{% endif %}
-      {% elif st == 'packing' %}{% if o.paid_amount < o.total %}<span class="notice notice-bad">{{ icon('lock', 18) }}<span>{{ t('admin.ord.ship_blocked_payment') }}</span></span>{% elif can_ship %}{{ trans(OrderStatus.SHIPPED, t('admin.ord.mark_shipped'), 'btn-primary', True, 'truck') }}{% endif %}
-      {% elif st == 'shipped' %}{% if can_ship %}{{ trans(OrderStatus.DELIVERED, t('admin.ord.mark_delivered'), 'btn-primary', True, 'check') }}{% endif %}
-      {% elif st == 'delivered' %}{{ trans(OrderStatus.COMPLETED, t('admin.ord.mark_completed'), 'btn-primary', True, 'check-circle') }}
-      {% elif st == 'disputed' %}{{ trans(OrderStatus.COMPLETED, t('admin.ord.mark_completed'), 'btn-ok', True) }}{{ trans(OrderStatus.RETURNED, t('order_status.returned'), 'btn-warn', True) }}{{ trans(OrderStatus.CANCELLED, t('admin.ord.cancel_order'), 'btn-danger', True) }}
+      {% elif stage == 2 %}{% if can_pay %}<a class="btn btn-lg btn-primary" href="#payments">{{ icon('wallet', 18) }}{{ t('admin.ord.record_payment') }}</a>{% endif %}{{ chat_btn }}
+      {% elif stage == 3 %}{% if o.paid_amount < o.total %}<span class="notice notice-bad">{{ icon('lock', 18) }}<span>{{ t('admin.ord.ship_blocked_payment') }}</span></span>{% elif can_ship %}{{ trans(OrderStatus.SHIPPED, t('admin.ord.mark_shipped'), 'btn-primary', True, 'truck') }}{% endif %}
+      {% elif st == 'disputed' %}{{ trans(OrderStatus.CANCELLED, t('admin.ord.cancel_order'), 'btn-danger', True) }}
       {% endif %}
       {% if ns.opts or staff.is_admin %}<button type="button" class="btn btn-lg btn-ghost" data-status-open>{{ icon('refresh', 18) }}{{ t('admin.ord.other_status') }}</button>{% endif %}
     </div></div>
@@ -71,11 +63,10 @@
 
   {# ---------- offer ---------- #}
   {% if can_edit %}
-  <details class="fsection plain" id="offer" {{ 'open' if st in ('new','awaiting_admin') }}><summary><span class="ttl">{{ t('admin.ord.offer') }}</span><span class="sub">{{ o.total|money(o.currency) }} · {{ t('admin.ord.advance') }} {{ o.advance_percent }}%</span></summary>
+  <details class="fsection plain" id="offer" {{ 'open' if st in ('new','awaiting_admin') }}><summary><span class="ttl">{{ t('admin.ord.offer') }}</span><span class="sub">{{ o.total|money(o.currency) }}</span></summary>
     <form method="post" action="/admin/orders/{{ o.id }}/offer" class="stack mt"><input type="hidden" name="_csrf" value="{{ csrf }}">
       <div class="form-grid">
         <div class="field"><label>{{ t('admin.ord.final_total') }} ({{ o.currency }})</label><input class="input mono" name="total" value="{{ o.total }}"></div>
-        <div class="field"><label>{{ t('admin.ord.advance') }} %</label><input class="input" type="number" name="advance_percent" value="{{ o.advance_percent }}" min="0" max="100"><span class="hint">{{ t('admin.ord.advance') }}: {{ o.advance_amount|money(o.currency) }} · {{ t('admin.ord.balance') }}: {{ o.balance_amount|money(o.currency) }}</span></div>
       </div>
       <div class="form-grid">
         <div class="field"><label>{{ t('admin.ord.delivery_terms') }}</label><textarea class="textarea" name="delivery_terms" rows="2">{{ o.delivery_terms or '' }}</textarea></div>
@@ -88,7 +79,7 @@
   {% endif %}
 
   {# ---------- payments: the receipt is settled in chat, staff record what arrived ---------- #}
-  <details class="fsection plain" id="payments" {{ 'open' if st in ('awaiting_advance','awaiting_balance') or pending_claims }}><summary><span class="ttl">{{ t('admin.ord.payments') }}</span><span class="sub">{{ t('admin.ord.paid') }}: <b class="mono">{{ o.paid_amount|money(o.currency) }}</b> / {{ o.total|money(o.currency) }}</span></summary>
+  <details class="fsection plain" id="payments" {{ 'open' if stage == 2 or pending_claims }}><summary><span class="ttl">{{ t('admin.ord.payments') }}</span><span class="sub">{{ t('admin.ord.paid') }}: <b class="mono">{{ o.paid_amount|money(o.currency) }}</b> / {{ o.total|money(o.currency) }}</span></summary>
     <div class="mt stack">
     {% if can_pay and not closed %}
     <form method="post" action="/admin/orders/{{ o.id }}/payments" class="sunken stack"><input type="hidden" name="_csrf" value="{{ csrf }}">
@@ -146,7 +137,7 @@
         {% for s in ns.opts if s.value not in ('cancelled','disputed','returned') %}
         <label class="opt"><input type="radio" name="to_status" value="{{ s.value }}" required><span class="opt-dot"></span><span><b>{{ t('order_status.' ~ s.value) }}</b><small>{{ t('admin.next.' ~ s.value) }}</small></span></label>
         {% endfor %}
-        {% if staff.is_admin %}{% set jump = [] %}{% for s in OrderStatus if s not in ns.opts and s != o.status and s.value not in ('new','cancelled','disputed','returned') %}{% set _ = jump.append(s) %}{% endfor %}
+        {% if staff.is_admin %}{% set jump = [] %}{% for s in OrderStatus if s not in ns.opts and s != o.status and s.value in ('awaiting_admin','awaiting_advance','paid','shipped') %}{% set _ = jump.append(s) %}{% endfor %}
         {% if jump %}<details class="acc" id="jump-group"><summary>{{ t('admin.ord.jump_group') }}</summary><p class="hint mb-sm">{{ t('admin.ord.jump_hint') }}</p>
         {% for s in jump %}<label class="opt jump"><input type="radio" name="to_status" value="{{ s.value }}" data-needs-note required><span class="opt-dot"></span><span><b>{{ t('order_status.' ~ s.value) }}</b><small>{{ t('admin.next.' ~ s.value) }}</small></span></label>{% endfor %}</details>{% endif %}{% endif %}
         {% set danger = ns.opts|selectattr('value','in',('cancelled','disputed','returned'))|list %}

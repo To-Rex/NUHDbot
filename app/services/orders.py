@@ -4,7 +4,14 @@ from decimal import Decimal
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.enums import ACTIVE_ORDER_STATUSES, ORDER_FLOW, OrderStatus, PaymentKind, PaymentStatus
+from app.enums import (
+    ACTIVE_ORDER_STATUSES,
+    ORDER_FLOW,
+    PAYMENT_STAGE_STATUSES,
+    OrderStatus,
+    PaymentKind,
+    PaymentStatus,
+)
 from app.models import Order, OrderItem, OrderStatusHistory, Payment, Product, User
 from app.services import audit
 
@@ -116,11 +123,10 @@ async def create_order(
 
 
 def allowed_transitions(order: Order, *, is_admin: bool) -> list[OrderStatus]:
+    """The next stage, and cancelling while the order is still on its way (Order → Payment → Shipping)."""
     nxt = list(ORDER_FLOW.get(order.status, ()))
-    if order.status in ACTIVE_ORDER_STATUSES and order.status not in (OrderStatus.CANCELLED,):
-        for extra in (OrderStatus.CANCELLED, OrderStatus.DISPUTED):
-            if extra not in nxt and extra != order.status:
-                nxt.append(extra)
+    if order.status in ACTIVE_ORDER_STATUSES and OrderStatus.CANCELLED not in nxt:
+        nxt.append(OrderStatus.CANCELLED)
     return nxt
 
 
@@ -195,15 +201,10 @@ async def confirm_payment(db: AsyncSession, pay: Payment, staff: User, ok: bool,
     pay.stage_complete = True  # informational for the caller: did this confirmation complete the current payment stage?
     if ok and pay.order is not None:
         order = pay.order
-        paid = order.paid_amount
-        if order.status == OrderStatus.AWAITING_ADVANCE:
-            if paid >= order.advance_amount:
-                await transition(db, order, OrderStatus.ADVANCE_CONFIRMED, by=staff, note="advance confirmed")
-            else:
-                pay.stage_complete = False
-        elif order.status == OrderStatus.AWAITING_BALANCE:
-            if paid >= Decimal(order.total or 0):
-                await transition(db, order, OrderStatus.PAID, by=staff, note="balance confirmed")
+        # the payment stage: payments add up to the full total, then the order is paid and ready to ship
+        if order.status in PAYMENT_STAGE_STATUSES:
+            if order.paid_amount >= Decimal(order.total or 0):
+                await transition(db, order, OrderStatus.PAID, by=staff, note="paid in full")
             else:
                 pay.stage_complete = False
     await db.flush()

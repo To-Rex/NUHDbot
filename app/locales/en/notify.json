@@ -10,6 +10,8 @@
     "outbid": "🔨 You've been outbid: <b>{title}</b>\nCurrent price: <b>{amount}</b>",
     "auction_won": "🏆 Congratulations! You won <b>{title}</b>. Final price: <b>{amount}</b>. The admin will contact you.",
     "auction_lost": "Auction <b>{title}</b> has ended. Not this time — keep an eye on the next lots.",
-    "support_reply": "💬 Reply from admin:\n{preview}"
+    "support_reply": "💬 Reply from admin:\n{preview}",
+    "order_awaiting_payment": "Your order is confirmed. Amount to pay: <b>{amount}</b>. Payment details are on the order page. Once paid, send the receipt in the chat.",
+    "order_paid": "Payment received. Your order is being prepared for shipping."
   }
 }

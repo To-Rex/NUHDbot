@@ -23,24 +23,29 @@ from app.admin.common import (
     staff_dep,
 )
 from app.admin.router import router
-from app.enums import ACTIVE_ORDER_STATUSES, OrderStatus, PaymentKind, PaymentStatus
+from app.enums import (
+    ACTIVE_ORDER_STATUSES,
+    ORDER_FLOW,
+    PAYMENT_STAGE_STATUSES,
+    OrderStatus,
+    PaymentKind,
+    PaymentStatus,
+)
 from app.i18n import t
 from app.models import Order, Payment, Product, SupportThread, User
 from app.services import audit, notifications
 from app.services import orders as osvc
 
 EDITABLE_ITEMS = (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE)
-# List tabs mirror the 7-stage journey shown on the order page.
+# List tabs mirror the three stages shown on the order page (Order → Payment → Shipping).
 STAGE_GROUPS: dict[str, tuple[OrderStatus, ...]] = {
     "g_order": (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN),
-    "g_advance": (OrderStatus.AWAITING_ADVANCE, OrderStatus.ADVANCE_CONFIRMED),
-    "g_test": (OrderStatus.TESTING, OrderStatus.TEST_READY, OrderStatus.AWAITING_CUSTOMER),
-    "g_balance": (OrderStatus.AWAITING_BALANCE, OrderStatus.PAID),
-    "g_ship": (OrderStatus.PACKING, OrderStatus.SHIPPED, OrderStatus.DELIVERED),
-    "disputed": (OrderStatus.DISPUTED,),
+    "g_pay": PAYMENT_STAGE_STATUSES,
+    "g_ship": (OrderStatus.PAID, OrderStatus.PACKING, OrderStatus.SHIPPED),
 }
 # Orders where money is expected; the customer sends the receipt in the support chat.
-AWAITING_PAYMENT = (OrderStatus.AWAITING_ADVANCE, OrderStatus.AWAITING_BALANCE)
+AWAITING_PAYMENT = STAGE_GROUPS["g_pay"]
+ORDER_FLOW_TARGETS = tuple({to for targets in ORDER_FLOW.values() for to in targets} | {OrderStatus.CANCELLED})  # what a status change may lead to
 
 
 @router.get("/orders")
@@ -98,7 +103,7 @@ async def order_detail(oid: int, request: Request, db: DB, staff: User = Depends
     thread = (await db.execute(select(SupportThread).where(SupportThread.user_id == o.user_id))).scalars().first()
     chat_url = f"/admin/support/{thread.id}" if thread else f"/admin/support?user={o.user_id}"
     transitions = osvc.allowed_transitions(o, is_admin=staff.is_admin)
-    due = (o.advance_amount if o.status in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE) else Decimal(o.total or 0)) - o.paid_amount
+    due = Decimal(o.total or 0) - o.paid_amount  # one payment stage: the full total, partial payments add up
     return render(request, staff, "admin/orders/detail.html", {
         "page_title": o.number, "o": o, "prev_count": prev_count, "transitions": transitions, "chat_url": chat_url, "due": due if due > 0 else None,
         "items_editable": o.status in EDITABLE_ITEMS and can(staff, ORDER_EDIT_ROLES),
@@ -167,12 +172,12 @@ async def order_status(oid: int, request: Request, db: DB, staff: User = Depends
         raise HTTPException(400) from None
     note = f_opt(form, "note")
     # role gates for sensitive transitions
-    if to in (OrderStatus.SHIPPED, OrderStatus.PACKING, OrderStatus.DELIVERED) and not can(staff, SHIP_ROLES):
+    if to == OrderStatus.SHIPPED and not can(staff, SHIP_ROLES):
         raise HTTPException(403)
-    if to in (OrderStatus.TESTING, OrderStatus.TEST_READY) and not can(staff, TEST_ROLES | ORDER_EDIT_ROLES):
+    if to == OrderStatus.PAID and not can(staff, PAYMENT_ROLES):
         raise HTTPException(403)
-    if to in (OrderStatus.ADVANCE_CONFIRMED, OrderStatus.PAID) and not can(staff, PAYMENT_ROLES):
-        raise HTTPException(403)
+    if to not in ORDER_FLOW_TARGETS:
+        raise HTTPException(400)  # only the three stages (and cancel) are reachable now
     if to == OrderStatus.SHIPPED and o.paid_amount < Decimal(o.total or 0):
         return back(request, f"/admin/orders/{oid}", t(staff.lang, "admin.ord.need_full_payment"), "bad")
     allowed = osvc.allowed_transitions(o, is_admin=staff.is_admin)
@@ -192,9 +197,8 @@ async def order_status(oid: int, request: Request, db: DB, staff: User = Depends
 async def order_payment_record(oid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*PAYMENT_ROLES))):
     o = await _load(db, oid)
     form = await request.form()
-    # the stage decides what the money is for; staff only type the amount they received
-    before_advance = o.status in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE)
-    kind = PaymentKind.ADVANCE if before_advance else PaymentKind.BALANCE
+    # one payment stage: the first payment is the advance, the next ones the balance; staff only type the amount they received
+    kind = PaymentKind.ADVANCE if o.paid_amount == 0 else PaymentKind.BALANCE
     amount = f_dec(form, "amount")
     if amount is None or amount <= 0:
         return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.required"), "bad")
@@ -204,7 +208,7 @@ async def order_payment_record(oid: int, request: Request, db: DB, staff: User =
     await notifications.notify_order_status(db, o, o.user)
     await db.commit()
     if not getattr(pay, "stage_complete", True):
-        expected = o.advance_amount if o.status == OrderStatus.AWAITING_ADVANCE else Decimal(o.total or 0)
+        expected = Decimal(o.total or 0)
         return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.ord.payment_partial", paid=f"{o.paid_amount} {o.currency}", expected=f"{expected} {o.currency}"), "warn")
     return back(request, f"/admin/orders/{oid}#payments", t(staff.lang, "admin.ord.payment_confirmed"))
 
@@ -223,6 +227,6 @@ async def order_payment_action(oid: int, pid: int, action: str, request: Request
     await db.commit()
     target = f"/admin/orders/{oid}#payments"
     if action == "confirm" and not getattr(pay, "stage_complete", True):
-        expected = o.advance_amount if o.status == OrderStatus.AWAITING_ADVANCE else Decimal(o.total or 0)
+        expected = Decimal(o.total or 0)
         return back(request, target, t(staff.lang, "admin.ord.payment_partial", paid=f"{o.paid_amount} {o.currency}", expected=f"{expected} {o.currency}"), "warn")
     return back(request, target, t(staff.lang, "admin.ord.payment_confirmed" if action == "confirm" else "admin.ord.payment_rejected"))

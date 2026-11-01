@@ -257,19 +257,27 @@
     "pay_note": "备注",
     "pay_details": "收款信息",
     "status_hint": {
-      "awaiting_advance": "请支付预付款，并在聊天中发送凭证。",
+      "awaiting_advance": "支付金额并在聊天中发送凭证。可分期付款——全额付清后发货。",
       "awaiting_balance": "请支付尾款，并在聊天中发送凭证。未全额付款不发货。",
       "testing": "硬盘检测中，结果出来后会通知您。",
-      "shipped": "货物运输中。如有疑问，请在聊天中留言。",
+      "shipped": "货物已发出。如有问题，请在聊天中留言。",
       "packing": "您的订单正在打包。",
       "delivered": "货物已送达。如有问题请在 48 小时内联系我们。",
-      "awaiting_customer": "测试结果已出。管理员会在聊天中与您联系。"
+      "awaiting_customer": "测试结果已出。管理员会在聊天中与您联系。",
+      "paid": "已收到付款。订单正在准备发货。"
     },
     "not_found": "未找到订单",
     "ask_about": "咨询此订单",
     "open_chat": "与管理员聊天",
     "send_receipt": "在聊天中发送凭证",
-    "pay_chat_hint": "付款后请在聊天中发送凭证照片。管理员核实到账后会确认。"
+    "pay_chat_hint": "付款后请在聊天中发送凭证照片。管理员核实到账后会确认。",
+    "pay_title": "付款",
+    "due": "待付",
+    "stage": {
+      "order": "订单",
+      "pay": "付款",
+      "ship": "发货"
+    }
   },
   "auction": {
     "title": "拍卖",

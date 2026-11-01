@@ -62,8 +62,7 @@ async def test_cancel_releases_reservation_and_ship_decrements_stock(db):
     assert p.reserved == 0 and p.stock == 50
 
     o2 = await orders.create_order(db, u, [(p.id, 10)], **DELIVERY)
-    for st in (OrderStatus.AWAITING_ADVANCE, OrderStatus.ADVANCE_CONFIRMED, OrderStatus.TESTING, OrderStatus.TEST_READY, OrderStatus.AWAITING_CUSTOMER,
-               OrderStatus.AWAITING_BALANCE, OrderStatus.PAID, OrderStatus.PACKING, OrderStatus.SHIPPED):
+    for st in (OrderStatus.AWAITING_ADVANCE, OrderStatus.PAID, OrderStatus.SHIPPED):  # Order → Payment → Shipping
         await orders.transition(db, o2, st, by=admin)
     await db.commit()
     p = await db.get(Product, p.id)
@@ -81,8 +80,10 @@ async def test_transitions_follow_flow(db):
         await orders.transition(db, o, OrderStatus.SHIPPED, by=admin)
     assert e.value.code == "transition_not_allowed"
     allowed = orders.allowed_transitions(o, is_admin=True)
-    assert OrderStatus.AWAITING_ADVANCE in allowed and OrderStatus.CANCELLED in allowed and OrderStatus.DISPUTED in allowed
+    assert allowed == [OrderStatus.AWAITING_ADVANCE, OrderStatus.CANCELLED]  # the next stage, or cancel
     assert ORDER_FLOW[OrderStatus.AWAITING_ADMIN] == (OrderStatus.AWAITING_ADVANCE,)
+    assert ORDER_FLOW[OrderStatus.AWAITING_ADVANCE] == (OrderStatus.PAID,) and ORDER_FLOW[OrderStatus.PAID] == (OrderStatus.SHIPPED,)
+    assert ORDER_FLOW[OrderStatus.SHIPPED] == ()
     # customer accepts offer -> advance stage
     await orders.customer_confirm_offer(db, o, u)
     assert o.status == OrderStatus.AWAITING_ADVANCE and o.confirmed_at is not None
@@ -95,17 +96,20 @@ async def test_recorded_payments_move_status(db):
     p = await make_product(db)
     o = await orders.create_order(db, u, [(p.id, 5)], **DELIVERY)
     await orders.customer_confirm_offer(db, o, u)
-    pay = await orders.add_payment(db, o, u, PaymentKind.ADVANCE, o.advance_amount, "USDT", None, None)
-    await orders.confirm_payment(db, pay, finance, ok=True)
-    assert o.status == OrderStatus.ADVANCE_CONFIRMED and o.paid_amount == o.advance_amount
-    for st in (OrderStatus.TESTING, OrderStatus.TEST_READY, OrderStatus.AWAITING_CUSTOMER):
-        await orders.transition(db, o, st, by=finance)
-    # staff move the order on once the customer agrees in chat
-    await orders.transition(db, o, OrderStatus.AWAITING_BALANCE, by=finance)
-    assert o.status == OrderStatus.AWAITING_BALANCE
-    part = await orders.add_payment(db, o, u, PaymentKind.BALANCE, o.balance_amount / 2, "USDT", None, None)
+    # one payment stage: partial payments add up to the full total, then the order is paid
+    part = await orders.add_payment(db, o, u, PaymentKind.ADVANCE, o.total / 4, "USDT", None, None)
     await orders.confirm_payment(db, part, finance, ok=True)
-    assert o.status == OrderStatus.AWAITING_BALANCE and part.stage_complete is False
+    assert o.status == OrderStatus.AWAITING_ADVANCE and part.stage_complete is False
     rest = await orders.add_payment(db, o, u, PaymentKind.BALANCE, o.total - o.paid_amount, "USDT", None, None)
     await orders.confirm_payment(db, rest, finance, ok=True)
-    assert o.status == OrderStatus.PAID and o.paid_amount == o.total
+    assert o.status == OrderStatus.PAID and o.paid_amount == o.total and rest.stage_complete is True
+
+
+def test_three_stages():
+    """The journey shown everywhere: 1 Order, 2 Payment, 3 Shipping, 4 done; old statuses land in their stage."""
+    from app.enums import ACTIVE_ORDER_STATUSES, order_stage
+
+    assert [order_stage(s) for s in (OrderStatus.NEW, OrderStatus.AWAITING_ADMIN, OrderStatus.AWAITING_ADVANCE, OrderStatus.PAID, OrderStatus.SHIPPED)] == [1, 1, 2, 3, 4]
+    assert order_stage(OrderStatus.CANCELLED) == 0
+    assert order_stage(OrderStatus.AWAITING_BALANCE) == 2 and order_stage(OrderStatus.PACKING) == 3 and order_stage(OrderStatus.COMPLETED) == 4
+    assert OrderStatus.SHIPPED not in ACTIVE_ORDER_STATUSES and OrderStatus.PAID in ACTIVE_ORDER_STATUSES

@@ -6,7 +6,14 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.enums import ACTIVE_ORDER_STATUSES, AuctionStatus, OrderStatus, PaymentKind, PaymentStatus
+from app.enums import (
+    ACTIVE_ORDER_STATUSES,
+    PAYMENT_STAGE_STATUSES,
+    AuctionStatus,
+    OrderStatus,
+    PaymentKind,
+    PaymentStatus,
+)
 from app.models import Auction, Order, OrderItem, Payment, Product, User
 
 
@@ -28,9 +35,9 @@ async def dashboard(db: AsyncSession, days: int = 30) -> dict:
     refunds = (
         await db.execute(select(func.coalesce(func.sum(Payment.amount), 0)).where(Payment.status == PaymentStatus.CONFIRMED, Payment.kind == PaymentKind.REFUND))
     ).scalar_one()
-    awaiting_balance_sum = Decimal(0)
-    for o in (await db.execute(select(Order).where(Order.status == OrderStatus.AWAITING_BALANCE))).scalars().unique().all():
-        awaiting_balance_sum += o.balance_amount
+    awaiting_balance_sum = Decimal(0)  # money still expected on orders in the payment stage
+    for o in (await db.execute(select(Order).where(Order.status.in_(PAYMENT_STAGE_STATUSES)))).scalars().unique().all():
+        awaiting_balance_sum += max(Decimal(o.total or 0) - o.paid_amount, Decimal(0))
     disks_sold = (
         await db.execute(
             select(func.coalesce(func.sum(OrderItem.qty), 0)).join(Order).where(Order.status.in_([OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.COMPLETED]))

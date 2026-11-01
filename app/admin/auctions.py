@@ -292,6 +292,7 @@ async def auction_create_order(aid: int, request: Request, db: DB, staff: User =
     )
     o.items.append(OrderItem(product_id=a.product_id, brand=a.brand, model=a.model, capacity_gb=a.capacity_gb, condition=a.condition, qty=a.qty, unit_price=unit))
     o.history.append(OrderStatusHistory(from_status=None, to_status=OrderStatus.AWAITING_ADVANCE, by_user_id=staff.id, note=f"auction #{a.id}"))
+    o.payments = []  # a new order has none; set it so reading what is paid never needs an implicit (async-unsafe) lazy load
     db.add(o)
     await db.flush()
     a.result_order_id = o.id
