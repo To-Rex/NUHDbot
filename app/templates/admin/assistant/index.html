@@ -1,0 +1,150 @@
+{% extends "admin/base.html" %}
+{% block content_class %}asst-content{% endblock %}
+{% block page_head %}{% endblock %}
+{% block content %}
+<div class="asst" id="asst" data-chat="{{ chat.id }}" data-l-thinking="{{ t('admin.asst.thinking') }}" data-l-undo-done="{{ t('admin.asst.undo_done') }}" data-l-error="{{ t('admin.asst.error_generic') }}">
+  <aside class="asst-side">
+    <form method="post" action="/admin/assistant/new" class="asst-new"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary btn-block">{{ icon('plus', 16) }}{{ t('admin.asst.new_chat') }}</button></form>
+    <div class="asst-side-h">{{ icon('message', 14) }}<b>{{ t('admin.asst.chats') }}</b></div>
+    <ul class="asst-chats">
+      {% for c in chats %}
+      <li class="{{ 'active' if c.id == chat.id }}"><a href="/admin/assistant?chat={{ c.id }}" data-chat-link="{{ c.id }}"><span class="asst-chat-t">{{ c.title or t('admin.asst.untitled') }}</span><small>{{ c.updated_at|dt('%d.%m %H:%M') }}</small></a>
+        <form method="post" action="/admin/assistant/{{ c.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" title="{{ t('admin.asst.delete_chat') }}" aria-label="{{ t('admin.asst.delete_chat') }}" data-confirm="{{ t('admin.asst.delete_chat_q') }}" data-confirm-text="{{ c.title }}" data-confirm-danger="1">{{ icon('trash', 13) }}</button></form></li>
+      {% endfor %}
+    </ul>
+    {% include "admin/assistant/_journal.html" %}
+    <button type="button" class="asst-settings-btn" data-dlg-open="asst-settings">{{ icon('settings', 15) }}<span>{{ t('admin.asst.settings') }}</span><small class="mono">{{ model }}{% if key_set %} · ••••{{ key_tail }}{% endif %}</small></button>
+  </aside>
+
+  <section class="asst-main">
+    <div class="asst-head">
+      <button type="button" class="icon-btn asst-side-toggle" aria-label="{{ t('admin.asst.chats') }}">{{ icon('menu', 18) }}</button>
+      <div class="asst-head-ic">{{ icon('sparkle', 18) }}</div>
+      <div class="flex1 min0"><div class="asst-title" id="asst-title">{{ chat.title or t('admin.asst.title') }}</div><div class="asst-sub">{{ t('admin.asst.subtitle', n=tool_count, d=undo_days) }}</div></div>
+      <span class="chip chip-soft mono">{{ model }}</span>
+    </div>
+
+    {% if not key_set %}<div class="notice notice-warn asst-nokey">{{ icon('alert', 18) }}<span>{{ t('admin.asst.key_missing') }}</span><button type="button" class="btn btn-sm btn-primary" data-dlg-open="asst-settings">{{ icon('settings', 14) }}{{ t('admin.asst.settings') }}</button></div>{% endif %}
+
+    <div class="asst-msgs" id="asst-msgs">
+      {% if not timeline %}
+      <div class="asst-welcome">
+        <div class="asst-welcome-ic">{{ icon('sparkle', 28) }}</div>
+        <h2>{{ t('admin.asst.welcome_title') }}</h2>
+        <p>{{ t('admin.asst.welcome_text', d=undo_days) }}</p>
+        <div class="asst-ex">{% for e in examples %}<button type="button" class="asst-ex-btn" data-example>{{ e }}</button>{% endfor %}</div>
+      </div>
+      {% endif %}
+      {% for kind, it in timeline %}{% if kind == 'msg' %}{% with m=it %}{% include "admin/assistant/_msg.html" %}{% endwith %}{% else %}{% with a=it %}{% include "admin/assistant/_action.html" %}{% endwith %}{% endif %}{% endfor %}
+    </div>
+
+    <form class="asst-composer" id="asst-form">
+      <textarea class="textarea" id="asst-input" rows="1" placeholder="{{ t('admin.asst.placeholder') }}" {{ 'disabled' if not key_set }}></textarea>
+      <button class="btn btn-primary asst-send" id="asst-send" type="submit" {{ 'disabled' if not key_set }} aria-label="{{ t('admin.asst.send') }}">{{ icon('send', 16) }}<span class="spinner"></span></button>
+      <span class="hint asst-hint">{{ t('admin.asst.hint') }}</span>
+    </form>
+  </section>
+</div>
+
+<dialog class="dlg" id="asst-settings">
+  <form method="post" action="/admin/assistant/settings"><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <div class="dlg-body">
+      <div class="dlg-head"><div><h3>{{ t('admin.asst.settings') }}</h3><p>{{ t('admin.asst.settings_text') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
+      <div class="field mt"><label>{{ t('admin.asst.api_key') }}</label><input class="input mono" type="password" name="api_key" autocomplete="off" placeholder="{{ 'sk-••••••••' ~ key_tail if key_set else 'sk-…' }}"><span class="hint">{{ t('admin.asst.api_key_hint') }}{% if key_set %} · <label class="row-nw" style="display:inline-flex;gap:4px"><input type="checkbox" name="clear_key" value="1">{{ t('admin.asst.clear_key') }}</label>{% endif %}</span></div>
+      <div class="form-grid tight">
+        <div class="field"><label>{{ t('admin.asst.model') }}</label><select class="select" name="model">{% for m in models %}<option {{ 'selected' if m == model }}>{{ m }}</option>{% endfor %}</select></div>
+        <div class="field"><label>{{ t('admin.asst.base_url') }}</label><input class="input mono" name="base_url" value="{{ base_url }}"></div>
+      </div>
+    </div>
+    <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  var root=document.getElementById('asst'), msgs=document.getElementById('asst-msgs'), form=document.getElementById('asst-form'), ta=document.getElementById('asst-input'), sendBtn=document.getElementById('asst-send');
+  var csrf=document.querySelector('meta[name="csrf"]').content, chatId=root.dataset.chat, busy=false;
+
+  /* ---- a small Markdown renderer: headings, lists, tables, code, bold/italic, links ---- */
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function inline(s){
+    s=esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/__([^_]+)__/g,'<b>$1</b>');
+    s=s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+    s=s.replace(/(^|[\s(])(\/admin\/[A-Za-z0-9_\-\/?=&#.]+)/g,'$1<a href="$2">$2</a>');
+    return s;
+  }
+  function md(src){
+    var lines=String(src||'').replace(/\r/g,'').split('\n'), out=[], i=0;
+    while(i<lines.length){
+      var l=lines[i];
+      if(/^```/.test(l)){ var buf=[]; i++; while(i<lines.length&&!/^```/.test(lines[i])){ buf.push(lines[i]); i++; } i++; out.push('<pre><code>'+esc(buf.join('\n'))+'</code></pre>'); continue; }
+      var h=l.match(/^(#{1,4})\s+(.*)/); if(h){ out.push('<h'+(h[1].length+2)+'>'+inline(h[2])+'</h'+(h[1].length+2)+'>'); i++; continue; }
+      if(/^\s*[-*•]\s+/.test(l)){ var items=[]; while(i<lines.length&&/^\s*[-*•]\s+/.test(lines[i])){ items.push('<li>'+inline(lines[i].replace(/^\s*[-*•]\s+/,''))+'</li>'); i++; } out.push('<ul>'+items.join('')+'</ul>'); continue; }
+      if(/^\s*\d+[.)]\s+/.test(l)){ var oi=[]; while(i<lines.length&&/^\s*\d+[.)]\s+/.test(lines[i])){ oi.push('<li>'+inline(lines[i].replace(/^\s*\d+[.)]\s+/,''))+'</li>'); i++; } out.push('<ol>'+oi.join('')+'</ol>'); continue; }
+      if(/^\s*\|.*\|\s*$/.test(l)){ var rows=[]; while(i<lines.length&&/^\s*\|.*\|\s*$/.test(lines[i])){ rows.push(lines[i]); i++; }
+        var cells=function(r){ return r.trim().replace(/^\||\|$/g,'').split('|').map(function(c){ return c.trim(); }); };
+        var body=rows.filter(function(r){ return !/^\s*\|?\s*:?-{2,}/.test(r); });
+        var t='<div class="amsg-tbl"><table>'; body.forEach(function(r,k){ t+='<tr>'+cells(r).map(function(c){ return (k?'<td>':'<th>')+inline(c)+(k?'</td>':'</th>'); }).join('')+'</tr>'; }); out.push(t+'</table></div>'); continue; }
+      if(/^\s*(---|\*\*\*)\s*$/.test(l)){ out.push('<hr>'); i++; continue; }
+      if(!l.trim()){ i++; continue; }
+      var para=[]; while(i<lines.length&&lines[i].trim()&&!/^(```|#{1,4}\s|\s*[-*•]\s|\s*\d+[.)]\s|\s*\|)/.test(lines[i])){ para.push(inline(lines[i])); i++; }
+      if(para.length) out.push('<p>'+para.join('<br>')+'</p>');
+    }
+    return out.join('');
+  }
+  function renderAll(scope){ (scope||document).querySelectorAll('[data-md]').forEach(function(el){ if(el.dataset.done) return; el.dataset.done='1'; el.innerHTML=md(el.textContent); }); }
+  renderAll();
+  function toEnd(){ msgs.scrollTop=msgs.scrollHeight; }
+  toEnd();
+
+  /* ---- composer ---- */
+  function grow(){ ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,200)+'px'; }
+  ta.addEventListener('input',grow); grow();
+  ta.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); form.requestSubmit(); } });
+  document.querySelectorAll('[data-example]').forEach(function(b){ b.addEventListener('click',function(){ ta.value=b.textContent.trim(); grow(); ta.focus(); }); });
+  function el(html){ var t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+  function userBubble(text){ var d=el('<div class="amsg user"><div class="amsg-bubble"><div class="amsg-body"></div><time></time></div></div>'); d.querySelector('.amsg-body').innerHTML=esc(text).replace(/\n/g,'<br>'); var n=new Date(); d.querySelector('time').textContent=('0'+n.getDate()).slice(-2)+'.'+('0'+(n.getMonth()+1)).slice(-2)+' '+('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2); return d; }
+  function typing(){ return el('<div class="amsg assistant typing"><div class="amsg-av">'+document.querySelector('.asst-head-ic').innerHTML+'</div><div class="amsg-bubble"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">'+esc(root.dataset.lThinking)+'</span></div></div>'); }
+  function setBusy(v){ busy=v; sendBtn.classList.toggle('is-busy',v); sendBtn.disabled=v; ta.disabled=v; }
+  function refreshJournal(){ fetch('/admin/assistant/actions',{credentials:'same-origin'}).then(function(r){ return r.ok?r.text():''; }).then(function(h){ var j=document.getElementById('asst-journal'); if(h&&j) j.outerHTML=h; }).catch(function(){}); }
+  form.addEventListener('submit',function(e){
+    e.preventDefault(); var text=ta.value.trim(); if(!text||busy) return;
+    var w=msgs.querySelector('.asst-welcome'); if(w) w.remove();
+    ta.value=''; grow(); setBusy(true);
+    msgs.appendChild(userBubble(text)); var tp=typing(); msgs.appendChild(tp); toEnd();
+    fetch('/admin/assistant/'+chatId+'/send',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF':csrf,'HX-Request':'true'},body:JSON.stringify({text:text})})
+      .then(function(r){ if(!r.ok) throw new Error(r.status); var rd=r.body.getReader(), dec=new TextDecoder(), buf='';
+        function handle(ev){
+          if(ev.t==='status'){ tp.querySelector('.typing-text').textContent=ev.text; }
+          else if(ev.t==='action'){ msgs.insertBefore(el(ev.html),tp); }
+          else if(ev.t==='message'){ var m=el(ev.html); msgs.insertBefore(m,tp); renderAll(m); }
+          else if(ev.t==='error'){ var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-bubble"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=ev.text; msgs.insertBefore(er,tp); }
+          else if(ev.t==='title'){ document.getElementById('asst-title').textContent=ev.text; var a=document.querySelector('[data-chat-link="'+chatId+'"] .asst-chat-t'); if(a) a.textContent=ev.text; }
+          toEnd();
+        }
+        function pump(){ return rd.read().then(function(x){ if(x.done){ return; } buf+=dec.decode(x.value,{stream:true}); var parts=buf.split('\n'); buf=parts.pop(); parts.forEach(function(p){ if(p.trim()){ try{ handle(JSON.parse(p)); }catch(_){} } }); return pump(); }); }
+        return pump(); })
+      .catch(function(){ var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-bubble"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=root.dataset.lError; msgs.insertBefore(er,tp); })
+      .finally(function(){ tp.remove(); setBusy(false); ta.focus(); toEnd(); refreshJournal(); });
+  });
+
+  /* ---- undo (cards in the chat and in the journal) ---- */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-undo]'); if(!b) return; e.preventDefault(); var id=b.dataset.undo;
+    window.askConfirm({title:b.dataset.confirm,text:b.dataset.confirmText,danger:false}).then(function(r){ if(!r.ok) return; b.disabled=true;
+      fetch('/admin/assistant/actions/'+id+'/undo',{method:'POST',credentials:'same-origin',headers:{'X-CSRF':csrf,'HX-Request':'true','Accept':'application/json'}})
+        .then(function(res){ return res.json(); })
+        .then(function(d){ document.querySelectorAll('.aact[data-action-id="'+id+'"]').forEach(function(c){ var n=el(d.html); if(c.classList.contains('compact')) n.classList.add('compact'); c.replaceWith(n); }); if(window.toast) toast(d.msg,d.ok?'ok':'bad'); refreshJournal(); })
+        .catch(function(){ b.disabled=false; });
+    });
+  });
+
+  /* ---- narrow screens: the side panel slides in ---- */
+  var tg=document.querySelector('.asst-side-toggle'); if(tg) tg.addEventListener('click',function(){ root.classList.toggle('side-open'); });
+  document.addEventListener('click',function(e){ if(root.classList.contains('side-open')&&!e.target.closest('.asst-side')&&!e.target.closest('.asst-side-toggle')) root.classList.remove('side-open'); });
+  ta.focus();
+})();
+</script>
+{% endblock %}

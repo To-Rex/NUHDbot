@@ -6,6 +6,7 @@ router = APIRouter(tags=["admin"])
 from app.admin import (  # noqa: E402,F401
     ads,
     articles,
+    assistant,
     auctions,
     auth,
     banners,

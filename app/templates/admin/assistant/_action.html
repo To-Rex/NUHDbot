@@ -1,0 +1,10 @@
+{#- A change the assistant made: what, when, and Undo while the window is open. `compact` = the journal list. -#}
+<div class="aact {{ a.status }}{{ ' compact' if compact }}" data-action-id="{{ a.id }}">
+  <span class="aact-ic">{{ icon('check' if a.status == 'done' else ('refresh' if a.status == 'undone' else 'alert'), 14) }}</span>
+  <div class="aact-main">
+    <div class="aact-sum">{{ a.summary }}</div>
+    <div class="aact-meta"><span class="mono">{{ a.tool }}</span> · {{ a.created_at|dt('%d.%m %H:%M') }}{% if a.status == 'done' and a.can_undo %} · {{ t('admin.asst.undo_until', d=a.undo_until|dt('%d.%m %H:%M')) }}{% elif a.status == 'undone' %} · {{ t('admin.asst.undone') }} {{ a.undone_at|dt('%d.%m %H:%M') }}{% endif %}{% if a.note %}<div class="aact-note">{{ a.note }}</div>{% endif %}</div>
+  </div>
+  {% if a.can_undo %}<button type="button" class="btn btn-xs btn-secondary aact-undo" data-undo="{{ a.id }}" data-confirm="{{ t('admin.asst.undo_q') }}" data-confirm-text="{{ a.summary }}">{{ icon('refresh', 12) }}{{ t('admin.asst.undo') }}</button>
+  {% elif a.status == 'undone' %}<span class="chip chip-soft">{{ t('admin.asst.undone') }}</span>{% endif %}
+</div>

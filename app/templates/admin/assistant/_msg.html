@@ -1,0 +1,5 @@
+{#- One chat bubble. Assistant text is Markdown, rendered in the browser (data-md). -#}
+<div class="amsg {{ m.role }}" data-id="{{ m.id }}">
+  {% if m.role == 'assistant' %}<div class="amsg-av">{{ icon('sparkle', 14) }}</div>{% endif %}
+  <div class="amsg-bubble"><div class="amsg-body" data-md>{{ m.content }}</div><time>{{ m.created_at|dt('%d.%m %H:%M') }}</time></div>
+</div>

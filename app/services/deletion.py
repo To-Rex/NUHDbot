@@ -4,6 +4,7 @@ Each helper removes one record together with what belongs only to it (files in s
 JSON lists) and leaves the rest to the foreign keys: ON DELETE CASCADE takes child rows, SET NULL unlinks history
 (order lines and auctions keep their own brand / model / price copy). The caller writes the audit entry and commits.
 """
+import contextvars
 from decimal import Decimal
 
 from sqlalchemy import func, select, update
@@ -27,12 +28,25 @@ from app.models import (
 from app.services import auctions as auctions_svc
 from app.services import chat_events, media
 
+# When set, deletions do not remove files from storage but append their names here (the assistant keeps them until
+# its undo window closes, so a restored row finds its pictures again).
+keep_files: contextvars.ContextVar[list | None] = contextvars.ContextVar("deletion_keep_files", default=None)
+
+
+async def _rm(*names: str | None) -> None:
+    bucket = keep_files.get()
+    if bucket is None:
+        await media.delete_files(*names)
+    else:
+        bucket.extend(n for n in names if n)
+
+
 # an order in one of these no longer holds stock: it left the warehouse or the hold was already released
 _NOT_HOLDING = (OrderStatus.SHIPPED, OrderStatus.DELIVERED, OrderStatus.COMPLETED, OrderStatus.CANCELLED, OrderStatus.RETURNED)
 
 
 async def delete_product(db: AsyncSession, p: Product) -> None:
-    await media.delete_files(*[n for img in p.images for n in (img.filename, img.thumb)])
+    await _rm(*[n for img in p.images for n in (img.filename, img.thumb)])
     for model in (Banner, AdPost):  # offer banners and ad posts list products in JSON: drop the id there
         for row in (await db.execute(select(model))).scalars().unique().all():
             if p.id in (row.product_ids or []):
@@ -50,7 +64,7 @@ async def delete_order(db: AsyncSession, o: Order) -> None:
     if o.status not in _NOT_HOLDING:
         for it in o.items:
             await _release(db, it, it.qty)
-    await media.delete_files(*[p.proof_filename for p in o.payments])
+    await _rm(*[p.proof_filename for p in o.payments])
     await db.delete(o)
     await db.flush()
 
@@ -67,7 +81,7 @@ async def delete_order_item(db: AsyncSession, o: Order, it: OrderItem) -> None:
 
 
 async def delete_payment(db: AsyncSession, o: Order, pay: Payment) -> None:
-    await media.delete_files(pay.proof_filename)
+    await _rm(pay.proof_filename)
     o.payments.remove(pay)
     await db.delete(pay)
     await db.flush()
@@ -96,14 +110,14 @@ async def delete_bid(db: AsyncSession, a: Auction, bid: Bid) -> None:
 
 
 async def delete_auction(db: AsyncSession, a: Auction) -> None:
-    await media.delete_files(*[n for img in a.images for n in (img.filename, img.thumb)])
-    await media.delete_files(*(await db.execute(select(AuctionDeposit.proof_filename).where(AuctionDeposit.auction_id == a.id))).scalars().all())
+    await _rm(*[n for img in a.images for n in (img.filename, img.thumb)])
+    await _rm(*(await db.execute(select(AuctionDeposit.proof_filename).where(AuctionDeposit.auction_id == a.id))).scalars().all())
     await db.delete(a)
     await db.flush()
 
 
 async def delete_thread(db: AsyncSession, th: SupportThread) -> None:
-    await media.delete_files(*[m.attachment for m in th.messages])
+    await _rm(*[m.attachment for m in th.messages])
     chat_events.queue(db, {"type": "thread", "thread_id": th.id})
     await db.delete(th)
     await db.flush()
@@ -116,7 +130,7 @@ async def delete_message(db: AsyncSession, th: SupportThread, m: SupportMessage)
         th.unread_for_customer = max(th.unread_for_customer - 1, 0)
     if not m.from_staff and m.id in same_side[len(same_side) - th.unread_for_staff:]:
         th.unread_for_staff = max(th.unread_for_staff - 1, 0)
-    await media.delete_files(m.attachment)
+    await _rm(m.attachment)
     th.messages.remove(m)
     await db.delete(m)
     th.last_message_at = max((x.created_at for x in th.messages), default=None)
@@ -130,10 +144,10 @@ async def delete_customer(db: AsyncSession, u: User) -> list[Auction]:
     for o in (await db.execute(select(Order).where(Order.user_id == u.id))).scalars().unique().all():
         await delete_order(db, o)
     for pay in (await db.execute(select(Payment).where(Payment.user_id == u.id))).scalars().all():
-        await media.delete_files(pay.proof_filename)
+        await _rm(pay.proof_filename)
         await db.delete(pay)
     for dep in (await db.execute(select(AuctionDeposit).where(AuctionDeposit.user_id == u.id))).scalars().all():
-        await media.delete_files(dep.proof_filename)
+        await _rm(dep.proof_filename)
         await db.delete(dep)
     touched = list((await db.execute(select(Auction).where(Auction.id.in_(select(Bid.auction_id).where(Bid.user_id == u.id))))).scalars().unique().all())
     for bid in (await db.execute(select(Bid).where(Bid.user_id == u.id))).scalars().all():
@@ -146,3 +160,37 @@ async def delete_customer(db: AsyncSession, u: User) -> list[Auction]:
     await db.delete(u)
     await db.flush()
     return touched
+
+
+async def delete_any(db: AsyncSession, obj) -> list[Auction]:
+    """Delete a record of any kind the right way (used when the assistant undoes a creation). Returns auctions whose
+    bids changed, to announce after the commit."""
+    if isinstance(obj, Product):
+        await delete_product(db, obj)
+    elif isinstance(obj, Order):
+        await delete_order(db, obj)
+    elif isinstance(obj, Auction):
+        await delete_auction(db, obj)
+    elif isinstance(obj, SupportThread):
+        await delete_thread(db, obj)
+    elif isinstance(obj, User):
+        return await delete_customer(db, obj)
+    elif isinstance(obj, Bid):
+        a = await db.get(Auction, obj.auction_id)
+        if a is not None:
+            await delete_bid(db, a, obj)
+            return [a]
+        await db.delete(obj)
+        await db.flush()
+    elif isinstance(obj, Payment):
+        await media.delete_files(obj.proof_filename)
+        await db.delete(obj)
+        await db.flush()
+    elif isinstance(obj, Banner):
+        await media.delete_files(obj.image, obj.image_thumb)
+        await db.delete(obj)
+        await db.flush()
+    else:
+        await db.delete(obj)
+        await db.flush()
+    return []

@@ -36,7 +36,7 @@ ADS_ROLES = {Role.ADMIN, Role.MARKETING}
 FINANCE_VIEW = {Role.ADMIN, Role.FINANCE}
 
 NAV_GROUPS = [
-    ("manage", [("dashboard", "/admin", "home", None)]),
+    ("manage", [("dashboard", "/admin", "home", None), ("assistant", "/admin/assistant", "sparkle", ADMIN)]),
     ("sales", [
         ("orders", "/admin/orders", "package", ORDER_ROLES),
         ("auctions", "/admin/auctions", "gavel", AUCTION_ROLES),

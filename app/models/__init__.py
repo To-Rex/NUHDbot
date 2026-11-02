@@ -1,3 +1,4 @@
+from app.models.assistant import AssistantAction, AssistantChat, AssistantMessage
 from app.models.auction import Auction, AuctionDeposit, AuctionImage, Bid
 from app.models.banner import Banner
 from app.models.base import Base
@@ -13,6 +14,9 @@ from app.models.user import User
 
 __all__ = [
     "Base",
+    "AssistantAction",
+    "AssistantChat",
+    "AssistantMessage",
     "Banner",
     "Brand",
     "BrandModel",

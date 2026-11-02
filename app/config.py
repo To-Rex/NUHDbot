@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     auction_extension_seconds: int = 120
     auction_extension_window_seconds: int = 120
 
+    deepseek_api_key: str = ""  # admin assistant; the key saved on the Assistant page wins over this
     run_migrations: bool = True  # apply alembic migrations automatically at startup
 
     @model_validator(mode="before")

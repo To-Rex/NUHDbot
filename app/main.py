@@ -32,6 +32,19 @@ async def _auction_ticker() -> None:
         await asyncio.sleep(2)
 
 
+async def _assistant_sweeper() -> None:
+    """Once an hour: files the assistant's deletions freed and whose 3-day undo window has closed."""
+    from app.services.assistant.engine import purge_files
+
+    while True:
+        try:
+            async with session_scope() as db:
+                await purge_files(db)
+        except Exception:  # noqa: BLE001
+            log.exception("assistant sweep failed")
+        await asyncio.sleep(3600)
+
+
 def _run_migrations() -> None:
     from alembic.config import Config
 
@@ -65,7 +78,7 @@ async def lifespan(app: FastAPI):
         await seed_reference()
     except Exception:  # noqa: BLE001
         log.exception("reference seed failed")
-    tasks = [asyncio.create_task(_auction_ticker())]
+    tasks = [asyncio.create_task(_auction_ticker()), asyncio.create_task(_assistant_sweeper())]
     bot_task = None
     if settings.bot_token and settings.bot_mode != "off":
         from app.bot.runner import start_bot

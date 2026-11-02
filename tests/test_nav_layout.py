@@ -18,7 +18,7 @@ def test_default_order():
 def test_saved_order_and_new_items():
     layout = {"groups": {"manage": ["audit", "dashboard"], "sales": ["support", "orders"], "people": []}}
     got = keys(User(role=Role.ADMIN, nav_layout=layout))
-    assert got["manage"] == ["audit", "dashboard"]
+    assert got["manage"] == ["audit", "dashboard", "assistant"]
     # items the layout does not mention (e.g. added in a later release) go back to their usual group
     assert got["sales"] == ["support", "orders", "auctions"]
     assert got["people"] == ["customers", "staff"]
