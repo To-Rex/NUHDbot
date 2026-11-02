@@ -1,5 +1,8 @@
-{#- One chat bubble. Assistant text is Markdown, rendered in the browser (data-md). -#}
+{#- One turn of the conversation. Assistant text is Markdown rendered in the browser (data-md); a hover toolbar copies it. -#}
 <div class="amsg {{ m.role }}" data-id="{{ m.id }}">
-  {% if m.role == 'assistant' %}<div class="amsg-av">{{ icon('sparkle', 14) }}</div>{% endif %}
-  <div class="amsg-bubble"><div class="amsg-body" data-md>{{ m.content }}</div><time>{{ m.created_at|dt('%d.%m %H:%M') }}</time></div>
+  {% if m.role == 'assistant' %}<div class="amsg-av">{{ icon('sparkle', 15) }}</div>{% endif %}
+  <div class="amsg-wrap">
+    <div class="amsg-body" data-md>{{ m.content }}</div>
+    <div class="amsg-foot"><time>{{ m.created_at|dt('%d.%m %H:%M') }}</time>{% if m.role == 'assistant' %}{% if m.model %}<span class="amsg-model mono">{{ m.model }}</span>{% endif %}<button type="button" class="amsg-copy" data-copy-msg title="{{ t('admin.asst.copy') }}" aria-label="{{ t('admin.asst.copy') }}">{{ icon('copy', 13) }}</button>{% endif %}</div>
+  </div>
 </div>

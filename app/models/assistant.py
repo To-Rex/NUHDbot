@@ -20,6 +20,8 @@ class AssistantChat(Base, TimestampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     staff_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     title: Mapped[str] = mapped_column(String(120), default="")
+    provider: Mapped[str] = mapped_column(String(32), default="deepseek")
+    model: Mapped[str] = mapped_column(String(120), default="deepseek-chat")
 
     messages: Mapped[list["AssistantMessage"]] = relationship(back_populates="chat", cascade="all, delete-orphan", order_by="AssistantMessage.id", lazy="selectin")
 
@@ -36,6 +38,7 @@ class AssistantMessage(Base):
     tool_calls: Mapped[list | None] = mapped_column(JSON)  # assistant: [{id, type, function: {name, arguments}}]
     tool_call_id: Mapped[str | None] = mapped_column(String(64))  # tool: which call this answers
     name: Mapped[str | None] = mapped_column(String(64))  # tool: the tool's name
+    model: Mapped[str | None] = mapped_column(String(120))  # assistant: which model answered
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     chat: Mapped[AssistantChat] = relationship(back_populates="messages")

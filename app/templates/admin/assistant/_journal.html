@@ -1,6 +1,6 @@
 {#- The last UNDO_DAYS of assistant changes, every chat, newest first (refreshed after each turn and each undo). -#}
-<div id="asst-journal" class="asst-journal">
-  <div class="asst-side-h">{{ icon('list', 14) }}<b>{{ t('admin.asst.journal') }}</b><span class="hint">{{ t('admin.asst.journal_hint', n=undo_days) }}</span></div>
+<div id="asst-journal" class="asst-journal" data-undoable="{{ undoable }}">
+  <div class="asst-drawer-h"><div><b>{{ t('admin.asst.journal') }}</b><small>{{ t('admin.asst.journal_text', n=undo_days) }}</small></div><button type="button" class="icon-btn" data-drawer-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
   {% if journal %}<div class="asst-journal-list">{% for a in journal %}{% with compact=True %}{% include "admin/assistant/_action.html" %}{% endwith %}{% endfor %}</div>
-  {% else %}<div class="asst-journal-empty">{{ t('admin.asst.empty_journal') }}</div>{% endif %}
+  {% else %}<div class="asst-journal-empty">{{ icon('check-circle', 24) }}<span>{{ t('admin.asst.empty_journal') }}</span></div>{% endif %}
 </div>

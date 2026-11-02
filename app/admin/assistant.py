@@ -14,12 +14,13 @@ from app.models import AssistantAction, AssistantChat, User
 from app.models.assistant import UNDO_DAYS
 from app.models.base import utcnow
 from app.services import audit
-from app.services.assistant import engine
+from app.services.assistant import engine, providers
 from app.services.assistant.tools import TOOLS
-from app.services.settings_service import get_setting, set_setting
+from app.services.settings_service import set_setting
 
-MODELS = ("deepseek-chat", "deepseek-reasoner")
-EXAMPLES = 4
+EXAMPLES = 6
+ERROR_KEYS = {"no_api_key": "error_no_key", "bad_api_key": "error_bad_key", "no_balance": "error_balance", "rate_limited": "error_rate", "too_many_steps": "error_steps",
+              "empty_response": "error_generic", "no_model": "error_no_model"}
 
 
 def _html(request: Request, staff: User, name: str, ctx: dict) -> str:
@@ -27,12 +28,12 @@ def _html(request: Request, staff: User, name: str, ctx: dict) -> str:
 
 
 async def _chats(db, staff: User) -> list[AssistantChat]:
-    return list((await db.execute(select(AssistantChat).where(AssistantChat.staff_id == staff.id).order_by(AssistantChat.updated_at.desc()).limit(60))).scalars().unique().all())
+    return list((await db.execute(select(AssistantChat).where(AssistantChat.staff_id == staff.id).order_by(AssistantChat.updated_at.desc()).limit(80))).scalars().unique().all())
 
 
 async def _journal(db) -> list[AssistantAction]:
     since = utcnow() - timedelta(days=UNDO_DAYS)
-    return list((await db.execute(select(AssistantAction).where(AssistantAction.created_at >= since).order_by(AssistantAction.id.desc()).limit(40))).scalars().all())
+    return list((await db.execute(select(AssistantAction).where(AssistantAction.created_at >= since).order_by(AssistantAction.id.desc()).limit(60))).scalars().all())
 
 
 def _timeline(chat: AssistantChat, actions: list[AssistantAction]) -> list[tuple[str, object]]:
@@ -42,14 +43,39 @@ def _timeline(chat: AssistantChat, actions: list[AssistantAction]) -> list[tuple
     return sorted(items, key=lambda x: (x[1].created_at, 0 if x[0] == "action" else 1))
 
 
-async def _ctx(db, request: Request, staff: User, chat: AssistantChat | None) -> dict:
-    key, model, base = await engine.config(db)
-    chat_actions = list((await db.execute(select(AssistantAction).where(AssistantAction.chat_id == chat.id).order_by(AssistantAction.id))).scalars().all()) if chat else []
+def _groups(chats: list[AssistantChat], lang: str) -> list[tuple[str, list[AssistantChat]]]:
+    """Today / yesterday / last 7 days / older, like the chat apps do."""
+    now = utcnow()
+    buckets: dict[str, list[AssistantChat]] = {}
+    for c in chats:
+        age = (now - c.updated_at).days if c.updated_at else 99
+        key = "today" if age < 1 and c.updated_at.date() == now.date() else ("yesterday" if age < 2 else ("week" if age < 7 else "older"))
+        buckets.setdefault(key, []).append(c)
+    return [(t(lang, f"admin.asst.g_{k}"), buckets[k]) for k in ("today", "yesterday", "week", "older") if buckets.get(k)]
+
+
+async def _ctx(db, request: Request, staff: User, chat: AssistantChat) -> dict:
+    cfgs = await providers.load(db)
+    if chat.provider not in cfgs:
+        chat.provider, chat.model = await providers.default_model(db, cfgs)
+    cfg = cfgs[chat.provider]
+    chat_actions = list((await db.execute(select(AssistantAction).where(AssistantAction.chat_id == chat.id).order_by(AssistantAction.id))).scalars().all())
+    journal = await _journal(db)
+    chats = await _chats(db, staff)
+    default = await providers.default_model(db, cfgs)
     return {
-        "page_title": t(staff.lang, "admin.asst.title"), "chats": await _chats(db, staff), "chat": chat, "timeline": _timeline(chat, chat_actions) if chat else [],
-        "journal": await _journal(db), "key_set": bool(key), "key_tail": key[-4:] if key else "", "model": model, "base_url": base, "models": MODELS, "undo_days": UNDO_DAYS,
-        "tool_count": len(TOOLS), "examples": [t(staff.lang, f"admin.asst.ex{i}") for i in range(1, EXAMPLES + 1)],
+        "page_title": t(staff.lang, "admin.asst.title"), "chats": chats, "groups": _groups(chats, staff.lang), "chat": chat, "timeline": _timeline(chat, chat_actions),
+        "journal": journal, "undoable": sum(1 for a in journal if a.can_undo), "undo_days": UNDO_DAYS, "tool_count": len(TOOLS),
+        "providers": list(providers.PROVIDERS.values()), "cfgs": cfgs, "ready": [c.provider.id for c in cfgs.values() if c.ready], "cfg": cfg, "key_set": cfg.ready,
+        "default_model": f"{default[0]}:{default[1]}", "examples": [t(staff.lang, f"admin.asst.ex{i}") for i in range(1, EXAMPLES + 1)], "first_name": staff.first_name or staff.full_name,
     }
+
+
+async def _own_chat(db, staff: User, cid: int) -> AssistantChat:
+    chat = await db.get(AssistantChat, cid)
+    if chat is None or chat.staff_id != staff.id:
+        raise HTTPException(404)
+    return chat
 
 
 @router.get("/assistant")
@@ -58,11 +84,15 @@ async def assistant_page(request: Request, db: DB, staff: User = Depends(staff_d
     cid = request.query_params.get("chat")
     chat = next((c for c in chats if str(c.id) == cid), None) if cid else (chats[0] if chats else None)
     if chat is None:
-        chat = AssistantChat(staff_id=staff.id, title="")
+        cfgs = await providers.load(db)
+        pid, model = await providers.default_model(db, cfgs)
+        chat = AssistantChat(staff_id=staff.id, title="", provider=pid, model=model)
         db.add(chat)
         await db.commit()
         await db.refresh(chat, ["messages"])
-    return render(request, staff, "admin/assistant/index.html", await _ctx(db, request, staff, chat))
+    ctx = await _ctx(db, request, staff, chat)
+    await db.commit()
+    return render(request, staff, "admin/assistant/index.html", ctx)
 
 
 @router.post("/assistant/new")
@@ -70,7 +100,9 @@ async def assistant_new(request: Request, db: DB, staff: User = Depends(staff_de
     chats = await _chats(db, staff)
     empty = next((c for c in chats if not c.messages), None)  # an unused chat is reused, not stacked
     if empty is None:
-        empty = AssistantChat(staff_id=staff.id, title="")
+        cfgs = await providers.load(db)
+        pid, model = await providers.default_model(db, cfgs)
+        empty = AssistantChat(staff_id=staff.id, title="", provider=pid, model=model)
         db.add(empty)
         await db.commit()
     return back(request, f"/admin/assistant?chat={empty.id}")
@@ -78,17 +110,56 @@ async def assistant_new(request: Request, db: DB, staff: User = Depends(staff_de
 
 @router.post("/assistant/{cid}/delete")
 async def assistant_delete(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
-    chat = await db.get(AssistantChat, cid)
-    if chat is None or chat.staff_id != staff.id:
-        raise HTTPException(404)
+    chat = await _own_chat(db, staff, cid)
     await db.delete(chat)  # its actions stay (chat_id → NULL) so they can still be undone from the journal
     await db.commit()
     return back(request, "/admin/assistant", t(staff.lang, "admin.flash.deleted"))
 
 
+@router.post("/assistant/{cid}/rename")
+async def assistant_rename(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    chat = await _own_chat(db, staff, cid)
+    data = await request.json()
+    chat.title = str(data.get("title") or "").strip()[:120]
+    await db.commit()
+    return JSONResponse({"ok": True, "title": chat.title})
+
+
+@router.post("/assistant/{cid}/model")
+async def assistant_model(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Switch the chat to another provider / model; `default` also makes it the default for new chats."""
+    chat = await _own_chat(db, staff, cid)
+    data = await request.json()
+    pid, model = str(data.get("provider") or ""), str(data.get("model") or "").strip()[:120]
+    if pid not in providers.PROVIDERS or not model:
+        raise HTTPException(400)
+    chat.provider, chat.model = pid, model
+    if data.get("default"):
+        await set_setting(db, "assistant_default_model", f"{pid}:{model}")
+    await db.commit()
+    return JSONResponse({"ok": True, "provider": pid, "model": model, "provider_name": providers.PROVIDERS[pid].name})
+
+
+@router.get("/assistant/models")
+async def assistant_models(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Model ids per configured provider (live lists, cached), for the picker."""
+    cfgs = await providers.load(db)
+    force = request.query_params.get("refresh") == "1"
+    only = request.query_params.get("provider")
+    out = []
+    for pid, cfg in cfgs.items():
+        if only and pid != only:
+            continue
+        if not cfg.ready:
+            continue
+        ids, err = await providers.list_models(cfg, force=force)
+        out.append({"id": pid, "name": cfg.provider.name, "models": ids, "error": err})
+    return JSONResponse({"providers": out})
+
+
 @router.post("/assistant/{cid}/send")
 async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
-    """NDJSON stream of the turn: status lines while tools run, action cards as they happen, the answer at the end."""
+    """NDJSON stream of the turn: status lines while tools run, action cards as they happen, the answer as it streams."""
     try:
         payload = await request.json()
     except ValueError:
@@ -96,9 +167,7 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
     text = str(payload.get("text") or "").strip()
     if not text:
         raise HTTPException(400)
-    chat = await db.get(AssistantChat, cid)
-    if chat is None or chat.staff_id != staff.id:
-        raise HTTPException(404)
+    await _own_chat(db, staff, cid)
     lang = staff.lang
 
     async def gen():
@@ -112,6 +181,8 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
                 async for ev in engine.run_turn(s, ch, st, text):
                     if ev["type"] == "status":
                         yield line({"t": "status", "text": t(lang, "admin.asst.running", tool=ev["tool"] or "")})
+                    elif ev["type"] == "delta":
+                        yield line({"t": "delta", "text": ev["text"]})
                     elif ev["type"] == "action":
                         yield line({"t": "action", "id": ev["action"].id, "html": _html(request, staff, "admin/assistant/_action.html", {"a": ev["action"]})})
                     elif ev["type"] == "message":
@@ -120,9 +191,7 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
                         yield line({"t": "title", "text": ev["text"]})
                     elif ev["type"] == "error":
                         code = ev["code"]
-                        key = {"no_api_key": "error_no_key", "bad_api_key": "error_bad_key", "no_balance": "error_balance", "rate_limited": "error_rate", "too_many_steps": "error_steps", "empty_response": "error_generic"}.get(code)
-                        if key is None and code.startswith("network"):
-                            key = "error_network"
+                        key = ERROR_KEYS.get(code) or ("error_network" if code.startswith("network") else None)
                         yield line({"t": "error", "code": code, "text": t(lang, f"admin.asst.{key}") if key else t(lang, "admin.asst.error_generic") + f" ({code})"})
         except Exception as e:  # noqa: BLE001
             engine.log.exception("assistant turn failed")
@@ -134,7 +203,8 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
 
 @router.get("/assistant/actions")
 async def assistant_actions(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
-    return render(request, staff, "admin/assistant/_journal.html", {"journal": await _journal(db), "undo_days": UNDO_DAYS})
+    journal = await _journal(db)
+    return render(request, staff, "admin/assistant/_journal.html", {"journal": journal, "undo_days": UNDO_DAYS, "undoable": sum(1 for a in journal if a.can_undo)})
 
 
 @router.post("/assistant/actions/{aid}/undo")
@@ -151,17 +221,44 @@ async def assistant_undo(aid: int, request: Request, db: DB, staff: User = Depen
 
 @router.post("/assistant/settings")
 async def assistant_settings(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Keys per provider (empty field = keep, tick = remove), custom base URL, and the default model."""
     form = await request.form()
-    key = f_str(form, "api_key", maxlen=200)
-    model = f_str(form, "model", maxlen=60) or "deepseek-chat"
-    base = f_str(form, "base_url", maxlen=200) or "https://api.deepseek.com"
-    if key:  # empty = keep the saved one
-        await set_setting(db, "assistant_api_key", key)
-    if form.get("clear_key"):
-        await set_setting(db, "assistant_api_key", "")
-    await set_setting(db, "assistant_model", model if model in MODELS or model else "deepseek-chat")
-    await set_setting(db, "assistant_base_url", base.rstrip("/"))
-    await audit.log(db, staff.id, "assistant.settings", "setting", "assistant", None, {"model": model, "base_url": base, "key": "changed" if key or form.get("clear_key") else "kept"})
+    cfgs = await providers.load(db)
+    saved = {}
+    changed = []
+    for pid, cfg in cfgs.items():
+        key = f_str(form, f"key_{pid}", maxlen=300)
+        if form.get(f"clear_{pid}"):
+            key, changed = "", changed + [pid]
+        elif key:
+            changed.append(pid)
+        else:
+            key = cfg.key
+        base = f_str(form, f"base_{pid}", maxlen=300).rstrip("/") if pid == "custom" else ""
+        if key or base:
+            saved[pid] = {"key": key, "base_url": base}
+    await providers.save(db, saved)
+    default = f_str(form, "default_model", maxlen=160)
+    if ":" in default:
+        await set_setting(db, "assistant_default_model", default)
+    await audit.log(db, staff.id, "assistant.settings", "setting", "assistant", None, {"keys_changed": changed, "default_model": default})
     await db.commit()
-    await get_setting(db, "assistant_model")
     return back(request, "/admin/assistant", t(staff.lang, "admin.flash.saved"))
+
+
+@router.post("/assistant/settings/test")
+async def assistant_settings_test(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Try a key before saving it: lists the provider's models with it."""
+    data = await request.json()
+    pid = str(data.get("provider") or "")
+    if pid not in providers.PROVIDERS:
+        raise HTTPException(400)
+    cfgs = await providers.load(db)
+    cfg = cfgs[pid]
+    key = str(data.get("key") or "").strip() or cfg.key
+    base = (str(data.get("base_url") or "").strip() or cfg.base_url).rstrip("/")
+    test = providers.ProviderConfig(cfg.provider, key, base)
+    if not test.ready:
+        return JSONResponse({"ok": False, "error": t(staff.lang, "admin.asst.error_no_key")})
+    ids, err = await providers.list_models(test, force=True)
+    return JSONResponse({"ok": err is None, "models": ids[:200], "count": len(ids), "error": err})

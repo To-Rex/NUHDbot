@@ -2,59 +2,113 @@
 {% block content_class %}asst-content{% endblock %}
 {% block page_head %}{% endblock %}
 {% block content %}
-<div class="asst" id="asst" data-chat="{{ chat.id }}" data-l-thinking="{{ t('admin.asst.thinking') }}" data-l-undo-done="{{ t('admin.asst.undo_done') }}" data-l-error="{{ t('admin.asst.error_generic') }}">
+<div class="asst" id="asst" data-chat="{{ chat.id }}" data-provider="{{ chat.provider }}" data-model="{{ chat.model }}"
+     data-l-thinking="{{ t('admin.asst.thinking') }}" data-l-error="{{ t('admin.asst.error_generic') }}" data-l-copied="{{ t('admin.ui.copied') }}" data-l-stopped="{{ t('admin.asst.stopped') }}"
+     data-l-no-models="{{ t('admin.asst.no_models') }}" data-l-custom="{{ t('admin.asst.custom_model') }}" data-l-default="{{ t('admin.asst.make_default') }}" data-l-testing="{{ t('admin.asst.testing') }}" data-l-test-ok="{{ t('admin.asst.test_ok') }}">
+
+  {# ---------- left: chats ---------- #}
   <aside class="asst-side">
-    <form method="post" action="/admin/assistant/new" class="asst-new"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary btn-block">{{ icon('plus', 16) }}{{ t('admin.asst.new_chat') }}</button></form>
-    <div class="asst-side-h">{{ icon('message', 14) }}<b>{{ t('admin.asst.chats') }}</b></div>
-    <ul class="asst-chats">
-      {% for c in chats %}
-      <li class="{{ 'active' if c.id == chat.id }}"><a href="/admin/assistant?chat={{ c.id }}" data-chat-link="{{ c.id }}"><span class="asst-chat-t">{{ c.title or t('admin.asst.untitled') }}</span><small>{{ c.updated_at|dt('%d.%m %H:%M') }}</small></a>
-        <form method="post" action="/admin/assistant/{{ c.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" title="{{ t('admin.asst.delete_chat') }}" aria-label="{{ t('admin.asst.delete_chat') }}" data-confirm="{{ t('admin.asst.delete_chat_q') }}" data-confirm-text="{{ c.title }}" data-confirm-danger="1">{{ icon('trash', 13) }}</button></form></li>
+    <div class="asst-side-top">
+      <form method="post" action="/admin/assistant/new"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="asst-newbtn">{{ icon('edit', 16) }}<span>{{ t('admin.asst.new_chat') }}</span><kbd>⌘K</kbd></button></form>
+      <label class="asst-search">{{ icon('search', 15) }}<input type="search" id="asst-chat-search" placeholder="{{ t('admin.asst.search_chats') }}" autocomplete="off"></label>
+    </div>
+    <div class="asst-chatlist" id="asst-chatlist">
+      {% for label, items in groups %}
+      <div class="asst-group" data-group><div class="asst-group-h">{{ label }}</div>
+        {% for c in items %}
+        <div class="asst-chat{{ ' active' if c.id == chat.id }}" data-chat-row data-title="{{ (c.title or t('admin.asst.untitled'))|lower }}">
+          <a href="/admin/assistant?chat={{ c.id }}" data-chat-link="{{ c.id }}"><span class="asst-chat-t">{{ c.title or t('admin.asst.untitled') }}</span></a>
+          <form method="post" action="/admin/assistant/{{ c.id }}/delete"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="asst-chat-del" title="{{ t('admin.asst.delete_chat') }}" aria-label="{{ t('admin.asst.delete_chat') }}" data-confirm="{{ t('admin.asst.delete_chat_q') }}" data-confirm-text="{{ c.title }}" data-confirm-danger="1">{{ icon('trash', 13) }}</button></form>
+        </div>
+        {% endfor %}
+      </div>
       {% endfor %}
-    </ul>
-    {% include "admin/assistant/_journal.html" %}
-    <button type="button" class="asst-settings-btn" data-dlg-open="asst-settings">{{ icon('settings', 15) }}<span>{{ t('admin.asst.settings') }}</span><small class="mono">{{ model }}{% if key_set %} · ••••{{ key_tail }}{% endif %}</small></button>
+      <div class="asst-chat-none" hidden>{{ t('admin.nothing_found') }}</div>
+    </div>
+    <div class="asst-side-foot">
+      <button type="button" class="asst-footbtn" data-dlg-open="asst-settings">{{ icon('settings', 16) }}<span>{{ t('admin.asst.settings') }}</span><small>{{ ready|length }}/{{ providers|length - 1 }}</small></button>
+    </div>
   </aside>
 
+  {# ---------- middle: the conversation ---------- #}
   <section class="asst-main">
-    <div class="asst-head">
+    <header class="asst-top">
       <button type="button" class="icon-btn asst-side-toggle" aria-label="{{ t('admin.asst.chats') }}">{{ icon('menu', 18) }}</button>
-      <div class="asst-head-ic">{{ icon('sparkle', 18) }}</div>
-      <div class="flex1 min0"><div class="asst-title" id="asst-title">{{ chat.title or t('admin.asst.title') }}</div><div class="asst-sub">{{ t('admin.asst.subtitle', n=tool_count, d=undo_days) }}</div></div>
-      <span class="chip chip-soft mono">{{ model }}</span>
-    </div>
-
-    {% if not key_set %}<div class="notice notice-warn asst-nokey">{{ icon('alert', 18) }}<span>{{ t('admin.asst.key_missing') }}</span><button type="button" class="btn btn-sm btn-primary" data-dlg-open="asst-settings">{{ icon('settings', 14) }}{{ t('admin.asst.settings') }}</button></div>{% endif %}
-
-    <div class="asst-msgs" id="asst-msgs">
-      {% if not timeline %}
-      <div class="asst-welcome">
-        <div class="asst-welcome-ic">{{ icon('sparkle', 28) }}</div>
-        <h2>{{ t('admin.asst.welcome_title') }}</h2>
-        <p>{{ t('admin.asst.welcome_text', d=undo_days) }}</p>
-        <div class="asst-ex">{% for e in examples %}<button type="button" class="asst-ex-btn" data-example>{{ e }}</button>{% endfor %}</div>
+      <div class="asst-picker">
+        <button type="button" class="asst-model-btn" id="asst-model-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span class="asst-model-dot" data-p="{{ chat.provider }}"></span><span class="asst-model-name" id="asst-model-name">{{ chat.model }}</span><small id="asst-provider-name">{{ cfg.provider.name }}</small>{{ icon('chevron-down', 14) }}
+        </button>
+        <div class="asst-pop" id="asst-model-pop" hidden>
+          <label class="asst-pop-search">{{ icon('search', 14) }}<input type="search" id="asst-model-search" placeholder="{{ t('admin.asst.search_models') }}" autocomplete="off"></label>
+          <div class="asst-pop-list" id="asst-model-list"><div class="asst-pop-loading"><span class="spinner"></span></div></div>
+          <div class="asst-pop-foot">
+            <label class="asst-pop-custom">{{ icon('edit', 13) }}<input id="asst-custom-model" placeholder="{{ t('admin.asst.custom_model') }}" autocomplete="off"></label>
+            <button type="button" class="btn btn-xs btn-secondary" id="asst-models-refresh" title="{{ t('admin.asst.refresh_models') }}">{{ icon('refresh', 13) }}</button>
+            <button type="button" class="btn btn-xs btn-ghost" data-dlg-open="asst-settings">{{ icon('settings', 13) }}{{ t('admin.asst.add_key') }}</button>
+          </div>
+        </div>
       </div>
-      {% endif %}
-      {% for kind, it in timeline %}{% if kind == 'msg' %}{% with m=it %}{% include "admin/assistant/_msg.html" %}{% endwith %}{% else %}{% with a=it %}{% include "admin/assistant/_action.html" %}{% endwith %}{% endif %}{% endfor %}
+      <div class="flex1"></div>
+      <button type="button" class="asst-topbtn" id="asst-rename" title="{{ t('admin.asst.rename') }}">{{ icon('edit', 15) }}</button>
+      <button type="button" class="asst-topbtn asst-journal-btn" id="asst-journal-btn" title="{{ t('admin.asst.journal') }}">{{ icon('list', 16) }}<span>{{ t('admin.asst.journal') }}</span><b class="asst-badge" data-undo-badge {{ 'hidden' if not undoable }}>{{ undoable }}</b></button>
+    </header>
+
+    {% if not key_set %}<div class="asst-nokey">{{ icon('alert', 18) }}<span>{{ t('admin.asst.key_missing') }}</span><button type="button" class="btn btn-sm btn-primary" data-dlg-open="asst-settings">{{ icon('settings', 14) }}{{ t('admin.asst.settings') }}</button></div>{% endif %}
+
+    <div class="asst-scroll" id="asst-scroll">
+      <div class="asst-col" id="asst-msgs">
+        {% if not timeline %}
+        <div class="asst-welcome">
+          <div class="asst-welcome-ic">{{ icon('sparkle', 26) }}</div>
+          <h2>{{ t('admin.asst.hello', name=first_name) }}</h2>
+          <p>{{ t('admin.asst.welcome_text', d=undo_days) }}</p>
+          <div class="asst-ex">{% for e in examples %}<button type="button" class="asst-ex-btn" data-example>{{ icon(['drive','plus','image','package','users','chart'][loop.index0], 16) }}<span>{{ e }}</span></button>{% endfor %}</div>
+        </div>
+        {% endif %}
+        {% for kind, it in timeline %}{% if kind == 'msg' %}{% with m=it %}{% include "admin/assistant/_msg.html" %}{% endwith %}{% else %}{% with a=it %}{% include "admin/assistant/_action.html" %}{% endwith %}{% endif %}{% endfor %}
+      </div>
     </div>
 
-    <form class="asst-composer" id="asst-form">
-      <textarea class="textarea" id="asst-input" rows="1" placeholder="{{ t('admin.asst.placeholder') }}" {{ 'disabled' if not key_set }}></textarea>
-      <button class="btn btn-primary asst-send" id="asst-send" type="submit" {{ 'disabled' if not key_set }} aria-label="{{ t('admin.asst.send') }}">{{ icon('send', 16) }}<span class="spinner"></span></button>
-      <span class="hint asst-hint">{{ t('admin.asst.hint') }}</span>
-    </form>
+    <div class="asst-composer-wrap">
+      <form class="asst-composer" id="asst-form">
+        <textarea id="asst-input" rows="1" placeholder="{{ t('admin.asst.placeholder') }}" {{ 'disabled' if not key_set }}></textarea>
+        <div class="asst-composer-bar">
+          <span class="asst-composer-model">{{ icon('sparkle', 12) }}<span data-model-mirror>{{ chat.model }}</span></span>
+          <span class="flex1"></span>
+          <span class="hint">{{ t('admin.asst.hint') }}</span>
+          <button type="button" class="asst-stop" id="asst-stop" hidden title="{{ t('admin.asst.stop') }}">{{ icon('x', 14) }}<span>{{ t('admin.asst.stop') }}</span></button>
+          <button class="asst-send" id="asst-send" type="submit" {{ 'disabled' if not key_set }} aria-label="{{ t('admin.asst.send') }}">{{ icon('arrow-up', 18) }}</button>
+        </div>
+      </form>
+      <div class="asst-foot-note">{{ t('admin.asst.footnote', n=tool_count, d=undo_days) }}</div>
+    </div>
   </section>
+
+  {# ---------- right: the journal drawer ---------- #}
+  <aside class="asst-drawer" id="asst-drawer" aria-hidden="true">{% include "admin/assistant/_journal.html" %}</aside>
+  <div class="asst-scrim"></div>
 </div>
 
-<dialog class="dlg" id="asst-settings">
+{# ---------- providers & keys ---------- #}
+<dialog class="dlg dlg-wide" id="asst-settings">
   <form method="post" action="/admin/assistant/settings"><input type="hidden" name="_csrf" value="{{ csrf }}">
     <div class="dlg-body">
-      <div class="dlg-head"><div><h3>{{ t('admin.asst.settings') }}</h3><p>{{ t('admin.asst.settings_text') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
-      <div class="field mt"><label>{{ t('admin.asst.api_key') }}</label><input class="input mono" type="password" name="api_key" autocomplete="off" placeholder="{{ 'sk-••••••••' ~ key_tail if key_set else 'sk-…' }}"><span class="hint">{{ t('admin.asst.api_key_hint') }}{% if key_set %} · <label class="row-nw" style="display:inline-flex;gap:4px"><input type="checkbox" name="clear_key" value="1">{{ t('admin.asst.clear_key') }}</label>{% endif %}</span></div>
-      <div class="form-grid tight">
-        <div class="field"><label>{{ t('admin.asst.model') }}</label><select class="select" name="model">{% for m in models %}<option {{ 'selected' if m == model }}>{{ m }}</option>{% endfor %}</select></div>
-        <div class="field"><label>{{ t('admin.asst.base_url') }}</label><input class="input mono" name="base_url" value="{{ base_url }}"></div>
+      <div class="dlg-head"><div><h3>{{ t('admin.asst.providers') }}</h3><p>{{ t('admin.asst.providers_text') }}</p></div><button type="button" class="icon-btn" data-dlg-close aria-label="{{ t('admin.cancel') }}">{{ icon('x', 16) }}</button></div>
+      <div class="asst-prov-list">
+        {% for p in providers %}{% set c = cfgs[p.id] %}
+        <div class="asst-prov{{ ' is-ready' if c.ready }}" data-prov="{{ p.id }}">
+          <div class="asst-prov-h"><span class="asst-model-dot" data-p="{{ p.id }}"></span><b>{{ p.name }}</b>{% if c.ready %}<span class="chip chip-ok">{{ icon('check', 11) }}{{ t('admin.asst.connected') }}</span>{% endif %}{% if p.key_url %}<a class="asst-prov-link" href="{{ p.key_url }}" target="_blank" rel="noopener">{{ t('admin.asst.get_key') }} {{ icon('external', 11) }}</a>{% endif %}</div>
+          <div class="asst-prov-row">
+            {% if p.id == 'custom' %}<input class="input mono" name="base_custom" value="{{ c.base_url }}" placeholder="https://host/v1" autocomplete="off">{% endif %}
+            <input class="input mono" type="password" name="key_{{ p.id }}" placeholder="{{ ('••••••••' ~ c.key[-4:]) if c.key else (t('admin.asst.key_optional') if not p.needs_key else 'sk-…') }}" autocomplete="off">
+            <button type="button" class="btn btn-sm btn-secondary" data-test="{{ p.id }}">{{ t('admin.asst.test') }}</button>
+            {% if c.key %}<label class="asst-prov-clear"><input type="checkbox" name="clear_{{ p.id }}" value="1">{{ t('admin.asst.clear_key') }}</label>{% endif %}
+          </div>
+          <div class="asst-prov-result" data-test-result hidden></div>
+        </div>
+        {% endfor %}
       </div>
+      <div class="field mt"><label>{{ t('admin.asst.default_model') }}</label><input class="input mono" name="default_model" value="{{ default_model }}" placeholder="deepseek:deepseek-chat"><span class="hint">{{ t('admin.asst.default_model_hint') }}</span></div>
     </div>
     <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-dlg-close>{{ t('admin.cancel') }}</button><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
   </form>
@@ -64,8 +118,9 @@
 {% block scripts %}
 <script>
 (function(){
-  var root=document.getElementById('asst'), msgs=document.getElementById('asst-msgs'), form=document.getElementById('asst-form'), ta=document.getElementById('asst-input'), sendBtn=document.getElementById('asst-send');
-  var csrf=document.querySelector('meta[name="csrf"]').content, chatId=root.dataset.chat, busy=false;
+  var root=document.getElementById('asst'), msgs=document.getElementById('asst-msgs'), scroll=document.getElementById('asst-scroll'), form=document.getElementById('asst-form'), ta=document.getElementById('asst-input'), sendBtn=document.getElementById('asst-send'), stopBtn=document.getElementById('asst-stop');
+  var csrf=document.querySelector('meta[name="csrf"]').content, chatId=root.dataset.chat, busy=false, ctrl=null;
+  var H={'X-CSRF':csrf,'HX-Request':'true','Content-Type':'application/json','Accept':'application/json'};
 
   /* ---- a small Markdown renderer: headings, lists, tables, code, bold/italic, links ---- */
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
@@ -94,55 +149,117 @@
     }
     return out.join('');
   }
-  function renderAll(scope){ (scope||document).querySelectorAll('[data-md]').forEach(function(el){ if(el.dataset.done) return; el.dataset.done='1'; el.innerHTML=md(el.textContent); }); }
+  function renderAll(scope){ (scope||document).querySelectorAll('[data-md]').forEach(function(el){ if(el.dataset.done) return; el.dataset.done='1'; el.dataset.raw=el.textContent; el.innerHTML=md(el.textContent); }); }
   renderAll();
-  function toEnd(){ msgs.scrollTop=msgs.scrollHeight; }
-  toEnd();
+  function nearEnd(){ return scroll.scrollHeight-scroll.scrollTop-scroll.clientHeight<160; }
+  function toEnd(force){ if(force||nearEnd()) scroll.scrollTop=scroll.scrollHeight; }
+  toEnd(true);
 
   /* ---- composer ---- */
-  function grow(){ ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,200)+'px'; }
+  function grow(){ ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,220)+'px'; }
   ta.addEventListener('input',grow); grow();
   ta.addEventListener('keydown',function(e){ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); form.requestSubmit(); } });
+  document.addEventListener('keydown',function(e){ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); document.querySelector('.asst-newbtn').click(); } });
   document.querySelectorAll('[data-example]').forEach(function(b){ b.addEventListener('click',function(){ ta.value=b.textContent.trim(); grow(); ta.focus(); }); });
   function el(html){ var t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
-  function userBubble(text){ var d=el('<div class="amsg user"><div class="amsg-bubble"><div class="amsg-body"></div><time></time></div></div>'); d.querySelector('.amsg-body').innerHTML=esc(text).replace(/\n/g,'<br>'); var n=new Date(); d.querySelector('time').textContent=('0'+n.getDate()).slice(-2)+'.'+('0'+(n.getMonth()+1)).slice(-2)+' '+('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2); return d; }
-  function typing(){ return el('<div class="amsg assistant typing"><div class="amsg-av">'+document.querySelector('.asst-head-ic').innerHTML+'</div><div class="amsg-bubble"><span class="dots"><i></i><i></i><i></i></span><span class="typing-text">'+esc(root.dataset.lThinking)+'</span></div></div>'); }
-  function setBusy(v){ busy=v; sendBtn.classList.toggle('is-busy',v); sendBtn.disabled=v; ta.disabled=v; }
-  function refreshJournal(){ fetch('/admin/assistant/actions',{credentials:'same-origin'}).then(function(r){ return r.ok?r.text():''; }).then(function(h){ var j=document.getElementById('asst-journal'); if(h&&j) j.outerHTML=h; }).catch(function(){}); }
+  function stamp(){ var n=new Date(); return ('0'+n.getDate()).slice(-2)+'.'+('0'+(n.getMonth()+1)).slice(-2)+' '+('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2); }
+  function userBubble(text){ var d=el('<div class="amsg user"><div class="amsg-wrap"><div class="amsg-body"></div><div class="amsg-foot"><time></time></div></div></div>'); d.querySelector('.amsg-body').innerHTML=esc(text).replace(/\n/g,'<br>'); d.querySelector('time').textContent=stamp(); return d; }
+  function liveBubble(){ return el('<div class="amsg assistant live"><div class="amsg-av">'+document.querySelector('.asst-welcome-ic, .amsg-av, .asst-model-btn').innerHTML.replace(/<small.*$/,'')+'</div><div class="amsg-wrap"><div class="amsg-status"><span class="dots"><i></i><i></i><i></i></span><span class="asst-status-text">'+esc(root.dataset.lThinking)+'</span></div><div class="amsg-body" hidden></div></div></div>'); }
+  function setBusy(v){ busy=v; root.classList.toggle('is-busy',v); sendBtn.hidden=v; stopBtn.hidden=!v; ta.disabled=v; }
+  function refreshJournal(){ fetch('/admin/assistant/actions',{credentials:'same-origin'}).then(function(r){ return r.ok?r.text():''; }).then(function(h){ var j=document.getElementById('asst-journal'); if(h&&j){ j.outerHTML=h; var n=Number(document.getElementById('asst-journal').dataset.undoable||0), b=document.querySelector('[data-undo-badge]'); if(b){ b.textContent=n; b.hidden=!n; } } }).catch(function(){}); }
+  stopBtn.addEventListener('click',function(){ if(ctrl) ctrl.abort(); });
   form.addEventListener('submit',function(e){
     e.preventDefault(); var text=ta.value.trim(); if(!text||busy) return;
     var w=msgs.querySelector('.asst-welcome'); if(w) w.remove();
     ta.value=''; grow(); setBusy(true);
-    msgs.appendChild(userBubble(text)); var tp=typing(); msgs.appendChild(tp); toEnd();
-    fetch('/admin/assistant/'+chatId+'/send',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF':csrf,'HX-Request':'true'},body:JSON.stringify({text:text})})
+    msgs.appendChild(userBubble(text)); var live=liveBubble(); msgs.appendChild(live); toEnd(true);
+    var status=live.querySelector('.amsg-status'), body=live.querySelector('.amsg-body'), acc='';
+    ctrl=new AbortController();
+    fetch('/admin/assistant/'+chatId+'/send',{method:'POST',credentials:'same-origin',signal:ctrl.signal,headers:H,body:JSON.stringify({text:text})})
       .then(function(r){ if(!r.ok) throw new Error(r.status); var rd=r.body.getReader(), dec=new TextDecoder(), buf='';
         function handle(ev){
-          if(ev.t==='status'){ tp.querySelector('.typing-text').textContent=ev.text; }
-          else if(ev.t==='action'){ msgs.insertBefore(el(ev.html),tp); }
-          else if(ev.t==='message'){ var m=el(ev.html); msgs.insertBefore(m,tp); renderAll(m); }
-          else if(ev.t==='error'){ var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-bubble"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=ev.text; msgs.insertBefore(er,tp); }
-          else if(ev.t==='title'){ document.getElementById('asst-title').textContent=ev.text; var a=document.querySelector('[data-chat-link="'+chatId+'"] .asst-chat-t'); if(a) a.textContent=ev.text; }
+          if(ev.t==='status'){ status.hidden=false; status.querySelector('.asst-status-text').textContent=ev.text; if(acc){ body.insertAdjacentHTML('beforebegin',''); } }
+          else if(ev.t==='delta'){ acc+=ev.text; body.hidden=false; status.hidden=true; body.innerHTML=md(acc); }
+          else if(ev.t==='action'){ var card=el(ev.html); msgs.insertBefore(card,live); if(acc){ /* text so far stays above the card as its own bubble */ var done=el('<div class="amsg assistant"><div class="amsg-av">'+live.querySelector('.amsg-av').innerHTML+'</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); done.querySelector('.amsg-body').innerHTML=md(acc); msgs.insertBefore(done,card); acc=''; body.innerHTML=''; body.hidden=true; status.hidden=false; } }
+          else if(ev.t==='message'){ var m=el(ev.html); msgs.insertBefore(m,live); renderAll(m); acc=''; body.hidden=true; }
+          else if(ev.t==='error'){ var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=ev.text; msgs.insertBefore(er,live); }
+          else if(ev.t==='title'){ setTitle(ev.text); }
           toEnd();
         }
         function pump(){ return rd.read().then(function(x){ if(x.done){ return; } buf+=dec.decode(x.value,{stream:true}); var parts=buf.split('\n'); buf=parts.pop(); parts.forEach(function(p){ if(p.trim()){ try{ handle(JSON.parse(p)); }catch(_){} } }); return pump(); }); }
         return pump(); })
-      .catch(function(){ var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-bubble"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=root.dataset.lError; msgs.insertBefore(er,tp); })
-      .finally(function(){ tp.remove(); setBusy(false); ta.focus(); toEnd(); refreshJournal(); });
+      .catch(function(err){ if(err&&err.name==='AbortError'){ if(acc){ var kept=el('<div class="amsg assistant"><div class="amsg-av">'+live.querySelector('.amsg-av').innerHTML+'</div><div class="amsg-wrap"><div class="amsg-body"></div><div class="amsg-foot"><time></time></div></div></div>'); kept.querySelector('.amsg-body').innerHTML=md(acc); kept.querySelector('time').textContent=root.dataset.lStopped; msgs.insertBefore(kept,live); } return; }
+        var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=root.dataset.lError; msgs.insertBefore(er,live); })
+      .finally(function(){ live.remove(); ctrl=null; setBusy(false); ta.focus(); toEnd(); refreshJournal(); });
   });
+
+  /* ---- title: set by the first message, editable ---- */
+  function setTitle(tt){ var a=document.querySelector('[data-chat-link="'+chatId+'"] .asst-chat-t'); if(a) a.textContent=tt; document.title=tt+' · '+document.title.split(' · ').slice(-1)[0]; }
+  document.getElementById('asst-rename').addEventListener('click',function(){
+    var cur=(document.querySelector('[data-chat-link="'+chatId+'"] .asst-chat-t')||{}).textContent||'';
+    var t=prompt(this.title,cur.trim()); if(t===null) return;
+    fetch('/admin/assistant/'+chatId+'/rename',{method:'POST',credentials:'same-origin',headers:H,body:JSON.stringify({title:t})}).then(function(r){ return r.json(); }).then(function(d){ setTitle(d.title||cur); }).catch(function(){});
+  });
+
+  /* ---- chat search ---- */
+  var cs=document.getElementById('asst-chat-search'); cs.addEventListener('input',function(){ var q=cs.value.trim().toLowerCase(), any=false;
+    document.querySelectorAll('[data-chat-row]').forEach(function(r){ var hit=!q||r.dataset.title.indexOf(q)>=0; r.hidden=!hit; if(hit) any=true; });
+    document.querySelectorAll('[data-group]').forEach(function(g){ g.hidden=!g.querySelector('[data-chat-row]:not([hidden])'); });
+    document.querySelector('.asst-chat-none').hidden=any; });
+
+  /* ---- copy an answer ---- */
+  document.addEventListener('click',function(e){ var b=e.target.closest('[data-copy-msg]'); if(!b) return; var body=b.closest('.amsg-wrap').querySelector('.amsg-body'); var txt=body.dataset.raw||body.innerText;
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){ if(window.toast) toast(root.dataset.lCopied,'ok'); }).catch(function(){}); });
+
+  /* ---- model picker ---- */
+  var mbtn=document.getElementById('asst-model-btn'), pop=document.getElementById('asst-model-pop'), list=document.getElementById('asst-model-list'), msearch=document.getElementById('asst-model-search'), custom=document.getElementById('asst-custom-model');
+  var catalog=null, cur={p:root.dataset.provider,m:root.dataset.model};
+  function openPop(){ pop.hidden=false; mbtn.setAttribute('aria-expanded','true'); msearch.value=''; msearch.focus(); if(!catalog) loadModels(false); else draw(); }
+  function closePop(){ pop.hidden=true; mbtn.setAttribute('aria-expanded','false'); }
+  mbtn.addEventListener('click',function(){ pop.hidden?openPop():closePop(); });
+  document.addEventListener('click',function(e){ if(!pop.hidden&&!e.target.closest('.asst-picker')) closePop(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!pop.hidden) closePop(); });
+  function loadModels(force){ list.innerHTML='<div class="asst-pop-loading"><span class="spinner"></span></div>';
+    fetch('/admin/assistant/models'+(force?'?refresh=1':''),{credentials:'same-origin'}).then(function(r){ return r.json(); }).then(function(d){ catalog=d.providers||[]; draw(); }).catch(function(){ catalog=[]; draw(); }); }
+  document.getElementById('asst-models-refresh').addEventListener('click',function(){ loadModels(true); });
+  msearch.addEventListener('input',draw);
+  function draw(){ var q=msearch.value.trim().toLowerCase(), h='';
+    if(!catalog||!catalog.length){ h='<div class="asst-pop-empty">'+esc(root.dataset.lNoModels)+'</div>'; }
+    catalog&&catalog.forEach(function(p){ var ms=p.models.filter(function(m){ return !q||m.toLowerCase().indexOf(q)>=0||p.name.toLowerCase().indexOf(q)>=0; }); if(!ms.length&&!p.error) return;
+      h+='<div class="asst-pop-group"><div class="asst-pop-gh"><span class="asst-model-dot" data-p="'+esc(p.id)+'"></span>'+esc(p.name)+(p.error?'<small class="bad"> · '+esc(p.error)+'</small>':'')+'</div>';
+      ms.slice(0,80).forEach(function(m){ var on=p.id===cur.p&&m===cur.m; h+='<button type="button" class="asst-pop-item'+(on?' on':'')+'" data-p="'+esc(p.id)+'" data-m="'+esc(m)+'"><span>'+esc(m)+'</span>'+(on?'<i class="chk"></i>':'<em data-make-default title="'+esc(root.dataset.lDefault)+'">★</em>')+'</button>'; });
+      h+='</div>'; });
+    list.innerHTML=h; }
+  function choose(p,m,asDefault){ fetch('/admin/assistant/'+chatId+'/model',{method:'POST',credentials:'same-origin',headers:H,body:JSON.stringify({provider:p,model:m,default:!!asDefault})}).then(function(r){ return r.json(); }).then(function(d){ if(!d.ok) return; cur={p:p,m:m};
+      document.getElementById('asst-model-name').textContent=m; document.getElementById('asst-provider-name').textContent=d.provider_name; document.querySelector('.asst-model-btn .asst-model-dot').dataset.p=p; document.querySelector('[data-model-mirror]').textContent=m; draw(); if(asDefault&&window.toast) toast(root.dataset.lDefault,'ok'); closePop(); }).catch(function(){}); }
+  list.addEventListener('click',function(e){ var it=e.target.closest('.asst-pop-item'); if(!it) return; choose(it.dataset.p,it.dataset.m,!!e.target.closest('[data-make-default]')); });
+  custom.addEventListener('keydown',function(e){ if(e.key!=='Enter') return; e.preventDefault(); var v=custom.value.trim(); if(!v) return; var p=cur.p, m=v; if(v.indexOf(':')>0&&catalog.some(function(x){ return v.indexOf(x.id+':')===0; })){ p=v.split(':')[0]; m=v.slice(p.length+1); } choose(p,m,false); custom.value=''; });
+
+  /* ---- journal drawer ---- */
+  var drawer=document.getElementById('asst-drawer');
+  function drawerOpen(v){ root.classList.toggle('drawer-open',v); drawer.setAttribute('aria-hidden',v?'false':'true'); }
+  document.getElementById('asst-journal-btn').addEventListener('click',function(){ drawerOpen(!root.classList.contains('drawer-open')); });
+  document.addEventListener('click',function(e){ if(e.target.closest('[data-drawer-close]')||e.target.classList.contains('asst-scrim')) drawerOpen(false); });
 
   /* ---- undo (cards in the chat and in the journal) ---- */
   document.addEventListener('click',function(e){
     var b=e.target.closest('[data-undo]'); if(!b) return; e.preventDefault(); var id=b.dataset.undo;
     window.askConfirm({title:b.dataset.confirm,text:b.dataset.confirmText,danger:false}).then(function(r){ if(!r.ok) return; b.disabled=true;
-      fetch('/admin/assistant/actions/'+id+'/undo',{method:'POST',credentials:'same-origin',headers:{'X-CSRF':csrf,'HX-Request':'true','Accept':'application/json'}})
-        .then(function(res){ return res.json(); })
+      fetch('/admin/assistant/actions/'+id+'/undo',{method:'POST',credentials:'same-origin',headers:H}).then(function(res){ return res.json(); })
         .then(function(d){ document.querySelectorAll('.aact[data-action-id="'+id+'"]').forEach(function(c){ var n=el(d.html); if(c.classList.contains('compact')) n.classList.add('compact'); c.replaceWith(n); }); if(window.toast) toast(d.msg,d.ok?'ok':'bad'); refreshJournal(); })
         .catch(function(){ b.disabled=false; });
     });
   });
 
+  /* ---- settings: try a key before saving ---- */
+  document.querySelectorAll('[data-test]').forEach(function(b){ b.addEventListener('click',function(){ var box=b.closest('.asst-prov'), out=box.querySelector('[data-test-result]'), key=box.querySelector('input[type=password]').value, base=(box.querySelector('[name=base_custom]')||{}).value||'';
+    out.hidden=false; out.className='asst-prov-result'; out.textContent=root.dataset.lTesting;
+    fetch('/admin/assistant/settings/test',{method:'POST',credentials:'same-origin',headers:H,body:JSON.stringify({provider:b.dataset.test,key:key,base_url:base})}).then(function(r){ return r.json(); })
+      .then(function(d){ out.className='asst-prov-result '+(d.ok?'ok':'bad'); out.textContent=d.ok?root.dataset.lTestOk.replace('{n}',d.count)+(d.models&&d.models.length?': '+d.models.slice(0,6).join(', ')+(d.models.length>6?'…':''):''):(d.error||root.dataset.lError); })
+      .catch(function(){ out.className='asst-prov-result bad'; out.textContent=root.dataset.lError; }); }); });
+
   /* ---- narrow screens: the side panel slides in ---- */
-  var tg=document.querySelector('.asst-side-toggle'); if(tg) tg.addEventListener('click',function(){ root.classList.toggle('side-open'); });
+  var tg=document.querySelector('.asst-side-toggle'); if(tg) tg.addEventListener('click',function(e){ e.stopPropagation(); root.classList.toggle('side-open'); });
   document.addEventListener('click',function(e){ if(root.classList.contains('side-open')&&!e.target.closest('.asst-side')&&!e.target.closest('.asst-side-toggle')) root.classList.remove('side-open'); });
   ta.focus();
 })();

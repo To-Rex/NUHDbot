@@ -5,6 +5,7 @@ AssistantActions with an undo journal, the results go back to the model, and the
 `run_turn` is an async generator of events the page renders as they happen:
   {"type": "title", "text"}          the chat got its title (first message)
   {"type": "status", "tool", "args"} a tool is about to run
+  {"type": "delta", "text"}          a piece of the answer as it streams in
   {"type": "action", "action"}       a change was made (AssistantAction, committed)
   {"type": "message", "message"}     the assistant's answer (AssistantMessage, committed)
   {"type": "error", "code", "text"}  the turn stopped
@@ -26,9 +27,8 @@ from app.models.assistant import UNDO_DAYS
 from app.models.base import utcnow
 from app.services import audit, deletion, media
 from app.services.assistant import journal as jr
-from app.services.assistant import llm
+from app.services.assistant import llm, providers
 from app.services.assistant.tools import TOOLS, Ctx, ToolError, schemas
-from app.services.settings_service import get_setting
 
 log = logging.getLogger("assistant")
 MAX_STEPS = 12  # tool rounds per turn
@@ -83,11 +83,13 @@ def history(chat: AssistantChat) -> list[dict]:
     return [_as_llm(m) for m in msgs]
 
 
-async def config(db: AsyncSession) -> tuple[str, str, str]:
-    key = (await get_setting(db, "assistant_api_key", "") or "").strip() or settings.deepseek_api_key
-    model = (await get_setting(db, "assistant_model", "deepseek-chat") or "deepseek-chat").strip()
-    base = (await get_setting(db, "assistant_base_url", "https://api.deepseek.com") or "https://api.deepseek.com").strip()
-    return key, model, base
+async def config(db: AsyncSession, chat: AssistantChat | None = None) -> tuple[providers.ProviderConfig, str]:
+    """The provider configuration and model a chat talks to (the saved default for a chat without one)."""
+    cfgs = await providers.load(db)
+    if chat is not None and chat.provider in cfgs and chat.model:
+        return cfgs[chat.provider], chat.model
+    pid, model = await providers.default_model(db, cfgs)
+    return cfgs[pid], model
 
 
 def _json(v) -> str:
@@ -148,8 +150,8 @@ async def run_tool(db: AsyncSession, chat: AssistantChat, staff: User, call: dic
 
 async def run_turn(db: AsyncSession, chat: AssistantChat, staff: User, text: str):
     async with _locks[chat.id]:
-        key, model, base = await config(db)
-        if not key:
+        cfg, model = await config(db, chat)
+        if not cfg.ready:
             yield {"type": "error", "code": "no_api_key", "text": ""}
             return
         text = text.strip()
@@ -164,13 +166,27 @@ async def run_turn(db: AsyncSession, chat: AssistantChat, staff: User, text: str
         tools = schemas()
         step = 0
         while True:
+            reply, partial = None, []
             try:
-                reply = await llm.chat(base, key, model, messages, tools)
+                async for kind, payload in llm.stream(cfg, model, messages, tools):
+                    if kind == "delta":
+                        partial.append(payload)
+                        yield {"type": "delta", "text": payload}
+                    else:
+                        reply = payload
             except llm.LLMError as e:
                 yield {"type": "error", "code": str(e), "text": str(e)}
                 return
+            except asyncio.CancelledError:  # the staff member pressed Stop or left: keep what already arrived
+                if partial:
+                    db.add(AssistantMessage(chat_id=chat.id, role="assistant", content="".join(partial), model=model))
+                    await db.commit()
+                raise
+            if reply is None:
+                yield {"type": "error", "code": "empty_response", "text": ""}
+                return
             calls = reply.get("tool_calls")
-            am = AssistantMessage(chat_id=chat.id, role="assistant", content=reply.get("content") or ("" if calls else "…"), tool_calls=calls)
+            am = AssistantMessage(chat_id=chat.id, role="assistant", content=reply.get("content") or ("" if calls else "…"), tool_calls=calls, model=model)
             db.add(am)
             await db.commit()
             messages.append(_as_llm(am))
