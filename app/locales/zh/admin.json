@@ -1210,7 +1210,14 @@
       "auto_idle_auction": "没有进行中或计划中的拍卖",
       "auto_idle_new": "最近 30 天没有新品到货",
       "auto_off": "已关闭",
-      "auto_saved": "{name}：{state}"
+      "auto_saved": "{name}：{state}",
+      "looks_hide": "隐藏此动画",
+      "looks_hide_current": "无法隐藏当前选中的动画，请先选择其他动画",
+      "looks_keep_one": "至少保留一个动画",
+      "looks_hidden_title": "已隐藏的动画（{n}）",
+      "looks_restore": "恢复",
+      "looks_hidden_msg": "已隐藏：{name}。可从下方列表恢复。",
+      "looks_restored_msg": "已恢复：{name}"
     },
     "shape": {
       "title": "卡片形状",

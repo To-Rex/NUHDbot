@@ -114,3 +114,11 @@ def test_auto_slides_default_on():
 
     assert clean_auto_slides(None) == {"auction": True, "new": True}
     assert clean_auto_slides({"new": False, "junk": 1}) == {"auction": True, "new": False}
+
+
+def test_hidden_looks_keep_the_chosen_and_one_more():
+    from app.services.banners import STYLES, clean_hidden
+
+    assert clean_hidden(["orbit", "bogus", "orbit"], STYLES, "coverflow") == ["orbit"]
+    assert "coverflow" not in clean_hidden(["coverflow", "orbit"], STYLES, "coverflow")
+    assert len(clean_hidden(list(STYLES), STYLES, None)) == len(STYLES) - 1

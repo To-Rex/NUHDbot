@@ -1,0 +1,38 @@
+{# a slider's look picker (banner or Directions): the visible looks as tiles with a small hide button, the hidden ones folded
+   below with Restore. Everything swaps the card in place. expects: kind (banner|dir), title, hint, ico, styles, hidden, current,
+   shape, shape_action, style_action, label (i18n prefix of the look names), csrf #}
+{% set kind, styles, current, hidden, shape, title, hint, ico, label, shape_action, style_action = card.kind, card.styles, card.current, card.hidden, card.shape, card.title, card.hint, card.ico, card.label, card.shape_action, card.style_action %}
+{% set card_id = 'style-card-' ~ kind %}{% set visible = styles|reject('in', hidden)|list %}
+<section class="card ds-card mb" id="{{ card_id }}">
+  <div class="ds-head"><span class="bn-timing-ic">{{ icon(ico, 18) }}</span><div class="flex1"><b>{{ title }}</b><p>{{ hint }}</p></div>
+    {% with action=shape_action, current=shape, target='#' ~ card_id %}{% include "admin/partials/shape_toggle.html" %}{% endwith %}</div>
+  <form method="post" action="{{ style_action }}" hx-post="{{ style_action }}" hx-target="#{{ card_id }}" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="ds-opts{{ ' ds-wide' if shape == 'wide' }}" role="radiogroup" aria-label="{{ title }}">
+    {% for st in visible %}
+    <label class="ds-opt"><input type="radio" name="style" value="{{ st }}" {{ 'checked' if current == st }} onchange="this.form.requestSubmit()">
+      <span class="ds-box">
+        <span class="dsv dsv-{{ st }}" aria-hidden="true">{% for c in ('silver', 'black', 'blue', 'purple', 'red', 'gold') %}<i class="k{{ loop.index0 }} sw-{{ c }}"></i>{% endfor %}</span>
+        <span class="ds-txt"><b>{{ t(label ~ '.' ~ st) }}</b><small>{{ t(label ~ '.' ~ st ~ '_d') }}</small></span>
+        <span class="ds-check">{{ icon('check', 12) }}</span>
+      </span>
+      {% if st != current and visible|length > 1 %}<button type="button" class="ds-hide" title="{{ t('admin.ban.looks_hide') }}" aria-label="{{ t('admin.ban.looks_hide') }}" hx-post="/admin/banners/looks" hx-vals='{"kind":"{{ kind }}","style":"{{ st }}","action":"hide","_csrf":"{{ csrf }}"}' hx-target="#{{ card_id }}" hx-swap="outerHTML">{{ icon('x', 12) }}</button>
+      {% else %}<span class="ds-hide is-locked" title="{{ t('admin.ban.looks_hide_current') if st == current else t('admin.ban.looks_keep_one') }}">{{ icon('lock', 11) }}</span>{% endif %}
+    </label>
+    {% endfor %}
+  </div>
+  </form>
+  {% if hidden %}
+  <details class="ds-hidden">
+    <summary>{{ icon('eye-off', 14) }}<span>{{ t('admin.ban.looks_hidden_title', n=hidden|length) }}</span>{{ icon('chevron-down', 14, 'chev') }}</summary>
+    <div class="ds-hidden-list">
+      {% for st in hidden %}
+      <div class="ds-hidden-row">
+        <span class="dsv dsv-{{ st }} dsv-sm" aria-hidden="true">{% for c in ('silver', 'black', 'blue', 'purple', 'red', 'gold') %}<i class="k{{ loop.index0 }} sw-{{ c }}"></i>{% endfor %}</span>
+        <span class="ho-txt"><b>{{ t(label ~ '.' ~ st) }}</b><small>{{ t(label ~ '.' ~ st ~ '_d') }}</small></span>
+        <button type="button" class="btn btn-xs btn-secondary" hx-post="/admin/banners/looks" hx-vals='{"kind":"{{ kind }}","style":"{{ st }}","action":"show","_csrf":"{{ csrf }}"}' hx-target="#{{ card_id }}" hx-swap="outerHTML">{{ icon('refresh', 12) }}{{ t('admin.ban.looks_restore') }}</button>
+      </div>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+</section>

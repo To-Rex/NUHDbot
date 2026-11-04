@@ -12,42 +12,8 @@
 {% include "admin/banners/_auto_slides.html" %}
 {% include "admin/banners/_home_order.html" %}
 {% include "admin/banners/_dir_order.html" %}
-{# how the banners turn on the Mini App home — the Directions slider's looks: a click saves it; each tile shows a small model of the motion #}
-<section class="card ds-card mb">
-  <div class="ds-head"><span class="bn-timing-ic">{{ icon('sparkle', 18) }}</span><div class="flex1"><b>{{ t('admin.ban.style_title') }}</b><p>{{ t('admin.ban.style_hint') }}</p></div>
-    {% with action='/admin/banners/shape', current=slider_shape %}{% include "admin/partials/shape_toggle.html" %}{% endwith %}</div>
-  <form method="post" action="/admin/banners/style"><input type="hidden" name="_csrf" value="{{ csrf }}">
-  <div class="ds-opts{{ ' ds-wide' if slider_shape == 'wide' }}" role="radiogroup" aria-label="{{ t('admin.ban.style_title') }}">
-    {% for st in styles %}
-    <label class="ds-opt"><input type="radio" name="style" value="{{ st }}" {{ 'checked' if slider_style == st }} onchange="this.form.requestSubmit()">
-      <span class="ds-box">
-        <span class="dsv dsv-{{ st }}" aria-hidden="true">{% for c in ('silver', 'black', 'blue', 'purple', 'red', 'gold') %}<i class="k{{ loop.index0 }} sw-{{ c }}"></i>{% endfor %}</span>
-        <span class="ds-txt"><b>{{ t('admin.ban.style.' ~ st) }}</b><small>{{ t('admin.ban.style.' ~ st ~ '_d') }}</small></span>
-        <span class="ds-check">{{ icon('check', 12) }}</span>
-      </span>
-    </label>
-    {% endfor %}
-  </div>
-</form>
-</section>
-{# the Directions slider on the Mini App home (below the banners): how it moves and its card shape: a click saves it; each tile shows a small model of the motion #}
-<section class="card ds-card mb">
-  <div class="ds-head"><span class="bn-timing-ic">{{ icon('cube', 18) }}</span><div class="flex1"><b>{{ t('admin.ser.style_title') }}</b><p>{{ t('admin.ser.style_hint') }}</p></div>
-    {% with action='/admin/banners/dir-shape', current=dir_shape %}{% include "admin/partials/shape_toggle.html" %}{% endwith %}</div>
-  <form method="post" action="/admin/banners/dir-style"><input type="hidden" name="_csrf" value="{{ csrf }}">
-  <div class="ds-opts{{ ' ds-wide' if dir_shape == 'wide' }}" role="radiogroup" aria-label="{{ t('admin.ser.style_title') }}">
-    {% for st in dir_styles %}
-    <label class="ds-opt"><input type="radio" name="style" value="{{ st }}" {{ 'checked' if dir_style == st }} onchange="this.form.requestSubmit()">
-      <span class="ds-box">
-        <span class="dsv dsv-{{ st }}" aria-hidden="true">{% for c in ('silver', 'black', 'blue', 'purple', 'red', 'gold') %}<i class="k{{ loop.index0 }} sw-{{ c }}"></i>{% endfor %}</span>
-        <span class="ds-txt"><b>{{ t('admin.ser.style.' ~ st) }}</b><small>{{ t('admin.ser.style.' ~ st ~ '_d') }}</small></span>
-        <span class="ds-check">{{ icon('check', 12) }}</span>
-      </span>
-    </label>
-    {% endfor %}
-  </div>
-</form>
-</section>
+{% with card=style_cards.banner %}{% include "admin/banners/_style_card.html" %}{% endwith %}
+{% with card=style_cards.dir %}{% include "admin/banners/_style_card.html" %}{% endwith %}
 {% include "admin/banners/_rows.html" %}
 {% if not rows %}<div class="card empty">{{ icon('image', 30) }}<b>{{ t('admin.ban.empty_title') }}</b><p class="sub">{{ t('admin.ban.empty_text') }}</p><a class="btn btn-primary btn-sm mt" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a></div>
 {% endif %}

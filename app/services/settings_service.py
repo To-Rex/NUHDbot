@@ -31,6 +31,8 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "support_group_id": {"v": None, "d": "Telegram group id where support messages are mirrored"},
     "chat_notify_delay": {"v": 10, "d": "Seconds an admin reply waits before its bot notification; seen in the open Mini App chat by then = no notification"},
     "direction_images": {"v": {}, "d": "Series page: a picture per catalogue direction {colour: {filename, thumb}}"},
+    "banner_styles_hidden": {"v": [], "d": "Banners page: slider looks hidden from the banner picker (restorable)"},
+    "dir_styles_hidden": {"v": [], "d": "Banners page: slider looks hidden from the Directions picker (restorable)"},
     "auto_slides": {"v": {"auction": True, "new": True}, "d": "Mini App home slider: automatic slides on/off {auction: live or next lot, new: this month's arrivals}"},
     "direction_order": {"v": ["blue", "purple", "red", "gold", "silver", "black"], "d": "Mini App: order of the six directions (home slider, catalogue chips)"},
     "home_order": {"v": ["banners", "directions", "auctions"], "d": "Mini App home: order of the banner slider, the Directions slider and the Auctions row"},

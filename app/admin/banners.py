@@ -80,6 +80,27 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
 SECTION_ICONS = {"banners": "image", "directions": "cube", "auctions": "gavel"}
 
 
+async def _style_card(db, lang: str, kind: str) -> dict:
+    """What a look picker card needs: the looks, the hidden ones, the chosen one and the card shape."""
+    if kind == "banner":
+        styles, current = svc.STYLES, svc.clean_style(await get_setting(db, "banner_slider_style"))
+        hidden = svc.clean_hidden(await get_setting(db, "banner_styles_hidden"), styles, current)
+        return {"kind": kind, "styles": styles, "current": current, "hidden": hidden, "shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
+                "title": t(lang, "admin.ban.style_title"), "hint": t(lang, "admin.ban.style_hint"), "ico": "sparkle", "label": "admin.ban.style",
+                "shape_action": "/admin/banners/shape", "style_action": "/admin/banners/style"}
+    styles, current = series_service.DIR_STYLES, series_service.clean_style(await get_setting(db, "dir_slider_style"))
+    hidden = svc.clean_hidden(await get_setting(db, "dir_styles_hidden"), styles, current)
+    return {"kind": kind, "styles": styles, "current": current, "hidden": hidden, "shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
+            "title": t(lang, "admin.ser.style_title"), "hint": t(lang, "admin.ser.style_hint"), "ico": "cube", "label": "admin.ser.style",
+            "shape_action": "/admin/banners/dir-shape", "style_action": "/admin/banners/dir-style"}
+
+
+async def _card_or_back(request: Request, db, staff: User, kind: str, msg: str, back_to: str = "/admin/banners", kind_: str = "ok"):
+    if _hx(request):
+        return render(request, staff, "admin/banners/_style_card.html", {"card": await _style_card(db, staff.lang, kind)}, headers=toast(msg, kind_))
+    return back(request, back_to, msg, kind_)
+
+
 async def _auto_ctx(db) -> dict:
     """The automatic slides' switches and whether each has something to show right now."""
     from datetime import UTC, datetime, timedelta
@@ -129,8 +150,34 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
+        "style_cards": {"banner": await _style_card(db, staff.lang, "banner"), "dir": await _style_card(db, staff.lang, "dir")},
         "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS, **(await _dir_ctx(db)), **(await _auto_ctx(db)),
     })
+
+
+@router.post("/banners/looks")
+async def banners_looks(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """Hide a look from a picker (it stays available under "hidden" and can be restored); the chosen look and the last one cannot go."""
+    form = await request.form()
+    kind, style, action = form.get("kind") or "", form.get("style") or "", form.get("action") or ""
+    if kind not in ("banner", "dir") or action not in ("hide", "show"):
+        raise HTTPException(400)
+    key = "banner_styles_hidden" if kind == "banner" else "dir_styles_hidden"
+    card = await _style_card(db, staff.lang, kind)
+    if style not in card["styles"]:
+        raise HTTPException(400)
+    before = list(card["hidden"])
+    if action == "hide" and style == card["current"]:
+        return await _card_or_back(request, db, staff, kind, t(staff.lang, "admin.ban.looks_hide_current"), kind_="warn")
+    hidden = [h for h in before if h != style] + ([style] if action == "hide" else [])
+    hidden = svc.clean_hidden(hidden, card["styles"], card["current"])
+    if action == "hide" and style not in hidden:
+        return await _card_or_back(request, db, staff, kind, t(staff.lang, "admin.ban.looks_keep_one"), kind_="warn")
+    await set_setting(db, key, hidden)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {key: before}, {key: hidden})
+    await db.commit()
+    name = t(staff.lang, card["label"] + "." + style)
+    return await _card_or_back(request, db, staff, kind, t(staff.lang, "admin.ban.looks_hidden_msg" if action == "hide" else "admin.ban.looks_restored_msg", name=name))
 
 
 @router.post("/banners/auto-slides")
@@ -201,7 +248,7 @@ async def banners_shape(request: Request, db: DB, staff: User = Depends(staff_de
     await set_setting(db, "banner_slider_shape", shape)
     await audit.log(db, staff.id, "settings.update", "settings", None, {"banner_slider_shape": before}, {"banner_slider_shape": shape})
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.shape.saved", name=t(staff.lang, "admin.shape." + shape)))
+    return await _card_or_back(request, db, staff, "banner", t(staff.lang, "admin.shape.saved", name=t(staff.lang, "admin.shape." + shape)))
 
 
 @router.post("/banners/style")
@@ -212,7 +259,7 @@ async def banners_style(request: Request, db: DB, staff: User = Depends(staff_de
     await set_setting(db, "banner_slider_style", style)
     await audit.log(db, staff.id, "settings.update", "settings", None, {"banner_slider_style": before}, {"banner_slider_style": style})
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.ban.style_saved", name=t(staff.lang, "admin.ban.style." + style)))
+    return await _card_or_back(request, db, staff, "banner", t(staff.lang, "admin.ban.style_saved", name=t(staff.lang, "admin.ban.style." + style)))
 
 
 @router.post("/banners/dir-style")
@@ -223,7 +270,7 @@ async def directions_style(request: Request, db: DB, staff: User = Depends(staff
     await set_setting(db, "dir_slider_style", style)
     await audit.log(db, staff.id, "settings.update", "settings", None, {"dir_slider_style": before}, {"dir_slider_style": style})
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.ser.style_saved", name=t(staff.lang, "admin.ser.style." + style)))
+    return await _card_or_back(request, db, staff, "dir", t(staff.lang, "admin.ser.style_saved", name=t(staff.lang, "admin.ser.style." + style)))
 
 
 @router.post("/banners/dir-shape")
@@ -234,7 +281,7 @@ async def directions_shape(request: Request, db: DB, staff: User = Depends(staff
     await set_setting(db, "dir_slider_shape", shape)
     await audit.log(db, staff.id, "settings.update", "settings", None, {"dir_slider_shape": before}, {"dir_slider_shape": shape})
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.shape.saved", name=t(staff.lang, "admin.shape." + shape)))
+    return await _card_or_back(request, db, staff, "dir", t(staff.lang, "admin.shape.saved", name=t(staff.lang, "admin.shape." + shape)))
 
 
 @router.get("/banners/new")

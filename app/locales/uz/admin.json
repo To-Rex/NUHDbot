@@ -1210,7 +1210,14 @@
       "auto_idle_auction": "Жонли ёки режалаштирилган аукцион йўқ",
       "auto_idle_new": "Охирги 30 кунда янги маҳсулот келмаган",
       "auto_off": "Ўчирилган",
-      "auto_saved": "{name}: {state}"
+      "auto_saved": "{name}: {state}",
+      "looks_hide": "Бу анимацияни яшириш",
+      "looks_hide_current": "Танланган анимацияни яшириб бўлмайди — аввал бошқасини танланг",
+      "looks_keep_one": "Камида битта анимация кўриниб туриши керак",
+      "looks_hidden_title": "Яширилган анимациялар ({n})",
+      "looks_restore": "Қайтариш",
+      "looks_hidden_msg": "Яширилди: {name}. Пастдаги рўйхатдан қайтариш мумкин.",
+      "looks_restored_msg": "Қайтарилди: {name}"
     },
     "shape": {
       "title": "Карта шакли",

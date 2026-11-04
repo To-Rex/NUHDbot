@@ -1503,3 +1503,17 @@ li.ho-row:first-child{border-color:var(--accent)}
 .as-row.is-off .ho-txt,.as-row.is-off .ho-ic{opacity:.55}
 .as-ic-auction{background:var(--warn-bg);color:var(--warn)}.as-ic-new{background:var(--ok-bg);color:var(--ok)}
 .ho-row .chip .live-dot{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;margin-right:4px;animation:asst-dot 1.2s infinite}
+
+/* look pickers: hide a tile, restore it from the folded list */
+.ds-hide{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;border:1px solid var(--hairline);background:var(--surface);color:var(--ink-3);display:grid;place-items:center;cursor:pointer;opacity:0;transition:opacity var(--t-fast),color var(--t-fast),border-color var(--t-fast);z-index:1}
+.ds-opt:hover .ds-hide,.ds-hide:focus-visible{opacity:1}
+.ds-hide:hover{color:var(--bad);border-color:var(--bad)}
+.ds-hide.is-locked{cursor:default}.ds-hide.is-locked:hover{color:var(--ink-3);border-color:var(--hairline)}
+@media (hover:none){.ds-hide{opacity:.8}}
+.ds-hidden{margin-top:12px;border-top:1px dashed var(--hairline);padding-top:8px}
+.ds-hidden summary{display:flex;align-items:center;gap:7px;cursor:pointer;list-style:none;font-size:12.5px;font-weight:600;color:var(--ink-3);padding:6px 2px}
+.ds-hidden summary::-webkit-details-marker{display:none}.ds-hidden summary .chev{margin-left:auto;transition:transform var(--t-fast)}.ds-hidden[open] summary .chev{transform:rotate(180deg)}
+.ds-hidden-list{display:flex;flex-direction:column;gap:6px;padding:4px 0 2px}
+.ds-hidden-row{display:flex;align-items:center;gap:12px;padding:8px 10px;border:1px solid var(--hairline);border-radius:12px;background:var(--sunken)}
+.ds-hidden-row .ho-txt b{font-size:13px}
+.dsv.dsv-sm{width:72px;height:44px;flex:0 0 auto;transform:scale(.6);transform-origin:left center;margin-right:-28px}

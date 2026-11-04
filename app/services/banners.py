@@ -30,6 +30,12 @@ SHAPES = ("tall", "wide")
 HOME_SECTIONS = ("banners", "directions", "auctions")  # the Mini App home blocks staff can reorder (Banners page)
 
 
+def clean_hidden(value, styles: tuple[str, ...], current: str | None = None) -> list[str]:
+    """Looks staff hid from a picker: known names only, never the chosen one, never all of them."""
+    hidden = [v for v in dict.fromkeys(value if isinstance(value, list) else []) if v in styles and v != current]
+    return hidden if len(hidden) < len(styles) else hidden[:-1]
+
+
 AUTO_SLIDES = ("auction", "new")  # slides the home slider adds by itself: the live / next lot, the month's arrivals
 
 

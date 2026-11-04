@@ -1210,7 +1210,14 @@
       "auto_idle_auction": "Jonli yoki rejalashtirilgan auksion yo'q",
       "auto_idle_new": "Oxirgi 30 kunda yangi mahsulot kelmagan",
       "auto_off": "O'chirilgan",
-      "auto_saved": "{name}: {state}"
+      "auto_saved": "{name}: {state}",
+      "looks_hide": "Bu animatsiyani yashirish",
+      "looks_hide_current": "Tanlangan animatsiyani yashirib bo'lmaydi — avval boshqasini tanlang",
+      "looks_keep_one": "Kamida bitta animatsiya ko'rinib turishi kerak",
+      "looks_hidden_title": "Yashirilgan animatsiyalar ({n})",
+      "looks_restore": "Qaytarish",
+      "looks_hidden_msg": "Yashirildi: {name}. Pastdagi ro'yxatdan qaytarish mumkin.",
+      "looks_restored_msg": "Qaytarildi: {name}"
     },
     "shape": {
       "title": "Karta shakli",

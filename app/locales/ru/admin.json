@@ -1210,7 +1210,14 @@
       "auto_idle_auction": "Нет идущего или запланированного аукциона",
       "auto_idle_new": "За 30 дней новых товаров не было",
       "auto_off": "Выключен",
-      "auto_saved": "{name}: {state}"
+      "auto_saved": "{name}: {state}",
+      "looks_hide": "Скрыть эту анимацию",
+      "looks_hide_current": "Выбранную анимацию скрыть нельзя — сначала выберите другую",
+      "looks_keep_one": "Хотя бы одна анимация должна остаться",
+      "looks_hidden_title": "Скрытые анимации ({n})",
+      "looks_restore": "Вернуть",
+      "looks_hidden_msg": "Скрыто: {name}. Можно вернуть из списка ниже.",
+      "looks_restored_msg": "Возвращено: {name}"
     },
     "shape": {
       "title": "Форма карточек",

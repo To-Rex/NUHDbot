@@ -1210,7 +1210,14 @@
       "auto_idle_auction": "No live or scheduled auction",
       "auto_idle_new": "No products arrived in the last 30 days",
       "auto_off": "Off",
-      "auto_saved": "{name}: {state}"
+      "auto_saved": "{name}: {state}",
+      "looks_hide": "Hide this look",
+      "looks_hide_current": "The chosen look cannot be hidden — pick another one first",
+      "looks_keep_one": "At least one look has to stay visible",
+      "looks_hidden_title": "Hidden looks ({n})",
+      "looks_restore": "Restore",
+      "looks_hidden_msg": "Hidden: {name}. It can be restored from the list below.",
+      "looks_restored_msg": "Restored: {name}"
     },
     "shape": {
       "title": "Card shape",
