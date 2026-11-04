@@ -89,3 +89,13 @@ def test_card_shapes():
     """The card shape of both home sliders: tall by default, wide on request, anything else falls back to tall."""
     assert svc.SHAPES == ("tall", "wide")
     assert [svc.clean_shape(v) for v in ("wide", "tall", None, "", "square")] == ["wide", "tall", "tall", "tall", "tall"]
+
+
+def test_home_order_is_always_complete_and_moves_one_step():
+    from app.services.banners import HOME_SECTIONS, clean_order, moved
+
+    assert clean_order(None) == list(HOME_SECTIONS)
+    assert clean_order(["auctions", "bogus", "auctions"]) == ["auctions", "banners", "directions"]
+    assert moved(["banners", "directions", "auctions"], "directions", "up") == ["directions", "banners", "auctions"]
+    assert moved(["banners", "directions", "auctions"], "banners", "up") == ["banners", "directions", "auctions"]
+    assert moved(["banners", "directions", "auctions"], "auctions", "down") == ["banners", "directions", "auctions"]

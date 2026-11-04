@@ -1180,7 +1180,21 @@
         "cascade_d": "Cards step away to the right, the front one flies off to the left",
         "pile": "Scattered pile",
         "pile_d": "Cards lie scattered on a table, the top one is tossed aside"
-      }
+      },
+      "sec": {
+        "banners": "Banner slider",
+        "banners_d": "Offer, news, auction and new-arrival slides",
+        "directions": "Directions slider",
+        "directions_d": "3D cards of the directions: Desktop, Surveillance, NAS…",
+        "auctions": "Auctions",
+        "auctions_d": "The row of live and upcoming lots"
+      },
+      "home_order_title": "Home page order",
+      "home_order_hint": "Which block the Mini App home opens with: banners, Directions or Auctions. An arrow moves a block one step; saved at once.",
+      "home_order_saved": "Home order saved, first: {name}",
+      "home_order_first": "First",
+      "home_order_up": "Move up",
+      "home_order_down": "Move down"
     },
     "shape": {
       "title": "Card shape",

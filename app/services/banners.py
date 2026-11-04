@@ -26,6 +26,26 @@ def clean_style(value: str | None) -> str:
 
 # the card shape of the home sliders (banners and directions): tall portrait cards or wide landscape ones
 SHAPES = ("tall", "wide")
+HOME_SECTIONS = ("banners", "directions", "auctions")  # the Mini App home blocks staff can reorder (Banners page)
+
+
+def clean_order(value) -> list[str]:
+    """A saved home order → every section once, unknown names dropped, missing ones appended in their usual place."""
+    seen = [v for v in (value if isinstance(value, list) else []) if v in HOME_SECTIONS]
+    out = list(dict.fromkeys(seen))
+    return out + [s for s in HOME_SECTIONS if s not in out]
+
+
+def moved(order: list[str], key: str, direction: str) -> list[str]:
+    """`key` one step up or down in the list."""
+    order = clean_order(order)
+    if key not in order:
+        return order
+    i = order.index(key)
+    j = i - 1 if direction == "up" else i + 1
+    if 0 <= j < len(order):
+        order[i], order[j] = order[j], order[i]
+    return order
 
 
 def clean_shape(value: str | None) -> str:

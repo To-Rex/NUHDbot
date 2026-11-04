@@ -12,9 +12,13 @@
 {% block content %}
 <div class="page" style="padding-top:14px">
 
+  {# the three top blocks in the order picked on the admin Banners page: the banner slider, the Directions slider, the Auctions row #}
+  {% for sec in home_order %}
+  {% if sec == 'banners' %}
   {# auto slider: staff banners (hot offers, sales, news), the live auction, new arrivals #}
   {% include "miniapp/partials/home_slider.html" %}
 
+  {% elif sec == 'directions' %}
   {# directions (Series page pictures) as a 3D slider in the look picked on the Series page; the front card opens the catalogue of that direction #}
   {% if directions %}
   <section class="home-sec">
@@ -37,6 +41,7 @@
   </section>
   {% endif %}
 
+  {% elif sec == 'auctions' %}
   {# auctions: live and upcoming lots (or, with none, the latest finished ones) as a swipeable row of horizontal cards — picture left, details
      right — in the product's direction colour #}
   {% if home_lots %}
@@ -47,6 +52,9 @@
     </div>
   </section>
   {% endif %}
+
+  {% endif %}
+  {% endfor %}
 
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.conditions_title') }}</h2><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('chevron-right', 15) }}</a></div>

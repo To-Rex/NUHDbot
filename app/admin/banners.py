@@ -88,7 +88,20 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
+        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": {"banners": "image", "directions": "cube", "auctions": "gavel"},
     })
+
+
+@router.post("/banners/home-order")
+async def banners_home_order(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """Which block the Mini App home opens with: the banner slider, the Directions slider or the Auctions row — one step up or down."""
+    form = await request.form()
+    before = svc.clean_order(await get_setting(db, "home_order"))
+    order = svc.moved(before, form.get("move") or "", form.get("dir") or "")
+    await set_setting(db, "home_order", order)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"home_order": before}, {"home_order": order})
+    await db.commit()
+    return back(request, "/admin/banners#home-order", t(staff.lang, "admin.ban.home_order_saved", name=t(staff.lang, "admin.ban.sec." + order[0])))
 
 
 @router.post("/banners/settings")

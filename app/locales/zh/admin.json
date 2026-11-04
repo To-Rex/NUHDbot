@@ -1180,7 +1180,21 @@
         "cascade_d": "卡片向右阶梯排列，最前面一张向左飞出",
         "pile": "散落卡片",
         "pile_d": "卡片散落在桌面上，最上面一张被甩开"
-      }
+      },
+      "sec": {
+        "banners": "横幅轮播",
+        "banners_d": "促销、新闻、拍卖和新品幻灯片",
+        "directions": "方向轮播",
+        "directions_d": "Desktop、Surveillance、NAS 等方向的 3D 卡片",
+        "auctions": "拍卖",
+        "auctions_d": "进行中和即将开始的拍品"
+      },
+      "home_order_title": "首页顺序",
+      "home_order_hint": "小程序首页哪个区块在最前：横幅、方向或拍卖。箭头移动一格，立即保存。",
+      "home_order_saved": "首页顺序已保存，首位：{name}",
+      "home_order_first": "首位",
+      "home_order_up": "上移",
+      "home_order_down": "下移"
     },
     "shape": {
       "title": "卡片形状",

@@ -1180,7 +1180,21 @@
         "cascade_d": "Kartalar o'ngga zinadek terilgan, oldingisi chapga uchib ketadi",
         "pile": "Tarqoq kartalar",
         "pile_d": "Stol ustida tarqoq yotgan kartalar, ustidagisi chetga otiladi"
-      }
+      },
+      "sec": {
+        "banners": "Bannerlar slayderi",
+        "banners_d": "Aksiyalar, yangiliklar, auksion va yangi kelganlar slaydlari",
+        "directions": "Yo'nalishlar slayderi",
+        "directions_d": "Desktop, Surveillance, NAS va boshqa yo'nalishlarning 3D kartalari",
+        "auctions": "Auksionlar",
+        "auctions_d": "Jonli va rejalashtirilgan lotlar qatori"
+      },
+      "home_order_title": "Bosh sahifa tartibi",
+      "home_order_hint": "Mini ilova bosh sahifasida qaysi blok birinchi turadi: bannerlar, Yo'nalishlar yoki Auksionlar. Strelka bilan bir pog'ona suriladi, darhol saqlanadi.",
+      "home_order_saved": "Bosh sahifa tartibi saqlandi, birinchi: {name}",
+      "home_order_first": "Birinchi",
+      "home_order_up": "Yuqoriga",
+      "home_order_down": "Pastga"
     },
     "shape": {
       "title": "Karta shakli",
