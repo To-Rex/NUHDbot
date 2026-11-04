@@ -15,7 +15,8 @@ img{max-width:100%}
 /* ---------- shell ---------- */
 .shell{display:grid;grid-template-columns:var(--sb-w) minmax(0,1fr);min-height:100vh}
 .sidebar{position:sticky;top:0;height:100vh;background:var(--surface);border-right:1px solid var(--hairline);display:flex;flex-direction:column;overflow:hidden}
-.sb-brand{display:flex;align-items:center;gap:10px;padding:16px 16px 10px;font-family:var(--font-display);font-weight:800;font-size:15px;letter-spacing:-.02em}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:16px 14px 10px;font-family:var(--font-display);font-weight:800;font-size:14px;letter-spacing:-.02em;line-height:1.15}
+.sb-brand span{min-width:0}
 .sb-brand img{width:34px;height:34px;border-radius:10px;flex:0 0 auto}
 .sb-brand small{display:block;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--ink-3);letter-spacing:.02em}
 .sb-nav{flex:1;overflow:auto;padding:4px 10px 10px;scrollbar-width:thin;position:relative}

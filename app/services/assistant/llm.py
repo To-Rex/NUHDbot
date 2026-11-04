@@ -63,7 +63,7 @@ async def _openai(cfg: ProviderConfig, model: str, messages: list[dict], tools: 
         body["temperature"] = 0.2
     headers = {"Authorization": f"Bearer {cfg.key}", "Content-Type": "application/json", "Accept": "text/event-stream"}
     if cfg.provider.id == "openrouter":
-        headers |= {"HTTP-Referer": "https://nuhd.shop", "X-Title": "NUHD admin assistant"}
+        headers |= {"HTTP-Referer": "https://nuhd.shop", "X-Title": "New & Used Hard Disk admin assistant"}
     content, calls, got_any = [], {}, False
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(timeout, connect=20)) as cl, cl.stream("POST", _url(cfg, "/chat/completions"), json=body, headers=headers) as r:

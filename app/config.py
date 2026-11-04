@@ -12,7 +12,7 @@ APP_DIR = BASE_DIR / "app"
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BASE_DIR / ".env", env_file_encoding="utf-8", extra="ignore")
 
-    app_name: str = "New & Used Hard Drives"
+    app_name: str = "New & Used Hard Disk"
     debug: bool = False
     secret_key: str = Field(default="change-me-please-32-bytes-minimum-secret")
     base_url: str = "http://localhost:8000"  # public https URL in production (Mini App needs https)

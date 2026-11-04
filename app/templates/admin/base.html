@@ -17,7 +17,7 @@
 <body{% if staff is defined and staff and can(roles.SUPPORT_ROLES) %} data-support-stream="1"{% endif %}>
 <div class="shell">
   <aside class="sidebar" id="sidebar" aria-label="{{ t('admin.top.menu') }}">
-    <a class="sb-brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>NUHD<small>{{ t('admin.title') }}</small></span></a>
+    <a class="sb-brand" href="/admin"><img src="/static/img/logo.svg" alt=""><span>{{ app_name }}<small>{{ t('admin.title') }}</small></span></a>
     <nav class="sb-nav" data-default='{{ nav_default|tojson }}'>
       {% for gkey, items in nav_groups %}
       <div class="sb-group{{ ' is-empty' if not items }}" data-group="{{ gkey }}" data-empty="{{ t('admin.nav_edit.drop') }}"><span>{{ t('admin.nav_group.' ~ gkey) }}</span>

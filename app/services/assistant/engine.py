@@ -36,7 +36,7 @@ HISTORY_MESSAGES = 60
 TOOL_RESULT_CHARS = 8000
 _locks: dict[int, asyncio.Lock] = defaultdict(asyncio.Lock)
 
-SYSTEM = """You are the operations assistant of NUHD, a Telegram Mini App shop selling new, used and refresh hard drives from China
+SYSTEM = """You are the operations assistant of {app_name}, a Telegram Mini App shop selling new, used and refresh hard drives from China
 (Guangzhou) to customers in Uzbekistan and nearby countries. You talk to a staff member in the admin panel and you run the shop
 through the tools: products, brands, series, the model dictionary, home slider banners, orders, payments, auctions, customers,
 customer chats, staff accounts, settings, currencies, delivery countries/cities, help articles, ad posts and reports.
@@ -62,7 +62,7 @@ Rules
 
 def system_prompt() -> str:
     tz = ZoneInfo(settings.timezone)
-    return SYSTEM.format(undo_days=UNDO_DAYS, currency=settings.default_currency, tz=settings.timezone, now=datetime.now(tz).strftime("%Y-%m-%d %H:%M (%A)"),
+    return SYSTEM.format(app_name=settings.app_name, undo_days=UNDO_DAYS, currency=settings.default_currency, tz=settings.timezone, now=datetime.now(tz).strftime("%Y-%m-%d %H:%M (%A)"),
                          directions=", ".join(f"{c.value} = {d}" for c, d in COLOR_DIRECTION.items()))
 
 
