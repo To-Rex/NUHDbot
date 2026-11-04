@@ -247,7 +247,9 @@
       "deleted": "Product deleted",
       "bulk_delete_q": "Delete the selected products?",
       "bulk_deleted": "{n} products deleted",
-      "condition_hint": "Warranty defaults follow the condition"
+      "condition_hint": "Warranty defaults follow the condition",
+      "saving": "Saving…",
+      "created": "Product created: {name}"
     },
     "ord": {
       "title": "Orders",

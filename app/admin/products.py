@@ -200,7 +200,8 @@ async def product_create(request: Request, db: DB, staff: User = Depends(staff_d
     added, img_msg, img_kind = await _add_images(db, p, form.getlist("images"), form.get("images_kind"), staff.lang)
     await audit.log(db, staff.id, "product.create", "product", p.id, None, {**snapshot(p, PRODUCT_FIELDS), "images": added})
     await db.commit()
-    return back(request, f"/admin/products/{p.id}", t(staff.lang, "admin.flash.saved") if img_kind == "ok" else img_msg, "ok" if img_kind == "ok" else img_kind)
+    msg = t(staff.lang, "admin.prod.created", name=f"{p.brand} {p.model}") if img_kind == "ok" else img_msg
+    return back(request, f"/admin/products?created={p.id}", msg, "ok" if img_kind == "ok" else img_kind)
 
 
 @router.get("/products/{pid}")

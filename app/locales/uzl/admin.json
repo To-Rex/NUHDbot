@@ -247,7 +247,9 @@
       "deleted": "Mahsulot o'chirildi",
       "bulk_delete_q": "Tanlangan mahsulotlar o'chirilsinmi?",
       "bulk_deleted": "{n} ta mahsulot o'chirildi",
-      "condition_hint": "Kafolat muddati holatga qarab o'zi to'ldiriladi"
+      "condition_hint": "Kafolat muddati holatga qarab o'zi to'ldiriladi",
+      "saving": "Saqlanmoqda…",
+      "created": "Mahsulot yaratildi: {name}"
     },
     "ord": {
       "title": "Buyurtmalar",

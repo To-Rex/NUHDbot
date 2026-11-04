@@ -297,8 +297,8 @@ mids = re.findall(r'/admin/models/(\d+)/delete', html)
 r = adm.post(f"/admin/models/{mids[-1]}/delete", data={"next": "/admin/models"}) if mids else None
 ok("model delete stays on the current view", bool(r) and r.status_code == 303 and r.headers.get("location", "").startswith("/admin/models?flash"), r.headers.get("location") if r else "no model")
 r = adm.post("/admin/products/new", data={"brand_id": bid, "model": "E2E-" + UID, "capacity_value": "4", "capacity_unit": "tb", "condition": "new", "price": "50", "currency": "USD", "stock": "10", "interface": "SATA", "form_factor": "3.5", "test_status": "untested", "min_order": "1", "seller_warranty_months": "12", "factory_warranty_months": "36", "sort": "0", "arrived_at": now.strftime("%Y-%m-%d"), "is_active": "on", "sale_allowed": "on"})
-ok("product create", r.status_code == 303 and "/admin/products/" in r.headers.get("location", ""), f"{r.status_code} {r.text[:200]}")
-npid = int(re.search(r"/products/(\d+)", r.headers.get("location", "/products/0")).group(1))
+ok("product create", r.status_code == 303 and "created=" in r.headers.get("location", ""), f"{r.status_code} {r.headers.get('location', '')} {r.text[:200]}")  # lands on the list, new row highlighted
+npid = int(re.search(r"created=(\d+)", r.headers.get("location", "created=0")).group(1))
 html = adm.get(f"/admin/products/{npid}").text
 f = form_by(html, id="product-form")
 ok("product edit resubmit", adm.post(f"/admin/products/{npid}", data=multi(f["fields"])).status_code == 303 if f else False, "no form" if not f else "")

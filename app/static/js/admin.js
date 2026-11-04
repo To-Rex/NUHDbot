@@ -262,12 +262,25 @@
 
   // ---------- unsaved changes tracker + sticky save bar ----------
   const tracked = document.querySelector('form[data-track]'); const savebar = document.querySelector('.savebar');
-  let dirty = false;
-  function markDirty() { if (!tracked) return; dirty = true; savebar && savebar.classList.add('dirty'); const s = savebar && savebar.querySelector('[data-state]'); if (s) s.textContent = savebar.dataset.unsaved || 'Unsaved changes'; }
+  let dirty = false, submitting = false;
+  function markDirty() { if (!tracked || submitting) return; dirty = true; savebar && savebar.classList.add('dirty'); const s = savebar && savebar.querySelector('[data-state]'); if (s) s.textContent = savebar.dataset.unsaved || 'Unsaved changes'; }
   if (tracked) {
     tracked.addEventListener('input', markDirty); tracked.addEventListener('change', markDirty);
-    tracked.addEventListener('submit', () => { dirty = false; });
-    window.addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+    // one submission at a time: the buttons lock and say "Saving…" until the server answers (uploads can take a while),
+    // nothing marks the form dirty meanwhile, so the redirect is never held up by the "unsaved changes" prompt
+    const saveBtns = () => [...document.querySelectorAll('button[form="' + tracked.id + '"], #' + tracked.id + ' button[type="submit"], #' + tracked.id + ' button:not([type])')];
+    const unlock = () => { submitting = false; savebar && savebar.classList.remove('saving'); saveBtns().forEach((b) => { b.disabled = false; }); };
+    tracked.addEventListener('submit', (e) => {
+      if (e.defaultPrevented) return;
+      if (submitting) { e.preventDefault(); return; }
+      submitting = true; dirty = false;
+      savebar && savebar.classList.remove('dirty'); savebar && savebar.classList.add('saving');
+      const s = savebar && savebar.querySelector('[data-state]'); if (s) s.textContent = savebar.dataset.saving || 'Saving…';
+      setTimeout(() => { if (submitting) saveBtns().forEach((b) => { b.disabled = true; }); }, 0);
+      setTimeout(unlock, 60000);
+    });
+    window.addEventListener('pageshow', unlock);  // back from the saved page (bfcache): the form is usable again
+    window.addEventListener('beforeunload', (e) => { if (dirty && !submitting) { e.preventDefault(); e.returnValue = ''; } });
   }
   // form section nav highlight
   const secLinks = [...document.querySelectorAll('.form-nav a[href^="#"]')];

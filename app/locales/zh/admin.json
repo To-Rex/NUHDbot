@@ -247,7 +247,9 @@
       "deleted": "商品已删除",
       "bulk_delete_q": "删除所选商品？",
       "bulk_deleted": "已删除 {n} 个商品",
-      "condition_hint": "保修期将根据状态自动填写"
+      "condition_hint": "保修期将根据状态自动填写",
+      "saving": "保存中…",
+      "created": "商品已创建：{name}"
     },
     "ord": {
       "title": "订单",

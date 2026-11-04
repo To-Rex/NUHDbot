@@ -186,7 +186,7 @@
   <div class="dlg-acts"><button type="button" class="btn btn-secondary" data-models-close>{{ t('admin.ui.close') }}</button></div>
 </dialog>
 {% endif %}
-<div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}">
+<div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}" data-saving="{{ t('admin.prod.saving') }}">
   <span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span>
   <kbd>{{ t('admin.prod.save_shortcut') }}</kbd>
   <a class="btn btn-secondary" href="/admin/products">{{ t('admin.cancel') }}</a>
