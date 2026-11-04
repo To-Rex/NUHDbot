@@ -26,6 +26,14 @@
         <span class="hint series-out" data-series-out data-t-series="{{ t('admin.prod.dir_from_series') }}" data-t-guess="{{ t('admin.prod.dir_guess') }}" data-t-own="{{ t('admin.prod.dir_own') }}" data-t-none="{{ t('admin.prod.dir_none') }}" data-t-diff="{{ t('admin.prod.series_color_diff') }}" data-apply="{{ t('admin.prod.series_apply') }}">{{ t('admin.prod.dir_none') }}</span>
         {% if is_new %}<input type="hidden" name="color" value="{{ prod.color or '' }}" data-color-hidden>{% endif %}
       </div>
+      <div class="field cond-field"><label>{{ t('admin.prod.condition') }} <span class="req">*</span></label>
+        <div class="cond-select" data-cond-select>
+          <button type="button" class="select cond-trigger" data-cond-trigger aria-haspopup="listbox" aria-expanded="false" {{ dis }}><span class="cond-dot cond-{{ prod.condition.value }}"></span><span class="cond-name">{{ t('condition.' ~ prod.condition.value) }}</span><span class="cond-sub">{{ t('condition.' ~ prod.condition.value ~ '_desc')|truncate(48) }}</span></button>
+          <div class="cond-pop" role="listbox" hidden>
+            {% for c in conditions %}<label class="cond-opt{{ ' chosen' if prod.condition==c }}" role="option" aria-selected="{{ 'true' if prod.condition==c else 'false' }}"><input type="radio" name="condition" value="{{ c.value }}" {{ 'checked' if prod.condition==c }} {{ dis }}><span class="cond-dot cond-{{ c.value }}"></span><span class="cond-txt"><b>{{ t('condition.' ~ c.value) }}</b><small>{{ t('condition.' ~ c.value ~ '_desc') }}</small></span>{{ icon('check', 15, 'so-check') }}</label>{% endfor %}
+          </div>
+        </div>
+        <span class="hint">{{ t('admin.prod.condition_hint') }}</span></div>
     </div>
     <div class="form-grid mt">
       <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label>
@@ -48,8 +56,6 @@
         </div>
         <span class="hint">{{ t('admin.prod.capacity_hint') }}</span></div>
     </div>
-    <div class="field mt"><label>{{ t('admin.prod.condition') }}</label>
-      <div class="cond-pick">{% for c in conditions %}<label class="cond-card cond-{{ c.value }}"><input type="radio" name="condition" value="{{ c.value }}" {{ 'checked' if prod.condition==c }} {{ dis }}><b>{{ t('condition.' ~ c.value) }}</b><small>{{ t('condition.' ~ c.value ~ '_desc')|truncate(70) }}</small></label>{% endfor %}</div></div>
     {% if not is_new %}
     <details class="color-more mt" {{ 'open' if errors }}>
       <summary><span class="color-more-lbl">{{ t('admin.prod.color') }}</span><span class="color-now" data-color-now data-none="{{ t('admin.prod.color_none') }}"><span class="series-dot sw sw-{{ prod.color or 'none' }}"></span>{{ color_dir[prod.color] if prod.color else t('admin.prod.color_none') }}</span><span class="color-more-act">{{ t('admin.prod.color_change') }}{{ icon('chevron-down', 14) }}</span></summary>
@@ -187,6 +193,20 @@
   <button class="btn btn-primary" form="product-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button>
 </div>
 <script>
+(function(){
+  /* condition menu: a compact select whose options are the real radios (warranty defaults, label-model row and the preview listen to them) */
+  var box=document.querySelector('[data-cond-select]'); if(!box) return; var btn=box.querySelector('[data-cond-trigger]'), pop=box.querySelector('.cond-pop'), opts=Array.from(pop.querySelectorAll('.cond-opt'));
+  function open(){ if(btn.disabled) return; pop.hidden=false; box.classList.add('open'); btn.setAttribute('aria-expanded','true'); var c=opts.find(function(o){ return o.classList.contains('chosen'); }); (c||opts[0]).focus(); }
+  function close(focus){ pop.hidden=true; box.classList.remove('open'); btn.setAttribute('aria-expanded','false'); if(focus) btn.focus(); }
+  function reflect(){ var r=box.querySelector('input[name="condition"]:checked'); if(!r) return; var o=r.closest('.cond-opt'); opts.forEach(function(x){ var on=x===o; x.classList.toggle('chosen',on); x.setAttribute('aria-selected',on?'true':'false'); });
+    btn.querySelector('.cond-dot').className='cond-dot cond-'+r.value; btn.querySelector('.cond-name').textContent=o.querySelector('b').textContent; var d=o.querySelector('small').textContent; btn.querySelector('.cond-sub').textContent=d.length>48?d.slice(0,47)+'…':d; }
+  btn.addEventListener('click',function(){ pop.hidden?open():close(false); });
+  opts.forEach(function(o){ o.tabIndex=0; o.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); o.querySelector('input').click(); } else if(e.key==='ArrowDown'){ e.preventDefault(); (o.nextElementSibling||opts[0]).focus(); } else if(e.key==='ArrowUp'){ e.preventDefault(); (o.previousElementSibling||opts[opts.length-1]).focus(); } }); });
+  box.addEventListener('change',function(e){ if(e.target.name==='condition'){ reflect(); close(true); } });
+  document.addEventListener('click',function(e){ if(!pop.hidden&&!box.contains(e.target)) close(false); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!pop.hidden) close(true); });
+  reflect();
+})();
 (function(){
   /* brand "other": show the free-text input only when it is chosen */
   var bs=document.getElementById('brand-select'), bo=document.getElementById('brand-other');

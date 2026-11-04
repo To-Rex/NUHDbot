@@ -246,7 +246,8 @@
       "delete_text": "Its photos and price history go too. Orders and auctions keep its name.",
       "deleted": "Product deleted",
       "bulk_delete_q": "Delete the selected products?",
-      "bulk_deleted": "{n} products deleted"
+      "bulk_deleted": "{n} products deleted",
+      "condition_hint": "Warranty defaults follow the condition"
     },
     "ord": {
       "title": "Orders",

@@ -246,7 +246,8 @@
       "delete_text": "Rasmlari va narx tarixi ham o'chadi. Buyurtma va auksionlarda nomi saqlanib qoladi.",
       "deleted": "Mahsulot o'chirildi",
       "bulk_delete_q": "Tanlangan mahsulotlar o'chirilsinmi?",
-      "bulk_deleted": "{n} ta mahsulot o'chirildi"
+      "bulk_deleted": "{n} ta mahsulot o'chirildi",
+      "condition_hint": "Kafolat muddati holatga qarab o'zi to'ldiriladi"
     },
     "ord": {
       "title": "Buyurtmalar",

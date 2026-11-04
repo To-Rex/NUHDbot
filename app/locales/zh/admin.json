@@ -246,7 +246,8 @@
       "delete_text": "图片和价格历史也将删除。订单和拍卖中保留名称。",
       "deleted": "商品已删除",
       "bulk_delete_q": "删除所选商品？",
-      "bulk_deleted": "已删除 {n} 个商品"
+      "bulk_deleted": "已删除 {n} 个商品",
+      "condition_hint": "保修期将根据状态自动填写"
     },
     "ord": {
       "title": "订单",
