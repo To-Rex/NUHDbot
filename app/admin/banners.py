@@ -16,6 +16,7 @@ from app.admin.common import (
     render,
     snapshot,
     staff_dep,
+    toast,
 )
 from app.admin.router import router
 from app.i18n import t
@@ -76,19 +77,36 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
     return errors
 
 
+SECTION_ICONS = {"banners": "image", "directions": "cube", "auctions": "gavel"}
+
+
+async def _rows_ctx(db) -> dict:
+    rows = await svc.all_banners(db)
+    return {"rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": {b.id: await svc.offer(db, b) for b in rows if svc.is_offer(b)}}
+
+
+def _hx(request: Request) -> bool:
+    return request.headers.get("HX-Request") == "true"
+
+
+async def _rows_or_back(request: Request, db, staff: User, msg: str | None, kind: str = "ok"):
+    """After a move / toggle / delete: the cards swapped in place (htmx), or the page again."""
+    if _hx(request):
+        return render(request, staff, "admin/banners/_rows.html", await _rows_ctx(db), headers=toast(msg, kind) if msg else None)
+    return back(request, "/admin/banners", msg, kind)
+
+
 @router.get("/banners")
 async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
-    rows = await svc.all_banners(db)
-    offers = {b.id: await svc.offer(db, b) for b in rows if svc.is_offer(b)}
     return render(request, staff, "admin/banners/list.html", {
-        "page_title": t(staff.lang, "admin.ban.title"), "rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": offers,
+        "page_title": t(staff.lang, "admin.ban.title"), **(await _rows_ctx(db)),
         "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
         "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
         "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
-        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": {"banners": "image", "directions": "cube", "auctions": "gavel"},
+        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS,
     })
 
 
@@ -101,7 +119,10 @@ async def banners_home_order(request: Request, db: DB, staff: User = Depends(sta
     await set_setting(db, "home_order", order)
     await audit.log(db, staff.id, "settings.update", "settings", None, {"home_order": before}, {"home_order": order})
     await db.commit()
-    return back(request, "/admin/banners#home-order", t(staff.lang, "admin.ban.home_order_saved", name=t(staff.lang, "admin.ban.sec." + order[0])))
+    msg = t(staff.lang, "admin.ban.home_order_saved", name=t(staff.lang, "admin.ban.sec." + order[0]))
+    if _hx(request):  # the card is swapped in place, the page stays where it is
+        return render(request, staff, "admin/banners/_home_order.html", {"home_order": order, "section_icons": SECTION_ICONS}, headers=toast(msg))
+    return back(request, "/admin/banners#home-order", msg)
 
 
 @router.post("/banners/settings")
@@ -212,7 +233,7 @@ async def banner_toggle(bid: int, request: Request, db: DB, staff: User = Depend
     b.is_active = not b.is_active
     await audit.log(db, staff.id, "banner.toggle", "banner", b.id, {"is_active": not b.is_active}, {"is_active": b.is_active})
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.ban.shown" if b.is_active else "admin.ban.hidden"))
+    return await _rows_or_back(request, db, staff, t(staff.lang, "admin.ban.shown" if b.is_active else "admin.ban.hidden"))
 
 
 @router.post("/banners/{bid}/move")
@@ -226,7 +247,7 @@ async def banner_move(bid: int, request: Request, db: DB, staff: User = Depends(
         for n, b in enumerate(rows):
             b.sort = (n + 1) * 10
         await db.commit()
-    return back(request, "/admin/banners")
+    return await _rows_or_back(request, db, staff, None)
 
 
 @router.post("/banners/{bid}/delete")
@@ -237,4 +258,4 @@ async def banner_delete(bid: int, request: Request, db: DB, staff: User = Depend
     await audit.log(db, staff.id, "banner.delete", "banner", b.id, snapshot(b, FIELDS), None)
     await db.delete(b)
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.flash.deleted"))
+    return await _rows_or_back(request, db, staff, t(staff.lang, "admin.flash.deleted"))
