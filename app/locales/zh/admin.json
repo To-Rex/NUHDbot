@@ -1194,7 +1194,11 @@
       "home_order_saved": "首页顺序已保存，首位：{name}",
       "home_order_first": "首位",
       "home_order_up": "上移",
-      "home_order_down": "下移"
+      "home_order_down": "下移",
+      "dir_order_title": "方向顺序",
+      "dir_order_hint": "小程序首页方向轮播和目录筛选按此顺序显示，第一个在轮播最前。箭头移动一格，立即保存。",
+      "dir_order_saved": "方向顺序已保存，首位：{name}",
+      "dir_models": "{n} 个型号"
     },
     "shape": {
       "title": "卡片形状",

@@ -48,10 +48,11 @@ async def _directions(db) -> list[dict]:
         (await db.execute(select(Product.color, func.count()).where(Product.is_active.is_(True), Product.color.is_not(None)).group_by(Product.color))).all()
     )
     pics = await get_setting(db, "direction_images") or {}
+    order = banner_service.clean_order(await get_setting(db, "direction_order"), banner_service.DIRECTIONS)  # the Banners page order
     return [
         {"color": c.value, "name": COLOR_DIRECTION[c], "n": counts.get(c.value, 0),
          "img": storage.url(pic.get("thumb") or pic.get("filename")) if (pic := pics.get(c.value)) else None}
-        for c in ProductColor
+        for c in (ProductColor(v) for v in order)
     ]
 
 

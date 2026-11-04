@@ -1496,3 +1496,6 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .ho-moves{display:flex;gap:4px;flex:0 0 auto}.ho-moves .icon-btn:disabled{opacity:.3;cursor:default}
 .ho-row:first-child{border-color:var(--accent)}
 @media (max-width:640px){.ho-row .chip{display:none}.ho-row{gap:10px}.ho-txt small{font-size:11.5px}}
+
+.ho-pic{width:40px;height:40px;border-radius:11px;overflow:hidden;display:grid;place-items:center;background:var(--sunken);flex:0 0 auto}
+.ho-pic img{width:100%;height:100%;object-fit:cover}.ho-pic .sw{width:16px;height:16px;border-radius:50%}

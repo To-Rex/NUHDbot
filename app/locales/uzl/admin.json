@@ -1194,7 +1194,11 @@
       "home_order_saved": "Bosh sahifa tartibi saqlandi, birinchi: {name}",
       "home_order_first": "Birinchi",
       "home_order_up": "Yuqoriga",
-      "home_order_down": "Pastga"
+      "home_order_down": "Pastga",
+      "dir_order_title": "Yo'nalishlar tartibi",
+      "dir_order_hint": "Mini ilovadagi Yo'nalishlar slayderi va katalog filtrlarida yo'nalishlar shu tartibda turadi. Birinchi yo'nalish slayderda oldinda ochiladi. Strelka bir pog'ona suradi, darhol saqlanadi.",
+      "dir_order_saved": "Yo'nalishlar tartibi saqlandi, birinchi: {name}",
+      "dir_models": "{n} ta model"
     },
     "shape": {
       "title": "Karta shakli",

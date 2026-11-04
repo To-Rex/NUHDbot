@@ -4,19 +4,20 @@ from fastapi import Request
 
 from app.deps import DB, CurrentUser, Lang
 from app.enums import Condition, FormFactor, Interface, ProductColor, Purpose, TestStatus
-from app.services import catalog, currencies
+from app.services import banners, catalog, currencies
+from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.router import router
 
 
-def _filter_ctx(f: catalog.CatalogFilters, facets: dict, presets: list[int]) -> dict:
+def _filter_ctx(f: catalog.CatalogFilters, facets: dict, presets: list[int], directions: list[ProductColor] | None = None) -> dict:
     return {
         "f": f,
         "facets": facets,
         "capacity_presets": [g for g in presets if any(g == c for c, _ in facets["capacities"])] or [c for c, _ in facets["capacities"]],
         "conditions": list(Condition),
         "purposes": list(Purpose),
-        "directions": list(ProductColor),
+        "directions": directions or list(ProductColor),
         "interfaces": list(Interface),
         "form_factors": list(FormFactor),
         "tests": list(TestStatus),
@@ -36,7 +37,8 @@ async def catalog_page(request: Request, db: DB, user: CurrentUser, lang: Lang):
         tpl = "miniapp/partials/product_grid.html" if request.headers.get("HX-Target") != "grid-more" and partial != "more" else "miniapp/partials/product_grid_more.html"
         return render(request, tpl, ctx)
     facets = await catalog.facets(db)
-    ctx.update(_filter_ctx(f, facets, await catalog.capacity_presets(db)))
+    directions = [ProductColor(v) for v in banners.clean_order(await get_setting(db, "direction_order"), banners.DIRECTIONS)]  # the Banners page order
+    ctx.update(_filter_ctx(f, facets, await catalog.capacity_presets(db), directions))
     ctx["page_title"] = None
     return render(request, "miniapp/catalog.html", ctx)
 

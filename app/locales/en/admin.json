@@ -1194,7 +1194,11 @@
       "home_order_saved": "Home order saved, first: {name}",
       "home_order_first": "First",
       "home_order_up": "Move up",
-      "home_order_down": "Move down"
+      "home_order_down": "Move down",
+      "dir_order_title": "Directions order",
+      "dir_order_hint": "The directions appear in this order in the Mini App home slider and the catalogue filters; the first one opens in front. An arrow moves one step; saved at once.",
+      "dir_order_saved": "Directions order saved, first: {name}",
+      "dir_models": "{n} models"
     },
     "shape": {
       "title": "Card shape",

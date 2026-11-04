@@ -5,6 +5,7 @@ from decimal import Decimal
 from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.enums import ProductColor
 from app.models import Banner, Product
 from app.services import discounts
 
@@ -29,16 +30,19 @@ SHAPES = ("tall", "wide")
 HOME_SECTIONS = ("banners", "directions", "auctions")  # the Mini App home blocks staff can reorder (Banners page)
 
 
-def clean_order(value) -> list[str]:
-    """A saved home order → every section once, unknown names dropped, missing ones appended in their usual place."""
-    seen = [v for v in (value if isinstance(value, list) else []) if v in HOME_SECTIONS]
+DIRECTIONS = tuple(c.value for c in ProductColor)  # the six catalogue directions, in their usual order
+
+
+def clean_order(value, items: tuple[str, ...] = HOME_SECTIONS) -> list[str]:
+    """A saved order → every item once, unknown names dropped, missing ones appended in their usual place."""
+    seen = [v for v in (value if isinstance(value, list) else []) if v in items]
     out = list(dict.fromkeys(seen))
-    return out + [s for s in HOME_SECTIONS if s not in out]
+    return out + [s for s in items if s not in out]
 
 
-def moved(order: list[str], key: str, direction: str) -> list[str]:
+def moved(order: list[str], key: str, direction: str, items: tuple[str, ...] = HOME_SECTIONS) -> list[str]:
     """`key` one step up or down in the list."""
-    order = clean_order(order)
+    order = clean_order(order, items)
     if key not in order:
         return order
     i = order.index(key)

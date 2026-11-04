@@ -1,6 +1,6 @@
 """Home slider banners (System → Banners): hot offers, sales, new stock and announcements for the Mini App."""
 from fastapi import Depends, File, HTTPException, Request, UploadFile
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.admin.common import (
     ADS_ROLES,
@@ -80,6 +80,17 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
 SECTION_ICONS = {"banners": "image", "directions": "cube", "auctions": "gavel"}
 
 
+async def _dir_ctx(db) -> dict:
+    """The six directions in their saved order, with the Series page pictures and how many models each has."""
+    from app.enums import COLOR_DIRECTION, ProductColor
+    from app.services import storage
+
+    pics = await get_setting(db, "direction_images") or {}
+    counts = dict((await db.execute(select(Product.color, func.count()).where(Product.is_active.is_(True), Product.color.is_not(None)).group_by(Product.color))).all())
+    return {"direction_order": svc.clean_order(await get_setting(db, "direction_order"), svc.DIRECTIONS), "color_dir": {c.value: n for c, n in COLOR_DIRECTION.items()},
+            "dir_pics": {c: storage.url(v.get("thumb") or v.get("filename")) for c, v in pics.items() if v}, "dir_counts": counts, "colors": list(ProductColor)}
+
+
 async def _rows_ctx(db) -> dict:
     rows = await svc.all_banners(db)
     return {"rows": rows, "status": svc.status, "kind_icons": svc.KIND_ICONS, "offers": {b.id: await svc.offer(db, b) for b in rows if svc.is_offer(b)}}
@@ -106,8 +117,25 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
-        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS,
+        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS, **(await _dir_ctx(db)),
     })
+
+
+@router.post("/banners/dir-order")
+async def banners_dir_order(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """The order of the six directions in the Mini App (home slider, catalogue chips) — one step up or down."""
+    form = await request.form()
+    before = svc.clean_order(await get_setting(db, "direction_order"), svc.DIRECTIONS)
+    order = svc.moved(before, form.get("move") or "", form.get("dir") or "", svc.DIRECTIONS)
+    await set_setting(db, "direction_order", order)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"direction_order": before}, {"direction_order": order})
+    await db.commit()
+    from app.enums import COLOR_DIRECTION, ProductColor
+
+    msg = t(staff.lang, "admin.ban.dir_order_saved", name=COLOR_DIRECTION[ProductColor(order[0])])
+    if _hx(request):
+        return render(request, staff, "admin/banners/_dir_order.html", await _dir_ctx(db), headers=toast(msg))
+    return back(request, "/admin/banners#dir-order", msg)
 
 
 @router.post("/banners/home-order")

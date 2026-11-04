@@ -99,3 +99,11 @@ def test_home_order_is_always_complete_and_moves_one_step():
     assert moved(["banners", "directions", "auctions"], "directions", "up") == ["directions", "banners", "auctions"]
     assert moved(["banners", "directions", "auctions"], "banners", "up") == ["banners", "directions", "auctions"]
     assert moved(["banners", "directions", "auctions"], "auctions", "down") == ["banners", "directions", "auctions"]
+
+
+def test_direction_order_covers_all_six():
+    from app.services.banners import DIRECTIONS, clean_order, moved
+
+    assert clean_order(None, DIRECTIONS) == ["blue", "purple", "red", "gold", "silver", "black"]
+    assert clean_order(["black", "red"], DIRECTIONS) == ["black", "red", "blue", "purple", "gold", "silver"]
+    assert moved(["blue", "purple", "red", "gold", "silver", "black"], "black", "up", DIRECTIONS)[-2:] == ["black", "silver"]
