@@ -629,9 +629,23 @@ async def delete_banner(ctx: Ctx, id: int):  # noqa: A002
 
 
 @tool("set_slider", "Home slider looks: animation (coverflow orbit stack fan cylinder spiral cascade pile), card shape (tall | wide) for the banner and the Directions sliders, seconds per slide.",
-      {"banner_style": S("Banner slider animation"), "banner_shape": S("tall | wide"), "dir_style": S("Directions slider animation"), "dir_shape": S("tall | wide"), "seconds": I("Seconds a slide stays (3–30)")}, mutating=True)
-async def set_slider(ctx: Ctx, banner_style=None, banner_shape=None, dir_style=None, dir_shape=None, seconds=None):
+      {"banner_style": S("Banner slider animation"), "banner_shape": S("tall | wide"), "dir_style": S("Directions slider animation"), "dir_shape": S("tall | wide"), "seconds": I("Seconds a slide stays (3–30)"),
+       "auto_auction": B("Automatic slide for the live / next auction on or off"), "auto_new": B("Automatic 'new arrivals this month' slide on or off")}, mutating=True)
+async def set_slider(ctx: Ctx, banner_style=None, banner_shape=None, dir_style=None, dir_shape=None, seconds=None, auto_auction=None, auto_new=None):
     changes = {}
+    if auto_auction is not None or auto_new is not None:
+        row = await ctx.db.get(Setting, "auto_slides")
+        if row is not None:
+            ctx.journal.track(row)
+        auto = bsvc.clean_auto_slides(await get_setting(ctx.db, "auto_slides"))
+        if auto_auction is not None:
+            auto["auction"] = bool(auto_auction)
+        if auto_new is not None:
+            auto["new"] = bool(auto_new)
+        await set_setting(ctx.db, "auto_slides", auto)
+        if row is None:
+            ctx.journal.created(await ctx.db.get(Setting, "auto_slides"))
+        changes["auto_slides"] = auto
     for key, v, clean in (("banner_slider_style", banner_style, bsvc.clean_style), ("banner_slider_shape", banner_shape, bsvc.clean_shape), ("dir_slider_style", dir_style, bsvc.clean_style),
                           ("dir_slider_shape", dir_shape, bsvc.clean_shape), ("slider_seconds", seconds, lambda x: bsvc.clean_seconds(x, bsvc.SECONDS_DEFAULT))):
         if v is None:

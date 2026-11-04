@@ -1198,7 +1198,19 @@
       "dir_order_title": "Yo'nalishlar tartibi",
       "dir_order_hint": "Mini ilovadagi Yo'nalishlar slayderi va katalog filtrlarida yo'nalishlar shu tartibda turadi. Birinchi yo'nalish slayderda oldinda ochiladi. Strelka bir pog'ona suradi, darhol saqlanadi.",
       "dir_order_saved": "Yo'nalishlar tartibi saqlandi, birinchi: {name}",
-      "dir_models": "{n} ta model"
+      "dir_models": "{n} ta model",
+      "auto_title": "Avtomatik slaydlar",
+      "auto_hint": "Bannerlardan tashqari slayder o'zi qo'shadigan slaydlar. Yoqilgan bo'lsa, ko'rsatiladigan narsa bor paytda chiqadi.",
+      "auto_auction": "Auksion slaydi",
+      "auto_auction_d": "Jonli yoki navbatdagi lot, taymer va joriy narx bilan",
+      "auto_new": "Yangi kelganlar slaydi",
+      "auto_new_d": "Oxirgi 30 kunda kelgan mahsulotlar soni, Yangiliklar sahifasiga olib boradi",
+      "auto_now": "Hozir ko'rsatilmoqda",
+      "auto_idle": "Hozir ko'rsatiladigan narsa yo'q",
+      "auto_idle_auction": "Jonli yoki rejalashtirilgan auksion yo'q",
+      "auto_idle_new": "Oxirgi 30 kunda yangi mahsulot kelmagan",
+      "auto_off": "O'chirilgan",
+      "auto_saved": "{name}: {state}"
     },
     "shape": {
       "title": "Karta shakli",

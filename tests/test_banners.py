@@ -107,3 +107,10 @@ def test_direction_order_covers_all_six():
     assert clean_order(None, DIRECTIONS) == ["blue", "purple", "red", "gold", "silver", "black"]
     assert clean_order(["black", "red"], DIRECTIONS) == ["black", "red", "blue", "purple", "gold", "silver"]
     assert moved(["blue", "purple", "red", "gold", "silver", "black"], "black", "up", DIRECTIONS)[-2:] == ["black", "silver"]
+
+
+def test_auto_slides_default_on():
+    from app.services.banners import clean_auto_slides
+
+    assert clean_auto_slides(None) == {"auction": True, "new": True}
+    assert clean_auto_slides({"new": False, "junk": 1}) == {"auction": True, "new": False}

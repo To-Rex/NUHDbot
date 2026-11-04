@@ -1198,7 +1198,19 @@
       "dir_order_title": "方向顺序",
       "dir_order_hint": "小程序首页方向轮播和目录筛选按此顺序显示，第一个在轮播最前。箭头移动一格，立即保存。",
       "dir_order_saved": "方向顺序已保存，首位：{name}",
-      "dir_models": "{n} 个型号"
+      "dir_models": "{n} 个型号",
+      "auto_title": "自动幻灯片",
+      "auto_hint": "轮播除横幅外自动添加的幻灯片。开启后在有内容时显示。",
+      "auto_auction": "拍卖幻灯片",
+      "auto_auction_d": "进行中或即将开始的拍品，带倒计时和当前价",
+      "auto_new": "新品幻灯片",
+      "auto_new_d": "最近 30 天到货数量，打开新品页",
+      "auto_now": "正在显示",
+      "auto_idle": "暂无可显示内容",
+      "auto_idle_auction": "没有进行中或计划中的拍卖",
+      "auto_idle_new": "最近 30 天没有新品到货",
+      "auto_off": "已关闭",
+      "auto_saved": "{name}：{state}"
     },
     "shape": {
       "title": "卡片形状",

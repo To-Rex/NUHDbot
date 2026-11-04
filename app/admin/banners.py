@@ -80,6 +80,18 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
 SECTION_ICONS = {"banners": "image", "directions": "cube", "auctions": "gavel"}
 
 
+async def _auto_ctx(db) -> dict:
+    """The automatic slides' switches and whether each has something to show right now."""
+    from datetime import UTC, datetime, timedelta
+
+    from app.enums import AuctionStatus
+    from app.models import Auction
+
+    lot = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status.in_((AuctionStatus.LIVE, AuctionStatus.SCHEDULED))))).scalar_one()
+    fresh = (await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.arrived_at >= datetime.now(UTC) - timedelta(days=30)))).scalar_one()
+    return {"auto_slides": svc.clean_auto_slides(await get_setting(db, "auto_slides")), "auto_now": {"auction": lot > 0, "new": fresh > 0}}
+
+
 async def _dir_ctx(db) -> dict:
     """The six directions in their saved order, with the Series page pictures and how many models each has."""
     from app.enums import COLOR_DIRECTION, ProductColor
@@ -117,8 +129,25 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
-        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS, **(await _dir_ctx(db)),
+        "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS, **(await _dir_ctx(db)), **(await _auto_ctx(db)),
     })
+
+
+@router.post("/banners/auto-slides")
+async def banners_auto_slides(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """Switch one automatic slide (the auction, the new arrivals) on or off."""
+    key = (await request.form()).get("key") or ""
+    if key not in svc.AUTO_SLIDES:
+        raise HTTPException(400)
+    before = svc.clean_auto_slides(await get_setting(db, "auto_slides"))
+    after = before | {key: not before[key]}
+    await set_setting(db, "auto_slides", after)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"auto_slides": before}, {"auto_slides": after})
+    await db.commit()
+    msg = t(staff.lang, "admin.ban.auto_saved", name=t(staff.lang, "admin.ban.auto_" + key), state=t(staff.lang, "admin.ban.on" if after[key] else "admin.ban.off"))
+    if _hx(request):
+        return render(request, staff, "admin/banners/_auto_slides.html", await _auto_ctx(db), headers=toast(msg))
+    return back(request, "/admin/banners#auto-slides", msg)
 
 
 @router.post("/banners/dir-order")

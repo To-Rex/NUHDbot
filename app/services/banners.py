@@ -30,6 +30,15 @@ SHAPES = ("tall", "wide")
 HOME_SECTIONS = ("banners", "directions", "auctions")  # the Mini App home blocks staff can reorder (Banners page)
 
 
+AUTO_SLIDES = ("auction", "new")  # slides the home slider adds by itself: the live / next lot, the month's arrivals
+
+
+def clean_auto_slides(value) -> dict[str, bool]:
+    """Which automatic slides are on: {"auction": bool, "new": bool}; anything unsaid is on."""
+    v = value if isinstance(value, dict) else {}
+    return {k: bool(v.get(k, True)) for k in AUTO_SLIDES}
+
+
 DIRECTIONS = tuple(c.value for c in ProductColor)  # the six catalogue directions, in their usual order
 
 

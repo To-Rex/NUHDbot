@@ -1198,7 +1198,19 @@
       "dir_order_title": "Directions order",
       "dir_order_hint": "The directions appear in this order in the Mini App home slider and the catalogue filters; the first one opens in front. An arrow moves one step; saved at once.",
       "dir_order_saved": "Directions order saved, first: {name}",
-      "dir_models": "{n} models"
+      "dir_models": "{n} models",
+      "auto_title": "Automatic slides",
+      "auto_hint": "Slides the slider adds by itself, besides the banners. A slide that is on appears whenever there is something to show.",
+      "auto_auction": "Auction slide",
+      "auto_auction_d": "The live or next lot with its timer and current price",
+      "auto_new": "New arrivals slide",
+      "auto_new_d": "How many products arrived in the last 30 days, opens the New page",
+      "auto_now": "Showing now",
+      "auto_idle": "Nothing to show right now",
+      "auto_idle_auction": "No live or scheduled auction",
+      "auto_idle_new": "No products arrived in the last 30 days",
+      "auto_off": "Off",
+      "auto_saved": "{name}: {state}"
     },
     "shape": {
       "title": "Card shape",

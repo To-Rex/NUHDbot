@@ -27,13 +27,14 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
     live_auctions = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE))).scalar_one()
     month_ago = datetime.now(UTC) - timedelta(days=30)
     new_count = (await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.arrived_at >= month_ago))).scalar_one()
+    auto = banner_service.clean_auto_slides(await get_setting(db, "auto_slides"))  # Banners page: automatic slides on/off
     return render(
         request,
         "miniapp/home.html",
         {
-            "lang": lang, "lots": lots, "home_lots": home_lots, "lot_people": await auctions.participant_counts(db, [x.id for x in home_lots]),
+            "lang": lang, "lots": lots if auto["auction"] else [], "home_lots": home_lots, "lot_people": await auctions.participant_counts(db, [x.id for x in home_lots]),
             "delivery": delivery, "payment": payment,
-            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "new_count": new_count,
+            "in_stock_models": in_stock_models, "live_auctions": live_auctions, "new_count": new_count if auto["new"] else 0,
             "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db),
             "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
             "dir_shape": banner_service.clean_shape(await get_setting(db, "dir_slider_shape")), **(await _slider(db)),

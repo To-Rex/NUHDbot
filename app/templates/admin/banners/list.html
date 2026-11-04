@@ -9,6 +9,7 @@
     <label class="bn-secs-own"><input class="input mono" type="number" name="slider_seconds" min="{{ seconds_min }}" max="{{ seconds_max }}" value="{{ slider_seconds if slider_seconds not in seconds_choices else '' }}" placeholder="{{ t('admin.ban.sec_other') }}" data-secs-own {{ 'disabled' if slider_seconds in seconds_choices }}></label></div>
   <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
 </form>
+{% include "admin/banners/_auto_slides.html" %}
 {% include "admin/banners/_home_order.html" %}
 {% include "admin/banners/_dir_order.html" %}
 {# how the banners turn on the Mini App home — the Directions slider's looks: a click saves it; each tile shows a small model of the motion #}
