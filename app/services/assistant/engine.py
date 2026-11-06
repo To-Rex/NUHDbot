@@ -22,13 +22,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.enums import COLOR_DIRECTION
-from app.models import AssistantAction, AssistantChat, AssistantMessage, User
+from app.models import AssistantAction, AssistantChat, AssistantMessage, AssistantUpload, User
 from app.models.assistant import UNDO_DAYS
 from app.models.base import utcnow
 from app.services import audit, deletion, media
 from app.services.assistant import journal as jr
 from app.services.assistant import llm, providers
 from app.services.assistant.tools import TOOLS, Ctx, ToolError, schemas
+from app.services.assistant.tools_more import upload_note, upload_view
 
 log = logging.getLogger("assistant")
 MAX_STEPS = 12  # tool rounds per turn
@@ -54,6 +55,12 @@ Rules
 - Prices: the catalogue is priced in {currency}. Capacities are in GB (4TB = 4000). Times are in {tz}; now is {now}.
 - Directions (catalogue colours): {directions}. Conditions: new, used, refresh. Order flow: new → awaiting_admin (staff
   confirm the offer) → awaiting_advance (payment) → paid (shipping) → shipped; cancelled.
+- Pictures: the staff member attaches them with the paperclip; each message then lists them as upload_id=N. Use those ids with
+  add_product_images, set_banner_image, set_direction_image, auction_images, set_brand_logo. You cannot see the picture itself —
+  go by the file name and what the staff member says; ask which picture goes where when it is not clear. An upload is used once.
+- The Mini App home is yours too: get_home_settings shows it; set_home_layout (block order, directions order), set_slider (looks,
+  shapes, seconds, automatic slides), set_slider_looks_hidden, set_home_block (Drive conditions, Payment & delivery).
+- Exports (CSV) cannot be produced in the chat: give the link from export_links.
 - After acting, report what changed in one or two lines (names, ids, amounts). Mention admin page links as paths like
   /admin/products/12 when useful. Do not repeat the raw tool output.
 - If a tool returns an error, say what went wrong and what is needed; do not retry the same call blindly.
@@ -70,6 +77,8 @@ def _as_llm(m: AssistantMessage) -> dict:
     if m.role == "tool":
         return {"role": "tool", "tool_call_id": m.tool_call_id, "content": m.content or ""}
     out: dict = {"role": m.role, "content": m.content or ""}
+    if m.role == "user" and m.attachments:  # the model works with pictures by their upload ids
+        out["content"] = (out["content"] + "\n\n" + upload_note(m.attachments)).strip()
     if m.role == "assistant" and m.tool_calls:
         out["tool_calls"] = m.tool_calls
     return out
@@ -118,6 +127,7 @@ async def run_tool(db: AsyncSession, chat: AssistantChat, staff: User, call: dic
                 result = await tool.handler(ctx, **args)
                 if tool.mutating:
                     await db.flush()
+                    await ctx.journal.settle(db)
         except ToolError as e:
             return {"error": str(e)}, None
         except TypeError as e:  # wrong / missing arguments
@@ -148,16 +158,19 @@ async def run_tool(db: AsyncSession, chat: AssistantChat, staff: User, call: dic
     return result, action
 
 
-async def run_turn(db: AsyncSession, chat: AssistantChat, staff: User, text: str):
+async def run_turn(db: AsyncSession, chat: AssistantChat, staff: User, text: str, upload_ids: list[int] | None = None):
     async with _locks[chat.id]:
         cfg, model = await config(db, chat)
         if not cfg.ready:
             yield {"type": "error", "code": "no_api_key", "text": ""}
             return
         text = text.strip()
-        db.add(AssistantMessage(chat_id=chat.id, role="user", content=text))
+        ups = []
+        if upload_ids:
+            ups = [u for u in (await db.execute(select(AssistantUpload).where(AssistantUpload.id.in_(upload_ids), AssistantUpload.staff_id == staff.id).order_by(AssistantUpload.id))).scalars().all()]
+        db.add(AssistantMessage(chat_id=chat.id, role="user", content=text, attachments=[upload_view(u) for u in ups] or None))
         if not chat.title:
-            chat.title = text[:60].rstrip() + ("…" if len(text) > 60 else "")
+            chat.title = (text[:60].rstrip() + ("…" if len(text) > 60 else "")) or (ups[0].name[:60] if ups else "")
             yield {"type": "title", "text": chat.title}
         chat.updated_at = utcnow()
         await db.commit()
@@ -249,3 +262,15 @@ async def purge_files(db: AsyncSession) -> int:
     if rows:
         await db.commit()
     return n
+
+
+async def purge_uploads(db: AsyncSession) -> int:
+    """Pictures attached in the chat and never used, older than the undo window: the rows and their files."""
+    old = utcnow() - timedelta(days=UNDO_DAYS)
+    rows = (await db.execute(select(AssistantUpload).where(AssistantUpload.used.is_(False), AssistantUpload.created_at < old))).scalars().all()
+    for u in rows:
+        await media.delete_files(u.filename, u.thumb)
+        await db.delete(u)
+    if rows:
+        await db.commit()
+    return len(rows)

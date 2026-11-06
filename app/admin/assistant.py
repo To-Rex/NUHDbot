@@ -5,20 +5,23 @@ from datetime import timedelta
 from fastapi import Depends, HTTPException, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy import select
+from starlette.datastructures import UploadFile
 
 from app.admin.common import ADMIN, DB, back, f_str, render, staff_dep
 from app.admin.router import router
 from app.db import session_scope
 from app.i18n import t
-from app.models import AssistantAction, AssistantChat, User
+from app.models import AssistantAction, AssistantChat, AssistantUpload, User
 from app.models.assistant import UNDO_DAYS
 from app.models.base import utcnow
-from app.services import audit
+from app.services import audit, media
 from app.services.assistant import engine, providers
 from app.services.assistant.tools import TOOLS
+from app.services.assistant.tools_more import upload_view
 from app.services.settings_service import set_setting
 
 EXAMPLES = 6
+MAX_UPLOADS = 10  # pictures per message
 ERROR_KEYS = {"no_api_key": "error_no_key", "bad_api_key": "error_bad_key", "no_balance": "error_balance", "rate_limited": "error_rate", "too_many_steps": "error_steps",
               "empty_response": "error_generic", "no_model": "error_no_model"}
 
@@ -165,7 +168,8 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
     except ValueError:
         payload = {}
     text = str(payload.get("text") or "").strip()
-    if not text:
+    upload_ids = [int(x) for x in (payload.get("uploads") or []) if str(x).isdigit()][:MAX_UPLOADS]
+    if not text and not upload_ids:
         raise HTTPException(400)
     await _own_chat(db, staff, cid)
     lang = staff.lang
@@ -178,7 +182,7 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
             async with session_scope() as s:
                 ch = await s.get(AssistantChat, cid)
                 st = await s.get(User, staff.id)
-                async for ev in engine.run_turn(s, ch, st, text):
+                async for ev in engine.run_turn(s, ch, st, text, upload_ids):
                     if ev["type"] == "status":
                         yield line({"t": "status", "text": t(lang, "admin.asst.running", tool=ev["tool"] or "")})
                     elif ev["type"] == "delta":
@@ -199,6 +203,27 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
         yield line({"t": "done"})
 
     return StreamingResponse(gen(), media_type="application/x-ndjson", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@router.post("/assistant/{cid}/upload")
+async def assistant_upload(cid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Pictures attached in the chat: converted and stored now, named to the model by id with the next message."""
+    await _own_chat(db, staff, cid)
+    form = await request.form()
+    files = [f for f in form.getlist("files") if isinstance(f, UploadFile) and f.filename][:MAX_UPLOADS]
+    out, errors = [], []
+    for f in files:
+        try:
+            meta = await media.save_image(f, prefix="ai")
+        except media.MediaError as e:
+            errors.append(f"{f.filename}: {t(staff.lang, 'admin.asst.upload_' + ('too_large' if str(e) == 'too_large' else 'bad_type'))}")
+            continue
+        u = AssistantUpload(chat_id=cid, staff_id=staff.id, filename=meta["filename"], thumb=meta["thumb"], width=meta["width"], height=meta["height"], name=(f.filename or "image")[:160])
+        db.add(u)
+        await db.flush()
+        out.append(upload_view(u))
+    await db.commit()
+    return JSONResponse({"uploads": out, "errors": errors})
 
 
 @router.get("/assistant/actions")

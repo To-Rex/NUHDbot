@@ -1272,7 +1272,7 @@
       "base_url": "API manzili",
       "key_missing": "Yordamchi ishlashi uchun kamida bitta provayderning API kalitini kiriting (DeepSeek, OpenAI, Claude, Gemini…).",
       "send": "Yuborish",
-      "placeholder": "Buyruq yozing: «WD Purple 4TB narxini 70$ qil», «bugungi buyurtmalarni ko'rsat»…",
+      "placeholder": "Buyruq yozing yoki rasm biriktiring: «WD Purple 4TB narxini 70$ qil», «bu rasmlarni shu mahsulotga qo'y»…",
       "hint": "Enter — yuborish · Shift+Enter — yangi qator",
       "thinking": "O'ylayapman…",
       "running": "Bajarilmoqda: {tool}",
@@ -1319,7 +1319,13 @@
       "no_models": "Hech bir provayder ulanmagan. Sozlamalardan API kalit kiriting.",
       "error_no_model": "Bunday model topilmadi. Tanlovdan boshqasini tanlang.",
       "ex5": "Oxirgi 7 kunda ro'yxatdan o'tgan mijozlar",
-      "ex6": "Oyning sotuv hisobotini chiqar"
+      "ex6": "Oyning sotuv hisobotini chiqar",
+      "attach": "Rasm biriktirish",
+      "uploading": "Yuklanmoqda…",
+      "upload_failed": "Rasmni yuklab bo'lmadi",
+      "upload_too_large": "fayl juda katta",
+      "upload_bad_type": "bu rasm formati qabul qilinmaydi (JPG, PNG, WEBP, HEIC)",
+      "drop_here": "Rasmlarni shu yerga tashlang"
     }
   }
 }

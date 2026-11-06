@@ -4,7 +4,7 @@
 {% block content %}
 <div class="asst" id="asst" data-chat="{{ chat.id }}" data-provider="{{ chat.provider }}" data-model="{{ chat.model }}"
      data-l-thinking="{{ t('admin.asst.thinking') }}" data-l-error="{{ t('admin.asst.error_generic') }}" data-l-copied="{{ t('admin.ui.copied') }}" data-l-stopped="{{ t('admin.asst.stopped') }}"
-     data-l-no-models="{{ t('admin.asst.no_models') }}" data-l-custom="{{ t('admin.asst.custom_model') }}" data-l-default="{{ t('admin.asst.make_default') }}" data-l-testing="{{ t('admin.asst.testing') }}" data-l-test-ok="{{ t('admin.asst.test_ok') }}">
+     data-l-uploading="{{ t('admin.asst.uploading') }}" data-l-upload-failed="{{ t('admin.asst.upload_failed') }}" data-l-drop="{{ t('admin.asst.drop_here') }}" data-l-no-models="{{ t('admin.asst.no_models') }}" data-l-custom="{{ t('admin.asst.custom_model') }}" data-l-default="{{ t('admin.asst.make_default') }}" data-l-testing="{{ t('admin.asst.testing') }}" data-l-test-ok="{{ t('admin.asst.test_ok') }}">
 
   {# ---------- left: chats ---------- #}
   <aside class="asst-side">
@@ -71,8 +71,10 @@
 
     <div class="asst-composer-wrap">
       <form class="asst-composer" id="asst-form">
+        <div class="asst-files" id="asst-files" hidden></div>
         <textarea id="asst-input" rows="1" placeholder="{{ t('admin.asst.placeholder') }}" {{ 'disabled' if not key_set }}></textarea>
         <div class="asst-composer-bar">
+          <label class="asst-attach" title="{{ t('admin.asst.attach') }}" aria-label="{{ t('admin.asst.attach') }}">{{ icon('paperclip', 16) }}<input type="file" id="asst-file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" multiple hidden {{ 'disabled' if not key_set }}></label>
           <span class="asst-composer-model">{{ icon('sparkle', 12) }}<span data-model-mirror>{{ chat.model }}</span></span>
           <span class="flex1"></span>
           <span class="hint">{{ t('admin.asst.hint') }}</span>
@@ -163,19 +165,37 @@
   document.querySelectorAll('[data-example]').forEach(function(b){ b.addEventListener('click',function(){ ta.value=b.textContent.trim(); grow(); ta.focus(); }); });
   function el(html){ var t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
   function stamp(){ var n=new Date(); return ('0'+n.getDate()).slice(-2)+'.'+('0'+(n.getMonth()+1)).slice(-2)+' '+('0'+n.getHours()).slice(-2)+':'+('0'+n.getMinutes()).slice(-2); }
-  function userBubble(text){ var d=el('<div class="amsg user"><div class="amsg-wrap"><div class="amsg-body"></div><div class="amsg-foot"><time></time></div></div></div>'); d.querySelector('.amsg-body').innerHTML=esc(text).replace(/\n/g,'<br>'); d.querySelector('time').textContent=stamp(); return d; }
+  function userBubble(text,files){ var d=el('<div class="amsg user"><div class="amsg-wrap"><div class="amsg-files" hidden></div><div class="amsg-body"></div><div class="amsg-foot"><time></time></div></div></div>'); var b=d.querySelector('.amsg-body'); b.innerHTML=esc(text).replace(/\n/g,'<br>'); b.hidden=!text;
+    if(files&&files.length){ var fb=d.querySelector('.amsg-files'); fb.hidden=false; fb.innerHTML=files.map(function(a){ return '<a href="'+esc(a.url)+'" target="_blank" rel="noopener"><img src="'+esc(a.thumb)+'" alt=""><span>#'+a.id+'</span></a>'; }).join(''); }
+    d.querySelector('time').textContent=stamp(); return d; }
+
+  /* ---- attached pictures: uploaded at once, sent by id with the next message ---- */
+  var fileIn=document.getElementById('asst-file'), tray=document.getElementById('asst-files'), pending=[], uploading=0;
+  function drawTray(){ tray.hidden=!pending.length&&!uploading; tray.innerHTML=pending.map(function(a,i){ return '<span class="asst-file"><img src="'+esc(a.thumb)+'" alt=""><em>#'+a.id+'</em><button type="button" data-rm="'+i+'" aria-label="×">×</button></span>'; }).join('')+(uploading?'<span class="asst-file is-loading"><span class="spinner"></span></span>':''); }
+  function upload(list){ var files=[].filter.call(list||[],function(f){ return /^image\//.test(f.type)||/\.(heic|heif)$/i.test(f.name); }).slice(0,10-pending.length); if(!files.length) return;
+    var fd=new FormData(); files.forEach(function(f){ fd.append('files',f); }); uploading++; drawTray();
+    fetch('/admin/assistant/'+chatId+'/upload',{method:'POST',credentials:'same-origin',headers:{'X-CSRF':csrf,'HX-Request':'true'},body:fd}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){ pending=pending.concat(d.uploads||[]); (d.errors||[]).forEach(function(m){ if(window.toast) toast(m,'bad'); }); })
+      .catch(function(){ if(window.toast) toast(root.dataset.lUploadFailed,'bad'); })
+      .finally(function(){ uploading--; drawTray(); ta.focus(); }); }
+  fileIn.addEventListener('change',function(){ upload(fileIn.files); fileIn.value=''; });
+  tray.addEventListener('click',function(e){ var b=e.target.closest('[data-rm]'); if(!b) return; pending.splice(Number(b.dataset.rm),1); drawTray(); });
+  ta.addEventListener('paste',function(e){ var fs=(e.clipboardData||{}).files; if(fs&&fs.length){ e.preventDefault(); upload(fs); } });
+  var comp=form; ['dragenter','dragover'].forEach(function(ev){ comp.addEventListener(ev,function(e){ if(e.dataTransfer&&[].indexOf.call(e.dataTransfer.types||[],'Files')>=0){ e.preventDefault(); comp.classList.add('is-drop'); } }); });
+  ['dragleave','drop'].forEach(function(ev){ comp.addEventListener(ev,function(e){ comp.classList.remove('is-drop'); if(ev==='drop'&&e.dataTransfer&&e.dataTransfer.files.length){ e.preventDefault(); upload(e.dataTransfer.files); } }); });
   function liveBubble(){ return el('<div class="amsg assistant live"><div class="amsg-av">'+document.querySelector('.asst-welcome-ic, .amsg-av, .asst-model-btn').innerHTML.replace(/<small.*$/,'')+'</div><div class="amsg-wrap"><div class="amsg-status"><span class="dots"><i></i><i></i><i></i></span><span class="asst-status-text">'+esc(root.dataset.lThinking)+'</span></div><div class="amsg-body" hidden></div></div></div>'); }
   function setBusy(v){ busy=v; root.classList.toggle('is-busy',v); sendBtn.hidden=v; stopBtn.hidden=!v; ta.disabled=v; }
   function refreshJournal(){ fetch('/admin/assistant/actions',{credentials:'same-origin'}).then(function(r){ return r.ok?r.text():''; }).then(function(h){ var j=document.getElementById('asst-journal'); if(h&&j){ j.outerHTML=h; var n=Number(document.getElementById('asst-journal').dataset.undoable||0), b=document.querySelector('[data-undo-badge]'); if(b){ b.textContent=n; b.hidden=!n; } } }).catch(function(){}); }
   stopBtn.addEventListener('click',function(){ if(ctrl) ctrl.abort(); });
   form.addEventListener('submit',function(e){
-    e.preventDefault(); var text=ta.value.trim(); if(!text||busy) return;
+    e.preventDefault(); var text=ta.value.trim(); if((!text&&!pending.length)||busy||uploading) return;
+    var files=pending.slice(); pending=[]; drawTray();
     var w=msgs.querySelector('.asst-welcome'); if(w) w.remove();
     ta.value=''; grow(); setBusy(true);
-    msgs.appendChild(userBubble(text)); var live=liveBubble(); msgs.appendChild(live); toEnd(true);
+    msgs.appendChild(userBubble(text,files)); var live=liveBubble(); msgs.appendChild(live); toEnd(true);
     var status=live.querySelector('.amsg-status'), body=live.querySelector('.amsg-body'), acc='';
     ctrl=new AbortController();
-    fetch('/admin/assistant/'+chatId+'/send',{method:'POST',credentials:'same-origin',signal:ctrl.signal,headers:H,body:JSON.stringify({text:text})})
+    fetch('/admin/assistant/'+chatId+'/send',{method:'POST',credentials:'same-origin',signal:ctrl.signal,headers:H,body:JSON.stringify({text:text,uploads:files.map(function(a){ return a.id; })})})
       .then(function(r){ if(!r.ok) throw new Error(r.status); var rd=r.body.getReader(), dec=new TextDecoder(), buf='';
         function handle(ev){
           if(ev.t==='status'){ status.hidden=false; status.querySelector('.asst-status-text').textContent=ev.text; if(acc){ body.insertAdjacentHTML('beforebegin',''); } }

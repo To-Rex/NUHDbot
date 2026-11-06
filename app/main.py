@@ -34,12 +34,13 @@ async def _auction_ticker() -> None:
 
 async def _assistant_sweeper() -> None:
     """Once an hour: files the assistant's deletions freed and whose 3-day undo window has closed."""
-    from app.services.assistant.engine import purge_files
+    from app.services.assistant.engine import purge_files, purge_uploads
 
     while True:
         try:
             async with session_scope() as db:
                 await purge_files(db)
+                await purge_uploads(db)
         except Exception:  # noqa: BLE001
             log.exception("assistant sweep failed")
         await asyncio.sleep(3600)

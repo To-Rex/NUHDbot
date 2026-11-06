@@ -1272,7 +1272,7 @@
       "base_url": "API base URL",
       "key_missing": "Add an API key for at least one provider (DeepSeek, OpenAI, Claude, Gemini…) to turn the assistant on.",
       "send": "Send",
-      "placeholder": "Type a command: “set WD Purple 4TB to $70”, “show today's orders”…",
+      "placeholder": "Type a command or attach pictures: “set WD Purple 4TB to $70”, “put these photos on that product”…",
       "hint": "Enter — send · Shift+Enter — new line",
       "thinking": "Thinking…",
       "running": "Running: {tool}",
@@ -1319,7 +1319,13 @@
       "no_models": "No provider is connected. Add an API key in the settings.",
       "error_no_model": "No such model. Pick another one.",
       "ex5": "Customers who registered in the last 7 days",
-      "ex6": "Show this month's sales report"
+      "ex6": "Show this month's sales report",
+      "attach": "Attach pictures",
+      "uploading": "Uploading…",
+      "upload_failed": "Could not upload the picture",
+      "upload_too_large": "the file is too large",
+      "upload_bad_type": "this picture format is not supported (JPG, PNG, WEBP, HEIC)",
+      "drop_here": "Drop pictures here"
     }
   }
 }

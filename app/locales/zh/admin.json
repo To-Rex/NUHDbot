@@ -1272,7 +1272,7 @@
       "base_url": "API 地址",
       "key_missing": "请至少添加一个提供商（DeepSeek、OpenAI、Claude、Gemini…）的 API 密钥以启用助手。",
       "send": "发送",
-      "placeholder": "输入指令：“把 WD Purple 4TB 定价为 70 美元”、“显示今天的订单”…",
+      "placeholder": "输入指令或添加图片：“把 WD Purple 4TB 定价为 70 美元”、“把这些图片加到该商品”…",
       "hint": "Enter 发送 · Shift+Enter 换行",
       "thinking": "思考中…",
       "running": "正在执行：{tool}",
@@ -1319,7 +1319,13 @@
       "no_models": "未连接任何提供商。请在设置中添加 API 密钥。",
       "error_no_model": "找不到该模型，请选择其他模型。",
       "ex5": "最近 7 天注册的客户",
-      "ex6": "显示本月销售报告"
+      "ex6": "显示本月销售报告",
+      "attach": "添加图片",
+      "uploading": "上传中…",
+      "upload_failed": "图片上传失败",
+      "upload_too_large": "文件过大",
+      "upload_bad_type": "不支持该图片格式（JPG、PNG、WEBP、HEIC）",
+      "drop_here": "将图片拖到此处"
     }
   }
 }

@@ -1454,5 +1454,8 @@ async def undo_action(ctx: Ctx, action_id: int):
     return {"ok": True, "undone": a.summary, "note": note}
 
 
+from app.services.assistant import tools_more  # noqa: E402,F401  (registers the rest of the tools)
+
+
 def schemas() -> list[dict]:
     return [t.schema() for t in TOOLS.values()]

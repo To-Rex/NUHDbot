@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import (
     AdPost,
     Article,
+    AssistantUpload,
     Auction,
     AuctionDeposit,
     AuctionImage,
@@ -55,7 +56,7 @@ CHILDREN: dict[type, list[tuple[type, str]]] = {
 }
 MODELS: dict[str, type] = {m.__tablename__: m for m in (
     Product, ProductImage, PriceHistory, Order, OrderItem, OrderStatusHistory, Payment, Auction, AuctionImage, Bid, AuctionDeposit,
-    SupportThread, SupportMessage, Country, City, Brand, Series, BrandModel, User, Subscription, Banner, AdPost, Article, Currency, Setting,
+    SupportThread, SupportMessage, Country, City, Brand, Series, BrandModel, User, Subscription, Banner, AdPost, Article, Currency, Setting, AssistantUpload,
 )}
 
 
@@ -129,6 +130,13 @@ class Journal:
             for child in (await db.execute(select(model).where(getattr(model, fk) == pk))).scalars().unique().all():
                 node["children"].append(await self._tree(db, child))
         return node
+
+    async def settle(self, db: AsyncSession) -> None:
+        """Reload what is still in the session before the after-images are taken: a bulk UPDATE (stock reserve / release)
+        expires the rows it touched, and an expired attribute cannot be read lazily in async code."""
+        for obj in [o for o, _ in self._tracked] + self._created:
+            if inspect(obj).persistent:
+                await db.refresh(obj)
 
     def entries(self) -> list[dict]:
         out = []

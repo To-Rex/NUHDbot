@@ -2,7 +2,8 @@
 <div class="amsg {{ m.role }}" data-id="{{ m.id }}">
   {% if m.role == 'assistant' %}<div class="amsg-av">{{ icon('sparkle', 15) }}</div>{% endif %}
   <div class="amsg-wrap">
-    <div class="amsg-body" data-md>{{ m.content }}</div>
+    {% if m.attachments %}<div class="amsg-files">{% for a in m.attachments %}<a href="{{ a.url }}" target="_blank" rel="noopener" title="{{ a.name }}"><img src="{{ a.thumb }}" alt="{{ a.name }}" loading="lazy"><span>#{{ a.id }}</span></a>{% endfor %}</div>{% endif %}
+    {% if m.content or not m.attachments %}<div class="amsg-body" data-md>{{ m.content }}</div>{% endif %}
     <div class="amsg-foot"><time>{{ m.created_at|dt('%d.%m %H:%M') }}</time>{% if m.role == 'assistant' %}{% if m.model %}<span class="amsg-model mono">{{ m.model }}</span>{% endif %}<button type="button" class="amsg-copy" data-copy-msg title="{{ t('admin.asst.copy') }}" aria-label="{{ t('admin.asst.copy') }}">{{ icon('copy', 13) }}</button>{% endif %}</div>
   </div>
 </div>
