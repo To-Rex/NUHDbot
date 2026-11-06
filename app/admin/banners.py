@@ -19,6 +19,7 @@ from app.admin.common import (
     toast,
 )
 from app.admin.router import router
+from app.config import settings
 from app.i18n import t
 from app.models import Banner, Product, User
 from app.services import audit, discounts, media
@@ -101,6 +102,12 @@ async def _card_or_back(request: Request, db, staff: User, kind: str, msg: str, 
     return back(request, back_to, msg, kind_)
 
 
+async def _terms_ctx(db) -> dict:
+    """The home Payment & delivery block: its switch and title, the two shared texts, the standard title per language."""
+    return {"terms": svc.clean_terms(await get_setting(db, "home_terms")), "payment_text": await get_setting(db, "payment_text") or {},
+            "delivery_text": await get_setting(db, "delivery_text") or {}, "terms_titles": {code: t(code, "home.terms_title") for code in settings.langs}}
+
+
 async def _auto_ctx(db) -> dict:
     """The automatic slides' switches and whether each has something to show right now."""
     from datetime import UTC, datetime, timedelta
@@ -152,7 +159,26 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
         "style_cards": {"banner": await _style_card(db, staff.lang, "banner"), "dir": await _style_card(db, staff.lang, "dir")},
         "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS, **(await _dir_ctx(db)), **(await _auto_ctx(db)),
+        **(await _terms_ctx(db)),
     })
+
+
+@router.post("/banners/terms")
+async def banners_terms(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """The home "Payment & delivery" block: on/off, its title, and the payment / delivery texts (the same texts the product
+    page, the checkout and the bot's help show)."""
+    form = await request.form()
+    before = {"home_terms": await get_setting(db, "home_terms"), "payment_text": await get_setting(db, "payment_text"), "delivery_text": await get_setting(db, "delivery_text")}
+    after = {"home_terms": svc.clean_terms({"show": f_bool(form, "show"), "title": f_i18n(form, "terms_title")}),
+             "payment_text": f_i18n(form, "payment_text"), "delivery_text": f_i18n(form, "delivery_text")}
+    for key, value in after.items():
+        await set_setting(db, key, value)
+    await audit.log(db, staff.id, "settings.update", "settings", None, before, after)
+    await db.commit()
+    msg = t(staff.lang, "admin.ban.terms_saved")
+    if _hx(request):
+        return render(request, staff, "admin/banners/_terms.html", await _terms_ctx(db), headers=toast(msg))
+    return back(request, "/admin/banners#home-terms", msg)
 
 
 @router.post("/banners/looks")

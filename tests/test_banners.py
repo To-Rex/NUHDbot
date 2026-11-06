@@ -122,3 +122,10 @@ def test_hidden_looks_keep_the_chosen_and_one_more():
     assert clean_hidden(["orbit", "bogus", "orbit"], STYLES, "coverflow") == ["orbit"]
     assert "coverflow" not in clean_hidden(["coverflow", "orbit"], STYLES, "coverflow")
     assert len(clean_hidden(list(STYLES), STYLES, None)) == len(STYLES) - 1
+
+
+def test_home_terms_options():
+    from app.services.banners import clean_terms
+
+    assert clean_terms(None) == {"show": True, "title": {}}
+    assert clean_terms({"show": False, "title": {"ru": " Условия ", "en": ""}}) == {"show": False, "title": {"ru": "Условия"}}

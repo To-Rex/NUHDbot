@@ -1217,7 +1217,19 @@
       "looks_hidden_title": "Yashirilgan animatsiyalar ({n})",
       "looks_restore": "Qaytarish",
       "looks_hidden_msg": "Yashirildi: {name}. Pastdagi ro'yxatdan qaytarish mumkin.",
-      "looks_restored_msg": "Qaytarildi: {name}"
+      "looks_restored_msg": "Qaytarildi: {name}",
+      "terms_title": "«To'lov va yetkazish» bloki",
+      "terms_hint": "Mini ilova bosh sahifasining pastidagi blok: sarlavhasi, to'lov va yetkazish matnlari. O'ngda mijoz ko'radigan ko'rinishi.",
+      "terms_show": "Blokni bosh sahifada ko'rsatish",
+      "terms_block_title": "Blok sarlavhasi",
+      "terms_block_title_hint": "Bo'sh qoldirilsa, standart sarlavha ishlatiladi.",
+      "terms_payment": "To'lov matni",
+      "terms_delivery": "Yetkazish matni",
+      "terms_preview": "Mijoz ko'radigan ko'rinish",
+      "terms_empty": "Bu tilda matn yo'q — blok bu tilda ko'rsatilmaydi.",
+      "terms_hidden_note": "Blok o'chirilgan: bosh sahifada ko'rsatilmaydi.",
+      "terms_also": "To'lov va yetkazish matnlari mahsulot sahifasi, buyurtma berish va botning yordam xabarida ham ko'rsatiladi.",
+      "terms_saved": "«To'lov va yetkazish» bloki saqlandi"
     },
     "shape": {
       "title": "Karta shakli",

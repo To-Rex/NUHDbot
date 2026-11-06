@@ -39,6 +39,7 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
             "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
             "dir_shape": banner_service.clean_shape(await get_setting(db, "dir_slider_shape")), **(await _slider(db)),
             "home_order": banner_service.clean_order(await get_setting(db, "home_order")),
+            "home_terms": banner_service.clean_terms(await get_setting(db, "home_terms")),
         },
     )
 

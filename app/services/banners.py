@@ -36,6 +36,13 @@ def clean_hidden(value, styles: tuple[str, ...], current: str | None = None) -> 
     return hidden if len(hidden) < len(styles) else hidden[:-1]
 
 
+def clean_terms(value) -> dict:
+    """The home Payment & delivery block's options: {"show": bool, "title": {lang: text}}; shown unless switched off."""
+    v = value if isinstance(value, dict) else {}
+    title = v.get("title") if isinstance(v.get("title"), dict) else {}
+    return {"show": bool(v.get("show", True)), "title": {k: str(t).strip() for k, t in title.items() if str(t or "").strip()}}
+
+
 AUTO_SLIDES = ("auction", "new")  # slides the home slider adds by itself: the live / next lot, the month's arrivals
 
 

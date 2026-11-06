@@ -1217,7 +1217,19 @@
       "looks_hidden_title": "已隐藏的动画（{n}）",
       "looks_restore": "恢复",
       "looks_hidden_msg": "已隐藏：{name}。可从下方列表恢复。",
-      "looks_restored_msg": "已恢复：{name}"
+      "looks_restored_msg": "已恢复：{name}",
+      "terms_title": "“付款与配送”区块",
+      "terms_hint": "小程序首页底部区块：标题、付款与配送说明。右侧为客户看到的效果。",
+      "terms_show": "在首页显示该区块",
+      "terms_block_title": "区块标题",
+      "terms_block_title_hint": "留空则使用默认标题。",
+      "terms_payment": "付款说明",
+      "terms_delivery": "配送说明",
+      "terms_preview": "客户看到的效果",
+      "terms_empty": "此语言没有文本，该语言下不显示此区块。",
+      "terms_hidden_note": "区块已关闭：首页不显示。",
+      "terms_also": "付款与配送说明同时显示在商品页、下单页和机器人帮助中。",
+      "terms_saved": "“付款与配送”区块已保存"
     },
     "shape": {
       "title": "卡片形状",

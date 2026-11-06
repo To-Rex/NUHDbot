@@ -1217,7 +1217,19 @@
       "looks_hidden_title": "Hidden looks ({n})",
       "looks_restore": "Restore",
       "looks_hidden_msg": "Hidden: {name}. It can be restored from the list below.",
-      "looks_restored_msg": "Restored: {name}"
+      "looks_restored_msg": "Restored: {name}",
+      "terms_title": "“Payment & delivery” block",
+      "terms_hint": "The block at the bottom of the Mini App home: its title and the payment and delivery texts. On the right, what the customer sees.",
+      "terms_show": "Show the block on the home page",
+      "terms_block_title": "Block title",
+      "terms_block_title_hint": "Leave empty to use the standard title.",
+      "terms_payment": "Payment text",
+      "terms_delivery": "Delivery text",
+      "terms_preview": "What the customer sees",
+      "terms_empty": "No text in this language — the block is not shown in it.",
+      "terms_hidden_note": "The block is off: it is not shown on the home page.",
+      "terms_also": "The payment and delivery texts also appear on the product page, at checkout and in the bot's help message.",
+      "terms_saved": "“Payment & delivery” block saved"
     },
     "shape": {
       "title": "Card shape",

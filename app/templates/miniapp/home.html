@@ -66,9 +66,9 @@
   </section>
 
   {% set pay_text = p(payment) %}{% set del_text = p(delivery) %}
-  {% if pay_text or del_text %}
+  {% if home_terms.show and (pay_text or del_text) %}
   <section class="home-sec">
-    <span class="group-label">{{ t('home.terms_title') }}</span>
+    <span class="group-label">{{ p(home_terms.title) or t('home.terms_title') }}</span>
     <div class="list">
       {% if pay_text %}<div class="list-item" style="align-items:flex-start"><span class="list-icon green">{{ icon('wallet', 18) }}</span><p class="small muted" style="padding-top:6px">{{ pay_text }}</p></div>{% endif %}
       {% if del_text %}<div class="list-item" style="align-items:flex-start"><span class="list-icon orange">{{ icon('truck', 18) }}</span><p class="small muted" style="padding-top:6px">{{ del_text }}</p></div>{% endif %}
