@@ -2,21 +2,33 @@
 {% block topbar_actions %}<a class="btn btn-primary btn-sm" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a>{% endblock %}
 {% block content %}
 <div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.ban.help') }}</span></div>
-<form class="card bn-timing mb" method="post" action="/admin/banners/settings"><input type="hidden" name="_csrf" value="{{ csrf }}">
-  <span class="bn-timing-ic">{{ icon('timer', 18) }}</span>
-  <div class="flex1"><b>{{ t('admin.ban.seconds_default') }}</b><p>{{ t('admin.ban.seconds_default_hint') }}</p></div>
-  <div class="bn-secs" role="radiogroup">{% for s in seconds_choices %}<label class="seg-opt"><input type="radio" name="slider_seconds" value="{{ s }}" {{ 'checked' if slider_seconds == s }}><span>{{ t('admin.ban.sec_short', n=s) }}</span></label>{% endfor %}
-    <label class="bn-secs-own"><input class="input mono" type="number" name="slider_seconds" min="{{ seconds_min }}" max="{{ seconds_max }}" value="{{ slider_seconds if slider_seconds not in seconds_choices else '' }}" placeholder="{{ t('admin.ban.sec_other') }}" data-secs-own {{ 'disabled' if slider_seconds in seconds_choices }}></label></div>
-  <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
-</form>
+<h2 class="tiles-h">{{ icon('image', 15) }}{{ t('admin.ban.grp_banners') }}<span class="cnt">{{ rows|length }}</span></h2>
+{% include "admin/banners/_rows.html" %}
+{% if not rows %}<div class="card empty mb">{{ icon('image', 30) }}<b>{{ t('admin.ban.empty_title') }}</b><p class="sub">{{ t('admin.ban.empty_text') }}</p><a class="btn btn-primary btn-sm mt" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a></div>{% endif %}
+
+<h2 class="tiles-h">{{ icon('sparkle', 15) }}{{ t('admin.ban.grp_slider') }}</h2>
+<div class="tiles">
+{% include "admin/banners/_timing.html" %}
 {% include "admin/banners/_auto_slides.html" %}
+{% with card=style_cards.banner %}{% include "admin/banners/_style_card.html" %}{% endwith %}
+</div>
+
+<h2 class="tiles-h">{{ icon('home', 15) }}{{ t('admin.ban.grp_home') }}</h2>
+<div class="tiles">
 {% include "admin/banners/_home_order.html" %}
+{% include "admin/banners/_dir_order.html" %}
+{% with card=style_cards.dir %}{% include "admin/banners/_style_card.html" %}{% endwith %}
 {% include "admin/banners/_conditions.html" %}
 {% include "admin/banners/_terms.html" %}
-{% include "admin/banners/_dir_order.html" %}
-{% with card=style_cards.banner %}{% include "admin/banners/_style_card.html" %}{% endwith %}
-{% with card=style_cards.dir %}{% include "admin/banners/_style_card.html" %}{% endwith %}
-{% include "admin/banners/_rows.html" %}
-{% if not rows %}<div class="card empty">{{ icon('image', 30) }}<b>{{ t('admin.ban.empty_title') }}</b><p class="sub">{{ t('admin.ban.empty_text') }}</p><a class="btn btn-primary btn-sm mt" href="/admin/banners/new">{{ icon('plus', 15) }}{{ t('admin.ban.add') }}</a></div>
-{% endif %}
+</div>
+<script>
+(function(){ /* the tiles remember which ones were open (per browser); an address like #home-order opens that tile */
+  var KEY='bn-tiles', saved=[]; try{ saved=JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){}
+  var hash=location.hash.slice(1);
+  document.querySelectorAll('details.tile').forEach(function(d){ if(saved.indexOf(d.id)>=0||d.id===hash) d.open=true; });
+  if(hash){ var h=document.getElementById(hash); if(h) h.scrollIntoView({block:'start'}); }
+  document.addEventListener('toggle',function(e){ var d=e.target; if(!d.matches||!d.matches('details.tile')) return;
+    var open=[].map.call(document.querySelectorAll('details.tile[open]'),function(x){ return x.id; }); try{ localStorage.setItem(KEY,JSON.stringify(open)); }catch(_){} },true);
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,11 @@
+{# seconds every slide of the home slider stays; saved in place #}
+<details class="tile" id="slide-time"{{ ' open' if tile_open }}>
+  <summary class="tile-sum"><span class="tile-ic">{{ icon('timer', 18) }}</span><span class="tile-txt"><b>{{ t('admin.ban.seconds_default') }}</b><small>{{ t('admin.ban.seconds_default_hint') }}</small></span><span class="tile-state">{{ t('admin.ban.sec_short', n=slider_seconds) }}</span>{{ icon('chevron-down', 16, 'tile-chev') }}</summary>
+  <div class="tile-body">
+  <form class="bn-timing" method="post" action="/admin/banners/settings" hx-post="/admin/banners/settings" hx-target="#slide-time" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="bn-secs" role="radiogroup">{% for s in seconds_choices %}<label class="seg-opt"><input type="radio" name="slider_seconds" value="{{ s }}" {{ 'checked' if slider_seconds == s }}><span>{{ t('admin.ban.sec_short', n=s) }}</span></label>{% endfor %}
+    <label class="bn-secs-own"><input class="input mono" type="number" name="slider_seconds" min="{{ seconds_min }}" max="{{ seconds_max }}" value="{{ slider_seconds if slider_seconds not in seconds_choices else '' }}" placeholder="{{ t('admin.ban.sec_other') }}" data-secs-own {{ 'disabled' if slider_seconds in seconds_choices }}></label></div>
+  <button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>
+  </form>
+  </div>
+</details>

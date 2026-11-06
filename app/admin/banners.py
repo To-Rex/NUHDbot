@@ -98,7 +98,7 @@ async def _style_card(db, lang: str, kind: str) -> dict:
 
 async def _card_or_back(request: Request, db, staff: User, kind: str, msg: str, back_to: str = "/admin/banners", kind_: str = "ok"):
     if _hx(request):
-        return render(request, staff, "admin/banners/_style_card.html", {"card": await _style_card(db, staff.lang, kind)}, headers=toast(msg, kind_))
+        return render(request, staff, "admin/banners/_style_card.html", {"card": await _style_card(db, staff.lang, kind), "tile_open": True}, headers=toast(msg, kind_))
     return back(request, back_to, msg, kind_)
 
 
@@ -182,7 +182,7 @@ async def banners_conditions(request: Request, db: DB, staff: User = Depends(sta
     await db.commit()
     msg = t(staff.lang, "admin.ban.conds_saved")
     if _hx(request):
-        return render(request, staff, "admin/banners/_conditions.html", await _conds_ctx(db), headers=toast(msg))
+        return render(request, staff, "admin/banners/_conditions.html", {**(await _conds_ctx(db)), "tile_open": True}, headers=toast(msg))
     return back(request, "/admin/banners#home-conditions", msg)
 
 
@@ -200,7 +200,7 @@ async def banners_terms(request: Request, db: DB, staff: User = Depends(staff_de
     await db.commit()
     msg = t(staff.lang, "admin.ban.terms_saved")
     if _hx(request):
-        return render(request, staff, "admin/banners/_terms.html", await _terms_ctx(db), headers=toast(msg))
+        return render(request, staff, "admin/banners/_terms.html", {**(await _terms_ctx(db)), "tile_open": True}, headers=toast(msg))
     return back(request, "/admin/banners#home-terms", msg)
 
 
@@ -242,7 +242,7 @@ async def banners_auto_slides(request: Request, db: DB, staff: User = Depends(st
     await db.commit()
     msg = t(staff.lang, "admin.ban.auto_saved", name=t(staff.lang, "admin.ban.auto_" + key), state=t(staff.lang, "admin.ban.on" if after[key] else "admin.ban.off"))
     if _hx(request):
-        return render(request, staff, "admin/banners/_auto_slides.html", await _auto_ctx(db), headers=toast(msg))
+        return render(request, staff, "admin/banners/_auto_slides.html", {**(await _auto_ctx(db)), "tile_open": True}, headers=toast(msg))
     return back(request, "/admin/banners#auto-slides", msg)
 
 
@@ -259,7 +259,7 @@ async def banners_dir_order(request: Request, db: DB, staff: User = Depends(staf
 
     msg = t(staff.lang, "admin.ban.dir_order_saved", name=COLOR_DIRECTION[ProductColor(order[0])])
     if _hx(request):
-        return render(request, staff, "admin/banners/_dir_order.html", await _dir_ctx(db), headers=toast(msg))
+        return render(request, staff, "admin/banners/_dir_order.html", {**(await _dir_ctx(db)), "tile_open": True}, headers=toast(msg))
     return back(request, "/admin/banners#dir-order", msg)
 
 
@@ -274,7 +274,7 @@ async def banners_home_order(request: Request, db: DB, staff: User = Depends(sta
     await db.commit()
     msg = t(staff.lang, "admin.ban.home_order_saved", name=t(staff.lang, "admin.ban.sec." + order[0]))
     if _hx(request):  # the card is swapped in place, the page stays where it is
-        return render(request, staff, "admin/banners/_home_order.html", {"home_order": order, "section_icons": SECTION_ICONS}, headers=toast(msg))
+        return render(request, staff, "admin/banners/_home_order.html", {"home_order": order, "section_icons": SECTION_ICONS, "tile_open": True}, headers=toast(msg))
     return back(request, "/admin/banners#home-order", msg)
 
 
@@ -286,7 +286,10 @@ async def banners_settings(request: Request, db: DB, staff: User = Depends(staff
     await set_setting(db, "slider_seconds", n)
     await audit.log(db, staff.id, "settings.update", "settings", None, {"slider_seconds": before}, {"slider_seconds": n})
     await db.commit()
-    return back(request, "/admin/banners", t(staff.lang, "admin.ban.seconds_saved", n=n))
+    msg = t(staff.lang, "admin.ban.seconds_saved", n=n)
+    if _hx(request):
+        return render(request, staff, "admin/banners/_timing.html", {"slider_seconds": n, "seconds_choices": svc.SECONDS_CHOICES, "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX, "tile_open": True}, headers=toast(msg))
+    return back(request, "/admin/banners", msg)
 
 
 @router.post("/banners/shape")

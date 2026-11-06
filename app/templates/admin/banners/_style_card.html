@@ -3,8 +3,10 @@
    shape, shape_action, style_action, label (i18n prefix of the look names), csrf #}
 {% set kind, styles, current, hidden, shape, title, hint, ico, label, shape_action, style_action = card.kind, card.styles, card.current, card.hidden, card.shape, card.title, card.hint, card.ico, card.label, card.shape_action, card.style_action %}
 {% set card_id = 'style-card-' ~ kind %}{% set visible = styles|reject('in', hidden)|list %}
-<section class="card ds-card mb" id="{{ card_id }}">
-  <div class="ds-head"><span class="bn-timing-ic">{{ icon(ico, 18) }}</span><div class="flex1"><b>{{ title }}</b><p>{{ hint }}</p></div>
+<details class="tile" id="{{ card_id }}"{{ ' open' if tile_open }}>
+  <summary class="tile-sum"><span class="tile-ic">{{ icon(ico, 18) }}</span><span class="tile-txt"><b>{{ title }}</b><small>{{ t(label ~ '.' ~ current) }} · {{ t('admin.shape.' ~ shape) }}</small></span>{% if hidden %}<span class="tile-state is-off">{{ icon('eye-off', 11) }}{{ hidden|length }}</span>{% endif %}{{ icon('chevron-down', 16, 'tile-chev') }}</summary>
+  <div class="tile-body ds-card">
+  <div class="tile-top"><p class="tile-hint">{{ hint }}</p>
     {% with action=shape_action, current=shape, target='#' ~ card_id %}{% include "admin/partials/shape_toggle.html" %}{% endwith %}</div>
   <form method="post" action="{{ style_action }}" hx-post="{{ style_action }}" hx-target="#{{ card_id }}" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <div class="ds-opts{{ ' ds-wide' if shape == 'wide' }}" role="radiogroup" aria-label="{{ title }}">
@@ -35,4 +37,5 @@
     </div>
   </details>
   {% endif %}
-</section>
+</div>
+</details>

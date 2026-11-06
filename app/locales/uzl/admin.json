@@ -1235,7 +1235,10 @@
       "conds_desc": "{name} izohi",
       "conds_empty_hint": "Bo'sh qoldirilgan maydonda standart matn ishlatiladi.",
       "conds_also": "Holat izohlari mahsulot sahifasida ham ko'rsatiladi.",
-      "conds_saved": "«Disk holatlari» bloki saqlandi"
+      "conds_saved": "«Disk holatlari» bloki saqlandi",
+      "grp_banners": "Bannerlar",
+      "grp_slider": "Slayder sozlamalari",
+      "grp_home": "Bosh sahifa bloklari"
     },
     "shape": {
       "title": "Karta shakli",

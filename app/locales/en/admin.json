@@ -1235,7 +1235,10 @@
       "conds_desc": "{name} description",
       "conds_empty_hint": "An empty field uses the standard text.",
       "conds_also": "The condition descriptions also appear on the product page.",
-      "conds_saved": "“Drive conditions” block saved"
+      "conds_saved": "“Drive conditions” block saved",
+      "grp_banners": "Banners",
+      "grp_slider": "Slider settings",
+      "grp_home": "Home page blocks"
     },
     "shape": {
       "title": "Card shape",

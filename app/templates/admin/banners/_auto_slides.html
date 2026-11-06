@@ -1,6 +1,8 @@
 {# the slides the home slider adds by itself: a switch each; the chip says what the home shows right now #}
-<section class="card ho-card mb" id="auto-slides">
-  <div class="ds-head"><span class="bn-timing-ic">{{ icon('bolt', 18) }}</span><div class="flex1"><b>{{ t('admin.ban.auto_title') }}</b><p>{{ t('admin.ban.auto_hint') }}</p></div></div>
+{% set on_names = [] %}{% for k in ('auction', 'new') %}{% if auto_slides[k] %}{% set _ = on_names.append(t('admin.ban.auto_' ~ k)) %}{% endif %}{% endfor %}
+<details class="tile" id="auto-slides"{{ ' open' if tile_open }}>
+  <summary class="tile-sum"><span class="tile-ic">{{ icon('bolt', 18) }}</span><span class="tile-txt"><b>{{ t('admin.ban.auto_title') }}</b><small>{{ on_names|join(' · ') or t('admin.ban.auto_off') }}</small></span><span class="tile-state">{{ on_names|length }}/2</span>{{ icon('chevron-down', 16, 'tile-chev') }}</summary>
+  <div class="tile-body"><p class="tile-hint">{{ t('admin.ban.auto_hint') }}</p>
   <div class="ho-list">
     {% for key, ico, has in (('auction', 'gavel', auto_now.auction), ('new', 'sparkle', auto_now.new)) %}{% set on = auto_slides[key] %}
     <div class="ho-row as-row{{ ' is-off' if not on }}">
@@ -11,4 +13,5 @@
     </div>
     {% endfor %}
   </div>
-</section>
+</div>
+</details>

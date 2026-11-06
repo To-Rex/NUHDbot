@@ -1235,7 +1235,10 @@
       "conds_desc": "{name} 说明",
       "conds_empty_hint": "留空的字段使用默认文本。",
       "conds_also": "状态说明同时显示在商品页。",
-      "conds_saved": "“硬盘状态”区块已保存"
+      "conds_saved": "“硬盘状态”区块已保存",
+      "grp_banners": "横幅",
+      "grp_slider": "轮播设置",
+      "grp_home": "首页区块"
     },
     "shape": {
       "title": "卡片形状",
