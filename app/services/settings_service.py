@@ -33,6 +33,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "direction_images": {"v": {}, "d": "Series page: a picture per catalogue direction {colour: {filename, thumb}}"},
     "banner_styles_hidden": {"v": [], "d": "Banners page: slider looks hidden from the banner picker (restorable)"},
     "dir_styles_hidden": {"v": [], "d": "Banners page: slider looks hidden from the Directions picker (restorable)"},
+    "home_conditions": {"v": {"show": True, "title": {}, "desc": {}}, "d": "Mini App home: the Drive conditions block — shown or not, its title and the New / Used / Refresh descriptions per language (empty = the standard ones)"},
     "home_terms": {"v": {"show": True, "title": {}}, "d": "Mini App home: the Payment & delivery block — shown or not, and its own title per language (empty = the standard one)"},
     "auto_slides": {"v": {"auction": True, "new": True}, "d": "Mini App home slider: automatic slides on/off {auction: live or next lot, new: this month's arrivals}"},
     "direction_order": {"v": ["blue", "purple", "red", "gold", "silver", "black"], "d": "Mini App: order of the six directions (home slider, catalogue chips)"},

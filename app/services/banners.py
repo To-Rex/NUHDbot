@@ -43,6 +43,18 @@ def clean_terms(value) -> dict:
     return {"show": bool(v.get("show", True)), "title": {k: str(t).strip() for k, t in title.items() if str(t or "").strip()}}
 
 
+CONDITIONS = ("new", "used", "refresh")
+
+
+def clean_conditions(value) -> dict:
+    """The home "Drive conditions" block's options: {"show": bool, "title": {lang: text}, "desc": {condition: {lang: text}}};
+    shown unless switched off, an empty text means the standard one."""
+    v = value if isinstance(value, dict) else {}
+    texts = lambda d: {k: str(t).strip() for k, t in (d if isinstance(d, dict) else {}).items() if str(t or "").strip()}  # noqa: E731
+    desc = v.get("desc") if isinstance(v.get("desc"), dict) else {}
+    return {"show": bool(v.get("show", True)), "title": texts(v.get("title")), "desc": {c: texts(desc.get(c)) for c in CONDITIONS}}
+
+
 AUTO_SLIDES = ("auction", "new")  # slides the home slider adds by itself: the live / next lot, the month's arrivals
 
 

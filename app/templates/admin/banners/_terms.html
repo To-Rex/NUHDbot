@@ -1,7 +1,7 @@
 {# the Mini App home's "Payment & delivery" block: shown or not, its title, the two texts per language, and a live preview
    of the block as the customer sees it. expects: terms {show, title}, payment_text, delivery_text, terms_titles {lang: default} #}
 <section class="card ho-card mb" id="home-terms">
-  <form hx-post="/admin/banners/terms" hx-target="#home-terms" hx-swap="outerHTML" data-terms data-titles="{{ terms_titles|tojson|forceescape }}" data-lang="{{ lang }}"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <form hx-post="/admin/banners/terms" hx-target="#home-terms" hx-swap="outerHTML" data-terms data-titles="{{ terms_titles|tojson|forceescape }}" data-lang="{{ lang }}" data-default-lang="{{ default_lang }}"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <div class="ds-head"><span class="bn-timing-ic">{{ icon('wallet', 18) }}</span><div class="flex1"><b>{{ t('admin.ban.terms_title') }}</b><p>{{ t('admin.ban.terms_hint') }}</p></div>
     <label class="bn-switch tm-switch" title="{{ t('admin.ban.terms_show') }}"><input type="checkbox" name="show" value="1" {{ 'checked' if terms.show }}><span class="switch"></span><span data-on="{{ t('admin.ban.on') }}" data-off="{{ t('admin.ban.off') }}">{{ t('admin.ban.on') if terms.show else t('admin.ban.off') }}</span></label></div>
   <div class="tm-grid">
@@ -31,7 +31,11 @@
     var f=document.querySelector('#home-terms form[data-terms]'); if(!f||f._tm) return; f._tm=1;
     var titles={}; try{ titles=JSON.parse(f.dataset.titles||'{}'); }catch(e){}
     var pv=f.querySelector('[data-terms-preview]'), lang=f.dataset.lang, show=f.querySelector('input[name="show"]');
-    function val(n){ var el=f.querySelector('[name="'+n+'_'+lang+'"]'); return el?el.value.trim():''; }
+    var dl=f.dataset.defaultLang;
+    function order(l){ return l==='uzl'?['uzl','uz','en']:(l==='zh'?['zh','en','ru','uz']:[l,dl,'en']); }
+    /* the Mini App's own fallback: the language, then the usual ones, then any that has text */
+    function val(n){ var o=order(lang), i, el; for(i=0;i<o.length;i++){ el=f.querySelector('[name="'+n+'_'+o[i]+'"]'); if(el&&el.value.trim()) return el.value.trim(); }
+      var any=Array.prototype.filter.call(f.querySelectorAll('[name^="'+n+'_"]'),function(x){ return x.value.trim(); })[0]; return any?any.value.trim():''; }
     function draw(){
       var pay=val('payment_text'), del=val('delivery_text');
       pv.querySelector('[data-pv="title"]').textContent=val('terms_title')||titles[lang]||'';

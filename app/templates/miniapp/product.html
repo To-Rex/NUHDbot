@@ -59,7 +59,7 @@
 
   <div class="notice {{ 'notice-refresh' if p.condition.value=='refresh' else ('notice-ok' if p.condition.value=='new' else 'notice-info') }} mt-3">
     {{ icon('info', 18) }}
-    <div><b>{{ t('condition.' ~ p.condition.value) }}</b> — {{ t('condition.' ~ p.condition.value ~ '_desc') }}</div>
+    <div><b>{{ t('condition.' ~ p.condition.value) }}</b> — {{ pk(cond_texts[p.condition.value]) or t('condition.' ~ p.condition.value ~ '_desc') }}</div>
   </div>
   {% if p.condition.value == 'refresh' and refresh_mismatch %}
   <div class="card mt-2">

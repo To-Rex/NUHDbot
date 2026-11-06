@@ -3,7 +3,7 @@ from sqlalchemy import update
 
 from app.deps import DB, CurrentUser, Lang
 from app.models import Product
-from app.services import catalog
+from app.services import banners, catalog
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.router import router
@@ -31,6 +31,7 @@ async def product_page(product_id: int, request: Request, db: DB, user: CurrentU
             "p_": p,
             "similar": similar,
             "delivery": delivery,
+            "cond_texts": banners.clean_conditions(await get_setting(db, "home_conditions"))["desc"],  # the Banners page descriptions
             "payment": payment,
             "step": step,
             "min_qty": min_qty,

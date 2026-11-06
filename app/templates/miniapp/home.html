@@ -56,14 +56,16 @@
   {% endif %}
   {% endfor %}
 
+  {% if home_conditions.show %}
   <section class="home-sec">
-    <div class="section-title"><h2>{{ t('home.conditions_title') }}</h2><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('chevron-right', 15) }}</a></div>
+    <div class="section-title"><h2>{{ p(home_conditions.title) or t('home.conditions_title') }}</h2><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('chevron-right', 15) }}</a></div>
     <div class="list">
       {% for c in ('new', 'used', 'refresh') %}
-      <a class="list-item cond-row" href="/app/catalog?cond={{ c }}"><span class="chip cond-{{ c }}">{{ t('condition.' ~ c) }}</span><span class="flex-1 small muted clamp-2">{{ t('condition.' ~ c ~ '_desc') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
+      <a class="list-item cond-row" href="/app/catalog?cond={{ c }}"><span class="chip cond-{{ c }}">{{ t('condition.' ~ c) }}</span><span class="flex-1 small muted clamp-2">{{ p(home_conditions.desc[c]) or t('condition.' ~ c ~ '_desc') }}</span>{{ icon('chevron-right', 17, 'chev') }}</a>
       {% endfor %}
     </div>
   </section>
+  {% endif %}
 
   {% set pay_text = p(payment) %}{% set del_text = p(delivery) %}
   {% if home_terms.show and (pay_text or del_text) %}

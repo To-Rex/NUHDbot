@@ -1,0 +1,56 @@
+{# the Mini App home's "Drive conditions" block: shown or not, its title, the New / Used / Refresh descriptions per language,
+   and a live preview. An empty field keeps the standard text. expects: conditions {show, title, desc}, cond_defaults {lang: {title, new, used, refresh}} #}
+<section class="card ho-card mb" id="home-conditions">
+  <form hx-post="/admin/banners/conditions" hx-target="#home-conditions" hx-swap="outerHTML" data-conds data-defaults="{{ cond_defaults|tojson|forceescape }}" data-lang="{{ lang }}" data-default-lang="{{ default_lang }}"><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="ds-head"><span class="bn-timing-ic">{{ icon('drive', 18) }}</span><div class="flex1"><b>{{ t('admin.ban.conds_title') }}</b><p>{{ t('admin.ban.conds_hint') }}</p></div>
+    <label class="bn-switch tm-switch" title="{{ t('admin.ban.terms_show') }}"><input type="checkbox" name="show" value="1" {{ 'checked' if conditions.show }}><span class="switch"></span><span data-on="{{ t('admin.ban.on') }}" data-off="{{ t('admin.ban.off') }}">{{ t('admin.ban.on') if conditions.show else t('admin.ban.off') }}</span></label></div>
+  <div class="tm-grid">
+    <div class="tm-fields">
+      {% with name='cond_title', value=conditions.title, kind='input', label=t('admin.ban.terms_block_title') %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+      {% for c in ('new', 'used', 'refresh') %}
+      {% with name='cond_' ~ c, value=conditions.desc[c], kind='textarea', label=t('admin.ban.conds_desc', name=t('condition.' ~ c)), rows=2 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+      {% endfor %}
+      <span class="hint tm-hint">{{ t('admin.ban.conds_empty_hint') }}</span>
+    </div>
+    <aside class="tm-preview{{ ' is-off' if not conditions.show }}" data-conds-preview aria-label="{{ t('admin.ban.terms_preview') }}">
+      <div class="tm-preview-h">{{ icon('eye', 13) }}{{ t('admin.ban.terms_preview') }}<span class="tm-lang mono" data-pv-lang></span></div>
+      <div class="tm-phone">
+        <div class="tm-sec-title"><b data-pv="title"></b><span>{{ t('common.details') }} {{ icon('chevron-right', 12) }}</span></div>
+        <div class="tm-list">
+          {% for c in ('new', 'used', 'refresh') %}<div class="tm-item tm-cond"><span class="chip cond-{{ c }}">{{ t('condition.' ~ c) }}</span><p data-pv="{{ c }}"></p>{{ icon('chevron-right', 14, 'chev') }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="tm-off-note">{{ icon('eye-off', 13) }}{{ t('admin.ban.terms_hidden_note') }}</div>
+    </aside>
+  </div>
+  <div class="tm-foot"><span class="hint">{{ icon('info', 13) }}{{ t('admin.ban.conds_also') }}</span><button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button></div>
+  </form>
+  <script>
+  (function(){
+    var f=document.querySelector('#home-conditions form[data-conds]'); if(!f||f._tm) return; f._tm=1;
+    var defs={}; try{ defs=JSON.parse(f.dataset.defaults||'{}'); }catch(e){}
+    var pv=f.querySelector('[data-conds-preview]'), lang=f.dataset.lang, dl=f.dataset.defaultLang, show=f.querySelector('input[name="show"]');
+    /* the Mini App's own fallback: the language, then the usual ones, then any that has text; else the standard text */
+    function order(l){ return l==='uzl'?['uzl','uz','en']:(l==='zh'?['zh','en','ru','uz']:[l,dl,'en']); }
+    function pick(n){ var o=order(lang), i, el; for(i=0;i<o.length;i++){ el=f.querySelector('[name="'+n+'_'+o[i]+'"]'); if(el&&el.value.trim()) return el.value.trim(); }
+      var any=Array.prototype.filter.call(f.querySelectorAll('[name^="'+n+'_"]'),function(x){ return x.value.trim(); })[0]; return any?any.value.trim():''; }
+    function draw(){
+      var d=defs[lang]||{};
+      pv.querySelector('[data-pv="title"]').textContent=pick('cond_title')||d.title||'';
+      ['new','used','refresh'].forEach(function(c){ pv.querySelector('[data-pv="'+c+'"]').textContent=pick('cond_'+c)||d[c]||''; });
+      var tab=f.querySelector('.lang-tabs button[data-lang="'+lang+'"]'); pv.querySelector('[data-pv-lang]').textContent=tab?tab.textContent.trim():lang;
+      pv.classList.toggle('is-off',!show.checked);
+      var s=show.parentNode.querySelector('[data-on]'); s.textContent=show.checked?s.dataset.on:s.dataset.off;
+    }
+    f.addEventListener('click',function(e){ var b=e.target.closest('.lang-tabs button'); if(b){ lang=b.dataset.lang; setTimeout(draw,0); } });
+    f.addEventListener('input',function(e){ var p=e.target.closest('.pane'); if(p) lang=p.dataset.lang; draw(); });
+    show.addEventListener('change',draw);
+    /* each empty field shows the standard text it falls back to */
+    Object.keys(defs).forEach(function(l){ ['title','new','used','refresh'].forEach(function(k){ var el=f.querySelector('[name="cond_'+k+'_'+l+'"]'); if(el) el.placeholder=defs[l][k]||''; }); });
+    f.querySelectorAll('[data-i18n]').forEach(function(box){ if(!box.querySelector('.lang-tabs button[data-lang="'+lang+'"]')) return;
+      box.querySelectorAll('.lang-tabs button').forEach(function(b){ b.classList.toggle('active',b.dataset.lang===lang); });
+      box.querySelectorAll('.pane').forEach(function(p){ p.hidden=p.dataset.lang!==lang; }); });
+    draw();
+  })();
+  </script>
+</section>

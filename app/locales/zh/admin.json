@@ -1226,10 +1226,16 @@
       "terms_payment": "付款说明",
       "terms_delivery": "配送说明",
       "terms_preview": "客户看到的效果",
-      "terms_empty": "此语言没有文本，该语言下不显示此区块。",
+      "terms_empty": "尚未填写文本，区块不显示。",
       "terms_hidden_note": "区块已关闭：首页不显示。",
       "terms_also": "付款与配送说明同时显示在商品页、下单页和机器人帮助中。",
-      "terms_saved": "“付款与配送”区块已保存"
+      "terms_saved": "“付款与配送”区块已保存",
+      "conds_title": "“硬盘状态”区块",
+      "conds_hint": "小程序首页解释 New / Used / Refresh 的区块：标题和各状态说明。右侧为客户看到的效果。",
+      "conds_desc": "{name} 说明",
+      "conds_empty_hint": "留空的字段使用默认文本。",
+      "conds_also": "状态说明同时显示在商品页。",
+      "conds_saved": "“硬盘状态”区块已保存"
     },
     "shape": {
       "title": "卡片形状",

@@ -129,3 +129,11 @@ def test_home_terms_options():
 
     assert clean_terms(None) == {"show": True, "title": {}}
     assert clean_terms({"show": False, "title": {"ru": " Условия ", "en": ""}}) == {"show": False, "title": {"ru": "Условия"}}
+
+
+def test_home_conditions_options():
+    from app.services.banners import clean_conditions
+
+    assert clean_conditions(None) == {"show": True, "title": {}, "desc": {"new": {}, "used": {}, "refresh": {}}}
+    got = clean_conditions({"show": False, "title": {"ru": " Состояния "}, "desc": {"used": {"en": "Tested", "ru": " "}, "bogus": {"en": "x"}}})
+    assert got == {"show": False, "title": {"ru": "Состояния"}, "desc": {"new": {}, "used": {"en": "Tested"}, "refresh": {}}}

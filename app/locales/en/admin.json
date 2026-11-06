@@ -1226,10 +1226,16 @@
       "terms_payment": "Payment text",
       "terms_delivery": "Delivery text",
       "terms_preview": "What the customer sees",
-      "terms_empty": "No text in this language — the block is not shown in it.",
+      "terms_empty": "No text yet — the block is not shown.",
       "terms_hidden_note": "The block is off: it is not shown on the home page.",
       "terms_also": "The payment and delivery texts also appear on the product page, at checkout and in the bot's help message.",
-      "terms_saved": "“Payment & delivery” block saved"
+      "terms_saved": "“Payment & delivery” block saved",
+      "conds_title": "“Drive conditions” block",
+      "conds_hint": "The Mini App home block that explains New / Used / Refresh: its title and each condition's description. On the right, what the customer sees.",
+      "conds_desc": "{name} description",
+      "conds_empty_hint": "An empty field uses the standard text.",
+      "conds_also": "The condition descriptions also appear on the product page.",
+      "conds_saved": "“Drive conditions” block saved"
     },
     "shape": {
       "title": "Card shape",

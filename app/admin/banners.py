@@ -105,7 +105,14 @@ async def _card_or_back(request: Request, db, staff: User, kind: str, msg: str, 
 async def _terms_ctx(db) -> dict:
     """The home Payment & delivery block: its switch and title, the two shared texts, the standard title per language."""
     return {"terms": svc.clean_terms(await get_setting(db, "home_terms")), "payment_text": await get_setting(db, "payment_text") or {},
-            "delivery_text": await get_setting(db, "delivery_text") or {}, "terms_titles": {code: t(code, "home.terms_title") for code in settings.langs}}
+            "delivery_text": await get_setting(db, "delivery_text") or {}, "terms_titles": {code: t(code, "home.terms_title") for code in settings.langs},
+            "default_lang": settings.default_lang}
+
+
+async def _conds_ctx(db) -> dict:
+    """The home Drive conditions block: its switch, title and descriptions, and the standard texts per language."""
+    defaults = {code: {"title": t(code, "home.conditions_title"), **{c: t(code, f"condition.{c}_desc") for c in svc.CONDITIONS}} for code in settings.langs}
+    return {"conditions": svc.clean_conditions(await get_setting(db, "home_conditions")), "cond_defaults": defaults, "default_lang": settings.default_lang}
 
 
 async def _auto_ctx(db) -> dict:
@@ -159,8 +166,24 @@ async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep
         "dir_shape": svc.clean_shape(await get_setting(db, "dir_slider_shape")),
         "style_cards": {"banner": await _style_card(db, staff.lang, "banner"), "dir": await _style_card(db, staff.lang, "dir")},
         "home_order": svc.clean_order(await get_setting(db, "home_order")), "section_icons": SECTION_ICONS, **(await _dir_ctx(db)), **(await _auto_ctx(db)),
-        **(await _terms_ctx(db)),
+        **(await _terms_ctx(db)), **(await _conds_ctx(db)),
     })
+
+
+@router.post("/banners/conditions")
+async def banners_conditions(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
+    """The home "Drive conditions" block: on/off, its title and the New / Used / Refresh descriptions (the product page
+    shows the same descriptions). An empty field keeps the standard text."""
+    form = await request.form()
+    before = await get_setting(db, "home_conditions")
+    after = svc.clean_conditions({"show": f_bool(form, "show"), "title": f_i18n(form, "cond_title"), "desc": {c: f_i18n(form, "cond_" + c) for c in svc.CONDITIONS}})
+    await set_setting(db, "home_conditions", after)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"home_conditions": before}, {"home_conditions": after})
+    await db.commit()
+    msg = t(staff.lang, "admin.ban.conds_saved")
+    if _hx(request):
+        return render(request, staff, "admin/banners/_conditions.html", await _conds_ctx(db), headers=toast(msg))
+    return back(request, "/admin/banners#home-conditions", msg)
 
 
 @router.post("/banners/terms")

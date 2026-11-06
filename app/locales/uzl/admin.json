@@ -1226,10 +1226,16 @@
       "terms_payment": "To'lov matni",
       "terms_delivery": "Yetkazish matni",
       "terms_preview": "Mijoz ko'radigan ko'rinish",
-      "terms_empty": "Bu tilda matn yo'q — blok bu tilda ko'rsatilmaydi.",
+      "terms_empty": "Matn kiritilmagan — blok ko'rsatilmaydi.",
       "terms_hidden_note": "Blok o'chirilgan: bosh sahifada ko'rsatilmaydi.",
       "terms_also": "To'lov va yetkazish matnlari mahsulot sahifasi, buyurtma berish va botning yordam xabarida ham ko'rsatiladi.",
-      "terms_saved": "«To'lov va yetkazish» bloki saqlandi"
+      "terms_saved": "«To'lov va yetkazish» bloki saqlandi",
+      "conds_title": "«Disk holatlari» bloki",
+      "conds_hint": "Mini ilova bosh sahifasidagi New / Used / Refresh izohlari bloki: sarlavhasi va har bir holat izohi. O'ngda mijoz ko'radigan ko'rinishi.",
+      "conds_desc": "{name} izohi",
+      "conds_empty_hint": "Bo'sh qoldirilgan maydonda standart matn ishlatiladi.",
+      "conds_also": "Holat izohlari mahsulot sahifasida ham ko'rsatiladi.",
+      "conds_saved": "«Disk holatlari» bloki saqlandi"
     },
     "shape": {
       "title": "Karta shakli",
