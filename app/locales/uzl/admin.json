@@ -1340,6 +1340,16 @@
       "upload_too_large": "fayl juda katta",
       "upload_bad_type": "bu rasm formati qabul qilinmaydi (JPG, PNG, WEBP, HEIC)",
       "drop_here": "Rasmlarni shu yerga tashlang"
+    },
+    "live": {
+      "order_new": "Yangi buyurtma №{n}",
+      "order_status": "Buyurtma №{n}: {status}",
+      "payment_new": "№{n} buyurtmaga to'lov yuborildi",
+      "deposit_new": "Lot #{id}: depozit so'rovi",
+      "customer_new": "Yangi mijoz: {name}",
+      "bid": "Lot #{id}: yangi stavka",
+      "ended": "Lot #{id} yakunlandi",
+      "updated": "Yangilandi"
     }
   }
 }

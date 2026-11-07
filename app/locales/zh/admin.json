@@ -1340,6 +1340,16 @@
       "upload_too_large": "文件过大",
       "upload_bad_type": "不支持该图片格式（JPG、PNG、WEBP、HEIC）",
       "drop_here": "将图片拖到此处"
+    },
+    "live": {
+      "order_new": "新订单 №{n}",
+      "order_status": "订单 №{n}：{status}",
+      "payment_new": "订单 №{n} 已提交付款",
+      "deposit_new": "拍品 #{id}：押金申请",
+      "customer_new": "新客户：{name}",
+      "bid": "拍品 #{id}：新出价",
+      "ended": "拍品 #{id} 已结束",
+      "updated": "已更新"
     }
   }
 }

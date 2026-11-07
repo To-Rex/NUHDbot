@@ -7,6 +7,7 @@ from app.enums import Role
 from app.i18n import normalize_lang
 from app.models import User
 from app.security import hash_password, verify_password
+from app.services import admin_events
 
 
 async def get_or_create_tg_user(db: AsyncSession, tg_user: dict, source: str | None = None) -> User:
@@ -56,6 +57,7 @@ async def complete_registration(
     user.ads_opt_in = ads_opt_in
     if not user.registered_at:
         user.registered_at = datetime.now(UTC)
+        admin_events.queue(db, "customer_new", id=user.id, name=user.full_name, country=user.country)
     await db.flush()
     return user
 

@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.enums import AuctionStatus, DepositStatus
 from app.models import Auction, AuctionDeposit, Bid, User
-from app.services import auction_terms, audit, pubsub
+from app.services import admin_events, auction_terms, audit, pubsub
 
 
 class AuctionError(Exception):
@@ -42,6 +42,7 @@ def _deliver(auction_id: int, event: dict) -> None:
                 q.put_nowait(event)
             except asyncio.QueueFull:  # a stuck client; it catches up from its own polling
                 pass
+    admin_events.deliver_local({**{k: v for k, v in event.items() if k != "type"}, "type": "auction", "kind": event.get("type", "state")})  # the admin panel's own stream hears every lot too
 
 
 def publish(auction_id: int, event: dict) -> None:
@@ -192,4 +193,5 @@ async def claim_deposit(db: AsyncSession, a: Auction, user: User, proof: str | N
     dep = AuctionDeposit(auction_id=a.id, user_id=user.id, amount=a.deposit_amount, currency=a.currency, proof_filename=proof, note=note)
     db.add(dep)
     await db.flush()
+    admin_events.queue(db, "deposit_new", auction_id=a.id, deposit_id=dep.id, name=user.full_name, amount=str(dep.amount), currency=dep.currency)
     return dep

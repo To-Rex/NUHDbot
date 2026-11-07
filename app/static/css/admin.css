@@ -1591,3 +1591,8 @@ li.ho-row:first-child{border-color:var(--accent)}
 .check-row{display:flex;align-items:flex-start;gap:8px;flex:1 1 280px;cursor:pointer;line-height:1.45}
 .check-row input{margin-top:3px;flex:0 0 auto}
 .at-default{white-space:pre-line;max-height:260px;overflow:auto;padding:10px 12px;border-radius:10px;background:var(--sunken);line-height:1.5}
+
+/* live toasts (the admin's event stream): clickable, with the thing's name below the message */
+.toast.is-link{cursor:pointer;transition:transform var(--t-fast)}
+.toast.is-link:hover{transform:translateY(-1px)}
+.toast small{display:block;font-weight:500;opacity:.75;margin-top:2px}

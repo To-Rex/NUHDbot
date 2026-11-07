@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from sse_starlette.sse import EventSourceResponse
 from starlette.requests import Request
 
-from app.services import pubsub
+from app.services import admin_events, pubsub
 
 STAFF = "staff"  # every event, for the admin inbox
 _listeners: dict[str, set[asyncio.Queue]] = defaultdict(set)
@@ -50,6 +50,7 @@ def deliver(ev: dict) -> None:
 
 
 def _deliver(ev: dict) -> None:
+    admin_events.deliver_local({"type": "chat", "chat": ev})
     for ch in (thread_channel(ev["thread_id"]), STAFF):
         for q in list(_listeners.get(ch, ())):
             try:

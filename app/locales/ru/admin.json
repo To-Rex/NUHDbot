@@ -1340,6 +1340,16 @@
       "upload_too_large": "файл слишком большой",
       "upload_bad_type": "формат не поддерживается (JPG, PNG, WEBP, HEIC)",
       "drop_here": "Перетащите изображения сюда"
+    },
+    "live": {
+      "order_new": "Новый заказ №{n}",
+      "order_status": "Заказ №{n}: {status}",
+      "payment_new": "По заказу №{n} отправлена оплата",
+      "deposit_new": "Лот #{id}: заявка на депозит",
+      "customer_new": "Новый клиент: {name}",
+      "bid": "Лот #{id}: новая ставка",
+      "ended": "Лот #{id} завершён",
+      "updated": "Обновлено"
     }
   }
 }

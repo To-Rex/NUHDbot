@@ -14,6 +14,7 @@ from app.admin import (  # noqa: E402,F401
     currencies,
     customers,
     dashboard,
+    live,
     models_dict,
     orders,
     products,

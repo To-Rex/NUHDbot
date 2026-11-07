@@ -13,7 +13,7 @@ from app.enums import (
     PaymentStatus,
 )
 from app.models import Order, OrderItem, OrderStatusHistory, Payment, Product, User
-from app.services import audit
+from app.services import admin_events, audit
 
 
 class OrderError(Exception):
@@ -119,6 +119,7 @@ async def create_order(
     await db.flush()
     # move straight into "awaiting admin" so the customer sees the real state
     await transition(db, order, OrderStatus.AWAITING_ADMIN, by=user, note=None, force=True)
+    admin_events.queue(db, "order_new", id=order.id, number=order.number, total=str(order.total or 0), currency=order.currency, name=user.full_name)
     return order
 
 
@@ -168,6 +169,8 @@ async def transition(
     order.status = to_status
     order.history.append(OrderStatusHistory(from_status=before, to_status=to_status, by_user_id=by.id if by else None, note=note))
     await audit.log(db, by.id if by else None, "order.status", "order", order.id, {"status": before}, {"status": to_status, "note": note})
+    if before != OrderStatus.NEW:  # the automatic first step of a new order is announced by order_new itself
+        admin_events.queue(db, "order_status", id=order.id, number=order.number, status=to_status.value, by_staff=bool(by and by.is_staff))
     await db.flush()
     return order
 
@@ -188,6 +191,7 @@ async def add_payment(
     )
     db.add(pay)
     await db.flush()
+    admin_events.queue(db, "payment_new", id=order.id, number=order.number, payment_id=pay.id, amount=str(amount), currency=order.currency, kind=kind.value, by_staff=bool(user.is_staff))
     return pay
 
 

@@ -1340,6 +1340,16 @@
       "upload_too_large": "файл жуда катта",
       "upload_bad_type": "бу расм формати қабул қилинмайди (JPG, PNG, WEBP, HEIC)",
       "drop_here": "Расмларни шу ерга ташланг"
+    },
+    "live": {
+      "order_new": "Янги буюртма №{n}",
+      "order_status": "Буюртма №{n}: {status}",
+      "payment_new": "№{n} буюртмага тўлов юборилди",
+      "deposit_new": "Лот #{id}: депозит сўрови",
+      "customer_new": "Янги мижоз: {name}",
+      "bid": "Лот #{id}: янги ставка",
+      "ended": "Лот #{id} якунланди",
+      "updated": "Янгиланди"
     }
   }
 }

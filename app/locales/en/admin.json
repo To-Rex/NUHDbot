@@ -1340,6 +1340,16 @@
       "upload_too_large": "the file is too large",
       "upload_bad_type": "this picture format is not supported (JPG, PNG, WEBP, HEIC)",
       "drop_here": "Drop pictures here"
+    },
+    "live": {
+      "order_new": "New order №{n}",
+      "order_status": "Order №{n}: {status}",
+      "payment_new": "Payment sent for order №{n}",
+      "deposit_new": "Lot #{id}: deposit claimed",
+      "customer_new": "New customer: {name}",
+      "bid": "Lot #{id}: new bid",
+      "ended": "Lot #{id} has ended",
+      "updated": "Updated"
     }
   }
 }

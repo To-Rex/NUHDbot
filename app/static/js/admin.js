@@ -17,12 +17,15 @@
   });
 
   // ---------- toasts ----------
-  function toast(msg, type, ms) {
+  function toast(msg, type, ms, opts) {
     let box = document.querySelector('.toasts');
     if (!box) { box = document.createElement('div'); box.className = 'toasts'; document.body.appendChild(box); }
     const el = document.createElement('div'); el.className = 'toast ' + (type || 'info');
     el.innerHTML = (ICONS[type] || ICONS.info) + '<span></span>'; el.querySelector('span').textContent = msg;
+    if (opts && opts.sub) { const sm = document.createElement('small'); sm.textContent = opts.sub; el.querySelector('span').appendChild(sm); }
+    if (opts && opts.href) { el.classList.add('is-link'); el.addEventListener('click', () => { location.href = opts.href; }); }
     box.appendChild(el); setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 300); }, ms || 3200);
+    return el;
   }
   window.toast = toast;
   document.addEventListener('toast', (e) => { const d = e.detail || {}; toast(d.msg || d.value, d.type); });
@@ -326,17 +329,126 @@
     upd();
   }
 
-  // ---------- auction live (SSE) ----------
+  // ---------- the admin's live channel ----------
+  // One stream per page (/admin/events): new orders, payments, status changes, deposit claims, bids, new customers and
+  // chat messages arrive as they happen. Each becomes a toast (clickable), the sidebar badges follow, a page that shows the
+  // changed thing is refreshed in place, and a hidden tab counts the news in its title. The stream reconnects after 40 s of
+  // silence or on return to the foreground, so nothing waits for a manual reload.
+  const live = (() => {
+    const handlers = {}; const on = (type, fn) => { (handlers[type] = handlers[type] || []).push(fn); };
+    const emit = (type, d) => (handlers[type] || []).forEach((fn) => { try { fn(d); } catch (_) {} });
+    if (!window.EventSource || !document.querySelector('.sidebar')) return { on };
+    let es = null, last = Date.now(), retry = 1000, timer = null;
+    function connect() {
+      if (es) { es.onerror = null; es.close(); }
+      clearTimeout(timer);
+      es = new EventSource('/admin/events');
+      const got = (e) => { last = Date.now(); retry = 1000; let d = null; try { d = JSON.parse(e.data); } catch (_) {} if (d) emit(e.type, d); };
+      ['order_new', 'order_status', 'payment_new', 'deposit_new', 'auction', 'customer_new', 'chat'].forEach((n) => es.addEventListener(n, got));
+      es.addEventListener('ready', () => { last = Date.now(); retry = 1000; emit('ready', {}); });
+      es.addEventListener('ping', () => { last = Date.now(); });
+      es.onerror = () => { es.close(); timer = setTimeout(connect, retry); retry = Math.min(retry * 2, 15000); };
+    }
+    connect();
+    setInterval(() => { if (Date.now() - last > 40000) { last = Date.now(); connect(); } }, 10000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden && (!es || es.readyState === 2)) connect(); });
+    window.addEventListener('online', () => connect());
+    return { on };
+  })();
+  window.adminLive = live;
+  const LIVE = (window.ADMIN_I18N && window.ADMIN_I18N.live) || {};
+  const fill = (tpl, d) => String(tpl || '').replace(/\{(\w+)\}/g, (_, k) => (d[k] === undefined || d[k] === null ? '' : d[k]));
+  const money = (v, cur) => { const n = Number(v); if (isNaN(n)) return v; const s = n.toLocaleString('en-US', { maximumFractionDigits: 2 }); return cur === 'USD' ? '$' + s : s + ' ' + cur; };
+  const path = location.pathname.replace(/\/$/, '') || '/admin';
+  const onPage = (re) => re.test(path);
+  const idIn = (re) => { const m = path.match(re); return m ? Number(m[1]) : null; };
+
+  // the title of a hidden tab counts what happened meanwhile
+  let unseen = 0; const baseTitle = document.title;
+  const noticed = () => { if (document.hidden) { unseen += 1; document.title = '(' + unseen + ') ' + baseTitle; } };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { unseen = 0; document.title = baseTitle; } });
+
+  // sidebar badges
+  function refreshBadges() {
+    fetch('/admin/badges', { credentials: 'same-origin' }).then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (!d) return;
+      ['orders', 'support', 'auctions'].forEach((k) => {
+        const a = document.querySelector('.sb-item[data-key="' + k + '"]'); if (!a) return;
+        let cnt = a.querySelector('.cnt');
+        if (!d[k]) { if (cnt) cnt.remove(); return; }
+        if (!cnt) { cnt = document.createElement('span'); cnt.className = 'cnt'; a.appendChild(cnt); }
+        cnt.textContent = d[k];
+      });
+    }).catch(() => {});
+  }
+
+  // the page itself, refreshed in place when it shows what changed — never while something is being typed or edited
+  let refreshT = null;
+  function refreshContent() {
+    clearTimeout(refreshT);
+    refreshT = setTimeout(() => {
+      const ae = document.activeElement; if (ae && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName) && ae.type !== 'checkbox') return;
+      if (document.querySelector('dialog[open], form[data-track], .dlg[open]')) return;
+      if (document.body.dataset.supportStream && onPage(/^\/admin\/support/)) return;  // the inbox has its own live refresh
+      fetch(location.href, { credentials: 'same-origin', headers: { 'X-Live-Refresh': '1' } }).then((r) => (r.ok ? r.text() : null)).then((html) => {
+        if (!html) return;
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const fresh = doc.querySelector('.content'), cur = document.querySelector('.content'); if (!fresh || !cur) return;
+        const y = window.scrollY; cur.replaceWith(fresh); if (window.htmx) htmx.process(fresh); window.scrollTo(0, y);
+        document.dispatchEvent(new CustomEvent('live:refreshed'));
+      }).catch(() => {});
+    }, 700);
+  }
+  const say = (type, msg, href, sub) => { toast(msg, type, 6000, { href, sub }); noticed(); };
+
+  live.on('order_new', (d) => {
+    say('warn', fill(LIVE.order_new, { n: d.number }), '/admin/orders/' + d.id, (d.name || '') + ' · ' + money(d.total, d.currency));
+    refreshBadges();
+    if (onPage(/^\/admin$/) || onPage(/^\/admin\/orders$/)) refreshContent();
+  });
+  live.on('order_status', (d) => {
+    say(d.by_staff ? 'info' : 'warn', fill(LIVE.order_status, { n: d.number, status: d.status_label || d.status }), '/admin/orders/' + d.id);
+    refreshBadges();
+    if (onPage(/^\/admin$/) || onPage(/^\/admin\/orders$/) || idIn(/^\/admin\/orders\/(\d+)$/) === d.id) refreshContent();
+  });
+  live.on('payment_new', (d) => {
+    say(d.by_staff ? 'info' : 'warn', fill(LIVE.payment_new, { n: d.number }), '/admin/orders/' + d.id + '#payments', money(d.amount, d.currency));
+    refreshBadges();
+    if (onPage(/^\/admin$/) || onPage(/^\/admin\/orders$/) || idIn(/^\/admin\/orders\/(\d+)$/) === d.id) refreshContent();
+  });
+  live.on('deposit_new', (d) => {
+    say('warn', fill(LIVE.deposit_new, { id: d.auction_id }), '/admin/auctions/' + d.auction_id + '#deposits', (d.name || '') + ' · ' + money(d.amount, d.currency));
+    if (idIn(/^\/admin\/auctions\/(\d+)$/) === d.auction_id || onPage(/^\/admin\/auctions$/)) refreshContent();
+  });
+  live.on('customer_new', (d) => {
+    say('info', fill(LIVE.customer_new, { name: d.name }), '/admin/customers/' + d.id);
+    if (onPage(/^\/admin\/customers$/) || onPage(/^\/admin$/)) refreshContent();
+  });
+  live.on('chat', (d) => {
+    const ev = d.chat || {};
+    if (document.body.dataset.supportStream) return;  // the support stream on this page already tells
+    if (ev.type === 'msg' && !ev.from_staff) { say('info', LIVE.chat || 'New message', '/admin/support/' + ev.thread_id); refreshBadges(); }
+  });
+  live.on('auction', (d) => {
+    const here = idIn(/^\/admin\/auctions\/(\d+)$/);
+    if (d.kind === 'bid' && here !== d.id) say('info', fill(LIVE.bid, { id: d.id }), '/admin/auctions/' + d.id, money(d.current_total, d.currency));
+    if (d.kind === 'ended') { say('info', fill(LIVE.ended, { id: d.id }), '/admin/auctions/' + d.id); refreshBadges(); }
+    if (onPage(/^\/admin\/auctions$/) || (d.kind === 'ended' && onPage(/^\/admin$/))) refreshContent();
+  });
+  live.on('ready', refreshBadges);
+
+  // ---------- auction live (the lot page) ----------
   document.querySelectorAll('[data-live-auction]').forEach((el) => {
-    const id = el.dataset.liveAuction; if (!window.EventSource) return;
-    const es = new EventSource('/api/auctions/' + id + '/stream');
+    const id = Number(el.dataset.liveAuction);
     const apply = (d) => {
       const p = el.querySelector('[data-cur]'); if (p && p.textContent !== d.current_total) { p.textContent = d.current_total; p.classList.remove('price-bump'); void p.offsetWidth; p.classList.add('price-bump'); }
-      const b = el.querySelector('[data-bids]'); if (b) b.textContent = d.bids; const s = el.querySelector('[data-st]'); if (s) s.textContent = d.status;
+      const b = el.querySelector('[data-bids]'); if (b) b.textContent = d.bids; const s = document.querySelector('[data-st]'); if (s && d.status) s.textContent = d.status;
       const cd = el.querySelector('[data-countdown]'); if (cd && d.ends_at) cd.dataset.countdown = d.ends_at;
-      if (d.type === 'bid' || d.type === 'ended') { const list = document.getElementById('bids-list'); list && window.htmx && htmx.trigger(list, 'refresh'); }
+      if (d.kind === 'bid' || d.kind === 'ended') { const list = document.getElementById('bids-list'); list && window.htmx && htmx.trigger(list, 'refresh'); }
     };
-    ['state', 'bid', 'ended'].forEach((ev) => es.addEventListener(ev, (e) => apply(JSON.parse(e.data))));
+    live.on('auction', (d) => { if (Number(d.id) === id) apply(d); });
+    const poll = () => fetch('/api/auctions/' + id + '/state', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) apply(d); }).catch(() => {});
+    live.on('ready', poll); setInterval(() => { if (!document.hidden) poll(); }, 20000);
   });
 
   // ---------- countdowns ----------

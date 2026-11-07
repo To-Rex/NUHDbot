@@ -282,6 +282,8 @@ r = cust.post(f"/app/auctions/{aid}/bid", data={"amount": "150"}, headers={"HX-R
 ok("leader cannot outbid self (friendly error)", r.status_code == 200 and "toast" in r.headers.get("HX-Trigger", ""), f"{r.status_code} {r.headers.get('HX-Trigger')}")
 ok("auction state json", cust.get(f"/api/auctions/{aid}/state").status_code == 200)
 ok("admin bids partial", adm.get(f"/admin/auctions/{aid}/bids").status_code == 200)
+r = adm.get("/admin/badges")
+ok("admin live badges json", r.status_code == 200 and "orders" in r.json(), str(r.status_code))
 r = adm.post(f"/admin/auctions/{aid}/action/end")
 ok("admin ends auction", r.status_code == 303)
 html = adm.get(f"/admin/auctions/{aid}").text
