@@ -272,20 +272,39 @@
     document.body.appendChild(box); haptic.success(); setTimeout(() => box.remove(), 2600);
   }
 
-  // ---------- SSE helper (auction live state) ----------
-  window.liveAuction = function (id, onState) {
-    if (!window.EventSource) return setInterval(() => fetch('/api/auctions/' + id + '/state').then((r) => r.json()).then(onState), 3000);
-    let es; let retry = 1000;
+  // ---------- SSE helpers (auction live state) ----------
+  // A stream with its own safety nets: the server pings every 15 s, so 40 s of silence means a dead connection (a WebView put
+  // to sleep, a proxy that gave up) — reconnect and ask for the state; coming back to the foreground does the same; and the
+  // state is polled every 20 s regardless, so a missed event costs seconds, not a page reload.
+  function liveStream(url, events, onEvent, poll) {
+    let es = null, last = Date.now(), retry = 1000, closed = false, timer = null;
+    const ask = () => { if (poll) poll(); };
+    if (!window.EventSource) { const iv = setInterval(ask, 3000); return { close() { clearInterval(iv); } }; }
     function connect() {
-      es = new EventSource('/api/auctions/' + id + '/stream');
-      es.addEventListener('state', (e) => { retry = 1000; onState(JSON.parse(e.data)); });
-      es.addEventListener('bid', (e) => onState(JSON.parse(e.data)));
-      es.addEventListener('ended', (e) => onState(JSON.parse(e.data)));
-      es.onerror = () => { es.close(); setTimeout(connect, retry); retry = Math.min(retry * 2, 15000); };
+      if (closed) return;
+      if (es) { es.onerror = null; es.close(); }
+      clearTimeout(timer);
+      es = new EventSource(url);
+      const got = (e) => { last = Date.now(); retry = 1000; let d = null; try { d = JSON.parse(e.data); } catch (_) {} if (d) onEvent(d, e.type); };
+      events.forEach((n) => es.addEventListener(n, got));
+      es.addEventListener('ping', () => { last = Date.now(); });
+      es.addEventListener('ready', () => { last = Date.now(); retry = 1000; });
+      es.onopen = () => { last = Date.now(); };
+      es.onerror = () => { es.close(); timer = setTimeout(connect, retry); retry = Math.min(retry * 2, 15000); };
     }
     connect();
-    return es;
-  };
+    const watchdog = setInterval(() => { if (closed) return; if (Date.now() - last > 40000) { last = Date.now(); ask(); connect(); } }, 10000);
+    const safety = setInterval(() => { if (!closed && !document.hidden) ask(); }, 20000);
+    const wake = () => { if (closed || document.hidden) return; ask(); if (!es || es.readyState === 2) connect(); };
+    document.addEventListener('visibilitychange', wake); window.addEventListener('online', wake); window.addEventListener('pageshow', wake);
+    return { close() { closed = true; clearInterval(watchdog); clearInterval(safety); clearTimeout(timer); if (es) es.close(); } };
+  }
+  const fetchState = (id, onState) => fetch('/api/auctions/' + id + '/state', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((s) => { if (s) onState(s); }).catch(() => {});
+  // one lot (its page): state / bid / ended events, plus the polled state
+  window.liveAuction = function (id, onState) { return liveStream('/api/auctions/' + id + '/stream', ['state', 'bid', 'ended'], onState, () => fetchState(id, onState)); };
+  // every lot (the auctions page): events carry the lot id; `poll` is the page's own refresh
+  window.liveAuctions = function (onEvent, poll) { return liveStream('/api/auctions/stream', ['state', 'bid', 'ended'], onEvent, poll); };
+  window.auctionState = fetchState;
 
   // ---------- Telegram helpers for templates ----------
   window.NUHD = { booted: true, tg, haptic, toast, confetti, progressStart, progressDone, setTheme, resolvedTheme,

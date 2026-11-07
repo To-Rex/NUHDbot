@@ -139,7 +139,7 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
             return HTMLResponse("", status_code=404)
         resp = render(request, tpl, await _ctx(db, a, user, lang), status_code=200)
         return toast(resp, t(lang, f"auction.errors.{e.code}", **e.ctx), "bad", "error")
-    auctions.publish(a.id, {"type": "bid", **auctions.snapshot(a)})
+    auctions.publish(a.id, {"type": "bid", **auctions.snapshot(a), "people": len(await auctions.bidder_numbers(db, a.id))})
     if prev is not None and prev.id != user.id:
         try:
             await notifications.notify_outbid(db, prev, a, a.current_price_total)

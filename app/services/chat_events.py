@@ -2,8 +2,8 @@
 
 Events are queued on the DB session and fanned out only after that transaction commits, so a listener
 that reacts by fetching new messages always finds them. Every write path (Mini App, admin, Telegram
-bot) goes through app.services.support, which queues the events. In-process fan-out: the app runs one
-uvicorn worker (the bot polls inside it); several workers would need Postgres LISTEN/NOTIFY instead.
+bot) goes through app.services.support, which queues the events. Fan-out is in-process, plus Postgres
+LISTEN/NOTIFY (app.services.pubsub) so several workers or processes all hear every event.
 """
 import asyncio
 import json
@@ -14,6 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 from sse_starlette.sse import EventSourceResponse
 from starlette.requests import Request
+
+from app.services import pubsub
 
 STAFF = "staff"  # every event, for the admin inbox
 _listeners: dict[str, set[asyncio.Queue]] = defaultdict(set)
@@ -42,12 +44,21 @@ def queue(db: AsyncSession, ev: dict) -> None:
 
 
 def deliver(ev: dict) -> None:
+    """To this process's listeners now, and to the other processes' through Postgres NOTIFY."""
+    _deliver(ev)
+    pubsub.notify("chat", ev)
+
+
+def _deliver(ev: dict) -> None:
     for ch in (thread_channel(ev["thread_id"]), STAFF):
         for q in list(_listeners.get(ch, ())):
             try:
                 q.put_nowait(ev)
             except asyncio.QueueFull:  # a stuck client; it catches up on reconnect
                 pass
+
+
+pubsub.register("chat", _deliver)
 
 
 @event.listens_for(Session, "after_commit")

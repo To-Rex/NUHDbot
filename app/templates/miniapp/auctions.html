@@ -71,24 +71,45 @@
   if (more) more.addEventListener('click', function () { more.closest('[data-group]').classList.add('open'); });
 })();
 (function(){
-  /* a lot opens in the bid sheet instead of its own page; the bid is placed there, the cards update in place, and while the sheet is
-     open the lot's live channel keeps it current (others' bids, time extensions) */
+  /* a lot opens in the bid sheet instead of its own page; the bid is placed there and the cards update in place. One live
+     stream for the whole page keeps every card current (others' bids, time extensions, a lot ending) and, while the sheet is
+     open, reloads the sheet's lot */
   var sheet = document.getElementById('bid-sheet'), body = document.getElementById('bid-sheet-body'); if (!sheet) return;  /* htmx and app.js load deferred: checked on tap */
-  var es = null, openId = null, wait = body.innerHTML;
+  var openId = null, wait = body.innerHTML, seen = {}, reloadT = null, pollT = null;
   function load(id) { return htmx.ajax('GET', '/app/auctions/' + id + '/sheet', { target: body, swap: 'innerHTML' }); }
-  function live(id) {
-    if (es) { es.close(); es = null; }
-    if (!window.EventSource) return;
-    es = new EventSource('/api/auctions/' + id + '/stream');
-    var t = null, refresh = function (e) { var d = {}; try { d = JSON.parse(e.data); } catch (_) {} var bs = body.querySelector('[data-bs]');
-      if (bs && d.version !== undefined && Number(d.version) <= Number(bs.dataset.version)) return;
-      clearTimeout(t); t = setTimeout(function () { if (openId === id && !body.querySelector('form.htmx-request') && !body.querySelector('[data-terms]')) load(id); }, 250); };
-    es.addEventListener('bid', refresh); es.addEventListener('state', refresh); es.addEventListener('ended', refresh);
+  function fmt(v, cur) { var n = Number(v); if (isNaN(n)) return v; var s = n.toLocaleString('en-US', { maximumFractionDigits: 2 }); return cur === 'USD' ? '$' + s : s + ' ' + cur; }
+  function setText(el, txt) { if (el && el.textContent !== txt) { el.textContent = txt; if (el.dataset.k === 'total') { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } } }
+  function paint(d) {  /* one lot's event → its cards (hero and list) */
+    if (d.id === undefined) return;
+    if (d.version !== undefined) { if (seen[d.id] !== undefined && Number(d.version) <= seen[d.id]) return; seen[d.id] = Number(d.version); }
+    var cards = document.querySelectorAll('[data-lot="' + d.id + '"]'); if (!cards.length) return;
+    cards.forEach(function (card) {
+      card.querySelectorAll('[data-k="total"]').forEach(function (el) { setText(el, fmt(d.current_total, d.currency)); });
+      card.querySelectorAll('[data-k="unit"]').forEach(function (el) { setText(el, fmt(d.current_unit, d.currency)); });
+      card.querySelectorAll('[data-k="bids"]').forEach(function (el) { setText(el, String(d.bids)); });
+      if (d.people !== undefined) card.querySelectorAll('[data-k="people"]').forEach(function (el) { setText(el, String(d.people)); });
+      if (d.bids > 0) card.querySelectorAll('[data-k="label"]').forEach(function (el) { setText(el, {{ t('auction.current')|tojson }}); });
+      var cd = card.querySelector('[data-countdown]'); if (cd && d.ends_at && d.status === 'live' && cd.dataset.countdown !== d.ends_at) { cd.dataset.countdown = d.ends_at; delete cd.dataset.ended; }
+    });
+    if (d.status === 'ended' || d.type === 'ended') {  /* the lot moves to Finished: the page is rebuilt once nothing is in flight */
+      if (document.querySelector('form.htmx-request')) return;
+      clearTimeout(reloadT); reloadT = setTimeout(function () { location.reload(); }, 1500);
+    }
+    if (openId !== null && Number(d.id) === Number(openId) && !body.querySelector('form.htmx-request') && !body.querySelector('[data-terms]')) {
+      clearTimeout(pollT); pollT = setTimeout(function () { if (openId !== null && Number(d.id) === Number(openId)) load(openId); }, 250);
+    }
   }
+  function refresh() {  /* the safety net: every lot on the page, in one request */
+    var ids = []; document.querySelectorAll('.ax-list .hl-card[data-lot], .ax-hero[data-lot]').forEach(function (c) { if (!c.classList.contains('is-ended') && ids.indexOf(c.dataset.lot) < 0) ids.push(c.dataset.lot); });
+    if (!ids.length) return;
+    fetch('/api/auctions/state?ids=' + ids.join(','), { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (rows) { (rows || []).forEach(paint); }).catch(function () {});
+  }
+  var startLive = function(){ window.liveAuctions(paint, refresh); };  /* app.js loads deferred: start once it is there */
+  if (window.liveAuctions) startLive(); else document.addEventListener('DOMContentLoaded', startLive);
   document.addEventListener('click', function (e) {
     var c = e.target.closest('.ax-list .hl-card, .ax-hero'); if (!c || e.metaKey || e.ctrlKey || !window.htmx || !window.openSheet) return;
     e.preventDefault(); e.stopPropagation();
-    openId = c.dataset.lot; body.innerHTML = wait; openSheet('bid-sheet'); load(openId); live(openId);
+    openId = c.dataset.lot; body.innerHTML = wait; openSheet('bid-sheet'); load(openId);
   }, true);
   body.addEventListener('click', function (e) {  /* custom amount: "+N steps" fills the field */
     var p = e.target.closest('[data-bs-plus]'); if (!p) return;
@@ -101,8 +122,7 @@
     });
   });
   document.addEventListener('bidPlaced', function () { if (window.NUHD) NUHD.confetti(); });
-  new MutationObserver(function () { if (sheet.hidden && es) { es.close(); es = null; openId = null; } }).observe(sheet, { attributes: true, attributeFilter: ['hidden'] });
-  document.body.addEventListener('htmx:beforeSwap', function leave(e) { if (e.detail.target !== document.body) return; if (es) es.close(); document.body.removeEventListener('htmx:beforeSwap', leave); });
+  new MutationObserver(function () { if (sheet.hidden) openId = null; }).observe(sheet, { attributes: true, attributeFilter: ['hidden'] });
 })();
 </script>
 {% endblock %}

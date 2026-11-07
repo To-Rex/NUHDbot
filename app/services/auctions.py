@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.enums import AuctionStatus, DepositStatus
 from app.models import Auction, AuctionDeposit, Bid, User
-from app.services import auction_terms, audit
+from app.services import auction_terms, audit, pubsub
 
 
 class AuctionError(Exception):
@@ -20,11 +20,12 @@ class AuctionError(Exception):
         self.ctx = ctx
 
 
-# ---- in-process pub/sub for SSE (single worker). For multi-worker deploys swap for Redis pub/sub.
+# ---- pub/sub for the SSE streams: in-memory queues per process, carried to the other processes over Postgres NOTIFY
+ALL = 0  # the channel every lot's events also go to (the auctions page listens there)
 _subscribers: dict[int, set[asyncio.Queue]] = defaultdict(set)
 
 
-def subscribe(auction_id: int) -> asyncio.Queue:
+def subscribe(auction_id: int = ALL) -> asyncio.Queue:
     q: asyncio.Queue = asyncio.Queue(maxsize=50)
     _subscribers[auction_id].add(q)
     return q
@@ -34,18 +35,28 @@ def unsubscribe(auction_id: int, q: asyncio.Queue) -> None:
     _subscribers[auction_id].discard(q)
 
 
+def _deliver(auction_id: int, event: dict) -> None:
+    for key in {auction_id, ALL}:
+        for q in list(_subscribers.get(key, ())):
+            try:
+                q.put_nowait(event)
+            except asyncio.QueueFull:  # a stuck client; it catches up from its own polling
+                pass
+
+
 def publish(auction_id: int, event: dict) -> None:
-    for q in list(_subscribers.get(auction_id, ())):
-        try:
-            q.put_nowait(event)
-        except asyncio.QueueFull:
-            pass
+    """A lot changed (bid, start, end): every open stream in this process hears it now, the other processes right after."""
+    _deliver(auction_id, event)
+    pubsub.notify("auction", {"id": auction_id, "event": event})
+
+
+pubsub.register("auction", lambda p: _deliver(int(p["id"]), p["event"]))
 
 
 def snapshot(a: Auction) -> dict:
     return {
         "id": a.id,
-        "status": a.status,
+        "status": a.status.value,
         "current_total": str(Decimal(a.current_price_total).quantize(Decimal("0.01"))),
         "current_unit": str(a.current_price_unit),
         "next_total": str(a.next_bid_total.quantize(Decimal("0.01"))),

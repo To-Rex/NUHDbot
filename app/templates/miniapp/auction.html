@@ -23,7 +23,7 @@
 
   <section class="card">
     <div class="row-between"><h3>{{ t('auction.activity') }}</h3>{% if a.status.value == 'live' %}<span class="chip chip-live">{{ t('auction.live') }}</span>{% endif %}</div>
-    <div id="bids-wrap" class="mt-3" hx-get="/app/auctions/{{ a.id }}/bids" hx-trigger="refreshBids from:body" hx-swap="innerHTML">{% include "miniapp/partials/auction_bids.html" %}</div>
+    <div id="bids-wrap" class="mt-3" hx-get="/app/auctions/{{ a.id }}/bids" hx-trigger="refreshBids from:body" hx-target="this" hx-swap="innerHTML">{% include "miniapp/partials/auction_bids.html" %}</div>
   </section>
 
   {% if pk is not defined %}{% set pk = p %}{% endif %}
@@ -56,7 +56,11 @@
     document.body.dispatchEvent(new CustomEvent('refreshBids'));
     if (s.status === 'ended' || s.type === 'ended') { setTimeout(function(){ location.reload(); }, 1200); }
   }
-  {% if a.status.value == 'live' %}window.liveAuction(id, apply);{% endif %}
+  {% if a.status.value == 'live' %}
+  /* app.js loads deferred, so it is not there yet while this inline script runs: start the live channel once it is */
+  var start = function(){ window.liveAuction(id, apply); };
+  if (window.liveAuction) start(); else document.addEventListener('DOMContentLoaded', start);
+  {% endif %}
   document.addEventListener('countdown:ended', function(e){ if (e.detail.el.id === 'countdown') setTimeout(function(){ location.reload(); }, 2500); });
   document.addEventListener('bidPlaced', function(){ NUHD.confetti(); });
   document.body.addEventListener('termsAccepted', function(){ closeSheet('terms-sheet'); });

@@ -79,7 +79,9 @@ async def lifespan(app: FastAPI):
         await seed_reference()
     except Exception:  # noqa: BLE001
         log.exception("reference seed failed")
-    tasks = [asyncio.create_task(_auction_ticker()), asyncio.create_task(_assistant_sweeper())]
+    from app.services import pubsub
+
+    tasks = [pubsub.start(), asyncio.create_task(_auction_ticker()), asyncio.create_task(_assistant_sweeper())]
     bot_task = None
     if settings.bot_token and settings.bot_mode != "off":
         from app.bot.runner import start_bot
