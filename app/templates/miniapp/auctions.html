@@ -82,7 +82,7 @@
     es = new EventSource('/api/auctions/' + id + '/stream');
     var t = null, refresh = function (e) { var d = {}; try { d = JSON.parse(e.data); } catch (_) {} var bs = body.querySelector('[data-bs]');
       if (bs && d.version !== undefined && Number(d.version) <= Number(bs.dataset.version)) return;
-      clearTimeout(t); t = setTimeout(function () { if (openId === id && !body.querySelector('form.htmx-request')) load(id); }, 250); };
+      clearTimeout(t); t = setTimeout(function () { if (openId === id && !body.querySelector('form.htmx-request') && !body.querySelector('[data-terms]')) load(id); }, 250); };
     es.addEventListener('bid', refresh); es.addEventListener('state', refresh); es.addEventListener('ended', refresh);
   }
   document.addEventListener('click', function (e) {

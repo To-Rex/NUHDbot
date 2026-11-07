@@ -22,6 +22,7 @@ from app.admin.common import (
     nav_badges,
     render,
     staff_dep,
+    toast,
 )
 from app.admin.router import router
 from app.config import settings
@@ -38,8 +39,8 @@ from app.models import (
     Product,
     User,
 )
+from app.services import auction_terms, audit, deletion, media, notifications
 from app.services import auctions as asvc
-from app.services import audit, deletion, media, notifications
 from app.services import orders as osvc
 from app.templating import capacity
 
@@ -52,7 +53,30 @@ async def auctions_list(request: Request, db: DB, staff: User = Depends(staff_de
         stmt = stmt.where(Auction.status == AuctionStatus(status))
     stmt = stmt.order_by((Auction.status == AuctionStatus.LIVE).desc(), Auction.id.desc()).limit(200)
     items = (await db.execute(stmt)).scalars().unique().all()
-    return render(request, staff, "admin/auctions/list.html", {"page_title": t(staff.lang, "admin.auc.title"), "items": items, "status": status, "statuses": list(AuctionStatus), "badges": await nav_badges(db)})
+    return render(request, staff, "admin/auctions/list.html", {"page_title": t(staff.lang, "admin.auc.title"), "items": items, "status": status, "statuses": list(AuctionStatus), "badges": await nav_badges(db),
+                                                                **(await _terms_ctx(db, staff))})
+
+
+async def _terms_ctx(db, staff: User) -> dict:
+    """The auction terms tile: the saved terms, how many customers accepted the current version, the standard text per language."""
+    terms = await auction_terms.load(db)
+    return {"terms": terms, "terms_accepted": await auction_terms.accepted_count(db, terms), "can_edit": can(staff, AUCTION_EDIT_ROLES),
+            "terms_default": {code: t(code, "auction.terms_default") for code in settings.langs}}
+
+
+@router.post("/auctions/terms")
+async def auctions_terms(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
+    """The terms a customer accepts before joining a lot: asked or not, heading and text per language; "accept again" raises
+    the version so everybody reads them once more."""
+    form = await request.form()
+    before = await auction_terms.load(db)
+    after = await auction_terms.save(db, show=f_bool(form, "show"), title=f_i18n(form, "terms_title"), body=f_i18n(form, "terms_body"), reaccept=f_bool(form, "reaccept"))
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"auction_terms": before}, {"auction_terms": after})
+    await db.commit()
+    msg = t(staff.lang, "admin.auc.terms_saved")
+    if request.headers.get("HX-Request") == "true":
+        return render(request, staff, "admin/auctions/_terms.html", {**(await _terms_ctx(db, staff)), "tile_open": True}, headers=toast(msg))
+    return back(request, "/admin/auctions#auction-terms", msg)
 
 
 def _ctx():

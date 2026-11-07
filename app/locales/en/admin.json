@@ -450,7 +450,19 @@
       "deleted": "Lot deleted",
       "bid_delete_q": "Delete the bid?",
       "bid_delete_text": "The price, leader and winner are recalculated from the remaining bids.",
-      "bid_deleted": "Bid deleted, price recalculated"
+      "bid_deleted": "Bid deleted, price recalculated",
+      "terms_title": "Auction terms",
+      "terms_hint": "Before joining a lot (a bid or a deposit) the customer reads this text to the end and accepts it. Empty = the standard text; a blank line starts a new paragraph.",
+      "terms_show": "Ask for acceptance",
+      "terms_heading": "Heading",
+      "terms_body": "Terms text",
+      "terms_reaccept": "Ask everyone to accept again",
+      "terms_reaccept_hint": "Tick when the terms change materially: the version goes up and customers who accepted before read the text again.",
+      "terms_version": "Version",
+      "terms_accepted_n": "{n} customers accepted the current version",
+      "terms_off": "Acceptance not asked",
+      "terms_saved": "Auction terms saved",
+      "terms_default_note": "The standard text is shown"
     },
     "sup": {
       "title": "Support",
@@ -522,7 +534,9 @@
       "last_delivery": "Last delivery address",
       "delete_q": "Delete the customer?",
       "delete_text": "Their orders, payments, bids and chat go too. Opening the bot again starts a new registration. This cannot be undone.",
-      "deleted": "{name} deleted"
+      "deleted": "{name} deleted",
+      "auction_terms": "Auction terms",
+      "terms_v": "v{n}"
     },
     "staff": {
       "title": "Staff",

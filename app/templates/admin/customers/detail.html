@@ -12,6 +12,7 @@
     <dt>{{ t('admin.cust.tg') }}</dt><dd>{% if u.tg_username %}<a href="https://t.me/{{ u.tg_username }}" target="_blank">@{{ u.tg_username }}</a>{% endif %} <span class="faint small mono">{{ u.tg_id or '' }}</span></dd>
     <dt>{{ t('admin.cust.registered') }}</dt><dd>{{ u.registered_at|dt }}</dd><dt>{{ t('admin.cust.last_seen') }}</dt><dd>{{ u.last_seen_at|dt }}</dd><dt>{{ t('admin.cust.source') }}</dt><dd class="mono">{{ u.source or '—' }}</dd>
     <dt>{{ t('admin.cust.bought_before') }}</dt><dd>{{ t('admin.yes') if u.bought_from_china_before else (t('admin.no') if u.bought_from_china_before is not none else '—') }}</dd><dt>{{ t('admin.cust.ads_opt_in') }}</dt><dd>{{ t('admin.yes') if u.ads_opt_in else t('admin.no') }}</dd>
+    <dt>{{ t('admin.cust.auction_terms') }}</dt><dd>{% if u.auction_terms_at %}<span class="chip chip-ok">{{ icon('check', 11) }}{{ u.auction_terms_at|dt }}</span> <span class="faint small mono">{{ t('admin.cust.terms_v', n=u.auction_terms_version) }}</span>{% else %}—{% endif %}</dd>
     {% if u.last_address %}<dt>{{ t('admin.ord.address') }}</dt><dd>{{ u.last_receiver_name }} · <span class="mono">{{ u.last_receiver_phone }}</span><br>{{ u.last_address }}<br><span class="mono">{{ u.last_cargo_code or '' }}</span> {{ u.last_cargo_company or '' }}</dd>{% endif %}</dl>
   </div>
   <div class="card"><h2>{{ t('admin.cust.edit') }}</h2>

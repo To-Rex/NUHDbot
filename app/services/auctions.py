@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.enums import AuctionStatus, DepositStatus
 from app.models import Auction, AuctionDeposit, Bid, User
-from app.services import audit
+from app.services import auction_terms, audit
 
 
 class AuctionError(Exception):
@@ -104,6 +104,8 @@ async def place_bid(db: AsyncSession, auction_id: int, user: User, amount_total:
     """Atomically place a bid. Returns (auction, bid, previous_leader). Caller commits."""
     if not user.is_registered:
         raise AuctionError("not_registered")
+    if not await auction_terms.is_accepted(db, user):  # joining a lot means having read and accepted the auction terms
+        raise AuctionError("terms")
     # lock the auction row so concurrent bids serialize
     a = (await db.execute(select(Auction).where(Auction.id == auction_id).with_for_update(of=Auction))).scalar_one_or_none()
     if a is None:
@@ -174,6 +176,8 @@ async def tick(db: AsyncSession) -> list[Auction]:
 
 
 async def claim_deposit(db: AsyncSession, a: Auction, user: User, proof: str | None, note: str | None) -> AuctionDeposit:
+    if not await auction_terms.is_accepted(db, user):  # the deposit is the first step of joining: the terms come before it
+        raise AuctionError("terms")
     dep = AuctionDeposit(auction_id=a.id, user_id=user.id, amount=a.deposit_amount, currency=a.currency, proof_filename=proof, note=note)
     db.add(dep)
     await db.flush()

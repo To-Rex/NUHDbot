@@ -450,7 +450,19 @@
       "deleted": "拍品已删除",
       "bid_delete_q": "删除该出价？",
       "bid_delete_text": "价格、领先者和中标者将按剩余出价重新计算。",
-      "bid_deleted": "出价已删除，价格已重新计算"
+      "bid_deleted": "出价已删除，价格已重新计算",
+      "terms_title": "拍卖条款",
+      "terms_hint": "客户参与拍品（出价或押金）前需读完此文本并确认同意。留空则显示标准文本；空行表示新段落。",
+      "terms_show": "要求确认同意",
+      "terms_heading": "标题",
+      "terms_body": "条款正文",
+      "terms_reaccept": "要求所有人重新确认",
+      "terms_reaccept_hint": "条款有重大变更时勾选：版本号增加，此前已同意的客户需重新阅读。",
+      "terms_version": "版本",
+      "terms_accepted_n": "{n} 位客户已同意当前版本",
+      "terms_off": "不要求确认",
+      "terms_saved": "拍卖条款已保存",
+      "terms_default_note": "当前显示标准文本"
     },
     "sup": {
       "title": "客服消息",
@@ -522,7 +534,9 @@
       "last_delivery": "最近配送地址",
       "delete_q": "删除该客户？",
       "delete_text": "其订单、付款、出价和聊天也将删除。再次打开机器人需重新注册。此操作无法撤销。",
-      "deleted": "{name} 已删除"
+      "deleted": "{name} 已删除",
+      "auction_terms": "拍卖条款",
+      "terms_v": "v{n}"
     },
     "staff": {
       "title": "员工",

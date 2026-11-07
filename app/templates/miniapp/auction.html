@@ -19,19 +19,7 @@
 
   {% include "miniapp/partials/auction_price.html" %}
 
-  {% if needs_deposit %}
-  <div class="card">
-    <div class="row-between"><h3>{{ t('auction.deposit') }}</h3><b class="mono">{{ a.deposit_amount|money(a.currency) }}</b></div>
-    <p class="small muted mt-1">{{ t('auction.deposit_note') }}</p>
-    {% if deposit %}<span class="chip chip-lg {{ 'chip-ok' if deposit.status.value in ('confirmed','applied') else ('chip-warn' if deposit.status.value=='pending' else 'chip-soft') }} mt-2">{{ t('auction.deposit_' ~ deposit.status.value) }}</span>
-    {% elif user and user.is_registered and a.status.value in ('live','scheduled') %}
-    <form class="stack mt-3" method="post" action="/app/auctions/{{ a.id }}/deposit" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data" style="gap:8px">
-      <input class="input" type="file" name="proof" accept="image/*,.pdf"><input class="input" name="note" placeholder="{{ t('orders.pay_note') }}">
-      <button class="btn btn-secondary btn-block">{{ t('auction.deposit_claim') }}</button>
-    </form>
-    {% endif %}
-  </div>
-  {% endif %}
+  {% if needs_deposit %}{% include "miniapp/partials/auction_deposit.html" %}{% endif %}
 
   <section class="card">
     <div class="row-between"><h3>{{ t('auction.activity') }}</h3>{% if a.status.value == 'live' %}<span class="chip chip-live">{{ t('auction.live') }}</span>{% endif %}</div>
@@ -39,31 +27,16 @@
   </section>
 
   {% if pk is not defined %}{% set pk = p %}{% endif %}
-  <div class="card"><h3>{{ t('auction.rules') }}</h3><p class="small muted mt-1">{{ pk(a.rules) or t('auction.rules_default') }}</p>{% if pk(a.description) %}<div class="divider"></div><p class="small">{{ pk(a.description)|nl2br }}</p>{% endif %}
+  <div class="card"><h3>{{ t('auction.rules') }}</h3><p class="small muted mt-1">{{ pk(a.rules) or t('auction.rules_default') }}</p>
+    <button type="button" class="link small row mt-2" style="gap:4px" data-open-sheet="terms-sheet">{{ icon('book', 14) }}{{ t('auction.terms_link') }}{% if terms_ok and user and user.auction_terms_at %}<span class="chip chip-ok" style="margin-left:4px">{{ icon('check', 11) }}</span>{% endif %}</button>{% if pk(a.description) %}<div class="divider"></div><p class="small">{{ pk(a.description)|nl2br }}</p>{% endif %}
     <div class="divider"></div>
     <dl class="kv small"><dt>{{ t('auction.start_price') }}</dt><dd class="mono">{{ a.start_price_total|money(a.currency) }}</dd>
       <dt>{{ t('auction.starts') }}</dt><dd class="mono">{{ a.starts_at|dt }}</dd><dt>{{ t('auction.ends') }}</dt><dd class="mono">{{ a.ends_at|dt }}</dd></dl>
     <div class="xs faint mt-2">{{ a.timezone }}</div></div>
 </div>
 
-{% if a.status.value == 'live' %}
-<div class="sticky-cta"><div class="inner">
-  {% if not user or not user.is_registered %}
-  <a class="btn btn-primary btn-lg btn-block" href="/app/register?next=/app/auctions/{{ a.id }}">{{ t('register.required_cta') }} → {{ t('auction.bid_now') }}</a>
-  {% elif not can_bid %}
-  <div class="notice notice-warn flex-1">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
-  {% else %}
-  <form hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" class="row flex-1" style="gap:8px" id="bid-form">
-    <button class="btn btn-primary btn-lg flex-1" type="submit"><span class="label">{{ t('auction.bid_now') }} · <span id="btn-next" class="mono">{{ a.next_bid_total|money(a.currency) }}</span></span><span class="spinner"></span></button>
-    <button class="icon-btn glass" type="button" style="width:52px;height:52px" data-open-sheet="custom-bid" aria-label="{{ t('auction.bid_custom') }}">{{ icon('edit', 20) }}</button>
-  </form>
-  <div id="custom-bid" hidden><div class="sheet-backdrop" data-close-sheet="custom-bid"></div>
-    <form class="sheet stack" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" onsubmit="closeSheet('custom-bid')"><div class="grab"></div><h2>{{ t('auction.bid_custom') }}</h2>
-      <div class="field"><label>{{ t('auction.lot_total') }} ({{ a.currency }})</label><input class="input mono" name="amount" inputmode="decimal" value="{{ a.next_bid_total }}" required><span class="hint">{{ t('auction.step') }}: {{ a.step_total|money(a.currency) }}</span></div>
-      <button class="btn btn-primary btn-lg btn-block">{{ t('auction.bid_now') }}</button></form></div>
-  {% endif %}
-</div></div>
-{% endif %}
+{% include "miniapp/partials/auction_cta.html" %}
+<div id="terms-sheet" hidden><div class="sheet-backdrop" data-close-sheet="terms-sheet"></div><div class="sheet terms-sheet"><div class="grab"></div><div id="terms-body">{% with lot=a.id, view='page' %}{% include "miniapp/partials/auction_terms.html" %}{% endwith %}</div></div></div>
 </div>
 {% endblock %}
 {% block scripts %}
@@ -86,6 +59,7 @@
   {% if a.status.value == 'live' %}window.liveAuction(id, apply);{% endif %}
   document.addEventListener('countdown:ended', function(e){ if (e.detail.el.id === 'countdown') setTimeout(function(){ location.reload(); }, 2500); });
   document.addEventListener('bidPlaced', function(){ NUHD.confetti(); });
+  document.body.addEventListener('termsAccepted', function(){ closeSheet('terms-sheet'); });
   {% if a.status.value == 'ended' and a.winner_user_id and a.winner_user_id == me_id %}setTimeout(function(){ NUHD.confetti(); }, 400);{% endif %}
 })();
 </script>

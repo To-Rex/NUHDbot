@@ -30,6 +30,8 @@
 
   {% if not user or not user.is_registered %}
   <a class="btn btn-primary btn-lg btn-block" href="/app/register?next=/app/auctions">{{ t('register.required_cta') }} → {{ t('auction.bid_now') }}</a>
+  {% elif not terms_ok %}
+  <button type="button" class="btn btn-primary btn-lg btn-block" hx-get="/app/auctions/terms?lot={{ a.id }}&view=sheet" hx-target="#bid-sheet-body" hx-swap="innerHTML">{{ icon('handshake', 18) }}{{ t('auction.terms_cta') }}</button>
   {% elif not can_bid %}
   <div class="notice notice-warn">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
   <a class="btn btn-secondary btn-block" href="/app/auctions/{{ a.id }}">{{ t('auction.pay_deposit') }}</a>

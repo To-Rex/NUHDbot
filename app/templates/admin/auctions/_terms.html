@@ -1,0 +1,30 @@
+{# the auction terms a customer accepts before joining a lot: asked or not, heading and text per language, and a fresh-acceptance
+   switch that raises the version. expects: terms {show, version, title, body}, terms_accepted (count), terms_default (lang: text), can_edit #}
+<details class="tile" id="auction-terms"{{ ' open' if tile_open }}>
+  <summary class="tile-sum"><span class="tile-ic">{{ icon('book', 18) }}</span><span class="tile-txt"><b>{{ t('admin.auc.terms_title') }}</b><small>{{ t('admin.auc.terms_version') }} {{ terms.version }} · {{ t('admin.auc.terms_accepted_n', n=terms_accepted) }}{% if not terms.body %} · {{ t('admin.auc.terms_default_note') }}{% endif %}</small></span><span class="tile-state{{ '' if terms.show else ' is-off' }}">{{ t('admin.ban.on') if terms.show else t('admin.auc.terms_off') }}</span>{{ icon('chevron-down', 16, 'tile-chev') }}</summary>
+  <div class="tile-body">
+  <form hx-post="/admin/auctions/terms" hx-target="#auction-terms" hx-swap="outerHTML" data-at><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <div class="tile-top"><p class="tile-hint">{{ t('admin.auc.terms_hint') }}</p><label class="bn-switch tm-switch" title="{{ t('admin.auc.terms_show') }}"><input type="checkbox" name="show" value="1" {{ 'checked' if terms.show }}{{ ' disabled' if not can_edit }}><span class="switch{{ ' on' if terms.show }}"></span><span data-on="{{ t('admin.ban.on') }}" data-off="{{ t('admin.auc.terms_off') }}">{{ t('admin.ban.on') if terms.show else t('admin.auc.terms_off') }}</span></label></div>
+  <div class="stack mt-3" style="gap:12px">
+    {% with name='terms_title', value=terms.title, kind='input', label=t('admin.auc.terms_heading') %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+    {% with name='terms_body', value=terms.body, kind='textarea', label=t('admin.auc.terms_body'), rows=12 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+    <details class="acc" data-at-default><summary>{{ icon('eye', 14) }} {{ t('admin.auc.terms_default_note') }}</summary><div class="at-default small muted mt-sm" data-at-default-text data-texts="{{ terms_default|tojson|forceescape }}"></div></details>
+  </div>
+  <div class="tm-foot">
+    <label class="check-row small" title="{{ t('admin.auc.terms_reaccept_hint') }}"><input type="checkbox" name="reaccept" value="1"{{ ' disabled' if not can_edit }}> {{ t('admin.auc.terms_reaccept') }}<span class="faint"> — {{ t('admin.auc.terms_reaccept_hint') }}</span></label>
+    {% if can_edit %}<button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>{% endif %}
+  </div>
+  </form>
+  <script>
+  (function(){
+    var f=document.querySelector('#auction-terms form[data-at]'); if(!f||f._at) return; f._at=1;
+    var show=f.querySelector('input[name="show"]'), sw=show.nextElementSibling, lbl=f.querySelector('[data-on]');
+    show.addEventListener('change',function(){ sw.classList.toggle('on',show.checked); lbl.textContent=show.checked?lbl.dataset.on:lbl.dataset.off; });
+    /* the standard text, in the language being edited, so the admin sees what "empty" shows */
+    var box=f.querySelector('[data-at-default-text]'), texts={}; try{ texts=JSON.parse(box.dataset.texts||'{}'); }catch(e){}
+    function draw(){ var act=f.querySelector('[data-i18n] .lang-tabs button.active'); var l=act?act.dataset.lang:'{{ lang }}'; box.textContent=texts[l]||texts['{{ lang }}']||''; }
+    f.addEventListener('click',function(e){ if(e.target.closest('.lang-tabs button')) setTimeout(draw,0); }); draw();
+  })();
+  </script>
+</div>
+</details>

@@ -1,0 +1,38 @@
+{#- The auction terms, read before joining a lot. Two places: the bid sheet on the auctions page shows them in place of the lot
+    (view=sheet; the answer to accepting is the lot's sheet again), and the lot page keeps them in its own sheet (view=page;
+    the answer is the page's call to action). The tick box unlocks once the text has been scrolled to its end.
+    expects: terms, terms_ok, terms_title, terms_paras, terms_updated, user, lot, view -#}
+<div class="terms" data-terms data-view="{{ view }}">
+  <div class="terms-head">
+    {% if view == 'sheet' and lot %}<button type="button" class="icon-btn" hx-get="/app/auctions/{{ lot }}/sheet" hx-target="#bid-sheet-body" hx-swap="innerHTML" aria-label="{{ t('common.back') }}">{{ icon('chevron-left', 18) }}</button>{% endif %}
+    <div class="flex-1 min-w-0"><h2>{{ terms_title }}</h2>{% if terms_updated %}<div class="xs faint mono">{{ t('auction.terms_updated', date=terms_updated|date) }} · v{{ terms.version }}</div>{% endif %}</div>
+    {% if view == 'page' %}<button type="button" class="icon-btn" data-close-sheet="terms-sheet" aria-label="{{ t('common.close') }}">{{ icon('x', 18) }}</button>{% endif %}
+  </div>
+  <div class="terms-text" data-terms-text tabindex="0">{% for para in terms_paras %}<p>{{ para|nl2br }}</p>{% endfor %}</div>
+  {% if not user or not user.is_registered %}
+  <a class="btn btn-primary btn-lg btn-block" href="/app/register?next={{ '/app/auctions/' ~ lot if lot and view == 'page' else '/app/auctions' }}">{{ t('register.required_cta') }}</a>
+  {% elif terms_ok %}
+  <div class="notice notice-ok">{{ icon('check-circle', 18) }}<span class="small">{{ t('auction.terms_accepted', date=(user.auction_terms_at|date) if user.auction_terms_at else '—') }}</span></div>
+  {% else %}
+  <form class="stack" style="gap:10px" hx-post="/app/auctions/terms" hx-target="{{ '#lot-cta' if view == 'page' else '#bid-sheet-body' }}" hx-swap="{{ 'outerHTML' if view == 'page' else 'innerHTML' }}" hx-disabled-elt="find button[type=submit]">
+    <input type="hidden" name="lot" value="{{ lot or '' }}"><input type="hidden" name="view" value="{{ view }}">
+    <label class="consent"><input type="checkbox" name="agree" value="1" disabled data-terms-agree><span class="consent-box">{{ icon('check', 14) }}</span><span class="consent-text">{{ t('auction.terms_agree') }}</span></label>
+    <p class="hint terms-hint" data-terms-hint>{{ icon('arrow-down', 13) }}{{ t('auction.terms_read') }}</p>
+    <button class="btn btn-primary btn-lg btn-block" type="submit" disabled data-terms-ok><span class="label">{{ t('auction.terms_accept') }}</span><span class="spinner"></span></button>
+  </form>
+  {% endif %}
+</div>
+<script>
+(function(){
+  /* read to the end first: the tick box unlocks when the text has been scrolled through (or fits without scrolling),
+     and the button follows the tick */
+  var all = document.querySelectorAll('[data-terms]'), root = all[all.length - 1]; if (!root || root._g) return; root._g = 1;
+  var text = root.querySelector('[data-terms-text]'), agree = root.querySelector('[data-terms-agree]'), hint = root.querySelector('[data-terms-hint]'), ok = root.querySelector('[data-terms-ok]');
+  if (!agree) return;
+  function reached() { return text.clientHeight > 0 && text.scrollTop + text.clientHeight >= text.scrollHeight - 12; }  /* a hidden sheet measures 0: not read yet */
+  function check() { if (agree.disabled === false || !reached()) return; agree.disabled = false; if (hint) hint.hidden = true; if (window.NUHD) NUHD.haptic.light(); }
+  text.addEventListener('scroll', check); setTimeout(check, 50); window.addEventListener('resize', check);
+  if (window.ResizeObserver) new ResizeObserver(check).observe(text);  /* the lot page's sheet opens later: measure again when it shows */
+  agree.addEventListener('change', function () { ok.disabled = !agree.checked; });
+})();
+</script>

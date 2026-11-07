@@ -450,7 +450,19 @@
       "deleted": "Lot o'chirildi",
       "bid_delete_q": "Stavka o'chirilsinmi?",
       "bid_delete_text": "Narx, yetakchi va g'olib qolgan stavkalardan qayta hisoblanadi.",
-      "bid_deleted": "Stavka o'chirildi, narx qayta hisoblandi"
+      "bid_deleted": "Stavka o'chirildi, narx qayta hisoblandi",
+      "terms_title": "Auksion shartlari",
+      "terms_hint": "Mijoz lotga qo'shilishdan (stavka yoki depozit) oldin shu matnni oxirigacha o'qib, rozilik bildiradi. Bo'sh qoldirilsa standart matn ko'rsatiladi; bo'sh qator — yangi abzats.",
+      "terms_show": "Rozilik talab qilinsin",
+      "terms_heading": "Sarlavha",
+      "terms_body": "Shartlar matni",
+      "terms_reaccept": "Hamma qayta rozilik bildirsin",
+      "terms_reaccept_hint": "Shartlar jiddiy o'zgarganda belgilang: versiya oshadi va avval rozilik bildirganlar ham matnni qayta o'qiydi.",
+      "terms_version": "Versiya",
+      "terms_accepted_n": "{n} mijoz joriy versiyaga rozilik bildirgan",
+      "terms_off": "Rozilik so'ralmaydi",
+      "terms_saved": "Auksion shartlari saqlandi",
+      "terms_default_note": "Standart matn ko'rsatilmoqda"
     },
     "sup": {
       "title": "Murojaatlar",
@@ -522,7 +534,9 @@
       "last_delivery": "Oxirgi yetkazish manzili",
       "delete_q": "Mijoz o'chirilsinmi?",
       "delete_text": "Buyurtmalari, to'lovlari, stavkalari va chati ham o'chadi. Botni qayta ochsa, yangidan ro'yxatdan o'tadi. Bu amalni ortga qaytarib bo'lmaydi.",
-      "deleted": "{name} o'chirildi"
+      "deleted": "{name} o'chirildi",
+      "auction_terms": "Auksion shartlari",
+      "terms_v": "v{n}"
     },
     "staff": {
       "title": "Xodimlar",

@@ -8,6 +8,7 @@ from app.deps import DB, CurrentUser, Lang, redirect, require_registered
 from app.enums import AuctionStatus, DepositStatus
 from app.i18n import t
 from app.models import AuctionDeposit, Bid, User
+from app.services import auction_terms as terms_svc
 from app.services import auctions, notifications
 from app.services.media import MediaError, save_document
 from app.templating import render
@@ -32,6 +33,36 @@ async def auctions_page(request: Request, db: DB, user: CurrentUser, lang: Lang)
     })
 
 
+async def _terms_ctx(db, user, lang) -> dict:
+    """The auction terms as the viewer sees them: the text, and whether this viewer has accepted the current version."""
+    terms = await terms_svc.load(db)
+    return {"terms": terms, "terms_ok": terms_svc.accepted(user, terms), "terms_title": terms_svc.title(terms, lang),
+            "terms_paras": terms_svc.paragraphs(terms_svc.body(terms, lang)), "terms_updated": await terms_svc.updated_at(db)}
+
+
+@router.get("/auctions/terms")
+async def auction_terms_page(request: Request, db: DB, user: CurrentUser, lang: Lang, lot: int | None = None, view: str = "sheet"):
+    """The terms to read before joining: the bid sheet shows them in place of the lot (view=sheet), the lot page in its own sheet."""
+    return render(request, "miniapp/partials/auction_terms.html", {**(await _terms_ctx(db, user, lang)), "lot": lot, "view": "page" if view == "page" else "sheet"})
+
+
+@router.post("/auctions/terms")
+async def auction_terms_accept(request: Request, db: DB, lang: Lang, user: User = Depends(require_registered), lot: int | None = Form(None), view: str = Form("sheet"), agree: str = Form("")):
+    """The viewer has read the terms and ticks the box: stamp it, then answer with whatever was waiting behind the terms —
+    the lot's bid sheet, or the lot page's call to action (and its deposit card, out of band)."""
+    if agree != "1":
+        return toast(HTMLResponse("", status_code=400), t(lang, "auction.terms_read"), "bad", "error")
+    await terms_svc.accept(db, user)
+    await db.commit()
+    a = await auctions.get_auction(db, lot) if lot else None
+    if a is None or a.status == AuctionStatus.DRAFT:
+        resp = render(request, "miniapp/partials/auction_terms.html", {**(await _terms_ctx(db, user, lang)), "lot": lot, "view": view})
+    else:
+        ctx = await _ctx(db, a, user, lang)
+        resp = render(request, "miniapp/partials/auction_sheet.html" if view != "page" else "miniapp/partials/auction_accepted.html", {**ctx, "lot": a.id, "view": view})
+    return hx_trigger(resp, toast={"msg": t(lang, "auction.terms_ok"), "type": "ok"}, haptic="success", termsAccepted=True)
+
+
 async def _ctx(db, a, user, lang):
     bids = await auctions.recent_bids(db, a.id, limit=25)
     leader_id = bids[0].user_id if bids else None
@@ -47,7 +78,7 @@ async def _ctx(db, a, user, lang):
         "extended_min": max(0, int((a.ends_at - a.original_ends_at).total_seconds() // 60)) if a.original_ends_at else 0,
     }
     return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, "deposit": dep, "needs_deposit": needs_deposit, "can_bid": can_bid,
-            "me_id": user.id if user else None, "numbers": numbers, "stats": stats,
+            "me_id": user.id if user else None, "numbers": numbers, "stats": stats, **(await _terms_ctx(db, user, lang)),
             "my_best": await auctions.best_bid(db, a.id, user.id) if user and user.id in numbers else None}
 
 
@@ -130,7 +161,10 @@ async def auction_deposit(auction_id: int, request: Request, db: DB, lang: Lang,
             proof_name = await save_document(proof, prefix="dep")
         except MediaError:
             return toast(redirect(request, f"/app/auctions/{auction_id}"), t(lang, "support.errors.file"), "bad", "error")
-    await auctions.claim_deposit(db, a, user, proof_name, note or None)
+    try:
+        await auctions.claim_deposit(db, a, user, proof_name, note or None)
+    except auctions.AuctionError as e:
+        return toast(redirect(request, f"/app/auctions/{auction_id}"), t(lang, f"auction.errors.{e.code}", **e.ctx), "bad", "error")
     await db.commit()
     return hx_trigger(redirect(request, f"/app/auctions/{auction_id}"), toast={"msg": t(lang, "auction.deposit_pending"), "type": "ok"}, haptic="success")
 

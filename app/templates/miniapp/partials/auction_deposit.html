@@ -1,0 +1,17 @@
+{#- The lot page's deposit card (lots that ask for one): the amount, where the viewer's deposit stands, or the claim form —
+    behind the terms, which come first. -#}
+<div class="card" id="deposit-card"{{ ' hx-swap-oob="true"'|safe if oob }}>
+  <div class="row-between"><h3>{{ t('auction.deposit') }}</h3><b class="mono">{{ a.deposit_amount|money(a.currency) }}</b></div>
+  <p class="small muted mt-1">{{ t('auction.deposit_note') }}</p>
+  {% if deposit %}<span class="chip chip-lg {{ 'chip-ok' if deposit.status.value in ('confirmed','applied') else ('chip-warn' if deposit.status.value=='pending' else 'chip-soft') }} mt-2">{{ t('auction.deposit_' ~ deposit.status.value) }}</span>
+  {% elif user and user.is_registered and a.status.value in ('live','scheduled') %}
+    {% if not terms_ok %}
+    <button type="button" class="btn btn-secondary btn-block mt-3" data-open-sheet="terms-sheet">{{ icon('book', 16) }}{{ t('auction.terms_before_deposit') }}</button>
+    {% else %}
+    <form class="stack mt-3" method="post" action="/app/auctions/{{ a.id }}/deposit" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data" style="gap:8px">
+      <input class="input" type="file" name="proof" accept="image/*,.pdf"><input class="input" name="note" placeholder="{{ t('orders.pay_note') }}">
+      <button class="btn btn-secondary btn-block">{{ t('auction.deposit_claim') }}</button>
+    </form>
+    {% endif %}
+  {% endif %}
+</div>

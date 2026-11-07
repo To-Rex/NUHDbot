@@ -1056,3 +1056,27 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 }
 @media (min-width:600px){.product-grid{grid-template-columns:repeat(3,1fr)}}
 @media (hover:hover){.pcard:hover{transform:translateY(-2px)}.card-hover:hover{transform:translateY(-1px)}}
+
+/* auction terms: read to the end, tick, join (the lot page's own sheet and the bid sheet on the auctions page) */
+.terms{display:flex;flex-direction:column;gap:12px}
+.terms-head{display:flex;align-items:flex-start;gap:8px}
+.terms-head h2{font-size:20px;line-height:1.2;margin:0}
+.terms-head .icon-btn{flex:0 0 auto;margin-top:-2px}
+.terms-text{max-height:min(46dvh,420px);overflow:auto;padding:14px 16px;border-radius:18px;background:var(--fill);font-size:14px;line-height:1.55;color:var(--ink);-webkit-overflow-scrolling:touch;overscroll-behavior:contain;scrollbar-width:thin}
+.terms-text p{margin:0}.terms-text p+p{margin-top:10px}
+.terms-text:focus-visible{outline:0;box-shadow:var(--ring)}
+.terms-hint{display:flex;align-items:center;gap:6px;margin:0;color:var(--ink-3);font-size:12.5px}
+.terms-hint svg{animation:terms-nudge 1.4s ease-in-out infinite}
+@keyframes terms-nudge{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.consent{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:16px;background:var(--surface-2,var(--fill));border:1px solid var(--hairline);cursor:pointer;transition:border-color var(--t-fast),opacity var(--t-fast)}
+.consent input{position:absolute;opacity:0;width:0;height:0}
+.consent-box{width:24px;height:24px;border-radius:8px;border:2px solid var(--ink-3);display:grid;place-items:center;color:#fff;flex:0 0 auto;margin-top:1px;transition:background var(--t-fast),border-color var(--t-fast)}
+.consent-box svg{opacity:0;transform:scale(.6);transition:opacity var(--t-fast),transform var(--t-fast) var(--spring)}
+.consent-text{font-size:14px;font-weight:600;line-height:1.4}
+.consent:has(input:checked){border-color:var(--accent)}
+.consent:has(input:checked) .consent-box{background:var(--accent);border-color:var(--accent)}
+.consent:has(input:checked) .consent-box svg{opacity:1;transform:scale(1)}
+.consent:has(input:disabled){opacity:.55;cursor:default}
+.consent:has(input:focus-visible) .consent-box{box-shadow:var(--ring)}
+.terms-sheet{padding-bottom:calc(var(--sp-5) + var(--safe-b) + 6px)}
+.bs .terms{margin-top:4px}

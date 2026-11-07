@@ -12,6 +12,7 @@ from decimal import Decimal
 
 from sqlalchemy import func, select
 
+from app.config import settings
 from app.enums import (
     COLOR_DIRECTION,
     AdPostStatus,
@@ -23,7 +24,7 @@ from app.enums import (
     PaymentStatus,
     ProductColor,
 )
-from app.i18n import pick
+from app.i18n import pick, t
 from app.models import (
     AdPost,
     AssistantUpload,
@@ -46,9 +47,9 @@ from app.models import (
     User,
 )
 from app.models.base import utcnow
+from app.services import auction_terms, deletion, model_dict, notifications, storage
 from app.services import auctions as asvc
 from app.services import banners as bsvc
-from app.services import deletion, model_dict, notifications, storage
 from app.services import orders as osvc
 from app.services import series as series_service
 from app.services.assistant.tools import (
@@ -357,6 +358,29 @@ async def set_home_block(ctx: Ctx, block: str, show=None, title=None, new=None, 
         raise ToolError("block: conditions | terms")
     ctx.summary, ctx.entity, ctx.entity_id = f"Home block “{block}” updated", "setting", "home_" + block
     return {"ok": True}
+
+
+# ---------- auction terms ----------
+
+@tool("get_auction_terms", "The auction terms a customer must read and accept before joining a lot (a bid or a deposit): asked or not, version, heading and text per language (empty = the standard text), how many customers accepted the current version.")
+async def get_auction_terms(ctx: Ctx):
+    terms = await auction_terms.load(ctx.db)
+    return {**terms, "accepted_customers": await auction_terms.accepted_count(ctx.db, terms), "standard_text": {code: t(code, "auction.terms_default") for code in settings.langs}}
+
+
+@tool("set_auction_terms", "Change the auction terms: show (ask for acceptance or not), heading and text per language (blank lines separate paragraphs; an empty text means the standard one), reaccept=true raises the version so every customer reads and accepts them again.",
+      {"show": B("Ask customers to accept the terms before joining"), "title": I18N, "body": I18N, "reaccept": B("Everyone must accept again (the version goes up)")}, mutating=True)
+async def set_auction_terms(ctx: Ctx, show=None, title=None, body=None, reaccept=None):
+    cur = await auction_terms.load(ctx.db)
+    row = await ctx.db.get(Setting, auction_terms.KEY)
+    if row is not None:
+        ctx.journal.track(row)
+    after = await auction_terms.save(ctx.db, show=show, title=i18n(title, cur["title"]) if title is not None else None,
+                                     body=i18n(body, cur["body"]) if body is not None else None, reaccept=bool(reaccept))
+    if row is None:
+        ctx.journal.created(await ctx.db.get(Setting, auction_terms.KEY))
+    ctx.summary, ctx.entity, ctx.entity_id = f"Auction terms updated (v{after['version']}" + (", everyone accepts again" if reaccept else "") + ")", "setting", auction_terms.KEY
+    return {"ok": True, **after}
 
 
 # ---------- ad posts ----------

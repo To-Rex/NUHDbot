@@ -51,9 +51,11 @@ async def db(sessionmaker):
         yield s
 
 
-async def make_user(db, tg_id: int = 1001, *, registered: bool = True, role: Role = Role.CUSTOMER) -> User:
+async def make_user(db, tg_id: int = 1001, *, registered: bool = True, role: Role = Role.CUSTOMER, terms: bool = True) -> User:
+    """A customer; registered and having accepted the auction terms (version 1, the default) unless said otherwise."""
     u = User(tg_id=tg_id, first_name=f"U{tg_id}", last_name="Test", phone=f"+99890{tg_id:07d}", country="UZ", city="Toshkent", lang="uz", role=role,
-             registered_at=datetime.now(UTC) if registered else None)
+             registered_at=datetime.now(UTC) if registered else None,
+             auction_terms_at=datetime.now(UTC) if terms else None, auction_terms_version=1 if terms else None)
     db.add(u)
     await db.flush()
     return u

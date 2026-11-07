@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, String, Text
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,6 +42,8 @@ class User(Base, TimestampMixin):
     last_address: Mapped[str | None] = mapped_column(Text)
     last_cargo_code: Mapped[str | None] = mapped_column(String(64))
     last_cargo_company: Mapped[str | None] = mapped_column(String(120))
+    auction_terms_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # when the auction terms were accepted …
+    auction_terms_version: Mapped[int | None] = mapped_column(Integer)  # … and which version; a new version asks again
 
     orders = relationship("Order", back_populates="user", lazy="noload")
 
