@@ -46,9 +46,23 @@ def normalize_lang(lang: str | None) -> str:
     return short if short in settings.langs else settings.default_lang
 
 
+_OVERRIDES: dict[str, dict[str, str]] = {}  # {lang: {dotted key: text}} — the staff's own wording, set by app.services.ui_settings
+
+
+def set_overrides(value: dict) -> None:
+    global _OVERRIDES
+    _OVERRIDES = value or {}
+
+
 def t(lang: str, key: str, **kwargs: Any) -> str:
-    """Translate a dotted key. Falls back to uz, then to the key itself."""
+    """Translate a dotted key: the staff's override first, then the locale, falling back to uz, then to the key itself."""
     lang = normalize_lang(lang)
+    own = _OVERRIDES.get(lang, {}).get(key)
+    if own:
+        try:
+            return own.format(**kwargs) if kwargs else own
+        except (KeyError, IndexError):
+            return own
     for candidate in (lang, settings.default_lang, "en"):
         node: Any = _load(candidate)
         for part in key.split("."):

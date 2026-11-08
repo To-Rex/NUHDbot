@@ -144,6 +144,9 @@ def staff_dep(*roles: Role):
     base = require_staff(*roles)
 
     async def dep(request: Request, db: DB, staff: Annotated[User, Depends(base)]) -> User:
+        from app.services import ui_settings
+
+        await ui_settings.ensure(db)  # the look and the wording the staff set
         if request.method in ("POST", "PUT", "PATCH", "DELETE"):
             await verify_csrf(request, staff)
         elif not request.headers.get("HX-Request"):

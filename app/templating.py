@@ -151,6 +151,9 @@ def html_lang(code: str | None) -> str:
 
 
 env.globals.update(langs=settings.langs, lang_meta=LANG_META, bcp47=html_lang)
+from app.services.ui_settings import ui_css  # noqa: E402
+
+env.globals.update(ui_css=lambda target: Markup(ui_css(target)))  # the theme + the staff's CSS, injected after the stylesheets
 
 
 def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | None = None, status_code: int = 200, headers: dict | None = None):

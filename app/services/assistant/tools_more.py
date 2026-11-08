@@ -49,7 +49,16 @@ from app.models import (
     User,
 )
 from app.models.base import utcnow
-from app.services import auction_rules, auction_terms, deletion, interests, model_dict, notifications, storage
+from app.services import (
+    auction_rules,
+    auction_terms,
+    deletion,
+    interests,
+    model_dict,
+    notifications,
+    storage,
+    ui_settings,
+)
 from app.services import auctions as asvc
 from app.services import banners as bsvc
 from app.services import orders as osvc
@@ -911,3 +920,127 @@ async def demand_report(ctx: Ctx, days: int | None = 90):
 async def recommendations_for(ctx: Ctx, id: int):  # noqa: A002
     u = await need(ctx.db, User, int(id), "customer")
     return [product_row(p) for p in await interests.recommend(ctx.db, u, limit=10)]
+
+
+# ---------- the shop's look and defaults: the assistant's design hand ----------
+@tool("get_defaults", "What a new product form and a new lot form open with (currency, warranties, min order, box, full-box rule, test status, health; lot quantity, hours, step, currency, location).")
+async def get_defaults(ctx: Ctx):
+    await ui_settings.ensure(ctx.db, force=True)
+    return {"product": ui_settings.product_defaults(), "lot": ui_settings.lot_defaults(),
+            "notes": "product.currency empty = the shop's main currency; lot.currency empty = the product's; location = a country code from the Geo settings"}
+
+
+@tool("set_defaults", "Change what new product / lot forms open with. Pass only the fields to change; null puts a field back to the built-in default.",
+      {"product": {"type": "object", "description": "currency, seller_warranty_months, factory_warranty_months, min_order, box_qty, full_box_only, test_status (untested|tested|refurbished…), health"},
+       "lot": {"type": "object", "description": "currency, qty, hours, step_per_unit, location"}}, mutating=True)
+async def set_defaults(ctx: Ctx, product=None, lot=None):
+    done = []
+    for key, patch, allowed in (("product_defaults", product, ui_settings.PRODUCT_DEFAULTS), ("lot_defaults", lot, ui_settings.LOT_DEFAULTS)):
+        if not isinstance(patch, dict) or not patch:
+            continue
+        unknown = [k for k in patch if k not in allowed]
+        if unknown:
+            raise ToolError(f"{key}: unknown field(s) {unknown}; allowed: {list(allowed)}")
+        cur = dict((await get_setting(ctx.db, key, {})) or {})
+        for k, v in patch.items():
+            if v is None:
+                cur.pop(k, None)
+            else:
+                cur[k] = v
+        if "currency" in cur and cur["currency"]:
+            cur["currency"] = str(cur["currency"]).upper()
+        await _setting_row(ctx, key, cur)
+        done.append(f"{key}: {patch}")
+    if not done:
+        raise ToolError("product or lot is required")
+    ui_settings.invalidate()
+    ctx.summary, ctx.entity = "Defaults — " + "; ".join(done), "setting"
+    await ui_settings.ensure(ctx.db, force=True)
+    return {"ok": True, "product": ui_settings.product_defaults(), "lot": ui_settings.lot_defaults()}
+
+
+@tool("get_theme", "The look settings of the Mini App and the admin panel: accent colour, corner radius scale, type scale, density — and any custom CSS in place.")
+async def get_theme(ctx: Ctx):
+    await ui_settings.ensure(ctx.db, force=True)
+    return {"theme": ui_settings.theme(), "custom_css": {t: ui_settings.custom_css(t) for t in ui_settings.TARGETS},
+            "notes": "accent #rrggbb; radius 0.5–1.6 (1 = as designed); font 0.85–1.25; density compact|normal|comfortable"}
+
+
+@tool("set_theme", "Change the look of the Mini App or the admin panel: accent colour (#rrggbb), corner radius scale, type scale, density. reset=true puts that target back to the designed look. Tell the staff member what changed; it applies on the next page load.",
+      {"target": S("miniapp | admin"), "accent": S("#rrggbb"), "radius": N("0.5–1.6"), "font": N("0.85–1.25"), "density": S("compact | normal | comfortable"), "reset": B("Back to the designed look")}, required=("target",), mutating=True)
+async def set_theme(ctx: Ctx, target: str, accent=None, radius=None, font=None, density=None, reset=False):
+    if target not in ui_settings.TARGETS:
+        raise ToolError("target: miniapp | admin")
+    cur = dict((await get_setting(ctx.db, "theme", {})) or {})
+    t = {} if reset else dict(cur.get(target) or {})
+    for k, v in (("accent", accent), ("radius", radius), ("font", font), ("density", density)):
+        if v is not None:
+            t[k] = v
+    cur[target] = t
+    clean = ui_settings.clean_theme(cur)
+    if accent and not clean.get(target, {}).get("accent"):
+        raise ToolError("accent must be #rrggbb")
+    await _setting_row(ctx, "theme", clean)
+    ui_settings.invalidate()
+    ctx.summary, ctx.entity = f"Theme ({target}): " + ("reset" if reset else ", ".join(f"{k}={v}" for k, v in clean.get(target, {}).items())), "setting"
+    return {"ok": True, "theme": clean}
+
+
+@tool("set_custom_css", "Append or replace free CSS for the Mini App or the admin panel — the way to change the design beyond the theme (colours of parts, spacing, hiding or restyling elements). "
+      "This touches the live pages: describe the change and ask the staff member first, then call with confirm=true. Keep it small and specific; an empty css with mode=replace removes it all.",
+      {"target": S("miniapp | admin"), "css": S("CSS text"), "mode": S("append | replace (default append)"), "confirm": B("The staff member agreed in this chat")}, required=("target", "css", "confirm"), mutating=True)
+async def set_custom_css(ctx: Ctx, target: str, css: str, mode: str = "append", confirm: bool = False):
+    if target not in ui_settings.TARGETS:
+        raise ToolError("target: miniapp | admin")
+    if not confirm:
+        raise ToolError("ask the staff member first and call again with confirm=true")
+    cur = dict((await get_setting(ctx.db, "custom_css", {})) or {})
+    new = ui_settings.clean_css(css) if mode == "replace" else ui_settings.clean_css((cur.get(target) or "") + "\n" + (css or ""))
+    cur[target] = new
+    await _setting_row(ctx, "custom_css", cur)
+    ui_settings.invalidate()
+    ctx.summary, ctx.entity = f"Custom CSS ({target}): {len(new)} chars", "setting"
+    return {"ok": True, "chars": len(new)}
+
+
+@tool("list_texts", "Find interface strings by a word in their key or text (the Mini App's and the admin panel's locale files, plus the staff's overrides) — to learn the key before set_text.",
+      {"query": S("Part of the key or of the text"), "lang": S("Language to search in (default: the staff member's)"), "limit": I("Max rows (default 30)")}, required=("query",))
+async def list_texts(ctx: Ctx, query: str, lang=None, limit=30):
+    from app.i18n import _load, normalize_lang
+
+    code = normalize_lang(lang or ctx.staff.lang)
+    q = (query or "").strip().lower()
+    rows = []
+
+    def walk(node, prefix):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                walk(v, f"{prefix}.{k}" if prefix else k)
+        elif isinstance(node, str) and (q in prefix.lower() or q in node.lower()):
+            rows.append({"key": prefix, "text": node})
+    walk(_load(code), "")
+    over = ui_settings._cache["text_overrides"].get(code, {})
+    out = [{**r, "overridden": over.get(r["key"])} for r in rows][: max(1, min(int(limit or 30), 100))]
+    return {"lang": code, "rows": out, "total": len(rows)}
+
+
+@tool("set_text", "Change any interface string (the Mini App or the admin panel) in a language — the staff's wording wins over the locale file. "
+      "Ask the staff member first and call with confirm=true; an empty text puts the original back. Keep placeholders like {n} that the original has.",
+      {"key": S("Dotted key from list_texts"), "lang": S("uz | uzl | ru | en | zh"), "text": S("The new text; empty = back to the original"), "confirm": B("The staff member agreed in this chat")}, required=("key", "lang", "text", "confirm"), mutating=True)
+async def set_text(ctx: Ctx, key: str, lang: str, text: str, confirm: bool = False):
+    if not confirm:
+        raise ToolError("ask the staff member first and call again with confirm=true")
+    if lang not in settings.langs:
+        raise ToolError(f"lang: one of {settings.langs}")
+    cur = dict((await get_setting(ctx.db, "text_overrides", {})) or {})
+    rows = dict(cur.get(lang) or {})
+    if (text or "").strip():
+        rows[key] = text
+    else:
+        rows.pop(key, None)
+    cur[lang] = rows
+    await _setting_row(ctx, "text_overrides", cur)
+    ui_settings.invalidate()
+    await ui_settings.ensure(ctx.db, force=True)
+    ctx.summary, ctx.entity = f"Text {key} ({lang}): " + (text[:60] if text else "back to the original"), "setting"
+    return {"ok": True, "now": t(lang, key)}

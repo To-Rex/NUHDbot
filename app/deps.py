@@ -11,7 +11,7 @@ from app.enums import Role
 from app.i18n import normalize_lang
 from app.models import User
 from app.security import load_session
-from app.services import currencies
+from app.services import currencies, ui_settings
 from app.services.cart import read_session
 from app.services.users import get_or_create_tg_user
 
@@ -58,6 +58,7 @@ async def current_user(request: Request, db: DB) -> User | None:
     if getattr(request.state, "user_loaded", False):
         return request.state.user
     await currencies.ensure(db)  # prices on the page are shown in the visitor's currency
+    await ui_settings.ensure(db)  # the look and the wording the staff set
     user: User | None = None
     sess = read_session(request)
     uid = sess.get("uid")

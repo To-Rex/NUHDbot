@@ -41,7 +41,16 @@ from app.models import (
     Product,
     User,
 )
-from app.services import auction_rules, auction_terms, audit, currencies, deletion, media, notifications
+from app.services import (
+    auction_rules,
+    auction_terms,
+    audit,
+    currencies,
+    deletion,
+    media,
+    notifications,
+    ui_settings,
+)
 from app.services import auctions as asvc
 from app.services import orders as osvc
 from app.services import payment_methods as pm_svc
@@ -175,7 +184,11 @@ def _from_product(a: Auction, p: Product) -> None:
 
 @router.get("/auctions/new")
 async def auction_new(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
-    a = Auction(brand="", model="", capacity_gb=0, condition=Condition.USED, qty=10, currency="USD", start_price_total=Decimal(0), step_per_unit=Decimal(1), current_price_total=Decimal(0), deposit_amount=Decimal(0), starts_at=(start := datetime.now(UTC).replace(second=0, microsecond=0) + timedelta(hours=1)), ends_at=start + timedelta(days=1), timezone=settings.timezone)
+    d = ui_settings.lot_defaults()  # what the staff (or the assistant) set as the new-lot defaults
+    a = Auction(brand="", model="", capacity_gb=0, condition=Condition.USED, qty=max(1, int(d.get("qty") or 10)), currency=(d.get("currency") or "USD").upper(), start_price_total=Decimal(0), step_per_unit=Decimal(str(d.get("step_per_unit") or 1)), current_price_total=Decimal(0), deposit_amount=Decimal(0),
+                starts_at=(start := datetime.now(UTC).replace(second=0, microsecond=0) + timedelta(hours=1)), ends_at=start + timedelta(hours=float(d.get("hours") or 24)), timezone=settings.timezone)
+    if d.get("location"):
+        await asvc.set_location(db, a, d["location"])
     # the deposit a new lot asks for: the shop's share of the start price (Settings), else the fixed default amount, else none
     pct, fixed = Decimal(str(await get_setting(db, "auction_deposit_percent", 10) or 0)), Decimal(str(await get_setting(db, "auction_deposit_default", 0) or 0))
     if pct > 0:

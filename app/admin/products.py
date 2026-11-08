@@ -44,7 +44,7 @@ from app.enums import (
 )
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
-from app.services import audit, currencies, deletion, interests, media, model_dict
+from app.services import audit, currencies, deletion, interests, media, model_dict, ui_settings
 from app.services import brands as brand_service
 from app.services import series as series_service
 from app.services.catalog import capacity_presets
@@ -124,10 +124,14 @@ async def products_list(request: Request, db: DB, staff: User = Depends(staff_de
 @router.get("/products/new")
 async def product_new(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     # model defaults only apply on insert, so spell out what the empty form should show
-    await currencies.ensure(db)  # a new product is priced in the shop's main currency (the Currencies page's default, else the base) unless the staff pick another
-    p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, interface=Interface.SATA, form_factor=FormFactor.F35, is_active=True, sale_allowed=True, currency=currencies.default_code() or currencies.base_code() or settings.default_currency,
-                seller_warranty_months=12, factory_warranty_months=36, min_order=0, box_qty=20, full_box_only=True, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC),
-                test_status=TestStatus.TESTED, health="Good / 100%")  # most drives arrive checked; the staff change it when not
+    await currencies.ensure(db)
+    d = ui_settings.product_defaults()  # what the staff (or the assistant) set as the new-product defaults; the currency falls back to the shop's main one
+    cur = (d.get("currency") or "").upper()
+    p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, interface=Interface.SATA, form_factor=FormFactor.F35, is_active=True, sale_allowed=True,
+                currency=cur if cur and currencies.get(cur) else (currencies.default_code() or currencies.base_code() or settings.default_currency),
+                seller_warranty_months=int(d.get("seller_warranty_months") or 0), factory_warranty_months=int(d.get("factory_warranty_months") or 0), min_order=max(0, int(d.get("min_order") or 0)),
+                box_qty=int(d["box_qty"]) if d.get("box_qty") else None, full_box_only=bool(d.get("full_box_only")), stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC),
+                test_status=TestStatus(d["test_status"]) if d.get("test_status") in [x.value for x in TestStatus] else TestStatus.TESTED, health=d.get("health") or None)
     return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "history": [], **(await _form_ctx(db, p))})
 
 
