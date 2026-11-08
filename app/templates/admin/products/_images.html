@@ -1,10 +1,9 @@
 <div id="images">
-  <div class="between mb-sm"><span class="small muted">{{ prod.images|length }} / {{ settings.max_images_per_product }}</span></div>
-  <div class="imgs sortable mb" data-reorder-url="/admin/products/{{ prod.id }}/images-reorder" data-saved-text="{{ t('admin.saved') }}">
+  <div class="imgs imgs-sm sortable mb-sm" data-reorder-url="/admin/products/{{ prod.id }}/images-reorder" data-saved-text="{{ t('admin.saved') }}">
   {% for img in prod.images %}
-    <div class="img-card {{ 'is-cover' if img.is_cover }}" data-id="{{ img.id }}">
+    <div class="img-card {{ 'is-cover' if img.is_cover }}" data-id="{{ img.id }}" title="{{ t('admin.prod.cover_first') if img.is_cover else '' }}">
       <a href="#" data-lightbox="{{ img.url }}"><img src="{{ img.thumb_url }}" alt=""></a>
-      {% if img.is_cover %}<span class="chip chip-accent cov">{{ icon('star', 11) }}{{ t('admin.prod.cover_first') }}</span>{% endif %}
+      {% if img.is_cover %}<span class="chip chip-accent cov">{{ icon('star', 10) }}</span>{% endif %}
       <span class="chip {{ 'chip-ok' if img.kind.value=='real' else 'chip-soft' }} kd">{{ t('admin.prod.kind_real') if img.kind.value=='real' else t('admin.prod.kind_sample') }}</span>
       <div class="ops">
         {% if not img.is_cover %}<button type="button" class="icon-btn sm" title="{{ t('admin.prod.make_cover') }}" hx-post="/admin/products/{{ prod.id }}/images/{{ img.id }}/cover" hx-target="#images" hx-swap="outerHTML">{{ icon('star', 14) }}</button>{% endif %}
@@ -14,10 +13,9 @@
     </div>
   {% endfor %}
   </div>
-  <form hx-post="/admin/products/{{ prod.id }}/images" hx-target="#images" hx-swap="outerHTML" hx-encoding="multipart/form-data" class="stack">
-    <div class="drop" data-for="img-files">{{ icon('upload', 26) }}<span>{{ t('admin.prod.drop_here') }}</span><span class="hint">{{ t('admin.prod.kind_sample') }} / {{ t('admin.prod.kind_real') }} ↓</span></div>
-    <div class="row"><input id="img-files" type="file" name="files" accept="image/*" multiple hidden>
-      <select class="select sm" name="kind" style="width:auto"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select>
-      <span class="htmx-indicator spinner"></span></div>
+  <form hx-post="/admin/products/{{ prod.id }}/images" hx-target="#images" hx-swap="outerHTML" hx-encoding="multipart/form-data" class="drop-row">
+    <div class="drop slim" data-for="img-files">{{ icon('upload', 20) }}<span class="drop-txt"><b>{{ t('admin.prod.drop_here') }}</b><small>{{ prod.images|length }} / {{ settings.max_images_per_product }} · JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</small></span><span class="htmx-indicator spinner"></span></div>
+    <input id="img-files" type="file" name="files" accept="image/*" multiple hidden>
+    <label class="drop-kind"><span class="lbl">{{ t('admin.prod.kind') }}</span><select class="select sm" name="kind"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select></label>
   </form>
 </div>

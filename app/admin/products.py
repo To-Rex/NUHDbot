@@ -44,7 +44,7 @@ from app.enums import (
 )
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
-from app.services import audit, deletion, interests, media, model_dict
+from app.services import audit, currencies, deletion, interests, media, model_dict
 from app.services import brands as brand_service
 from app.services import series as series_service
 from app.services.catalog import capacity_presets
@@ -124,7 +124,10 @@ async def products_list(request: Request, db: DB, staff: User = Depends(staff_de
 @router.get("/products/new")
 async def product_new(request: Request, db: DB, staff: User = Depends(staff_dep(*PRODUCT_EDIT_ROLES))):
     # model defaults only apply on insert, so spell out what the empty form should show
-    p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, interface=Interface.SATA, form_factor=FormFactor.F35, is_active=True, sale_allowed=True, currency=settings.default_currency, seller_warranty_months=12, factory_warranty_months=36, min_order=1, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC))
+    await currencies.ensure(db)  # a new product is priced in the shop's main currency (the Currencies page's default, else the base) unless the staff pick another
+    p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, interface=Interface.SATA, form_factor=FormFactor.F35, is_active=True, sale_allowed=True, currency=currencies.default_code() or currencies.base_code() or settings.default_currency,
+                seller_warranty_months=12, factory_warranty_months=36, min_order=1, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC),
+                test_status=TestStatus.TESTED, health="Good / 100%")  # most drives arrive checked; the staff change it when not
     return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "history": [], **(await _form_ctx(db, p))})
 
 

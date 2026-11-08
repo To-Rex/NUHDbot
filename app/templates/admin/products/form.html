@@ -76,28 +76,29 @@
 
   {% if is_new and not tester %}
   <section class="fsection" id="s-media"><h2 data-n="{{ n_media }}">{{ t('admin.prod.sec_media') }} <span class="sub">{{ t('admin.prod.images_new_hint') }}</span></h2>
-    <div class="imgs mb mt" id="new-previews" hidden></div>
-    <div class="drop" data-for="new-images" data-no-submit>{{ icon('upload', 26) }}<span>{{ t('admin.prod.drop_here') }}</span><span class="hint">JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</span></div>
-    <div class="row mt-sm"><input id="new-images" type="file" name="images" accept="image/*" multiple hidden>
-      <label class="lbl">{{ t('admin.prod.kind') }}</label><select class="select sm" name="images_kind" style="width:auto"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select>
-      <span class="hint" id="new-images-count"></span></div>
+    <div class="imgs imgs-sm mt" id="new-previews" hidden></div>
+    <div class="drop-row mt-sm"><div class="drop slim" data-for="new-images" data-no-submit>{{ icon('upload', 20) }}<span class="drop-txt"><b>{{ t('admin.prod.drop_here') }}</b><small>JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</small></span><span class="hint" id="new-images-count"></span></div>
+      <input id="new-images" type="file" name="images" accept="image/*" multiple hidden>
+      <label class="drop-kind"><span class="lbl">{{ t('admin.prod.kind') }}</span><select class="select sm" name="images_kind"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select></label></div>
   </section>
   {% endif %}
 
   <details class="fsection" id="s-terms" {{ 'open' if errors }}><summary data-n="{{ n_terms }}"><span class="ttl">{{ t('admin.prod.sec_terms') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_terms_hint') }}{% else %}{{ t('admin.prod.min_short') }} {{ prod.min_order }}{% if prod.box_qty %} · {{ t('admin.prod.box_short') }} {{ prod.box_qty }}{% endif %} · {{ t('admin.prod.warranty_short') }} {{ prod.seller_warranty_months }} / {{ prod.factory_warranty_months }} {{ t('common.months') }}{% endif %}</span></summary>
-    <div class="form-grid mt">
-      <div class="field"><label>{{ t('admin.prod.min_order') }}</label><input class="input mono" type="number" name="min_order" value="{{ prod.min_order }}" min="1" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.box_qty') }}</label><input class="input mono" type="number" name="box_qty" value="{{ prod.box_qty or '' }}" min="1" {{ dis }}></div>
-      <div class="field"><label>&nbsp;</label><label class="check" style="min-height:40px"><input type="checkbox" name="full_box_only" {{ 'checked' if prod.full_box_only }} {{ dis }}>{{ t('admin.prod.full_box_only') }}</label></div>
+    {# compact: small numbers (up to three digits) in small boxes, all on one line where the width allows #}
+    <div class="terms-grid mt">
+      <div class="field"><label>{{ t('admin.prod.min_order') }}</label><input class="input mono num3" type="number" name="min_order" value="{{ prod.min_order }}" min="1" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.box_qty') }}</label><input class="input mono num3" type="number" name="box_qty" value="{{ prod.box_qty or '' }}" min="1" placeholder="—" {{ dis }}></div>
+      <div class="field terms-check"><label>&nbsp;</label><label class="check"><input type="checkbox" name="full_box_only" {{ 'checked' if prod.full_box_only }} {{ dis }}>{{ t('admin.prod.full_box_only') }}</label></div>
     </div>
-    <div class="form-grid mt">
-      <div class="field"><label>{{ t('admin.prod.seller_warranty') }}</label><input class="input mono" type="number" name="seller_warranty_months" value="{{ prod.seller_warranty_months }}" min="0" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><input class="input mono" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="hint">{{ t('admin.prod.warranty_hint') }}</span></div>
+    <div class="terms-grid mt-sm">
+      <div class="field"><label>{{ t('admin.prod.seller_warranty') }}</label><div class="unit-input num-unit"><input class="input mono num3" type="number" name="seller_warranty_months" value="{{ prod.seller_warranty_months }}" min="0" {{ dis }}><span class="unit">{{ t('common.months') }}</span></div></div>
+      <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><div class="unit-input num-unit"><input class="input mono num3" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="unit">{{ t('common.months') }}</span></div></div>
     </div>
+    <span class="hint mt-sm" style="display:block">{{ t('admin.prod.warranty_hint') }}</span>
     <div class="notice notice-info mt" id="warranty-autofill" hidden>{{ icon('info', 18) }}<span>{{ t('admin.prod.warranty_autofill') }}</span></div>
     {% if not is_new %}{# cost price, arrival date (defaults to today) and sort order: edit page only #}
     <div class="divider"></div>
-    <div class="form-grid">
+    <div class="form-grid tight">
       {% if can_finance %}<div class="field"><label>{{ t('admin.prod.cost_price') }}</label><input class="input mono" name="cost_price" inputmode="decimal" value="{{ prod.cost_price if prod.cost_price is not none else '' }}" {{ dis }}></div>{% endif %}
       <div class="field"><label>{{ t('admin.prod.arrived_at') }}</label><input class="input" type="date" name="arrived_at" value="{{ prod.arrived_at.strftime('%Y-%m-%d') if prod.arrived_at else '' }}" {{ dis }}></div>
       <div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ prod.sort }}" {{ dis }}></div>
@@ -118,7 +119,7 @@
     <div class="form-grid">
       <div class="field"><label>{{ t('admin.prod.test_status') }}</label><select class="select" name="test_status">{% for s in tests %}<option value="{{ s.value }}" {{ 'selected' if prod.test_status==s }}>{{ t('test.' ~ s.value) }}</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.hours') }}</label><input class="input mono" type="number" name="hours_used" value="{{ prod.hours_used if prod.hours_used is not none else '' }}"></div>
-      <div class="field"><label>{{ t('admin.prod.health') }}</label><input class="input" name="health" value="{{ prod.health or '' }}" placeholder="Good / 98%"></div>
+      <div class="field"><label>{{ t('admin.prod.health') }}</label><input class="input" name="health" value="{{ prod.health or '' }}" placeholder="Good / 100%" list="health-options"><datalist id="health-options"><option value="Good / 100%"><option value="Good / 99%"><option value="Good / 98%"><option value="Good / 95%"><option value="Caution / 90%"></datalist></div>
     </div>
     <div class="mt">{% with name='test_summary', value=prod.test_summary, kind='textarea', label=t('admin.prod.test_summary'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
   </details>

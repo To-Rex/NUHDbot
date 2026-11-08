@@ -1764,3 +1764,35 @@ dialog.cust-dlg:not([open]){display:none}
 /* ---------- number inputs: typed by hand, no −/+ spinner ---------- */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;appearance:none;margin:0;display:none}
+
+/* ---------- product form: compact pictures, slim drop zone, small-number terms ---------- */
+.imgs.imgs-sm{grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.imgs-sm .img-card{border-radius:10px}
+.imgs-sm .img-card .ops{position:absolute;left:0;right:0;bottom:0;padding:4px;gap:3px;background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transform:translateY(4px);transition:opacity var(--t-fast),transform var(--t-fast)}
+.imgs-sm .img-card:hover .ops,.imgs-sm .img-card:focus-within .ops{opacity:1;transform:none}
+@media (hover:none){.imgs-sm .img-card .ops{opacity:1;transform:none}}
+.imgs-sm .img-card .ops .icon-btn{width:26px;height:26px;border-radius:7px;background:rgba(255,255,255,.14);border-color:transparent;color:#fff}
+.imgs-sm .img-card .ops .icon-btn:hover{background:rgba(255,255,255,.28)}
+.imgs-sm .img-card .ops .icon-btn.danger:hover{background:var(--bad);color:#fff}
+.imgs-sm .img-card .cov{top:5px;left:5px;padding:0 5px;height:18px;min-width:18px;justify-content:center}
+.imgs-sm .img-card .kd{right:5px;top:5px;bottom:auto;height:18px;font-size:10px;padding:0 6px}
+.drop-row{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.drop-row .drop.slim{flex:1 1 260px;display:flex;align-items:center;gap:12px;padding:9px 14px;text-align:left;min-height:48px}
+.drop.slim svg{width:20px;height:20px;flex:0 0 auto}
+.drop.slim .drop-txt{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+.drop.slim .drop-txt b{font-size:13px;font-weight:600}
+.drop.slim .drop-txt small{font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.drop.slim .hint,.drop.slim .spinner{margin-left:auto}
+.drop-kind{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.drop-kind .lbl{font-size:11.5px;color:var(--ink-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.drop-kind .select{width:auto;min-width:120px}
+.terms-grid{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.terms-grid .field{flex:0 0 auto}
+.terms-grid .input.num3{width:86px;height:36px;text-align:center;padding:0 8px}
+.terms-grid .num-unit{align-items:center;gap:6px}
+.terms-grid .num-unit .input{flex:0 0 auto}
+.terms-grid .num-unit .unit{font-size:12px;color:var(--ink-3)}
+.terms-grid .terms-check{align-self:flex-end}
+.terms-grid .terms-check .check{height:36px;padding:0 2px}
+.terms-grid .terms-check{align-self:stretch;display:flex;flex-direction:column;justify-content:flex-end}
+.terms-grid+.terms-grid{margin-top:10px}
