@@ -108,9 +108,22 @@ CREATE_ITEMS = [
 ]
 HINT_COOKIE = "nuhd_admin_hint"
 
+ORDER_WATCHERS = ORDER_ROLES | PAYMENT_ROLES | SHIP_ROLES
+LIVE_VISIBLE = {  # who hears what on the live channel — and sees it in the bell
+    "order_new": ORDER_WATCHERS, "order_status": ORDER_WATCHERS, "payment_new": ORDER_WATCHERS,
+    "deposit_new": AUCTION_ROLES, "auction_join": AUCTION_ROLES, "auction": AUCTION_ROLES, "customer_new": CUSTOMER_ROLES, "chat": SUPPORT_ROLES,
+}
+
 
 def can(staff: User, roles: set[Role] | None) -> bool:
     return roles is None or staff.role == Role.ADMIN or staff.role in roles
+
+
+def notice_kinds(staff: User) -> set[str]:
+    """The kept notice kinds this staff member may see."""
+    from app.services.admin_notices import STORED
+
+    return {k for k in STORED if can(staff, LIVE_VISIBLE.get(k, set()))}
 
 
 def csrf_token(staff: User) -> str:
@@ -135,7 +148,7 @@ def staff_dep(*roles: Role):
             await verify_csrf(request, staff)
         elif not request.headers.get("HX-Request"):
             try:
-                request.state.badges = await nav_badges(db)
+                request.state.badges = await nav_badges(db, staff)
             except Exception:  # noqa: BLE001 — badges are decoration, never block a page
                 request.state.badges = {}
         return staff
@@ -268,11 +281,13 @@ def snapshot(obj, fields: list[str]) -> dict:
 __all__ = ["DB", "Depends", "HTTPException", "Request", "Response", "RedirectResponse", "select", "func", "Role", "User", "settings"]
 
 
-async def nav_badges(db: AsyncSession) -> dict:
+async def nav_badges(db: AsyncSession, staff: User | None = None) -> dict:
+    """The sidebar counts; with the staff member, also their unseen notices (the bell)."""
     from datetime import UTC, datetime, timedelta
 
     from app.enums import AuctionStatus, DepositStatus, OrderStatus, ThreadStatus
     from app.models import Auction, AuctionDeposit, Order, SupportThread
+    from app.services import admin_notices
 
     awaiting = (await db.execute(select(func.count()).select_from(Order).where(Order.status == OrderStatus.AWAITING_ADMIN))).scalar_one()
     unread = (
@@ -281,4 +296,6 @@ async def nav_badges(db: AsyncSession) -> dict:
     soon = datetime.now(UTC) + timedelta(hours=1)
     ending = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE, Auction.ends_at <= soon))).scalar_one()
     deposits = (await db.execute(select(func.count()).select_from(AuctionDeposit).where(AuctionDeposit.status == DepositStatus.PENDING))).scalar_one()  # receipts waiting for a check
-    return {"orders": awaiting or None, "support": unread or None, "auctions": (ending + deposits) or None, "deposits": deposits or None, "total": (awaiting + unread + deposits) or None}
+    notices = await admin_notices.unread_count(db, staff, notice_kinds(staff)) if staff is not None else 0
+    return {"orders": awaiting or None, "support": unread or None, "auctions": (ending + deposits) or None, "deposits": deposits or None,
+            "total": (awaiting + unread + deposits) or None, "notices": notices or None}

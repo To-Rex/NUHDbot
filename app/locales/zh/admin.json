@@ -1403,7 +1403,10 @@
       "customer_new": "新客户：{name}",
       "bid": "拍品 #{id}：新出价",
       "ended": "拍品 #{id} 已结束",
-      "updated": "已更新"
+      "updated": "已更新",
+      "auction_join": "{name} 想参与拍品 #{id}",
+      "auction_join_terms": "{name} 已接受拍卖条款",
+      "auction_first_bid": "{name} 已加入拍品 #{id} — 首次出价"
     },
     "pm": {
       "title": "支付方式",
@@ -1469,6 +1472,14 @@
         "name": "请输入名称",
         "qr": "二维码图片上传失败（格式或大小）"
       }
+    },
+    "notices": {
+      "title": "通知",
+      "sub": "新订单与付款、押金凭证、参与拍卖的客户、新客户——按时间排列。保留 60 天。",
+      "all": "全部",
+      "empty": "暂无通知",
+      "empty_text": "新订单、付款、押金凭证或想参与拍卖的客户会显示在这里。",
+      "older": "更早"
     }
   }
 }

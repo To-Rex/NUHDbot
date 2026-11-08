@@ -15,6 +15,10 @@
     "order_paid": "已收到付款。您的订单正在准备发货。",
     "deposit_confirmed": "✅ <b>{title}</b> 的保证金 {amount} 已确认，现在可以出价。",
     "deposit_rejected": "❌ <b>{title}</b> 的保证金凭证（{amount}）未通过。\n原因：{reason}\n请核对后重新发送。",
-    "deposit_refunded": "↩️ <b>{title}</b> 的保证金 {amount} 已退还。"
+    "deposit_refunded": "↩️ <b>{title}</b> 的保证金 {amount} 已退还。",
+    "staff_join_terms": "🙋 <b>{name}</b> 想参与拍品 #{id}（{title}）— 已接受拍卖条款。",
+    "staff_join_new": "🙋 <b>{name}</b> 已接受拍卖条款 — 新参与者。",
+    "staff_join_bid": "🔨 <b>{name}</b> 已加入拍品 #{id}（{title}）— 首次出价：<b>{amount}</b>。",
+    "staff_deposit": "🧾 <b>{name}</b> 已提交拍品 #{id}（{title}）的押金凭证：<b>{amount}</b>。请在管理后台查看。"
   }
 }

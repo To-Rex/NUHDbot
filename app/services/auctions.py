@@ -142,8 +142,11 @@ async def place_bid(db: AsyncSession, auction_id: int, user: User, amount_total:
     prev_leader = last.user if last else None
     if last and last.user_id == user.id:
         raise AuctionError("already_leading")
+    first = not await has_bid(db, a.id, user.id)  # a newcomer to this lot: the staff are told
     bid = Bid(auction_id=a.id, user_id=user.id, amount_total=amount)
     db.add(bid)
+    if first:
+        announce_join(db, a, user, stage="bid", amount=amount)
     a.current_price_total = amount
     a.bids_count += 1
     a.version += 1
@@ -154,6 +157,17 @@ async def place_bid(db: AsyncSession, auction_id: int, user: User, amount_total:
     await db.flush()
     await audit.log(db, user.id, "auction.bid", "auction", a.id, None, {"amount": str(amount), "bid_id": bid.id})
     return a, bid, prev_leader
+
+
+async def has_bid(db: AsyncSession, auction_id: int, user_id: int) -> bool:
+    return (await db.execute(select(Bid.id).where(Bid.auction_id == auction_id, Bid.user_id == user_id).limit(1))).first() is not None
+
+
+def announce_join(db: AsyncSession, a: Auction | None, user: User, *, stage: str, amount: Decimal | None = None) -> None:
+    """A customer is joining: `terms` — they accepted the auction terms (from a lot's page when `a` is given), `bid` — their
+    first bid on this lot. Queued on the session: the admin panel hears it (toast, bell) once the caller commits."""
+    admin_events.queue(db, "auction_join", auction_id=a.id if a else None, title=a.title if a else None, user_id=user.id, name=user.full_name,
+                       stage=stage, amount=str(amount) if amount is not None else None, currency=a.currency if a else None)
 
 
 async def participants(db: AsyncSession, auction_id: int) -> list[User]:

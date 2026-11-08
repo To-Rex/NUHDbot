@@ -344,7 +344,7 @@
       clearTimeout(timer);
       es = new EventSource('/admin/events');
       const got = (e) => { last = Date.now(); retry = 1000; let d = null; try { d = JSON.parse(e.data); } catch (_) {} if (d) emit(e.type, d); };
-      ['order_new', 'order_status', 'payment_new', 'deposit_new', 'auction', 'customer_new', 'chat'].forEach((n) => es.addEventListener(n, got));
+      ['order_new', 'order_status', 'payment_new', 'deposit_new', 'auction_join', 'auction', 'customer_new', 'chat'].forEach((n) => es.addEventListener(n, got));
       es.addEventListener('ready', () => { last = Date.now(); retry = 1000; emit('ready', {}); });
       es.addEventListener('ping', () => { last = Date.now(); });
       es.onerror = () => { es.close(); timer = setTimeout(connect, retry); retry = Math.min(retry * 2, 15000); };
@@ -379,8 +379,43 @@
         if (!cnt) { cnt = document.createElement('span'); cnt.className = 'cnt'; a.appendChild(cnt); }
         cnt.textContent = d[k];
       });
+      bellCount(d.notices);
     }).catch(() => {});
   }
+
+  // ---------- the bell: kept notices ----------
+  // The count is this staff member's unseen notices; opening the bell loads the latest ones and marks everything seen
+  // (the new ones stay highlighted until the list is closed). Times read as "5 min ago" in the panel's language.
+  const bell = document.querySelector('.nbell');
+  function bellCount(n) {
+    const c = document.querySelector('[data-bell-cnt]'); if (!c) return;
+    const was = c.hidden ? 0 : Number(c.textContent) || 0;
+    c.hidden = !n; c.textContent = n || '';
+    if (n && n > was && bell) { bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
+  }
+  function agoText(iso) {
+    if (!window.Intl || !Intl.RelativeTimeFormat) return null;
+    const s = Math.round((Date.now() - new Date(iso)) / 1000); if (isNaN(s)) return null;
+    let lang = (document.documentElement.lang || 'en').split('-')[0];
+    let rtf; try { rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' }); } catch (_) { rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' }); }
+    if (s < 60) return rtf.format(0, 'second').replace(/^in /, '');
+    if (s < 3600) return rtf.format(-Math.floor(s / 60), 'minute');
+    if (s < 86400) return rtf.format(-Math.floor(s / 3600), 'hour');
+    if (s < 86400 * 30) return rtf.format(-Math.floor(s / 86400), 'day');
+    return null;
+  }
+  function agoAll(root) { (root || document).querySelectorAll('[data-ago]').forEach((el) => { const txt = agoText(el.dataset.ago); if (txt) el.textContent = txt; }); }
+  agoAll(); setInterval(() => agoAll(), 60000);
+  document.addEventListener('live:refreshed', () => agoAll());
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-bell]'); if (!b) return;
+    const menu = document.getElementById(b.dataset.dd); if (!menu || menu.hidden) return;  // the generic handler above has just toggled it
+    menu.innerHTML = '<div class="nt-list"><div class="nt-loading">…</div></div>';
+    fetch(menu.dataset.src, { credentials: 'same-origin', headers: { 'HX-Request': 'true' } }).then((r) => (r.ok ? r.text() : '')).then((html) => {
+      if (html) { menu.innerHTML = html; agoAll(menu); }
+      return fetch('/admin/notices/seen', { method: 'POST', headers: { 'X-CSRF': csrf }, credentials: 'same-origin' });
+    }).then((r) => (r && r.ok ? r.json() : null)).then((d) => { if (d) bellCount(d.notices); }).catch(() => {});
+  });
 
   // the page itself, refreshed in place when it shows what changed — never while something is being typed or edited
   let refreshT = null;
@@ -423,7 +458,15 @@
   });
   live.on('customer_new', (d) => {
     say('info', fill(LIVE.customer_new, { name: d.name }), '/admin/customers/' + d.id);
+    refreshBadges();
     if (onPage(/^\/admin\/customers$/) || onPage(/^\/admin$/)) refreshContent();
+  });
+  live.on('auction_join', (d) => {  // someone new on a lot: accepted the terms from its page, or placed their first bid there
+    const key = d.stage === 'bid' ? 'auction_first_bid' : (d.auction_id ? 'auction_join' : 'auction_join_terms');
+    const href = d.auction_id ? '/admin/auctions/' + d.auction_id : '/admin/customers/' + d.user_id;
+    say('warn', fill(LIVE[key], { name: d.name, id: d.auction_id }), href, [d.title, d.amount ? money(d.amount, d.currency) : ''].filter(Boolean).join(' · '));
+    refreshBadges();
+    if (idIn(/^\/admin\/auctions\/(\d+)$/) === d.auction_id || onPage(/^\/admin\/auctions$/) || onPage(/^\/admin\/notices$/) || onPage(/^\/admin$/)) refreshContent();
   });
   live.on('chat', (d) => {
     const ev = d.chat || {};

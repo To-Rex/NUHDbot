@@ -1403,7 +1403,10 @@
       "customer_new": "New customer: {name}",
       "bid": "Lot #{id}: new bid",
       "ended": "Lot #{id} has ended",
-      "updated": "Updated"
+      "updated": "Updated",
+      "auction_join": "{name} wants to join lot #{id}",
+      "auction_join_terms": "{name} accepted the auction terms",
+      "auction_first_bid": "{name} joined lot #{id} — first bid"
     },
     "pm": {
       "title": "Payment methods",
@@ -1469,6 +1472,14 @@
         "name": "Enter a name",
         "qr": "The QR picture could not be uploaded (format or size)"
       }
+    },
+    "notices": {
+      "title": "Notifications",
+      "sub": "New orders and payments, deposit receipts, customers joining a lot, new customers — in time order. Kept for 60 days.",
+      "all": "All",
+      "empty": "No notifications yet",
+      "empty_text": "A new order, payment, deposit receipt or a customer joining an auction will show up here.",
+      "older": "Older"
     }
   }
 }

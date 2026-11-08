@@ -7,29 +7,14 @@ from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from sse_starlette.sse import EventSourceResponse
 
-from app.admin.common import (
-    AUCTION_ROLES,
-    CUSTOMER_ROLES,
-    DB,
-    ORDER_ROLES,
-    PAYMENT_ROLES,
-    SHIP_ROLES,
-    SUPPORT_ROLES,
-    can,
-    nav_badges,
-    staff_dep,
-)
+from app.admin.common import DB, LIVE_VISIBLE, can, nav_badges, staff_dep
 from app.admin.router import router
 from app.enums import STAFF_ROLES
 from app.i18n import t
 from app.models import User
 from app.services import admin_events
 
-ORDER_WATCHERS = ORDER_ROLES | PAYMENT_ROLES | SHIP_ROLES
-VISIBLE = {  # who hears what
-    "order_new": ORDER_WATCHERS, "order_status": ORDER_WATCHERS, "payment_new": ORDER_WATCHERS,
-    "deposit_new": AUCTION_ROLES, "auction": AUCTION_ROLES, "customer_new": CUSTOMER_ROLES, "chat": SUPPORT_ROLES,
-}
+VISIBLE = LIVE_VISIBLE  # who hears what
 
 
 def _decorate(ev: dict, lang: str) -> dict:
@@ -64,5 +49,5 @@ async def admin_events_stream(request: Request, db: DB, staff: User = Depends(st
 
 @router.get("/badges")
 async def admin_badges(db: DB, staff: User = Depends(staff_dep(*STAFF_ROLES))):
-    """The sidebar counts (orders awaiting, unread chats, lots ending soon) — refreshed by the live channel."""
-    return JSONResponse(await nav_badges(db))
+    """The sidebar counts (orders awaiting, unread chats, lots ending soon) and the bell's unseen notices — refreshed by the live channel."""
+    return JSONResponse(await nav_badges(db, staff))

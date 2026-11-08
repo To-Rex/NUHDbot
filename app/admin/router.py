@@ -16,6 +16,7 @@ from app.admin import (  # noqa: E402,F401
     dashboard,
     live,
     models_dict,
+    notices,
     orders,
     payments,
     products,

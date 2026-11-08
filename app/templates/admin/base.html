@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="{{ asset('css/tokens.css') }}">
 <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
 <script src="/static/js/htmx.min.js" defer></script>
-<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }},sup_new:{{ t('admin.sup.new_message')|tojson }},nav_error:{{ t('admin.nav_edit.error')|tojson }},live:{{ {'order_new': t('admin.live.order_new'), 'order_status': t('admin.live.order_status'), 'payment_new': t('admin.live.payment_new'), 'deposit_new': t('admin.live.deposit_new'), 'customer_new': t('admin.live.customer_new'), 'bid': t('admin.live.bid'), 'ended': t('admin.live.ended'), 'chat': t('admin.sup.new_message'), 'updated': t('admin.live.updated')}|tojson }}};</script>
+<script>window.ADMIN_I18N={confirm_q:{{ t('admin.confirm_q')|tojson }},confirm:{{ t('admin.ui.confirm')|tojson }},copied:{{ t('admin.ui.copied')|tojson }},sup_new:{{ t('admin.sup.new_message')|tojson }},nav_error:{{ t('admin.nav_edit.error')|tojson }},live:{{ {'order_new': t('admin.live.order_new'), 'order_status': t('admin.live.order_status'), 'payment_new': t('admin.live.payment_new'), 'deposit_new': t('admin.live.deposit_new'), 'customer_new': t('admin.live.customer_new'), 'auction_join': t('admin.live.auction_join'), 'auction_join_terms': t('admin.live.auction_join_terms'), 'auction_first_bid': t('admin.live.auction_first_bid'), 'bid': t('admin.live.bid'), 'ended': t('admin.live.ended'), 'chat': t('admin.sup.new_message'), 'updated': t('admin.live.updated')}|tojson }}};</script>
 {% block head %}{% endblock %}
 </head>
 <body{% if staff is defined and staff and can(roles.SUPPORT_ROLES) %} data-support-stream="1"{% endif %}>
@@ -59,6 +59,8 @@
       <div class="dd"><button type="button" class="btn btn-primary btn-sm" data-dd="create-menu">{{ icon('plus', 16) }}<span class="create-lbl">{{ t('admin.create') }}</span></button>
         <div id="create-menu" class="dd-menu" hidden>{% for key, url, ico in create_items %}<a href="{{ url }}">{{ icon(ico, 18) }}{{ t('admin.create_item.' ~ key) }}</a>{% endfor %}</div></div>
       {% endif %}
+      <div class="dd nbell"><button type="button" class="icon-btn" data-dd="notices-menu" data-bell title="{{ t('admin.notices.title') }}" aria-label="{{ t('admin.notices.title') }}">{{ icon('bell', 18) }}<span class="cnt" data-bell-cnt{% if not badges or not badges.get('notices') %} hidden{% endif %}>{{ badges.get('notices') if badges else '' }}</span></button>
+        <div id="notices-menu" class="dd-menu nt-menu" hidden data-src="/admin/notices?partial=1"></div></div>
       <a class="icon-btn" href="/app" target="_blank" rel="noopener" title="{{ t('admin.top.open_app') }}">{{ icon('external', 18) }}</a>
     </header>
     <div class="content {% block content_class %}{% endblock %}">

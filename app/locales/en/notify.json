@@ -15,6 +15,10 @@
     "order_paid": "Payment received. Your order is being prepared for shipping.",
     "deposit_confirmed": "✅ Your {amount} deposit for <b>{title}</b> is confirmed. You can bid now.",
     "deposit_rejected": "❌ The deposit receipt for <b>{title}</b> ({amount}) was not accepted.\nReason: {reason}\nPlease check and send the receipt again.",
-    "deposit_refunded": "↩️ Your {amount} deposit for <b>{title}</b> has been refunded."
+    "deposit_refunded": "↩️ Your {amount} deposit for <b>{title}</b> has been refunded.",
+    "staff_join_terms": "🙋 <b>{name}</b> wants to join lot #{id} ({title}) — accepted the auction terms.",
+    "staff_join_new": "🙋 <b>{name}</b> accepted the auction terms — a new participant.",
+    "staff_join_bid": "🔨 <b>{name}</b> joined lot #{id} ({title}) — first bid: <b>{amount}</b>.",
+    "staff_deposit": "🧾 <b>{name}</b> sent a deposit receipt for lot #{id} ({title}): <b>{amount}</b>. Check it in the admin panel."
   }
 }

@@ -1,0 +1,13 @@
+{% extends "admin/base.html" %}
+{% from "admin/partials/notice_item.html" import notice with context %}
+{% block content %}
+{% if items %}
+<div class="card flush nt-page">
+{% set ns = namespace(day=None) %}
+{% for n in items %}{% set day = n.created_at|date %}{% if day != ns.day %}{% set ns.day = day %}<div class="nt-day">{{ day }}</div>{% endif %}{{ notice(n, is_new(n), icons) }}{% endfor %}
+</div>
+{% if more %}<div class="center mt"><a class="btn btn-secondary btn-sm" href="/admin/notices?before={{ more }}">{{ icon('arrow-down', 15) }}{{ t('admin.notices.older') }}</a></div>{% endif %}
+{% else %}
+<div class="card empty">{{ icon('bell', 30) }}<b>{{ t('admin.notices.empty') }}</b><p class="sub">{{ t('admin.notices.empty_text') }}</p></div>
+{% endif %}
+{% endblock %}

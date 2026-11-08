@@ -1,9 +1,9 @@
 """Live events for the admin panel: what staff should notice without reloading a page.
 
-Order events (new, status, payment), deposit claims and new customers are queued on the DB session by the services that
-write them and delivered after that transaction commits (dropped on rollback). Auction events and chat events are fed in
-by their own modules. Every admin page keeps one stream open (/admin/events); the other processes hear the events through
-app.services.pubsub.
+Order events (new, status, payment), deposit claims, customers joining a lot and new customers are queued on the DB session
+by the services that write them and delivered after that transaction commits (dropped on rollback). Auction events and chat
+events are fed in by their own modules. Every admin page keeps one stream open (/admin/events); the other processes hear the
+events through app.services.pubsub. The kinds worth keeping also become rows for the panel's bell (app.services.admin_notices).
 """
 import asyncio
 from collections import defaultdict
@@ -12,7 +12,7 @@ from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
-from app.services import pubsub
+from app.services import admin_notices, pubsub
 
 _listeners: set[asyncio.Queue] = set()
 _KEY = "admin_events"
@@ -30,8 +30,10 @@ def unlisten(q: asyncio.Queue) -> None:
 
 
 def queue(db: AsyncSession, type_: str, **data) -> None:
-    """Remember an event; it is delivered when this session commits (dropped on rollback)."""
+    """Remember an event; it is delivered when this session commits (dropped on rollback). The kinds the bell keeps are
+    written down in the same transaction."""
     db.info.setdefault(_KEY, []).append({"type": type_, **data})
+    admin_notices.record(db, type_, data)
 
 
 def deliver(ev: dict) -> None:

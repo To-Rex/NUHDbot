@@ -1403,7 +1403,10 @@
       "customer_new": "Yangi mijoz: {name}",
       "bid": "Lot #{id}: yangi stavka",
       "ended": "Lot #{id} yakunlandi",
-      "updated": "Yangilandi"
+      "updated": "Yangilandi",
+      "auction_join": "{name} lot #{id} ga qo'shilmoqchi",
+      "auction_join_terms": "{name} auksion shartlarini qabul qildi",
+      "auction_first_bid": "{name} lot #{id} ga qo'shildi — birinchi stavka"
     },
     "pm": {
       "title": "To'lov usullari",
@@ -1469,6 +1472,14 @@
         "name": "Nomini kiriting",
         "qr": "QR surati yuklanmadi (format yoki hajm)"
       }
+    },
+    "notices": {
+      "title": "Xabarnomalar",
+      "sub": "Yangi buyurtmalar va to'lovlar, depozit cheklari, auksionga qo'shilgan mijozlar, yangi mijozlar — vaqt tartibida. 60 kun saqlanadi.",
+      "all": "Hammasi",
+      "empty": "Hozircha xabarnoma yo'q",
+      "empty_text": "Yangi buyurtma, to'lov, depozit cheki yoki auksionga qo'shilmoqchi bo'lgan mijoz shu yerda ko'rinadi.",
+      "older": "Oldingilari"
     }
   }
 }

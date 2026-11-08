@@ -91,6 +91,19 @@ class NotificationLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class AdminNotice(Base):
+    """What the staff should notice, kept: a new order or payment, a deposit receipt, a customer joining a lot, a new customer.
+    The live channel shows each once as a toast; this row stays in the panel's bell until it is seen (per staff member)."""
+
+    __tablename__ = "admin_notices"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(String(32), index=True)  # a live event type: order_new, payment_new, deposit_new, auction_join, customer_new
+    data: Mapped[dict] = mapped_column(JSON, default=dict)  # the event's own fields (ids, names, amounts)
+    href: Mapped[str] = mapped_column(String(200), default="/admin")  # where a click goes
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
 class AdPost(Base, TimestampMixin):
     __tablename__ = "ad_posts"
 

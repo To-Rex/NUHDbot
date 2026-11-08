@@ -44,6 +44,7 @@ class User(Base, TimestampMixin):
     last_cargo_company: Mapped[str | None] = mapped_column(String(120))
     auction_terms_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # when the auction terms were accepted …
     auction_terms_version: Mapped[int | None] = mapped_column(Integer)  # … and which version; a new version asks again
+    notices_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # staff: the panel's bell was opened then; later notices count as new
 
     orders = relationship("Order", back_populates="user", lazy="noload")
 

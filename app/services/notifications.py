@@ -44,6 +44,18 @@ async def send(db: AsyncSession, user: User | None, text: str, *, kind: str, cha
     return ok
 
 
+async def alert_staff(db: AsyncSession, kind: str, text: str) -> bool:
+    """A line to the staff group (ADMIN_CHAT_ID), when there is one: a customer joining a lot, a deposit receipt. Caller commits."""
+    if not settings.admin_chat_id:
+        return False
+    return await send(db, None, text, kind=kind, chat_id=settings.admin_chat_id)
+
+
+def staff_text(key: str, **kw) -> str:
+    """Staff alerts are written in the shop's default language."""
+    return t(settings.default_lang, key, **{k: esc(v) for k, v in kw.items()})
+
+
 async def notify_order_status(db: AsyncSession, order, user: User) -> None:
     lang = user.lang
     status_txt = t(lang, f"order_status.{order.status}")

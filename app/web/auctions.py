@@ -55,15 +55,33 @@ async def auction_terms_accept(request: Request, db: DB, lang: Lang, user: User 
     the lot's bid sheet, or the lot page's call to action (and its deposit card, out of band)."""
     if agree != "1":
         return toast(HTMLResponse("", status_code=400), t(lang, "auction.terms_read"), "bad", "error")
-    await terms_svc.accept(db, user)
-    await db.commit()
     a = await auctions.get_auction(db, lot) if lot else None
-    if a is None or a.status == AuctionStatus.DRAFT:
+    if a is not None and a.status == AuctionStatus.DRAFT:
+        a = None
+    # someone new is joining: a lot's newcomer (no bid on it yet), or a first-ever acceptance — the staff are told; a re-acceptance
+    # of changed terms by an old participant is not news
+    joining = (a is not None and not await auctions.has_bid(db, a.id, user.id)) or (a is None and user.auction_terms_at is None)
+    await terms_svc.accept(db, user)
+    if joining:
+        auctions.announce_join(db, a, user, stage="terms")
+    await db.commit()
+    if joining:
+        await _alert_staff(db, "staff_join_terms" if a else "staff_join_new", name=user.full_name, title=a.title if a else "", id=a.id if a else "")
+    if a is None:
         resp = render(request, "miniapp/partials/auction_terms.html", {**(await _terms_ctx(db, user, lang)), "lot": lot, "view": view})
     else:
         ctx = await _ctx(db, a, user, lang)
         resp = render(request, "miniapp/partials/auction_sheet.html" if view != "page" else "miniapp/partials/auction_accepted.html", {**ctx, "lot": a.id, "view": view})
     return hx_trigger(resp, toast={"msg": t(lang, "auction.terms_ok"), "type": "ok"}, haptic="success", termsAccepted=True)
+
+
+async def _alert_staff(db, key: str, **kw) -> None:
+    """A line to the staff Telegram group (when configured) about a customer joining; never breaks the customer's request."""
+    try:
+        if await notifications.alert_staff(db, key, notifications.staff_text(f"notify.{key}", **kw)):
+            await db.commit()
+    except Exception:  # noqa: BLE001
+        await db.rollback()
 
 
 async def _deposit_ctx(db, a, user, lang) -> dict:
@@ -141,6 +159,7 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
             resp = HTMLResponse("", status_code=422)
             return toast(resp, t(lang, "misc.error_generic"), "bad", "error")
     uid = user.id
+    first = not await auctions.has_bid(db, auction_id, uid)  # a newcomer's first bid on this lot: the staff group hears of it
     try:
         a, bid, prev = await auctions.place_bid(db, auction_id, user, amt)
         await db.commit()
@@ -153,6 +172,8 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
         resp = render(request, tpl, await _ctx(db, a, user, lang), status_code=200)
         return toast(resp, t(lang, f"auction.errors.{e.code}", **e.ctx), "bad", "error")
     auctions.publish(a.id, {"type": "bid", **auctions.snapshot(a), "people": len(await auctions.bidder_numbers(db, a.id))})
+    if first:
+        await _alert_staff(db, "staff_join_bid", name=user.full_name, title=a.title, id=a.id, amount=f"{a.current_price_total} {a.currency}")
     if prev is not None and prev.id != user.id:
         try:
             await notifications.notify_outbid(db, prev, a, a.current_price_total)
@@ -214,6 +235,7 @@ async def auction_deposit(auction_id: int, request: Request, db: DB, lang: Lang,
     except auctions.AuctionError as e:
         return await fail(t(lang, f"auction.errors.{e.code}", **e.ctx))
     await db.commit()
+    await _alert_staff(db, "staff_deposit", name=user.full_name, title=a.title, id=a.id, amount=f"{a.deposit_amount} {a.currency}")
     resp = await _deposit_state(request, db, a, user, lang) if hx else redirect(request, f"/app/auctions/{auction_id}")
     return hx_trigger(resp, toast={"msg": t(lang, "auction.deposit_sent"), "type": "ok"}, haptic="success", depositSent=True)
 

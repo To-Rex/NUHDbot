@@ -167,7 +167,7 @@ r = adm.post("/admin/login", data={"login": ADMIN_LOGIN, "password": ADMIN_PASSW
 ok("admin login", r.status_code == 303 and "nuhd_admin" in adm.cookies, str(r.status_code))
 csrf = re.search(r'name="csrf" content="([^"]+)"', adm.get("/admin").text).group(1)
 adm.headers["X-CSRF"] = csrf
-admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new", "/admin/payments", "/admin/payments/new", "/admin/auctions/deposits"]
+admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new", "/admin/payments", "/admin/payments/new", "/admin/auctions/deposits", "/admin/notices"]
 for p in admin_pages:
     r = adm.get(p, headers={"HX-Request": "true"} if "search" in p else {})
     ok(f"GET {p}", r.status_code == 200 and clean(r.text), str(r.status_code))
@@ -276,8 +276,19 @@ r = cust.post("/app/auctions/terms", data={"lot": str(aid), "view": "page"}, hea
 ok("terms without the tick are refused", r.status_code == 400, str(r.status_code))
 r = cust.post("/app/auctions/terms", data={"lot": str(aid), "view": "page", "agree": "1"}, headers={"HX-Request": "true"})
 ok("customer accepts the auction terms", r.status_code == 200 and "termsAccepted" in r.headers.get("HX-Trigger", "") and 'id="lot-cta"' in r.text, f"{r.status_code} {r.headers.get('HX-Trigger')}")
+# the newcomer reaches the admin panel: the bell keeps the notice, the badge counts it
+r = adm.get("/admin/notices?partial=1", headers={"HX-Request": "true"})
+ok("the bell lists the customer joining the lot", r.status_code == 200 and "k-auction_join" in r.text and "Test Buyer" in r.text and f'href="/admin/auctions/{aid}"' in r.text, f"{r.status_code} {r.text[:200]}")
+ok("the join notice counts as new", 'class="nt new k-auction_join"' in r.text)
+r = adm.get("/admin/badges")
+ok("the badge counts the unseen notices", r.status_code == 200 and (r.json().get("notices") or 0) >= 1, str(r.json()))
+r = adm.post("/admin/notices/seen")
+ok("opening the bell marks everything seen", r.status_code == 200 and r.json().get("notices") is None, f"{r.status_code} {r.text[:120]}")
+ok("the notices page renders", 'class="nt k-auction_join"' in adm.get("/admin/notices").text)
 r = cust.post(f"/app/auctions/{aid}/bid", data={"amount": ""}, headers={"HX-Request": "true"})
 ok("customer bids (min step)", r.status_code == 200 and "bidPlaced" in r.headers.get("HX-Trigger", ""), f"{r.status_code} {r.headers.get('HX-Trigger')}")
+html = adm.get("/admin/notices?partial=1", headers={"HX-Request": "true"}).text
+ok("the first bid is a new notice, the old one is not", 'class="nt new k-auction_join"' in html and 'class="nt k-auction_join"' in html, html[:300])
 r = cust.post(f"/app/auctions/{aid}/bid", data={"amount": "150"}, headers={"HX-Request": "true"})
 ok("leader cannot outbid self (friendly error)", r.status_code == 200 and "toast" in r.headers.get("HX-Trigger", ""), f"{r.status_code} {r.headers.get('HX-Trigger')}")
 ok("auction state json", cust.get(f"/api/auctions/{aid}/state").status_code == 200)
@@ -332,6 +343,7 @@ Image.new("RGB", (64, 64), "white").save(buf, "PNG")
 receipt = buf.getvalue()
 r = cust.post(f"/app/auctions/{aid2}/deposit", data={"note": "paid 10", "method_id": str(mid)}, files={"proof": ("receipt.png", receipt, "image/png")}, headers=HX)
 ok("customer sends the receipt", r.status_code == 200 and "depositSent" in r.headers.get("HX-Trigger", "") and 'data-dep-status="pending"' in r.text and 'id="lot-cta"' in r.text, f"{r.status_code} {r.headers.get('HX-Trigger')}")
+ok("the receipt is in the bell", "k-deposit_new" in adm.get("/admin/notices?partial=1", headers={"HX-Request": "true"}).text)
 r = cust.post(f"/app/auctions/{aid2}/deposit", data={"method_id": str(mid)}, files={"proof": ("receipt.png", receipt, "image/png")}, headers=HX)
 ok("a second receipt while one is pending is refused", "depositSent" not in r.headers.get("HX-Trigger", ""), r.headers.get("HX-Trigger"))
 r = cust.post(f"/app/auctions/{aid2}/bid", data={"amount": ""}, headers=HX)

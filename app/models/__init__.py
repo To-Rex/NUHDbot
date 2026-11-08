@@ -5,7 +5,17 @@ from app.models.base import Base
 from app.models.brand import Brand
 from app.models.brand_model import BrandModel
 from app.models.currency import Currency
-from app.models.misc import AdPost, Article, AuditLog, City, Country, NotificationLog, Setting, Subscription
+from app.models.misc import (
+    AdminNotice,
+    AdPost,
+    Article,
+    AuditLog,
+    City,
+    Country,
+    NotificationLog,
+    Setting,
+    Subscription,
+)
 from app.models.order import Order, OrderItem, OrderStatusHistory, Payment
 from app.models.product import PriceHistory, Product, ProductImage
 from app.models.series import Series
@@ -46,4 +56,5 @@ __all__ = [
     "City",
     "NotificationLog",
     "AdPost",
+    "AdminNotice",
 ]

@@ -1,0 +1,18 @@
+{# One kept notice (the bell and the Notices page): icon by kind, a title in the live channel's words, a detail line, the time. #}
+{% macro notice(n, new, icons) %}
+{% set d = n.data or {} %}
+{% if n.kind == 'order_new' %}{% set title = t('admin.live.order_new', n=d.get('number', '')) %}{% set sub = [d.get('name', ''), d.get('total')|money(d.get('currency', 'USD')) if d.get('total') is not none else '']|select|join(' · ') %}
+{% elif n.kind == 'payment_new' %}{% set title = t('admin.live.payment_new', n=d.get('number', '')) %}{% set sub = d.get('amount')|money(d.get('currency', 'USD')) if d.get('amount') is not none else '' %}
+{% elif n.kind == 'deposit_new' %}{% set title = t('admin.live.deposit_new', id=d.get('auction_id', '')) %}{% set sub = [d.get('name', ''), d.get('amount')|money(d.get('currency', 'USD')) if d.get('amount') is not none else '']|select|join(' · ') %}
+{% elif n.kind == 'auction_join' %}
+  {% if d.get('stage') == 'bid' %}{% set title = t('admin.live.auction_first_bid', name=d.get('name', ''), id=d.get('auction_id', '')) %}{% set sub = [d.get('title', ''), d.get('amount')|money(d.get('currency', 'USD')) if d.get('amount') is not none else '']|select|join(' · ') %}
+  {% elif d.get('auction_id') %}{% set title = t('admin.live.auction_join', name=d.get('name', ''), id=d.get('auction_id', '')) %}{% set sub = d.get('title', '') %}
+  {% else %}{% set title = t('admin.live.auction_join_terms', name=d.get('name', '')) %}{% set sub = '' %}{% endif %}
+{% elif n.kind == 'customer_new' %}{% set title = t('admin.live.customer_new', name=d.get('name', '')) %}{% set sub = d.get('country', '') or '' %}
+{% else %}{% set title = n.kind %}{% set sub = '' %}{% endif %}
+<a class="nt{{ ' new' if new }} k-{{ n.kind }}" href="{{ n.href }}" data-nt="{{ n.id }}">
+  <span class="nt-ic">{{ icon(icons.get(n.kind, 'bell'), 18) }}</span>
+  <span class="nt-body"><span class="nt-title">{{ title }}</span>{% if sub %}<span class="nt-sub">{{ sub }}</span>{% endif %}</span>
+  <time class="nt-time" datetime="{{ n.created_at|iso }}" data-ago="{{ n.created_at|iso }}" title="{{ n.created_at|dt }}">{{ n.created_at|dt('%H:%M') }}</time>
+</a>
+{% endmacro %}

@@ -1,0 +1,6 @@
+{# The bell's drop-down: the latest notices this staff member may see; the new ones (since the bell was last opened) are marked. #}
+{% from "admin/partials/notice_item.html" import notice with context %}
+<div class="nt-head"><b>{{ t('admin.notices.title') }}</b><a class="nt-all" href="/admin/notices">{{ t('admin.notices.all') }}{{ icon('arrow-right', 14) }}</a></div>
+<div class="nt-list">
+{% for n in items %}{{ notice(n, is_new(n), icons) }}{% else %}<div class="nt-empty">{{ icon('bell', 26) }}<b>{{ t('admin.notices.empty') }}</b><span>{{ t('admin.notices.empty_text') }}</span></div>{% endfor %}
+</div>
