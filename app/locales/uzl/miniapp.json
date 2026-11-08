@@ -407,7 +407,8 @@
     "deposit_live_bad": "Chek qabul qilinmadi",
     "deposit_cta": "Depozit to'lash · {amount}",
     "sent_at": "Yuborildi",
-    "dep_step3": "Tekshiruvdan so'ng stavka qo'ying"
+    "dep_step3": "Tekshiruvdan so'ng stavka qo'ying",
+    "pay_paid_with": "To'lovni shu usulda qildim"
   },
   "info": {
     "title": "Foydali ma'lumotlar",

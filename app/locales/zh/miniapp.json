@@ -407,7 +407,8 @@
     "deposit_live_bad": "凭证未通过",
     "deposit_cta": "支付保证金 · {amount}",
     "sent_at": "已发送",
-    "dep_step3": "审核通过后出价"
+    "dep_step3": "审核通过后出价",
+    "pay_paid_with": "我用此方式付款"
   },
   "info": {
     "title": "实用资讯",

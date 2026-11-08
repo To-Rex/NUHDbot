@@ -1113,15 +1113,24 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 .pay-num{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--surface);font-size:13px;font-weight:700;display:grid;place-items:center;flex:0 0 auto}
 
 .pm{display:flex;flex-direction:column;gap:12px}
-.pm-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px;margin:-2px;-webkit-overflow-scrolling:touch}
-.pm-tabs::-webkit-scrollbar{display:none}
-.pm-tab{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:var(--r-pill);background:var(--fill);color:var(--ink);font-size:14px;font-weight:600;white-space:nowrap;flex:0 0 auto;transition:background var(--t-fast),color var(--t-fast),transform var(--t-fast)}
-.pm-tab svg{width:16px;height:16px}
-.pm-tab:active{transform:scale(.96)}
-.pm-tab.active{background:var(--ink);color:var(--surface)}
-.pm-panel{display:flex;flex-direction:column;gap:10px}
-.pm-one{display:flex;align-items:center;gap:8px;font-size:15px}.pm-one svg{width:18px;height:18px;color:var(--ink-2)}
-.qr-tile{position:relative;align-self:center;width:min(100%,260px);aspect-ratio:1;padding:14px;border-radius:22px;background:#fff;border:1px solid var(--hairline);box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.pm-card{display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:22px;border:1.5px solid var(--hairline);background:var(--surface);transition:border-color var(--t-fast),box-shadow var(--t-fast)}
+.pm-head{display:flex;align-items:center;gap:8px;min-width:0}
+.pm-head b{font-size:16px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pm-ic{width:32px;height:32px;border-radius:10px;background:var(--fill);display:grid;place-items:center;color:var(--ink-2);flex:0 0 auto}
+.pm-ic svg{width:18px;height:18px}
+.pm-radio{position:relative;display:inline-grid;place-items:center;width:30px;height:30px;flex:0 0 auto;cursor:pointer}
+.pm-radio input{position:absolute;opacity:0;width:0;height:0}
+.pm-radio-box{width:24px;height:24px;border-radius:50%;border:2px solid var(--ink-3);display:grid;place-items:center;color:#fff;transition:background var(--t-fast),border-color var(--t-fast)}
+.pm-radio-box svg{width:13px;height:13px;opacity:0;transform:scale(.6);transition:opacity var(--t-fast),transform var(--t-fast) var(--spring)}
+.pm-paid{display:none;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--accent)}
+.pm-paid svg{width:15px;height:15px}
+.pm-pick .pm-card{cursor:pointer}
+.pm-pick .pm-card.is-on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.pm-pick .pm-card.is-on .pm-radio-box{background:var(--accent);border-color:var(--accent)}
+.pm-pick .pm-card.is-on .pm-radio-box svg{opacity:1;transform:scale(1)}
+.pm-pick .pm-card.is-on .pm-paid{display:flex}
+.pm-pick .pm-card.is-on .pm-ic{background:var(--accent-soft);color:var(--accent)}
+.qr-tile{position:relative;align-self:center;width:min(100%,220px);aspect-ratio:1;padding:14px;border-radius:22px;background:#fff;border:1px solid var(--hairline);box-shadow:0 10px 30px rgba(0,0,0,.08)}
 .qr-tile img{width:100%;height:100%;object-fit:contain;display:block;border-radius:6px;image-rendering:pixelated;image-rendering:crisp-edges}
 .qr-zoom{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:600;pointer-events:none}
 .qr-zoom svg{width:12px;height:12px}

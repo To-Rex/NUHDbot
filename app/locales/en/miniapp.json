@@ -407,7 +407,8 @@
     "deposit_live_bad": "The receipt was not accepted",
     "deposit_cta": "Pay the deposit · {amount}",
     "sent_at": "Sent",
-    "dep_step3": "Bid after the check"
+    "dep_step3": "Bid after the check",
+    "pay_paid_with": "I paid with this one"
   },
   "info": {
     "title": "Useful info",
