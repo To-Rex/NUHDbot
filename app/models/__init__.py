@@ -1,5 +1,5 @@
 from app.models.assistant import AssistantAction, AssistantChat, AssistantMessage, AssistantUpload
-from app.models.auction import Auction, AuctionDeposit, AuctionImage, Bid
+from app.models.auction import Auction, AuctionDeposit, AuctionImage, Bid, PaymentMethod
 from app.models.banner import Banner
 from app.models.base import Base
 from app.models.brand import Brand
@@ -35,6 +35,7 @@ __all__ = [
     "AuctionImage",
     "Bid",
     "AuctionDeposit",
+    "PaymentMethod",
     "SupportThread",
     "SupportMessage",
     "Subscription",

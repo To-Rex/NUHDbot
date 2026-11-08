@@ -1,0 +1,16 @@
+{# the deposit tile on the auctions page: receipts waiting for a check (→ the inbox), the share of the start price new lots ask
+   for, and the payment methods (QR codes) customers pay with. expects: dep_pending, dep_percent, pay_methods_n, can_edit #}
+<details class="tile" id="deposit-settings"{{ ' open' if tile_open }}>
+  <summary class="tile-sum"><span class="tile-ic">{{ icon('qr', 18) }}</span><span class="tile-txt"><b>{{ t('admin.auc.dep_tile') }}</b><small>{{ t('admin.auc.dep_tile_sub', pct=dep_percent, n=pay_methods_n) }}</small></span>{% if dep_pending %}<a class="tile-state is-warn" href="/admin/auctions/deposits" style="color:var(--warn);background:var(--warn-bg)">{{ icon('clock', 12) }}{{ t('admin.auc.dep_pending_n', n=dep_pending) }}</a>{% else %}<span class="tile-state">{{ icon('check', 12) }}{{ t('admin.auc.dep_all_checked') }}</span>{% endif %}{{ icon('chevron-down', 16, 'tile-chev') }}</summary>
+  <div class="tile-body">
+    <form hx-post="/admin/auctions/deposit-settings" hx-target="#deposit-settings" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}">
+    <p class="tile-hint">{{ t('admin.auc.dep_tile_hint') }}</p>
+    <div class="dep-settings-grid mt">
+      <div class="field"><label>{{ t('admin.set.key_auction_deposit_percent') }}</label><div class="dep-pct"><input class="input mono" type="number" name="auction_deposit_percent" value="{{ dep_percent }}" min="0" max="100" step="0.5"{{ ' disabled' if not can_edit }}><b>%</b></div><span class="hint">{{ t('admin.set.help_auction_deposit_percent') }}</span></div>
+      <div class="field"><label>{{ t('admin.pm.title') }}</label><a class="btn btn-secondary" href="/admin/payments">{{ icon('qr', 15) }}{{ t('admin.auc.dep_methods_n', n=pay_methods_n) }}</a><span class="hint">{{ t('admin.auc.dep_methods_hint') }}</span></div>
+      <div class="field"><label>{{ t('admin.auc.dep_inbox') }}</label><a class="btn {{ 'btn-warn' if dep_pending else 'btn-secondary' }}" href="/admin/auctions/deposits">{{ icon('receipt', 15) }}{{ t('admin.auc.dep_pending_n', n=dep_pending) }}</a><span class="hint">{{ t('admin.auc.dep_inbox_hint') }}</span></div>
+    </div>
+    {% if can_edit %}<div class="tm-foot"><span></span><button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button></div>{% endif %}
+    </form>
+  </div>
+</details>

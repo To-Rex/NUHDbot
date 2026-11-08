@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.enums import AuctionStatus, Condition, DepositStatus, TestStatus
+from app.enums import AuctionStatus, Condition, DepositStatus, PaymentMethodKind, TestStatus
 from app.models.base import Base, TimestampMixin, str_enum, utcnow
 from app.services import storage  # noqa: I001
 
@@ -33,6 +33,7 @@ class Auction(Base, TimestampMixin):
     current_price_total: Mapped[Decimal] = mapped_column(Numeric(12, 2))
     bids_count: Mapped[int] = mapped_column(Integer, default=0)
     deposit_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+    deposit_percent: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))  # set = the amount is this share of the start price
     require_deposit: Mapped[bool] = mapped_column(Boolean, default=False)
 
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
@@ -135,6 +136,9 @@ class AuctionDeposit(Base):
     )
     proof_filename: Mapped[str | None] = mapped_column(String(255))
     note: Mapped[str | None] = mapped_column(Text)
+    method_id: Mapped[int | None] = mapped_column(ForeignKey("payment_methods.id", ondelete="SET NULL"))  # how the customer says they paid
+    admin_note: Mapped[str | None] = mapped_column(Text)  # the reason a receipt was rejected, shown to the customer
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     confirmed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
@@ -142,3 +146,50 @@ class AuctionDeposit(Base):
     )
 
     user = relationship("User", foreign_keys=[user_id], lazy="joined")
+    method = relationship("PaymentMethod", lazy="joined")
+    reviewer = relationship("User", foreign_keys=[confirmed_by], lazy="joined")
+
+    @property
+    def proof_url(self) -> str | None:
+        return storage.url(self.proof_filename)
+
+    @property
+    def proof_is_image(self) -> bool:
+        return bool(self.proof_filename) and self.proof_filename.lower().endswith((".webp", ".jpg", ".jpeg", ".png"))
+
+    @property
+    def open(self) -> bool:
+        """Pending or confirmed: the customer is in (or waiting); rejected and refunded ones are history."""
+        return self.status in (DepositStatus.PENDING, DepositStatus.CONFIRMED, DepositStatus.APPLIED)
+
+
+class PaymentMethod(Base, TimestampMixin):
+    """A way to pay the shop — Alipay, WeChat Pay, a card, USDT… — with its QR code (a picture the admin uploaded, or one
+    generated from a payment link / address) and the details to copy. Shown for auction deposits and/or order payments."""
+    __tablename__ = "payment_methods"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    kind: Mapped[PaymentMethodKind] = mapped_column(str_enum(PaymentMethodKind, 12), default=PaymentMethodKind.OTHER)
+    name: Mapped[str] = mapped_column(String(80))
+    account: Mapped[str | None] = mapped_column(String(200))  # the number / address / holder to copy
+    instructions: Mapped[dict] = mapped_column(JSON, default=dict)  # {lang: text}
+    qr_filename: Mapped[str | None] = mapped_column(String(255))  # an uploaded QR picture
+    qr_text: Mapped[str | None] = mapped_column(String(1000))  # or the text a QR is generated from
+    currency: Mapped[str | None] = mapped_column(String(3))  # the currency this method takes (shown as a hint; empty = any)
+    for_deposits: Mapped[bool] = mapped_column(Boolean, default=True)
+    for_orders: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+
+    @property
+    def qr_url(self) -> str | None:
+        """Where the QR picture is: the uploaded file, or the generated one (served by the Mini App)."""
+        if self.qr_filename:
+            return storage.url(self.qr_filename)
+        if self.qr_text:
+            return f"/app/pay/qr/{self.id}.svg?v={int(self.updated_at.timestamp()) if self.updated_at else 0}"
+        return None
+
+    @property
+    def has_qr(self) -> bool:
+        return bool(self.qr_filename or self.qr_text)

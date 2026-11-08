@@ -1,0 +1,19 @@
+{# the payment methods as cards: the QR, the name and kind, the account, where it is shown; order, on/off, edit, delete #}
+<div class="pm-grid" id="pm-grid">{% for m in rows %}
+  <article class="card pm-card{{ ' is-off' if not m.is_active }}">
+    <a class="pm-qr" href="/admin/payments/{{ m.id }}" title="{{ t('admin.edit') }}">{% if m.has_qr %}<img src="{{ m.qr_url }}" alt="">{% else %}<span class="pm-noqr">{{ icon('qr', 26) }}<small>{{ t('admin.pm.no_qr') }}</small></span>{% endif %}</a>
+    <div class="pm-body">
+      <div class="pm-name"><b>{{ m.name }}</b><span class="chip chip-soft">{{ t('admin.pm.kinds.' ~ m.kind.value) }}</span>{% if m.currency %}<span class="chip chip-info">{{ m.currency }}</span>{% endif %}</div>
+      {% if m.account %}<span class="copyable" data-copy="{{ m.account }}" title="{{ t('admin.ui.copy') }}"><span>{{ m.account }}</span>{{ icon('copy', 13) }}</span>{% endif %}
+      <div class="pm-where">{% if m.for_deposits %}<span class="chip chip-ok">{{ icon('gavel', 11) }}{{ t('admin.pm.for_deposits') }}</span>{% endif %}{% if m.for_orders %}<span class="chip chip-ok">{{ icon('package', 11) }}{{ t('admin.pm.for_orders') }}</span>{% endif %}{% if not m.for_deposits and not m.for_orders %}<span class="chip chip-warn">{{ t('admin.pm.nowhere') }}</span>{% endif %}{% if m.qr_text %}<span class="chip chip-soft" title="{{ m.qr_text }}">{{ icon('link', 11) }}{{ t('admin.pm.qr_generated') }}</span>{% endif %}</div>
+    </div>
+    <div class="pm-acts">
+      <form hx-post="/admin/payments/{{ m.id }}/move" hx-target="#pm-grid" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="dir" value="up"><button class="icon-btn sm" {{ 'disabled' if loop.first }} title="{{ t('admin.ban.up') }}" aria-label="{{ t('admin.ban.up') }}">{{ icon('arrow-left', 14) }}</button></form>
+      <form hx-post="/admin/payments/{{ m.id }}/move" hx-target="#pm-grid" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="dir" value="down"><button class="icon-btn sm" {{ 'disabled' if loop.last }} title="{{ t('admin.ban.down') }}" aria-label="{{ t('admin.ban.down') }}">{{ icon('arrow-right', 14) }}</button></form>
+      <span class="flex1"></span>
+      <form hx-post="/admin/payments/{{ m.id }}/toggle" hx-target="#pm-grid" hx-swap="outerHTML"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="bn-switch" title="{{ t('admin.pm.active') }}"><span class="switch{{ ' on' if m.is_active }}"></span>{{ t('admin.ban.on') if m.is_active else t('admin.ban.off') }}</button></form>
+      <a class="icon-btn sm" href="/admin/payments/{{ m.id }}" title="{{ t('admin.edit') }}" aria-label="{{ t('admin.edit') }}">{{ icon('edit', 14) }}</a>
+      <form hx-post="/admin/payments/{{ m.id }}/delete" hx-target="#pm-grid" hx-swap="outerHTML" data-confirm="{{ t('admin.pm.delete_q') }}" data-confirm-text="{{ m.name }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="icon-btn sm danger" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('trash', 14) }}</button></form>
+    </div>
+  </article>
+{% endfor %}</div>

@@ -23,6 +23,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     }, "d": "Payment terms"},
     "payment_methods": {"v": [{"name": "USDT (TRC20)", "details": ""}, {"name": "Bank transfer", "details": ""}], "d": "Payment methods & details (sent to customer)"},
     "auction_deposit_default": {"v": 0, "d": "Default auction deposit amount (0 = no deposit)"},
+    "auction_deposit_percent": {"v": 10, "d": "New lots ask for a deposit of this share of the start price (0 = new lots use the fixed default amount, or none)"},
     "auction_extension_seconds": {"v": 120, "d": "Anti-sniping extension"},
     "auction_terms": {"v": {"show": True, "version": 1, "title": {}, "body": {}}, "d": "Auction terms a customer accepts before joining a lot: asked or not, version (raised to ask everyone again), title and text per language (empty = the standard text)"},
     "free_cities": {"v": ["Guangzhou", "Shenzhen", "Yiwu"], "d": "Free delivery cities"},

@@ -67,8 +67,16 @@ def nl2br(value: str | None) -> Markup:
     return Markup("<br>".join(escape(line) for line in str(value).splitlines()))
 
 
+def pct(value) -> str:
+    """A share as people write it: 10.00 → "10", 12.50 → "12.5"; nothing for none / zero."""
+    if value is None:
+        return ""
+    d = Decimal(str(value)).quantize(Decimal("0.01"))
+    return format(d.normalize(), "f") if d > 0 else ""
+
+
 env.filters.update(
-    money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br,
+    money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br, pct=pct,
     pick=lambda v, lang: pick(v, lang),
 )
 from app.services.storage import url as media_url  # noqa: E402

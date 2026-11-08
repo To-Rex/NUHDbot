@@ -12,6 +12,9 @@
     "auction_lost": "拍卖 <b>{title}</b> 已结束。这次未能中标，请关注后续拍品。",
     "support_reply": "💬 管理员回复：\n{preview}",
     "order_awaiting_payment": "订单已确认。应付金额：<b>{amount}</b>。付款信息见订单页面。付款后请在聊天中发送凭证。",
-    "order_paid": "已收到付款。您的订单正在准备发货。"
+    "order_paid": "已收到付款。您的订单正在准备发货。",
+    "deposit_confirmed": "✅ <b>{title}</b> 的保证金 {amount} 已确认，现在可以出价。",
+    "deposit_rejected": "❌ <b>{title}</b> 的保证金凭证（{amount}）未通过。\n原因：{reason}\n请核对后重新发送。",
+    "deposit_refunded": "↩️ <b>{title}</b> 的保证金 {amount} 已退还。"
   }
 }

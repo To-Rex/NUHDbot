@@ -1,0 +1,7 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/auctions">{{ icon('chevron-left', 15) }}{{ t('admin.nav.auctions') }}</a><a class="btn btn-secondary btn-sm" href="/admin/payments">{{ icon('qr', 15) }}{{ t('admin.pm.title') }}</a>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.auc.dep_inbox_help') }}</span></div>
+<div class="tabs dep-tabs"><a href="?status=pending" class="{{ 'active' if status=='pending' }}">{{ t('admin.auc.dep_st.pending') }}{% if counts.pending %}<span class="cnt">{{ counts.pending }}</span>{% endif %}</a><a href="?status=" class="{{ 'active' if not status }}">{{ t('admin.all') }}</a>{% for s in ('confirmed', 'rejected', 'refunded', 'applied') %}<a href="?status={{ s }}" class="{{ 'active' if status==s }}">{{ t('admin.auc.dep_st.' ~ s) }}{% if counts.get(s) %}<span class="cnt">{{ counts[s] }}</span>{% endif %}</a>{% endfor %}</div>
+<div class="card" style="padding:0">{% with show_lot=True, back_to='/admin/auctions/deposits?status=' ~ status %}{% include "admin/auctions/_deposits.html" %}{% endwith %}</div>
+{% endblock %}

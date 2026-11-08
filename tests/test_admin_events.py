@@ -41,7 +41,7 @@ async def test_rollback_drops_and_auction_events_pass_through(db):
         u = await make_user(db, 32)
         a = await make_auction(db)
         a.require_deposit, a.deposit_amount = True, Decimal("50")
-        await auctions.claim_deposit(db, a, u, None, None)
+        await auctions.claim_deposit(db, a, u, "dep_t.webp", None)
         await db.rollback()
         assert await drain(q) == []
         auctions.publish(a.id, {"type": "bid", "id": a.id, "version": 3})  # lot events reach the admin stream as "auction"

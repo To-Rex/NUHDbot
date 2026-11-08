@@ -417,8 +417,9 @@
     if (onPage(/^\/admin$/) || onPage(/^\/admin\/orders$/) || idIn(/^\/admin\/orders\/(\d+)$/) === d.id) refreshContent();
   });
   live.on('deposit_new', (d) => {
-    say('warn', fill(LIVE.deposit_new, { id: d.auction_id }), '/admin/auctions/' + d.auction_id + '#deposits', (d.name || '') + ' · ' + money(d.amount, d.currency));
-    if (idIn(/^\/admin\/auctions\/(\d+)$/) === d.auction_id || onPage(/^\/admin\/auctions$/)) refreshContent();
+    say('warn', fill(LIVE.deposit_new, { id: d.auction_id }), '/admin/auctions/deposits', (d.name || '') + ' · ' + money(d.amount, d.currency));
+    refreshBadges();
+    if (idIn(/^\/admin\/auctions\/(\d+)$/) === d.auction_id || onPage(/^\/admin\/auctions$/) || onPage(/^\/admin\/auctions\/deposits$/) || onPage(/^\/admin$/)) refreshContent();
   });
   live.on('customer_new', (d) => {
     say('info', fill(LIVE.customer_new, { name: d.name }), '/admin/customers/' + d.id);
@@ -433,6 +434,7 @@
     const here = idIn(/^\/admin\/auctions\/(\d+)$/);
     if (d.kind === 'bid' && here !== d.id) say('info', fill(LIVE.bid, { id: d.id }), '/admin/auctions/' + d.id, money(d.current_total, d.currency));
     if (d.kind === 'ended') { say('info', fill(LIVE.ended, { id: d.id }), '/admin/auctions/' + d.id); refreshBadges(); }
+    if (d.kind === 'deposit') { refreshBadges(); if (here === d.id || onPage(/^\/admin\/auctions\/deposits$/) || onPage(/^\/admin\/auctions$/)) refreshContent(); return; }  // a verdict (maybe another admin's): the tables follow
     if (onPage(/^\/admin\/auctions$/) || (d.kind === 'ended' && onPage(/^\/admin$/))) refreshContent();
   });
   live.on('ready', refreshBadges);
@@ -446,7 +448,7 @@
       const cd = el.querySelector('[data-countdown]'); if (cd && d.ends_at) cd.dataset.countdown = d.ends_at;
       if (d.kind === 'bid' || d.kind === 'ended') { const list = document.getElementById('bids-list'); list && window.htmx && htmx.trigger(list, 'refresh'); }
     };
-    live.on('auction', (d) => { if (Number(d.id) === id) apply(d); });
+    live.on('auction', (d) => { if (Number(d.id) === id && d.kind !== 'deposit') apply(d); });
     const poll = () => fetch('/api/auctions/' + id + '/state', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((d) => { if (d) apply(d); }).catch(() => {});
     live.on('ready', poll); setInterval(() => { if (!document.hidden) poll(); }, 20000);
   });

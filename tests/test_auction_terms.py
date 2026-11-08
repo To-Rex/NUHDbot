@@ -28,7 +28,7 @@ async def test_bid_and_deposit_wait_for_the_terms(db):
         await auctions.place_bid(db, a.id, fresh)
     assert e.value.code == "terms"
     with pytest.raises(auctions.AuctionError) as e:
-        await auctions.claim_deposit(db, a, fresh, None, None)
+        await auctions.claim_deposit(db, a, fresh, "dep_t.webp", None)
     assert e.value.code == "terms"
     assert not await auction_terms.is_accepted(db, fresh)
     await auction_terms.accept(db, fresh)

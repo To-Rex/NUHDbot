@@ -3,7 +3,7 @@ from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from fastapi import Depends, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import func, select
 from starlette.datastructures import UploadFile
 
 from app.admin.common import (
@@ -42,6 +42,8 @@ from app.models import (
 from app.services import auction_terms, audit, deletion, media, notifications
 from app.services import auctions as asvc
 from app.services import orders as osvc
+from app.services import payment_methods as pm_svc
+from app.services.settings_service import get_setting, set_setting
 from app.templating import capacity
 
 
@@ -54,7 +56,48 @@ async def auctions_list(request: Request, db: DB, staff: User = Depends(staff_de
     stmt = stmt.order_by((Auction.status == AuctionStatus.LIVE).desc(), Auction.id.desc()).limit(200)
     items = (await db.execute(stmt)).scalars().unique().all()
     return render(request, staff, "admin/auctions/list.html", {"page_title": t(staff.lang, "admin.auc.title"), "items": items, "status": status, "statuses": list(AuctionStatus), "badges": await nav_badges(db),
-                                                                **(await _terms_ctx(db, staff))})
+                                                                **(await _terms_ctx(db, staff)), **(await _deposit_tile_ctx(db, staff))})
+
+
+async def _deposit_tile_ctx(db, staff: User) -> dict:
+    """The deposit tile: receipts waiting, the share of the start price new lots ask for, how many payment methods there are."""
+    pct = await get_setting(db, "auction_deposit_percent", 10)
+    return {"dep_pending": await asvc.pending_deposits_count(db), "dep_percent": format(Decimal(str(pct or 0)).normalize(), "f") if pct else "0",
+            "pay_methods_n": len(await pm_svc.list_methods(db, purpose="deposit")), "can_edit": can(staff, AUCTION_EDIT_ROLES)}
+
+
+@router.post("/auctions/deposit-settings")
+async def auctions_deposit_settings(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
+    form = await request.form()
+    before = await get_setting(db, "auction_deposit_percent", 10)
+    pct = f_dec(form, "auction_deposit_percent")
+    pct = max(Decimal(0), min(Decimal(100), pct if pct is not None else Decimal(before or 0)))
+    value = int(pct) if pct == pct.to_integral_value() else float(pct)
+    await set_setting(db, "auction_deposit_percent", value)
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"auction_deposit_percent": before}, {"auction_deposit_percent": value})
+    await db.commit()
+    msg = t(staff.lang, "admin.set.saved")
+    if request.headers.get("HX-Request") == "true":
+        return render(request, staff, "admin/auctions/_deposit_settings.html", {**(await _deposit_tile_ctx(db, staff)), "tile_open": True}, headers=toast(msg))
+    return back(request, "/admin/auctions#deposit-settings", msg)
+
+
+@router.get("/auctions/deposits")
+async def auctions_deposits(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_ROLES))):
+    """The deposits inbox: every lot's receipts, the ones waiting for a check first."""
+    status = request.query_params.get("status", "pending")
+    stmt = select(AuctionDeposit).order_by(AuctionDeposit.id.desc()).limit(300)
+    if status in [s.value for s in DepositStatus]:
+        stmt = stmt.where(AuctionDeposit.status == DepositStatus(status))
+    else:
+        status = ""
+    deposits = (await db.execute(stmt)).scalars().all()
+    counts = dict((await db.execute(select(AuctionDeposit.status, func.count()).group_by(AuctionDeposit.status))).all())
+    counts = {k.value if hasattr(k, "value") else str(k): v for k, v in counts.items()}
+    ids = {d.auction_id for d in deposits}
+    lots = {a.id: a for a in (await db.execute(select(Auction).where(Auction.id.in_(ids)))).scalars().unique().all()} if ids else {}
+    return render(request, staff, "admin/auctions/deposits.html", {"page_title": t(staff.lang, "admin.auc.dep_inbox"), "deposits": deposits, "lots": lots, "status": status, "counts": counts,
+                                                                    "can_pay": can(staff, PAYMENT_ROLES), "badges": await nav_badges(db)})
 
 
 async def _terms_ctx(db, staff: User) -> dict:
@@ -90,7 +133,8 @@ async def _form_ctx(db, a: Auction) -> dict:
     if a.product_id and all(p.id != a.product_id for p in rows) and (own := await db.get(Product, a.product_id)):
         rows.insert(0, own)
     rows.sort(key=lambda p: (p.available <= 0, p.brand.lower(), p.model.lower()))
-    return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None)}
+    pct = await get_setting(db, "auction_deposit_percent", 10)
+    return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None), "dep_default_pct": asvc.pct_label(Decimal(str(pct or 0))) or "10"}
 
 
 def _from_product(a: Auction, p: Product) -> None:
@@ -106,12 +150,20 @@ def _from_product(a: Auction, p: Product) -> None:
 @router.get("/auctions/new")
 async def auction_new(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
     a = Auction(brand="", model="", capacity_gb=0, condition=Condition.USED, qty=10, currency="USD", start_price_total=Decimal(0), step_per_unit=Decimal(1), current_price_total=Decimal(0), deposit_amount=Decimal(0), starts_at=(start := datetime.now(UTC).replace(second=0, microsecond=0) + timedelta(hours=1)), ends_at=start + timedelta(days=1), timezone=settings.timezone)
+    # the deposit a new lot asks for: the shop's share of the start price (Settings), else the fixed default amount, else none
+    pct, fixed = Decimal(str(await get_setting(db, "auction_deposit_percent", 10) or 0)), Decimal(str(await get_setting(db, "auction_deposit_default", 0) or 0))
+    if pct > 0:
+        a.deposit_percent, a.require_deposit = pct, True
+    elif fixed > 0:
+        a.deposit_amount, a.require_deposit = fixed, True
     pid = request.query_params.get("product_id")  # "New auction" on a product page
     if pid and pid.isdigit() and (p := await db.get(Product, int(pid))):
         _from_product(a, p)
         a.qty = max(1, min(a.qty, p.available or a.qty))
         if p.price:
             a.start_price_total = Decimal(p.price) * a.qty
+    if a.deposit_percent:
+        a.deposit_amount = asvc.deposit_for(a.start_price_total, a.deposit_percent)
     return render(request, staff, "admin/auctions/form.html", {"page_title": t(staff.lang, "admin.auc.new"), "a": a, "is_new": True, **_ctx(), **(await _form_ctx(db, a))})
 
 
@@ -131,8 +183,18 @@ async def _apply(db, a: Auction, form) -> list[str]:
         errors.append("start_price_total")
     a.start_price_total = sp or Decimal(0)
     a.step_per_unit = f_dec(form, "step_per_unit") or Decimal(1)
-    a.deposit_amount = f_dec(form, "deposit_amount") or Decimal(0)
-    a.require_deposit = f_bool(form, "require_deposit") and a.deposit_amount > 0
+    # the deposit: a share of the start price (percent), a fixed amount, or none; older forms send amount + switch only
+    mode = form.get("deposit_mode") or ("fixed" if f_bool(form, "require_deposit") else ("legacy" if "deposit_amount" in form else "off"))
+    if mode == "percent":
+        a.deposit_percent = max(Decimal(0), min(Decimal(100), f_dec(form, "deposit_percent") or Decimal(0)))
+        a.deposit_amount = asvc.deposit_for(a.start_price_total, a.deposit_percent)
+        a.require_deposit = a.deposit_amount > 0
+    elif mode in ("fixed", "legacy"):
+        a.deposit_percent = None
+        a.deposit_amount = f_dec(form, "deposit_amount") or Decimal(0)
+        a.require_deposit = (mode == "fixed" or f_bool(form, "require_deposit")) and a.deposit_amount > 0
+    else:
+        a.deposit_percent, a.require_deposit = None, False
     starts, ends = f_dt(form, "starts_at"), f_dt(form, "ends_at")
     if not starts or not ends or ends <= starts:
         errors.append("times")
@@ -173,7 +235,7 @@ async def _get(db, aid: int) -> Auction:
 async def auction_detail(aid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_ROLES))):
     a = await _get(db, aid)
     bids = await asvc.recent_bids(db, a.id, 100)
-    deposits = (await db.execute(select(AuctionDeposit).where(AuctionDeposit.auction_id == a.id).order_by(AuctionDeposit.id.desc()))).scalars().all()
+    deposits = (await db.execute(select(AuctionDeposit).where(AuctionDeposit.auction_id == a.id).order_by((AuctionDeposit.status == DepositStatus.PENDING).desc(), AuctionDeposit.id.desc()))).scalars().all()
     result_order = await db.get(Order, a.result_order_id) if a.result_order_id else None
     return render(request, staff, "admin/auctions/detail.html", {"page_title": f"{a.title} {capacity(a.capacity_gb)}", "a": a, "bids": bids, "deposits": deposits, "result_order": result_order, "can_edit": can(staff, AUCTION_EDIT_ROLES), "can_pay": can(staff, PAYMENT_ROLES), **_ctx()})
 
@@ -309,18 +371,29 @@ async def auction_action(aid: int, action: str, request: Request, db: DB, staff:
 
 @router.post("/auctions/{aid}/deposits/{did}/{action}")
 async def deposit_action(aid: int, did: int, action: str, request: Request, db: DB, staff: User = Depends(staff_dep(*PAYMENT_ROLES))):
+    """The verdict on a receipt: confirm (the customer may bid), reject with a reason (they may send another), refund, or apply
+    the winner's deposit to the purchase. The customer hears it in Telegram and on the open lot page at once."""
     dep = await db.get(AuctionDeposit, did)
     if not dep or dep.auction_id != aid:
         raise HTTPException(404)
-    mapping = {"confirm": DepositStatus.CONFIRMED, "refund": DepositStatus.REFUNDED, "apply": DepositStatus.APPLIED}
-    if action not in mapping:
-        raise HTTPException(400)
-    before = dep.status
-    dep.status = mapping[action]
-    dep.confirmed_by = staff.id
-    await audit.log(db, staff.id, f"deposit.{action}", "deposit", dep.id, {"status": before}, {"status": dep.status, "user": dep.user_id, "amount": str(dep.amount)})
+    form = await request.form()
+    nxt = form.get("next") or f"/admin/auctions/{aid}#deposits"
+    if not str(nxt).startswith("/admin/"):
+        nxt = f"/admin/auctions/{aid}#deposits"
+    try:
+        before = await asvc.review_deposit(db, dep, staff, action, form.get("note"))
+    except asvc.AuctionError:
+        raise HTTPException(400) from None
     await db.commit()
-    return back(request, f"/admin/auctions/{aid}#deposits", t(staff.lang, "admin.flash.saved"))
+    asvc.announce_deposit(dep)
+    if before != dep.status and dep.status in (DepositStatus.CONFIRMED, DepositStatus.REJECTED, DepositStatus.REFUNDED):
+        a = await _get(db, aid)
+        try:
+            await notifications.notify_deposit(db, dep.user, a, dep)
+            await db.commit()
+        except Exception:  # noqa: BLE001
+            pass
+    return back(request, nxt, t(staff.lang, f"admin.auc.dep_done_{action}"))
 
 
 @router.post("/auctions/{aid}/create-order")

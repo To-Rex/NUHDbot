@@ -18,9 +18,9 @@
   {% if pay_amount %}
   <div class="card">
     <div class="row-between"><h3>{{ t('orders.pay_title') }}</h3><span class="price-big" style="font-size:22px">{{ pay_amount|money(order.currency) }}</span></div>
-    {% if methods %}
+    {% if pay_methods %}
     <span class="filter-label mt-3">{{ t('orders.pay_details') }}</span>
-    <div class="stack" style="gap:6px">{% for m in methods %}<div class="sunken row-between"><span class="semibold small">{{ m.name }}</span>{% if m.details %}<span class="copyable" data-copy="{{ m.details }}" data-copied-text="{{ t('common.copied') }}"><span>{{ m.details }}</span>{{ icon('copy', 14) }}</span>{% endif %}</div>{% endfor %}</div>
+    <div class="mt-2">{% include "miniapp/partials/pay_methods.html" %}</div>
     {% endif %}
     <a class="btn btn-primary btn-lg btn-block mt-3" href="{{ chat_url }}">{{ icon('message', 18) }}{{ t('orders.send_receipt') }}</a>
     <p class="xs faint mt-2">{{ t('orders.pay_chat_hint') }}</p>

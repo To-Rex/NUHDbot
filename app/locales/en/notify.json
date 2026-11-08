@@ -12,6 +12,9 @@
     "auction_lost": "Auction <b>{title}</b> has ended. Not this time — keep an eye on the next lots.",
     "support_reply": "💬 Reply from admin:\n{preview}",
     "order_awaiting_payment": "Your order is confirmed. Amount to pay: <b>{amount}</b>. Payment details are on the order page. Once paid, send the receipt in the chat.",
-    "order_paid": "Payment received. Your order is being prepared for shipping."
+    "order_paid": "Payment received. Your order is being prepared for shipping.",
+    "deposit_confirmed": "✅ Your {amount} deposit for <b>{title}</b> is confirmed. You can bid now.",
+    "deposit_rejected": "❌ The deposit receipt for <b>{title}</b> ({amount}) was not accepted.\nReason: {reason}\nPlease check and send the receipt again.",
+    "deposit_refunded": "↩️ Your {amount} deposit for <b>{title}</b> has been refunded."
   }
 }

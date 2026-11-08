@@ -19,7 +19,7 @@
   {% endif %}
   {% if deposits %}
   <section><div class="section-title"><h2>{{ t('profile.deposits') }}</h2></div>
-    <div class="list">{% for d in deposits %}<a class="list-item" href="/app/auctions/{{ d.auction_id }}"><span class="list-icon">{{ icon('wallet', 18) }}</span><div class="flex-1"><div class="semibold small">{{ t('auction.lot') }} #{{ d.auction_id }} · <span class="mono">{{ d.amount|money(d.currency) }}</span></div><div class="xs faint mono">{{ d.created_at|dt }}</div></div><span class="chip {{ 'chip-ok' if d.status.value in ('confirmed','applied') else ('chip-warn' if d.status.value=='pending' else 'chip-soft') }}">{{ t('auction.deposit_' ~ d.status.value) }}</span></a>{% endfor %}</div>
+    <div class="list">{% for d in deposits %}<a class="list-item" href="/app/auctions/{{ d.auction_id }}"><span class="list-icon">{{ icon('wallet', 18) }}</span><div class="flex-1"><div class="semibold small">{{ t('auction.lot') }} #{{ d.auction_id }} · <span class="mono">{{ d.amount|money(d.currency) }}</span></div><div class="xs faint mono">{{ d.created_at|dt }}</div></div><span class="chip {{ 'chip-ok' if d.status.value in ('confirmed','applied') else ('chip-warn' if d.status.value=='pending' else ('chip-bad' if d.status.value=='rejected' else 'chip-soft')) }}">{{ t('auction.deposit_' ~ d.status.value) }}</span></a>{% endfor %}</div>
   </section>
   {% endif %}
 </div>

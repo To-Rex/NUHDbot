@@ -167,7 +167,7 @@ r = adm.post("/admin/login", data={"login": ADMIN_LOGIN, "password": ADMIN_PASSW
 ok("admin login", r.status_code == 303 and "nuhd_admin" in adm.cookies, str(r.status_code))
 csrf = re.search(r'name="csrf" content="([^"]+)"', adm.get("/admin").text).group(1)
 adm.headers["X-CSRF"] = csrf
-admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new"]
+admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new", "/admin/payments", "/admin/payments/new", "/admin/auctions/deposits"]
 for p in admin_pages:
     r = adm.get(p, headers={"HX-Request": "true"} if "search" in p else {})
     ok(f"GET {p}", r.status_code == 200 and clean(r.text), str(r.status_code))
@@ -291,6 +291,65 @@ ok("winner shown", "Test Buyer" in html or "create-order" in html)
 r = adm.post(f"/admin/auctions/{aid}/create-order")
 ok("order created from auction", r.status_code == 303 and "/admin/orders/" in r.headers.get("location", ""), r.headers.get("location"))
 ok("customer profile auctions", cust.get("/app/profile/auctions").status_code == 200)
+
+# ---------------------------------------------------------------- deposit paid by QR, receipt checked by the admin
+HX = {"HX-Request": "true"}
+r = adm.post("/admin/payments/new", data={"kind": "alipay", "name": "Alipay E2E " + UID, "account": "138-e2e-" + UID, "qr_text": "https://qr.alipay.com/e2e" + UID, "currency": "CNY", "for_deposits": "1", "for_orders": "1", "is_active": "1", "instructions_en": "Scan and pay"})
+ok("admin adds a payment method with a generated QR", r.status_code == 303 and r.headers.get("location", "").startswith("/admin/payments"), f"{r.status_code} {r.text[:200]}")
+html = adm.get("/admin/payments").text
+m = re.search(r'<article class="card pm-card[^"]*">\s*<a class="pm-qr" href="/admin/payments/(\d+)"(?:(?!</article>).)*?Alipay E2E ' + UID, html, re.S)
+mid = int(m.group(1)) if m else 0
+ok("payment methods page lists it", "Alipay E2E " + UID in html and mid > 0)
+r = cust.get(f"/app/pay/qr/{mid}.svg")
+ok("generated QR is served to customers", r.status_code == 200 and r.text.startswith("<svg"), str(r.status_code))
+ok("admin QR preview while typing", adm.get("/admin/payments/qr-preview.svg?text=TXe2e").status_code == 200)
+ok("payment method edit page", "Alipay E2E " + UID in adm.get(f"/admin/payments/{mid}").text)
+r = adm.post("/admin/auctions/deposit-settings", data={"auction_deposit_percent": "10"})
+ok("admin sets the deposit share for new lots", r.status_code == 303 and "flash_kind=ok" in r.headers.get("location", ""), r.headers.get("location"))
+r = adm.post("/admin/auctions/new", data={"product_id": str(pid), "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_mode": "percent", "deposit_percent": "10", **lot_times})
+ok("admin creates a lot with a 10% deposit", r.status_code == 303, f"{r.status_code} {r.text[:200]}")
+aid2 = int(re.search(r"/auctions/(\d+)", r.headers.get("location", "/auctions/0")).group(1))
+html = adm.get(f"/admin/auctions/{aid2}").text
+ok("lot page shows the deposit as 10% of the start price", "10%" in html and ("$10" in html or "10.00" in html), re.findall(r"[^>]*10%[^<]*", html)[:2])
+ok("start the deposit lot", adm.post(f"/admin/auctions/{aid2}/action/start").status_code == 303)
+r = cust.get(f"/app/auctions/{aid2}")
+ok("customer lot page has the pay sheet with the QR", r.status_code == 200 and 'id="pay-sheet"' in r.text and "data-pm" in r.text and f"/app/pay/qr/{mid}.svg" in r.text and 'id="deposit-card"' in r.text)
+r = cust.post(f"/app/auctions/{aid2}/bid", data={"amount": ""}, headers=HX)
+ok("bid before the deposit is refused", "bidPlaced" not in r.headers.get("HX-Trigger", "") and "toast" in r.headers.get("HX-Trigger", ""), r.headers.get("HX-Trigger"))
+r = cust.post(f"/app/auctions/{aid2}/deposit", data={"note": "e2e", "method_id": str(mid)}, headers=HX)
+ok("a deposit without the receipt is refused", r.status_code == 200 and "depositSent" not in r.headers.get("HX-Trigger", "") and 'data-dep-status=""' in r.text, r.headers.get("HX-Trigger"))
+buf = io.BytesIO()
+Image.new("RGB", (64, 64), "white").save(buf, "PNG")
+receipt = buf.getvalue()
+r = cust.post(f"/app/auctions/{aid2}/deposit", data={"note": "paid 10", "method_id": str(mid)}, files={"proof": ("receipt.png", receipt, "image/png")}, headers=HX)
+ok("customer sends the receipt", r.status_code == 200 and "depositSent" in r.headers.get("HX-Trigger", "") and 'data-dep-status="pending"' in r.text and 'id="lot-cta"' in r.text, f"{r.status_code} {r.headers.get('HX-Trigger')}")
+r = cust.post(f"/app/auctions/{aid2}/deposit", data={"method_id": str(mid)}, files={"proof": ("receipt.png", receipt, "image/png")}, headers=HX)
+ok("a second receipt while one is pending is refused", "depositSent" not in r.headers.get("HX-Trigger", ""), r.headers.get("HX-Trigger"))
+r = cust.post(f"/app/auctions/{aid2}/bid", data={"amount": ""}, headers=HX)
+ok("bid while the receipt is under review is refused", "bidPlaced" not in r.headers.get("HX-Trigger", ""), r.headers.get("HX-Trigger"))
+html = adm.get("/admin/auctions/deposits").text
+m = re.search(rf'/admin/auctions/{aid2}/deposits/(\d+)/confirm', html)
+did = int(m.group(1)) if m else 0
+ok("deposits inbox lists the receipt", did > 0 and "paid 10" in html and "Alipay E2E " + UID in html)
+r = adm.get("/admin/badges")
+ok("badges count the receipt waiting", r.status_code == 200 and (r.json().get("deposits") or 0) >= 1, r.text[:100])
+r = adm.post(f"/admin/auctions/{aid2}/deposits/{did}/reject", data={"note": "wrong sum", "next": "/admin/auctions/deposits?status=pending"})
+ok("admin rejects the receipt with a reason", r.status_code == 303 and r.headers.get("location", "").startswith("/admin/auctions/deposits"), r.headers.get("location"))
+r = cust.get(f"/app/auctions/{aid2}/deposit")
+ok("customer sees the rejection and the reason", 'data-dep-status="rejected"' in r.text and "wrong sum" in r.text and 'id="pay-sheet"' in r.text)
+r = cust.post(f"/app/auctions/{aid2}/deposit", data={"method_id": str(mid)}, files={"proof": ("receipt2.png", receipt, "image/png")}, headers=HX)
+ok("customer sends another receipt", "depositSent" in r.headers.get("HX-Trigger", "") and 'data-dep-status="pending"' in r.text, r.headers.get("HX-Trigger"))
+html = adm.get(f"/admin/auctions/{aid2}").text
+did2 = int(re.search(rf'/admin/auctions/{aid2}/deposits/(\d+)/confirm', html).group(1))
+ok("new receipt listed on the lot page, the rejected one kept", did2 != did and "wrong sum" in html)
+r = adm.post(f"/admin/auctions/{aid2}/deposits/{did2}/confirm", data={"next": f"/admin/auctions/{aid2}#deposits"})
+ok("admin confirms the deposit", r.status_code == 303 and "flash_kind=ok" in r.headers.get("location", ""), r.headers.get("location"))
+ok("customer deposit card shows confirmed", 'data-dep-status="confirmed"' in cust.get(f"/app/auctions/{aid2}/deposit").text)
+r = cust.post(f"/app/auctions/{aid2}/bid", data={"amount": ""}, headers=HX)
+ok("customer bids after the deposit", "bidPlaced" in r.headers.get("HX-Trigger", ""), r.headers.get("HX-Trigger"))
+ok("payment method toggle (partial)", adm.post(f"/admin/payments/{mid}/toggle", headers=HX).status_code == 200)
+ok("end the deposit lot", adm.post(f"/admin/auctions/{aid2}/action/end").status_code == 303)
+ok("delete the payment method", adm.post(f"/admin/payments/{mid}/delete").status_code == 303)
 
 # ---------------------------------------------------------------- catalog admin
 r = adm.post("/admin/brands/new", data={"name": "E2E Brand " + UID, "warranty_url": "", "sort": "99", "is_active": "on"})

@@ -127,10 +127,10 @@ async def place_bid(db: AsyncSession, auction_id: int, user: User, amount_total:
         a.status = AuctionStatus.LIVE
     if a.status != AuctionStatus.LIVE or a.ends_at <= now:
         raise AuctionError("not_live")
-    if a.require_deposit and Decimal(a.deposit_amount or 0) > 0:
+    if needs_deposit(a):
         dep = await user_deposit(db, a.id, user.id)
-        if dep is None or dep.status not in (DepositStatus.CONFIRMED, DepositStatus.APPLIED):
-            raise AuctionError("deposit_required", amount=str(a.deposit_amount), currency=a.currency)
+        if not deposit_ok(dep):
+            raise AuctionError("deposit_pending" if dep is not None and dep.status == DepositStatus.PENDING else "deposit_required", amount=str(a.deposit_amount), currency=a.currency)
     minimum = a.next_bid_total
     amount = Decimal(amount_total) if amount_total is not None else minimum
     if amount < minimum:
@@ -187,11 +187,74 @@ async def tick(db: AsyncSession) -> list[Auction]:
     return ended
 
 
-async def claim_deposit(db: AsyncSession, a: Auction, user: User, proof: str | None, note: str | None) -> AuctionDeposit:
+# ---- deposits: a share of the start price, paid by QR, the receipt checked by a staff member before the first bid
+
+def deposit_for(start_total, percent) -> Decimal:
+    """The deposit a lot asks for: `percent` of its start price, to the cent."""
+    return (Decimal(start_total or 0) * Decimal(percent or 0) / 100).quantize(Decimal("0.01"))
+
+
+def pct_label(percent) -> str:
+    """10.00 → "10", 12.50 → "12.5"; nothing for lots with a fixed amount."""
+    if percent is None or Decimal(percent) <= 0:
+        return ""
+    return format(Decimal(percent).quantize(Decimal("0.01")).normalize(), "f")
+
+
+def needs_deposit(a: Auction) -> bool:
+    return bool(a.require_deposit) and Decimal(a.deposit_amount or 0) > 0
+
+
+def deposit_ok(dep: AuctionDeposit | None) -> bool:
+    return dep is not None and dep.status in (DepositStatus.CONFIRMED, DepositStatus.APPLIED)
+
+
+async def claim_deposit(db: AsyncSession, a: Auction, user: User, proof: str | None, note: str | None, method_id: int | None = None) -> AuctionDeposit:
+    """The customer paid by QR and sends the receipt: a pending deposit for the staff to check. One open deposit per lot and
+    customer; after a rejection a new one may be sent."""
     if not await auction_terms.is_accepted(db, user):  # the deposit is the first step of joining: the terms come before it
         raise AuctionError("terms")
-    dep = AuctionDeposit(auction_id=a.id, user_id=user.id, amount=a.deposit_amount, currency=a.currency, proof_filename=proof, note=note)
+    if a.status not in (AuctionStatus.LIVE, AuctionStatus.SCHEDULED):
+        raise AuctionError("not_live")
+    if not proof:
+        raise AuctionError("proof_required")
+    cur = await user_deposit(db, a.id, user.id)
+    if cur is not None and cur.open:
+        raise AuctionError("deposit_exists")
+    dep = AuctionDeposit(auction_id=a.id, user_id=user.id, amount=a.deposit_amount, currency=a.currency, proof_filename=proof, note=note, method_id=method_id)
     db.add(dep)
     await db.flush()
     admin_events.queue(db, "deposit_new", auction_id=a.id, deposit_id=dep.id, name=user.full_name, amount=str(dep.amount), currency=dep.currency)
     return dep
+
+
+REVIEW = {"confirm": DepositStatus.CONFIRMED, "reject": DepositStatus.REJECTED, "refund": DepositStatus.REFUNDED, "apply": DepositStatus.APPLIED}
+
+
+async def review_deposit(db: AsyncSession, dep: AuctionDeposit, staff: User, action: str, note: str | None = None) -> DepositStatus:
+    """A staff member's verdict on a deposit. Returns the status it had before. Caller commits, then `announce_deposit`."""
+    if action not in REVIEW:
+        raise AuctionError("bad_action")
+    before = dep.status
+    dep.status = REVIEW[action]
+    dep.confirmed_by = staff.id
+    dep.reviewed_at = datetime.now(UTC)
+    if action == "reject" or note:
+        dep.admin_note = (note or "").strip()[:500] or None
+    await db.flush()
+    await audit.log(db, staff.id, f"deposit.{action}", "deposit", dep.id, {"status": before}, {"status": dep.status, "user": dep.user_id, "amount": str(dep.amount), "note": dep.admin_note})
+    return before
+
+
+def announce_deposit(dep: AuctionDeposit) -> None:
+    """The lot's open pages hear it: the customer's page swaps its deposit card, the admin lot page refreshes its table."""
+    publish(dep.auction_id, {"type": "deposit", "id": dep.auction_id, "dep": dep.id, "status": dep.status.value})
+
+
+async def pending_deposits(db: AsyncSession, limit: int = 200) -> list[AuctionDeposit]:
+    stmt = select(AuctionDeposit).where(AuctionDeposit.status == DepositStatus.PENDING).order_by(AuctionDeposit.id).limit(limit)
+    return list((await db.execute(stmt)).scalars().all())
+
+
+async def pending_deposits_count(db: AsyncSession) -> int:
+    return (await db.execute(select(func.count()).select_from(AuctionDeposit).where(AuctionDeposit.status == DepositStatus.PENDING))).scalar_one()

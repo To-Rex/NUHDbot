@@ -11,14 +11,17 @@ from app.services import audit
 from app.services.settings_service import DEFAULTS, get_all_settings, set_setting
 
 I18N_KEYS = ("working_hours", "reply_time", "delivery_text", "payment_text")
-NUM_KEYS = ("advance_percent", "auction_deposit_default", "auction_extension_seconds")
+NUM_KEYS = ("advance_percent", "auction_deposit_percent", "auction_deposit_default", "auction_extension_seconds")
 STR_KEYS = ("warehouse_address", "wd_check_url", "seagate_check_url")  # currencies: /admin/currencies
 
 
 @router.get("/settings")
 async def settings_page(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    from app.services import payment_methods as pm_svc
+
     values = await get_all_settings(db)
-    return render(request, staff, "admin/settings/index.html", {"page_title": t(staff.lang, "admin.set.title"), "v": values, "defaults": DEFAULTS, "i18n_keys": I18N_KEYS, "num_keys": NUM_KEYS, "str_keys": STR_KEYS})
+    return render(request, staff, "admin/settings/index.html", {"page_title": t(staff.lang, "admin.set.title"), "v": values, "defaults": DEFAULTS, "i18n_keys": I18N_KEYS, "num_keys": NUM_KEYS, "str_keys": STR_KEYS,
+                                                                 "pay_methods_n": len(await pm_svc.list_methods(db, active_only=False))})
 
 
 @router.post("/settings")
@@ -31,8 +34,6 @@ async def settings_save(request: Request, db: DB, staff: User = Depends(staff_de
         await set_setting(db, k, f_str(form, k))
     for k in I18N_KEYS:
         await set_setting(db, k, f_i18n(form, k))
-    names, details = form.getlist("pm_name"), form.getlist("pm_details")
-    await set_setting(db, "payment_methods", [{"name": n.strip(), "details": d.strip()} for n, d in zip(names, details, strict=False) if n.strip()])
     await set_setting(db, "free_cities", [c.strip() for c in (form.get("free_cities") or "").split(",") if c.strip()])
     sg = f_opt(form, "support_group_id")
     await set_setting(db, "support_group_id", int(sg) if sg and sg.lstrip("-").isdigit() else None)

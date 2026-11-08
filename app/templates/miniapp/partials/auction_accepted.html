@@ -1,5 +1,5 @@
 {#- The lot page's answer to accepting the terms: the call to action in place, and out of band the deposit card and the
     terms sheet's body (now in its accepted state). -#}
 {% include "miniapp/partials/auction_cta.html" %}
-{% if needs_deposit %}{% with oob=True %}{% include "miniapp/partials/auction_deposit.html" %}{% endwith %}{% endif %}
+{% if needs_deposit %}{% with oob=True %}{% include "miniapp/partials/auction_deposit.html" %}{% include "miniapp/partials/auction_pay.html" %}{% endwith %}{% endif %}
 <div id="terms-body" hx-swap-oob="true">{% include "miniapp/partials/auction_terms.html" %}</div>

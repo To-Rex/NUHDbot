@@ -1,17 +1,37 @@
-{#- The lot page's deposit card (lots that ask for one): the amount, where the viewer's deposit stands, or the claim form —
-    behind the terms, which come first. -#}
-<div class="card" id="deposit-card"{{ ' hx-swap-oob="true"'|safe if oob }}>
-  <div class="row-between"><h3>{{ t('auction.deposit') }}</h3><b class="mono">{{ a.deposit_amount|money(a.currency) }}</b></div>
-  <p class="small muted mt-1">{{ t('auction.deposit_note') }}</p>
-  {% if deposit %}<span class="chip chip-lg {{ 'chip-ok' if deposit.status.value in ('confirmed','applied') else ('chip-warn' if deposit.status.value=='pending' else 'chip-soft') }} mt-2">{{ t('auction.deposit_' ~ deposit.status.value) }}</span>
-  {% elif user and user.is_registered and a.status.value in ('live','scheduled') %}
+{#- The lot page's deposit card (lots that ask for one): the amount, then — in order — read the terms first; pay by QR and send
+    the receipt; the receipt is being checked (this card follows the staff's verdict live); confirmed, you may bid; or the
+    receipt was not accepted — the reason, and send another. -#}
+{% set dst = deposit.status.value if deposit else '' %}
+<div class="card dep-card{{ ' is-' ~ dst if dst }}" id="deposit-card"{{ ' hx-swap-oob="true"'|safe if oob }} data-dep="{{ deposit.id if deposit else '' }}" data-dep-status="{{ dst }}">
+  <div class="row-between"><h3>{{ t('auction.deposit') }}</h3><b class="mono dep-amount">{{ a.deposit_amount|money(a.currency) }}</b></div>
+  {% if dep_pct %}<p class="xs faint mt-1">{{ t('auction.deposit_pct_note', pct=dep_pct) }}</p>{% endif %}
+
+  {% if dst in ('confirmed', 'applied') %}
+  <div class="dep-state ok mt-3">{{ icon('check-circle', 22) }}<div><b>{{ t('auction.deposit_' ~ dst) }}</b><small>{{ t('auction.deposit_confirmed_text') if dst == 'confirmed' else t('auction.deposit_note') }}</small></div></div>
+
+  {% elif dst == 'pending' %}
+  <div class="dep-state wait mt-3">{{ icon('clock', 22) }}<div><b>{{ t('auction.deposit_pending_title') }}</b><small>{{ t('auction.deposit_pending_text') }}</small></div></div>
+  <div class="dep-receipt mt-2">
+    {% if deposit.proof_is_image %}<img src="{{ deposit.proof_url }}" alt="" data-lightbox="{{ deposit.proof_url }}">{% elif deposit.proof_filename %}<a class="dep-file" href="{{ deposit.proof_url }}" target="_blank" rel="noopener">{{ icon('receipt', 20) }}</a>{% endif %}
+    <div class="flex-1" style="min-width:0"><div class="small semibold">{{ t('auction.sent_at') }} · <span class="mono">{{ deposit.created_at|dt }}</span></div>{% if deposit.method %}<div class="xs muted">{{ deposit.method.name }}</div>{% endif %}{% if deposit.note %}<div class="xs muted truncate">{{ deposit.note }}</div>{% endif %}</div>
+    <span class="chip chip-warn">{{ t('auction.deposit_pending') }}</span>
+  </div>
+  {% if reply_time %}<p class="xs faint mt-2 row" style="gap:5px">{{ icon('clock', 12) }}{{ reply_time }}</p>{% endif %}
+
+  {% elif dst == 'refunded' %}
+  <span class="chip chip-lg chip-soft mt-2">{{ t('auction.deposit_refunded') }}</span>
+  {% if deposit_to_pay %}{% if not terms_ok %}<button type="button" class="btn btn-secondary btn-block mt-3" data-open-sheet="terms-sheet">{{ icon('book', 16) }}{{ t('auction.terms_before_deposit') }}</button>{% else %}<button type="button" class="btn btn-primary btn-block mt-3" data-open-sheet="pay-sheet">{{ icon('qr', 18) }}{{ t('auction.pay_deposit') }}</button>{% endif %}{% endif %}
+
+  {% elif user and user.is_registered and a.status.value in ('live', 'scheduled') %}
+    {% if dst == 'rejected' %}<div class="dep-state bad mt-3">{{ icon('x-circle', 22) }}<div><b>{{ t('auction.deposit_rejected_title') }}</b><small>{% if deposit.admin_note %}{{ t('auction.deposit_reason') }}: {{ deposit.admin_note }}{% else %}{{ t('auction.deposit_resend_hint') }}{% endif %}</small></div></div>{% endif %}
     {% if not terms_ok %}
     <button type="button" class="btn btn-secondary btn-block mt-3" data-open-sheet="terms-sheet">{{ icon('book', 16) }}{{ t('auction.terms_before_deposit') }}</button>
     {% else %}
-    <form class="stack mt-3" method="post" action="/app/auctions/{{ a.id }}/deposit" enctype="multipart/form-data" hx-boost="true" hx-target="body" hx-encoding="multipart/form-data" style="gap:8px">
-      <input class="input" type="file" name="proof" accept="image/*,.pdf"><input class="input" name="note" placeholder="{{ t('orders.pay_note') }}">
-      <button class="btn btn-secondary btn-block">{{ t('auction.deposit_claim') }}</button>
-    </form>
+    <ol class="dep-steps mt-3"><li>{{ icon('qr', 15) }}{{ t('auction.pay_step1') }}</li><li>{{ icon('receipt', 15) }}{{ t('auction.pay_step2') }}</li><li>{{ icon('gavel', 15) }}{{ t('auction.dep_step3') }}</li></ol>
+    <button type="button" class="btn btn-primary btn-block mt-3" data-open-sheet="pay-sheet">{{ icon('qr', 18) }}{{ t('auction.deposit_resend') if dst == 'rejected' else t('auction.pay_deposit') }}</button>
     {% endif %}
+    <p class="xs faint mt-2">{{ t('auction.deposit_note') }}</p>
+  {% else %}
+  <p class="small muted mt-1">{{ t('auction.deposit_note') }}</p>
   {% endif %}
 </div>

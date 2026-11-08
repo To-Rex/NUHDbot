@@ -21,6 +21,7 @@ async def main() -> None:
     ap.add_argument("--qty", type=int, default=20)
     ap.add_argument("--start", type=Decimal, default=Decimal("500"))
     ap.add_argument("--step", type=Decimal, default=Decimal("1"))
+    ap.add_argument("--deposit", type=Decimal, default=Decimal("0"), help="deposit as a percent of the start price (0 = none)")
     a = ap.parse_args()
     async with session_scope() as db:
         p = await db.get(Product, a.product_id) if a.product_id else (await db.execute(select(Product).where(Product.is_active.is_(True)).order_by(Product.id))).scalars().first()
@@ -33,6 +34,7 @@ async def main() -> None:
             description={"uz": "ДЕМО лот (QA)", "ru": "ДЕМО лот (QA)", "en": "DEMO lot (QA)"}, currency=p.currency,
             start_price_total=a.start, step_per_unit=a.step, current_price_total=a.start, starts_at=now - timedelta(seconds=1),
             ends_at=now + timedelta(minutes=a.minutes), original_ends_at=now + timedelta(minutes=a.minutes), status=AuctionStatus.LIVE,
+            require_deposit=a.deposit > 0, deposit_percent=a.deposit if a.deposit > 0 else None, deposit_amount=(a.start * a.deposit / 100).quantize(Decimal("0.01")) if a.deposit > 0 else Decimal(0),
         )
         db.add(au)
         await db.flush()

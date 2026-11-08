@@ -91,9 +91,12 @@
       <div class="field"><label>{{ t('admin.auc.step_unit') }}</label>
         <div class="auc-money"><input class="input mono" name="step_per_unit" value="{{ a.step_per_unit }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
         <div class="auc-under"><span class="hint" data-step-hint data-tpl="{{ t('admin.auc.lot_step', p='{p}') }}"></span><span class="auc-chips">{% for v in ('0.5', '1', '2', '5') %}<button type="button" class="chip-btn" data-step-set="{{ v }}">{{ v }}</button>{% endfor %}</span></div></div>
-      <div class="field"><label>{{ t('admin.auc.deposit') }}</label>
-        <div class="auc-money"><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
-        <label class="auc-switch"><input type="checkbox" class="sr-only" name="require_deposit" {{ 'checked' if a.require_deposit }}><span class="switch"></span><span>{{ t('admin.auc.require_deposit') }}</span></label></div>
+      {% set dmode = 'percent' if a.deposit_percent else ('fixed' if a.require_deposit and a.deposit_amount else 'off') %}
+      <div class="field auc-dep" data-dep-mode="{{ dmode }}"><label>{{ t('admin.auc.deposit') }}</label>
+        <span class="seg" role="group" aria-label="{{ t('admin.auc.deposit') }}">{% for v in ('percent', 'fixed', 'off') %}<label class="seg-opt"><input type="radio" name="deposit_mode" value="{{ v }}" {{ 'checked' if dmode == v }}><span>{{ t('admin.auc.dep_mode_' ~ v) }}</span></label>{% endfor %}</span>
+        <div class="auc-money mt-sm" data-dep-pane="percent"{{ ' hidden' if dmode != 'percent' }}><input class="input mono" name="deposit_percent" value="{{ a.deposit_percent|pct or dep_default_pct }}" inputmode="decimal" min="0" max="100"><span>%</span></div>
+        <div class="auc-money mt-sm" data-dep-pane="fixed"{{ ' hidden' if dmode != 'fixed' }}><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
+        <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
     </div>
   </section>
 
@@ -222,11 +225,15 @@
     var unit = form.querySelector('[data-unit-hint]'), sp = num(q('start_price_total').value); unit.textContent = qty && sp ? unit.dataset.tpl.replace('{p}', money(sp / qty, cur)) : '';
     var sh = form.querySelector('[data-step-hint]'), stp = num(q('step_per_unit').value); sh.textContent = qty && stp ? sh.dataset.tpl.replace('{p}', money(stp * qty, cur)) : '';
     form.querySelectorAll('[data-step-set]').forEach(function (b) { b.classList.toggle('on', num(b.dataset.stepSet) === stp); });
-    var dep = form.parentNode.querySelector('[data-s="deposit"]'), da = num(q('deposit_amount').value);
-    dep.textContent = q('require_deposit').checked && da > 0 ? money(da, cur) : dep.dataset.off;
+    /* the deposit: a share of the start price, a fixed amount, or none — the summary shows what the lot will ask for */
+    var dep = form.parentNode.querySelector('[data-s="deposit"]'), modeEl = form.querySelector('[name="deposit_mode"]:checked'), mode = modeEl ? modeEl.value : 'off', hintD = form.querySelector('[data-dep-hint]');
+    form.querySelectorAll('[data-dep-pane]').forEach(function (p) { p.hidden = p.dataset.depPane !== mode; });
+    var da = mode === 'percent' ? Math.round(sp * num(q('deposit_percent').value)) / 100 : (mode === 'fixed' ? num(q('deposit_amount').value) : 0);
+    dep.textContent = da > 0 ? money(da, cur) + (mode === 'percent' ? ' (' + num(q('deposit_percent').value) + '%)' : '') : dep.dataset.off;
+    hintD.textContent = mode === 'percent' ? (da > 0 ? hintD.dataset.tpl.replace('{a}', money(da, cur)) : '') : (mode === 'fixed' ? hintD.dataset.fixed : hintD.dataset.off);
   }
-  ['qty', 'start_price_total', 'step_per_unit', 'deposit_amount'].forEach(function (n) { q(n).addEventListener('input', sync); });
-  q('require_deposit').addEventListener('change', sync);
+  ['qty', 'start_price_total', 'step_per_unit', 'deposit_amount', 'deposit_percent'].forEach(function (n) { q(n).addEventListener('input', sync); });
+  form.querySelectorAll('[name="deposit_mode"]').forEach(function (r) { r.addEventListener('change', sync); });
   form.querySelectorAll('[data-qty-step]').forEach(function (b) { b.addEventListener('click', function () { q('qty').value = Math.max(1, (parseInt(q('qty').value || '0', 10) || 0) + parseInt(b.dataset.qtyStep, 10)); fire(q('qty')); }); });
   all.addEventListener('click', function () { q('qty').value = data().avail; fire(q('qty')); });
   fill.addEventListener('click', function () { var qty = parseInt(q('qty').value || '0', 10) || 0; q('start_price_total').value = (Math.round(num(data().price) * qty * 100) / 100).toFixed(2); fire(q('start_price_total')); });

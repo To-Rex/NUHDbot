@@ -1,0 +1,8 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-primary btn-sm" href="/admin/payments/new">{{ icon('plus', 15) }}{{ t('admin.pm.add') }}</a>{% endblock %}
+{% block content %}
+<div class="help mb">{{ icon('info', 16) }}<span>{{ t('admin.pm.help') }}</span></div>
+{% include "admin/payments/_grid.html" %}
+{% if not rows %}<div class="card empty mb">{{ icon('qr', 30) }}<b>{{ t('admin.pm.empty_title') }}</b><p class="sub">{{ t('admin.pm.empty_text') }}</p><a class="btn btn-primary btn-sm mt" href="/admin/payments/new">{{ icon('plus', 15) }}{{ t('admin.pm.add') }}</a></div>{% endif %}
+<div class="help mt">{{ icon('gavel', 16) }}<span>{{ t('admin.pm.deposit_hint') }} <a href="/admin/auctions#deposit-settings">{{ t('admin.nav.auctions') }} →</a></span></div>
+{% endblock %}

@@ -21,6 +21,7 @@ from app.enums import (
     ImageKind,
     OrderStatus,
     PaymentKind,
+    PaymentMethodKind,
     PaymentStatus,
     ProductColor,
 )
@@ -41,6 +42,7 @@ from app.models import (
     Order,
     OrderItem,
     OrderStatusHistory,
+    PaymentMethod,
     Product,
     ProductImage,
     Setting,
@@ -51,6 +53,7 @@ from app.services import auction_terms, deletion, model_dict, notifications, sto
 from app.services import auctions as asvc
 from app.services import banners as bsvc
 from app.services import orders as osvc
+from app.services import payment_methods as pm_svc
 from app.services import series as series_service
 from app.services.assistant.tools import (
     ARR,
@@ -458,25 +461,119 @@ async def ad_action(ctx: Ctx, id: int, action: str):  # noqa: A002
 
 # ---------- auctions: deposits, the winner's order ----------
 
-@tool("list_deposits", "Deposits customers paid to bid on a lot.", {"auction_id": I("")}, required=("auction_id",))
-async def list_deposits(ctx: Ctx, auction_id: int):
-    rows = (await ctx.db.execute(select(AuctionDeposit).where(AuctionDeposit.auction_id == int(auction_id)).order_by(AuctionDeposit.id))).scalars().all()
-    return {"deposits": [{"id": d.id, "user_id": d.user_id, "user": d.user.full_name if d.user else None, "amount": str(d.amount), "currency": d.currency, "status": d.status.value, "at": local(d.created_at)} for d in rows]}
+def _deposit_row(d: AuctionDeposit) -> dict:
+    return {"id": d.id, "auction_id": d.auction_id, "user_id": d.user_id, "user": d.user.full_name if d.user else None, "amount": str(d.amount), "currency": d.currency,
+            "status": d.status.value, "method": d.method.name if d.method else None, "receipt_url": d.proof_url, "customer_note": d.note, "admin_note": d.admin_note,
+            "at": local(d.created_at), "reviewed_at": local(d.reviewed_at)}
 
 
-@tool("deposit_action", "confirm a deposit (the customer may bid), refund it, or apply it to the purchase.", {"auction_id": I(""), "deposit_id": I(""), "action": S("confirm | refund | apply")}, required=("auction_id", "deposit_id", "action"), mutating=True)
-async def deposit_action(ctx: Ctx, auction_id: int, deposit_id: int, action: str):
+@tool("list_deposits", "Auction deposits — the receipts customers sent to join a lot. Without auction_id: every lot, the pending ones (waiting for a check) first; status filters (pending | confirmed | rejected | refunded | applied).",
+      {"auction_id": I("One lot only"), "status": S("pending | confirmed | rejected | refunded | applied")})
+async def list_deposits(ctx: Ctx, auction_id=None, status=None):
+    stmt = select(AuctionDeposit)
+    if auction_id:
+        stmt = stmt.where(AuctionDeposit.auction_id == int(auction_id))
+    if status:
+        try:
+            stmt = stmt.where(AuctionDeposit.status == DepositStatus(str(status)))
+        except ValueError as e:
+            raise ToolError("status: pending | confirmed | rejected | refunded | applied") from e
+    rows = (await ctx.db.execute(stmt.order_by((AuctionDeposit.status == DepositStatus.PENDING).desc(), AuctionDeposit.id.desc()).limit(200))).scalars().all()
+    return {"deposits": [_deposit_row(d) for d in rows], "pending": sum(1 for d in rows if d.status == DepositStatus.PENDING)}
+
+
+@tool("deposit_action", "The verdict on a deposit receipt: confirm (the customer may bid), reject with a reason (shown to the customer; they may send another receipt), refund, or apply the winner's deposit to the purchase. The customer is notified in Telegram and their open lot page follows at once.",
+      {"deposit_id": I(""), "action": S("confirm | reject | refund | apply"), "note": S("The reason (required for reject)"), "auction_id": I("Optional check: the lot the deposit belongs to")}, required=("deposit_id", "action"), mutating=True)
+async def deposit_action(ctx: Ctx, deposit_id: int, action: str, note=None, auction_id=None):
     dep = await ctx.db.get(AuctionDeposit, int(deposit_id))
-    if dep is None or dep.auction_id != int(auction_id):
-        raise ToolError("deposit not found on this lot")
-    mapping = {"confirm": DepositStatus.CONFIRMED, "refund": DepositStatus.REFUNDED, "apply": DepositStatus.APPLIED}
-    if action not in mapping:
-        raise ToolError("action: confirm | refund | apply")
+    if dep is None or (auction_id and dep.auction_id != int(auction_id)):
+        raise ToolError("deposit not found" + (" on this lot" if auction_id else ""))
+    if action not in asvc.REVIEW:
+        raise ToolError("action: confirm | reject | refund | apply")
+    if action == "reject" and not (note or "").strip():
+        raise ToolError("reject needs a note: the reason the customer will read")
     ctx.journal.track(dep)
-    dep.status, dep.confirmed_by = mapping[action], ctx.staff.id
+    before = await asvc.review_deposit(ctx.db, dep, ctx.staff, action, note)
+    a = await ctx.db.get(Auction, dep.auction_id)
+    ctx.after_commit.append(lambda: asvc.announce_deposit(dep))
+    if before != dep.status and dep.status in (DepositStatus.CONFIRMED, DepositStatus.REJECTED, DepositStatus.REFUNDED) and a is not None:
+        await notifications.notify_deposit(ctx.db, dep.user, a, dep)
+    ctx.summary, ctx.entity, ctx.entity_id = f"Deposit {dep.id} on auction #{dep.auction_id}: {dep.status.value}", "auction", str(dep.auction_id)
+    return {"ok": True, "deposit": _deposit_row(dep)}
+
+
+# ---------- payment methods: how customers pay (QR codes) ----------
+
+@tool("list_payment_methods", "The shop's payment methods (Alipay, WeChat Pay, cards, USDT…): kind, name, account to copy, instructions per language, QR (uploaded picture or generated from qr_text), currency, where shown (deposits / orders), active, order.")
+async def list_payment_methods(ctx: Ctx):
+    rows = await pm_svc.list_methods(ctx.db, active_only=False)
+    return {"methods": [pm_svc.as_dict(m) for m in rows], "kinds": [k.value for k in PaymentMethodKind]}
+
+
+@tool("save_payment_method", "Create a payment method (no id) or change one (id). kind: alipay | wechat | unionpay | card | bank | usdt | paypal | other. qr_text = a payment link or wallet address the QR is generated from (an uploaded picture, if any, stays unless replaced with set_payment_method_qr). instructions: text per language {uz, uzl, ru, en, zh}.",
+      {"id": I("Existing method to change"), "kind": S(""), "name": S("Shown to customers, e.g. Alipay"), "account": S("The number / address / holder to copy"), "qr_text": S("Link or address → generated QR; empty string removes a generated QR"),
+       "instructions": I18N, "currency": S("3-letter code the method takes, e.g. CNY; empty = any"), "for_deposits": B("Shown when paying an auction deposit"), "for_orders": B("Shown when paying an order"), "is_active": B("")}, mutating=True)
+async def save_payment_method(ctx: Ctx, id=None, kind=None, name=None, account=None, qr_text=None, instructions=None, currency=None, for_deposits=None, for_orders=None, is_active=None):  # noqa: A002
+    if id:
+        m = await need(ctx.db, PaymentMethod, int(id), "payment method")
+        ctx.journal.track(m)
+    else:
+        if not (name or "").strip():
+            raise ToolError("name is required for a new method")
+        m = PaymentMethod(kind=PaymentMethodKind.OTHER, name="", instructions={}, for_deposits=True, for_orders=True, is_active=True, sort=await pm_svc.next_sort(ctx.db))
+        ctx.db.add(m)
+    if kind is not None:
+        m.kind = pm_svc.kind_of(kind)
+    if name is not None:
+        m.name = str(name).strip()[:80] or m.name
+    if account is not None:
+        m.account = str(account).strip()[:200] or None
+    if qr_text is not None:
+        m.qr_text = str(qr_text).strip()[:1000] or None
+        if m.qr_text and m.qr_filename:
+            await pm_svc.clear_qr_picture(m)
+    if instructions is not None:
+        m.instructions = i18n(instructions, m.instructions or {})
+    if currency is not None:
+        cur = str(currency).strip().upper()[:3]
+        m.currency = cur if cur.isalpha() else None
+    for attr, v in (("for_deposits", for_deposits), ("for_orders", for_orders), ("is_active", is_active)):
+        if v is not None:
+            setattr(m, attr, bool(v))
     await ctx.db.flush()
-    ctx.summary, ctx.entity, ctx.entity_id = f"Deposit {dep.id} on auction #{auction_id}: {dep.status.value}", "auction", str(auction_id)
-    return {"ok": True, "status": dep.status.value}
+    if not id:
+        ctx.journal.created(m)
+    ctx.summary, ctx.entity, ctx.entity_id = f"Payment method {m.name} {'changed' if id else 'created'}", "payment_method", str(m.id)
+    return {"ok": True, "method": pm_svc.as_dict(m), "admin_url": f"/admin/payments/{m.id}"}
+
+
+@tool("set_payment_method_qr", "Give a payment method the QR code from an attached picture (replaces a generated one), or remove its picture.", {"id": I(""), "upload_id": I("Attached picture of the QR"), "remove": B("Remove the QR picture")}, required=("id",), mutating=True)
+async def set_payment_method_qr(ctx: Ctx, id: int, upload_id=None, remove=False):  # noqa: A002
+    m = await need(ctx.db, PaymentMethod, int(id), "payment method")
+    ctx.journal.track(m)
+    if remove:
+        await pm_svc.clear_qr_picture(m)
+    elif upload_id:
+        u = (await _uploads(ctx, [upload_id]))[0]
+        old = m.qr_filename
+        m.qr_filename, m.qr_text = u.filename, None  # the upload's own file becomes the QR picture
+        await deletion._rm(old, u.thumb)
+        _use(ctx, u)
+    else:
+        raise ToolError("give upload_id or remove=true")
+    await ctx.db.flush()
+    ctx.summary, ctx.entity, ctx.entity_id = f"Payment method {m.name}: QR {'removed' if remove else 'set from the attached picture'}", "payment_method", str(m.id)
+    return {"ok": True, "method": pm_svc.as_dict(m)}
+
+
+@tool("delete_payment_method", "Delete a payment method (deposits that named it keep their record).", {"id": I("")}, required=("id",), mutating=True)
+async def delete_payment_method(ctx: Ctx, id: int):  # noqa: A002
+    m = await need(ctx.db, PaymentMethod, int(id), "payment method")
+    name = m.name
+    await ctx.journal.deleted(ctx.db, m)
+    await pm_svc.delete(ctx.db, m)
+    ctx.summary, ctx.entity, ctx.entity_id = f"Payment method {name} deleted", "payment_method", str(id)
+    return {"ok": True}
 
 
 @tool("create_auction_order", "Create the winner's order for an ended lot (the confirmed deposit counts towards it).", {"auction_id": I("")}, required=("auction_id",), mutating=True)

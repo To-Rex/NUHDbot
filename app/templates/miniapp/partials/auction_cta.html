@@ -1,6 +1,6 @@
-{#- The lot page's call to action, always present so accepting the terms can swap it in place: on a live lot — register, read
-    the terms, pay the deposit, or bid, in that order; otherwise empty. -#}
-<div id="lot-cta">
+{#- The lot page's call to action, always present so accepting the terms or a deposit's verdict can swap it in place: on a live
+    lot — register, read the terms, pay the deposit (or wait while its receipt is checked), or bid, in that order; otherwise empty. -#}
+<div id="lot-cta"{{ ' hx-swap-oob="true"'|safe if oob }}>
 {% if a.status.value == 'live' %}
 <div class="sticky-cta"><div class="inner">
   {% if not user or not user.is_registered %}
@@ -8,7 +8,13 @@
   {% elif not terms_ok %}
   <button type="button" class="btn btn-primary btn-lg btn-block" data-open-sheet="terms-sheet">{{ icon('handshake', 18) }}{{ t('auction.terms_cta') }}</button>
   {% elif not can_bid %}
-  <div class="notice notice-warn flex-1">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
+    {% if dep_pending %}
+    <div class="notice notice-warn flex-1">{{ icon('clock', 18) }}<span class="small"><b>{{ t('auction.deposit_pending_cta') }}</b><br>{{ t('auction.deposit_pending_short') }}</span></div>
+    {% elif deposit_to_pay %}
+    <button type="button" class="btn btn-primary btn-lg btn-block" data-open-sheet="pay-sheet">{{ icon('qr', 18) }}{{ t('auction.deposit_cta', amount=a.deposit_amount|money(a.currency)) }}</button>
+    {% else %}
+    <div class="notice notice-warn flex-1">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
+    {% endif %}
   {% else %}
   <form hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#price-box" hx-swap="outerHTML" class="row flex-1" style="gap:8px" id="bid-form">
     <button class="btn btn-primary btn-lg flex-1" type="submit"><span class="label">{{ t('auction.bid_now') }} · <span id="btn-next" class="mono">{{ a.next_bid_total|money(a.currency) }}</span></span><span class="spinner"></span></button>

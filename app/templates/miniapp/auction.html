@@ -36,6 +36,7 @@
 </div>
 
 {% include "miniapp/partials/auction_cta.html" %}
+{% if needs_deposit %}{% include "miniapp/partials/auction_pay.html" %}{% endif %}
 <div id="terms-sheet" hidden><div class="sheet-backdrop" data-close-sheet="terms-sheet"></div><div class="sheet terms-sheet"><div class="grab"></div><div id="terms-body">{% with lot=a.id, view='page' %}{% include "miniapp/partials/auction_terms.html" %}{% endwith %}</div></div></div>
 </div>
 {% endblock %}
@@ -44,7 +45,16 @@
 (function(){
   var id = {{ a.id }}; var cur = {{ a.currency|tojson }};
   var fmt = function(v){ var n = Number(v); return cur === 'USD' ? '$' + n.toLocaleString('en-US', {maximumFractionDigits: 2}) : n.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ' + cur; };
+  /* the staff's verdict on this viewer's deposit: the card, the call to action and the pay sheet swap in place */
+  function depositChanged(s){
+    var card = document.getElementById('deposit-card'); if (!card || String(card.dataset.dep) !== String(s.dep)) return;
+    if (card.dataset.depStatus === s.status) return;
+    if (window.htmx) htmx.ajax('GET', '/app/auctions/' + id + '/deposit', { target: '#deposit-card', swap: 'outerHTML' });
+    if (s.status === 'confirmed') { NUHD.toast({{ t('auction.deposit_live_ok')|tojson }}, 'ok', 3000); NUHD.confetti(); }
+    else if (s.status === 'rejected') { NUHD.toast({{ t('auction.deposit_live_bad')|tojson }}, 'bad', 3000); }
+  }
   function apply(s){
+    if (s.type === 'deposit') { depositChanged(s); return; }
     var box = document.getElementById('price-box'); if (!box) return;
     if (s.version !== undefined && s.version <= Number(box.dataset.version || 0)) return;
     box.dataset.version = s.version;
@@ -52,11 +62,11 @@
     var pu = document.getElementById('price-unit'); if (pu) pu.textContent = fmt(s.current_unit);
     var bc = document.getElementById('bids-count'); if (bc) bc.textContent = s.bids; var bb = document.getElementById('bids-badge'); if (bb) bb.textContent = s.bids;
     var nt = document.getElementById('next-total'); if (nt) nt.textContent = fmt(s.next_total); var bn = document.getElementById('btn-next'); if (bn) bn.textContent = fmt(s.next_total);
-    var cd = document.getElementById('countdown'); if (cd && s.ends_at && cd.dataset.countdown !== s.ends_at) { var extended = new Date(s.ends_at) > new Date(cd.dataset.countdown); cd.dataset.countdown = s.ends_at; delete cd.dataset.ended; if (extended) NUHD.toast({{ t('auction.extended')|tojson }}, 'warn', 1800); }
+    var cd = document.getElementById('countdown'); if (cd && s.ends_at && s.status === 'live' && cd.dataset.countdown !== s.ends_at) { var extended = new Date(s.ends_at) > new Date(cd.dataset.countdown); cd.dataset.countdown = s.ends_at; delete cd.dataset.ended; if (extended) NUHD.toast({{ t('auction.extended')|tojson }}, 'warn', 1800); }
     document.body.dispatchEvent(new CustomEvent('refreshBids'));
     if (s.status === 'ended' || s.type === 'ended') { setTimeout(function(){ location.reload(); }, 1200); }
   }
-  {% if a.status.value == 'live' %}
+  {% if a.status.value in ('live', 'scheduled') %}
   /* app.js loads deferred, so it is not there yet while this inline script runs: start the live channel once it is */
   var start = function(){ window.liveAuction(id, apply); };
   if (window.liveAuction) start(); else document.addEventListener('DOMContentLoaded', start);
@@ -64,6 +74,8 @@
   document.addEventListener('countdown:ended', function(e){ if (e.detail.el.id === 'countdown') setTimeout(function(){ location.reload(); }, 2500); });
   document.addEventListener('bidPlaced', function(){ NUHD.confetti(); });
   document.body.addEventListener('termsAccepted', function(){ closeSheet('terms-sheet'); });
+  document.body.addEventListener('depositSent', function(){ closeSheet('pay-sheet'); var c = document.getElementById('deposit-card'); if (c) setTimeout(function(){ c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350); });
+  if (location.hash === '#deposit-card') { var dc = document.getElementById('deposit-card'); if (dc) setTimeout(function(){ dc.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }
   {% if a.status.value == 'ended' and a.winner_user_id and a.winner_user_id == me_id %}setTimeout(function(){ NUHD.confetti(); }, 400);{% endif %}
 })();
 </script>

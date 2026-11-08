@@ -159,10 +159,23 @@ class AuctionStatus(StrEnum):
 
 
 class DepositStatus(StrEnum):
-    PENDING = "pending"
-    CONFIRMED = "confirmed"
+    PENDING = "pending"  # the receipt is in, a staff member has not looked yet
+    CONFIRMED = "confirmed"  # the money arrived: the customer may bid
+    REJECTED = "rejected"  # the receipt did not check out (reason in admin_note); the customer may send another
     REFUNDED = "refunded"
     APPLIED = "applied"
+
+
+class PaymentMethodKind(StrEnum):
+    """What a payment method is, for its icon and its presets; the admin names it freely."""
+    ALIPAY = "alipay"
+    WECHAT = "wechat"
+    UNIONPAY = "unionpay"
+    CARD = "card"
+    BANK = "bank"
+    USDT = "usdt"
+    PAYPAL = "paypal"
+    OTHER = "other"
 
 
 class ThreadStatus(StrEnum):

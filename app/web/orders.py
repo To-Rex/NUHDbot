@@ -6,8 +6,8 @@ from app.deps import DB, Lang, redirect, require_registered, require_user
 from app.enums import ORDER_STAGES, PAYMENT_STAGE_STATUSES, order_stage
 from app.i18n import t
 from app.models import User
+from app.services import payment_methods as pm_svc
 from app.services.orders import OrderError, customer_confirm_offer, get_order_for_user, user_orders
-from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.common import hx_trigger, toast
 from app.web.router import router
@@ -37,7 +37,8 @@ async def _detail_ctx(request, db, lang, order, user):
     hint_key = f"orders.status_hint.{order.status.value}"
     return {
         "lang": lang, "order": order, "step": step, "total_steps": total_steps, "pay_amount": pay_amount, "due": due,
-        "methods": await get_setting(db, "payment_methods", []), "chat_url": await _chat_url(db, order, user),
+        "pay_methods": await pm_svc.list_methods(db, purpose="order") if pay_amount else [], "pm_instructions": lambda m: pm_svc.instructions(m, lang), "pm_icon": pm_svc.icon,
+        "chat_url": await _chat_url(db, order, user),
         "page_title": t(lang, "orders.detail_title", number=order.number), "back_url": "/app/orders",
         "hint": t(lang, hint_key) if t(lang, hint_key) != hint_key else None,
     }

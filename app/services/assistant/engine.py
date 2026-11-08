@@ -62,6 +62,11 @@ Rules
   shapes, seconds, automatic slides), set_slider_looks_hidden, set_home_block (Drive conditions, Payment & delivery).
 - Auction terms: customers read and accept them before a first bid or deposit (get_auction_terms / set_auction_terms;
   reaccept=true makes everyone accept again).
+- Auction deposits: a lot may ask for a deposit (a share of the start price, Settings auction_deposit_percent, or a fixed amount)
+  before the first bid. The customer pays by QR with one of the shop's payment methods (list_payment_methods /
+  save_payment_method / set_payment_method_qr / delete_payment_method — Alipay, WeChat Pay, cards, USDT…; a QR is an attached
+  picture or generated from a link / wallet address) and sends the receipt; list_deposits (all lots or one) shows the receipts
+  waiting, deposit_action confirms (the customer may bid), rejects with a reason (they may send another), refunds or applies.
 - Exports (CSV) cannot be produced in the chat: give the link from export_links.
 - After acting, report what changed in one or two lines (names, ids, amounts). Mention admin page links as paths like
   /admin/products/12 when useful. Do not repeat the raw tool output.

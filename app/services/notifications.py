@@ -70,6 +70,23 @@ async def notify_auction_result(db: AsyncSession, auction, participants: list[Us
         await send(db, u, text, kind="auction_result", reply_markup=miniapp_button(t(u.lang, "notify.open_auction"), f"/app/auctions/{auction.id}"))
 
 
+async def notify_deposit(db: AsyncSession, user: User, auction, deposit) -> None:
+    """The staff checked the receipt: confirmed (bid away) or rejected (with the reason, send another)."""
+    from app.enums import DepositStatus
+
+    title = esc(f"{auction.title} {auction.capacity_label}")
+    amount = f"{deposit.amount} {deposit.currency}"
+    if deposit.status == DepositStatus.CONFIRMED:
+        text = t(user.lang, "notify.deposit_confirmed", title=title, amount=amount)
+    elif deposit.status == DepositStatus.REJECTED:
+        text = t(user.lang, "notify.deposit_rejected", title=title, amount=amount, reason=esc(deposit.admin_note or "—"))
+    elif deposit.status == DepositStatus.REFUNDED:
+        text = t(user.lang, "notify.deposit_refunded", title=title, amount=amount)
+    else:
+        return
+    await send(db, user, text, kind="deposit", reply_markup=miniapp_button(t(user.lang, "notify.open_auction"), f"/app/auctions/{auction.id}"))
+
+
 async def notify_support_reply(db: AsyncSession, user: User, thread_id: int, preview: str) -> None:
     text = t(user.lang, "notify.support_reply", preview=esc(preview[:200]))
     await send(db, user, text, kind="support_reply", reply_markup=miniapp_button(t(user.lang, "notify.open_chat"), "/app/chat"))

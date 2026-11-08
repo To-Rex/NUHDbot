@@ -1,0 +1,4 @@
+{#- The lot page after the viewer's deposit changed (a receipt sent, the staff's verdict): the deposit card in place, and out of
+    band the call to action and the pay sheet (gone once nothing is left to pay, back after a rejection). -#}
+{% include "miniapp/partials/auction_deposit.html" %}
+{% with oob=True %}{% include "miniapp/partials/auction_cta.html" %}{% include "miniapp/partials/auction_pay.html" %}{% endwith %}

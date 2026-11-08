@@ -33,8 +33,14 @@
   {% elif not terms_ok %}
   <button type="button" class="btn btn-primary btn-lg btn-block" hx-get="/app/auctions/terms?lot={{ a.id }}&view=sheet" hx-target="#bid-sheet-body" hx-swap="innerHTML">{{ icon('handshake', 18) }}{{ t('auction.terms_cta') }}</button>
   {% elif not can_bid %}
-  <div class="notice notice-warn">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>
-  <a class="btn btn-secondary btn-block" href="/app/auctions/{{ a.id }}">{{ t('auction.pay_deposit') }}</a>
+    {% if dep_pending %}
+    <div class="notice notice-warn">{{ icon('clock', 18) }}<span class="small"><b>{{ t('auction.deposit_pending_cta') }}</b><br>{{ t('auction.deposit_pending_short') }}</span></div>
+    <a class="btn btn-secondary btn-block" href="/app/auctions/{{ a.id }}">{{ t('auction.details') }}</a>
+    {% else %}
+    {% if deposit and deposit.status.value == 'rejected' %}<div class="notice notice-bad">{{ icon('x-circle', 18) }}<span class="small"><b>{{ t('auction.deposit_rejected_title') }}</b>{% if deposit.admin_note %} — {{ deposit.admin_note }}{% endif %}</span></div>
+    {% else %}<div class="notice notice-warn">{{ icon('wallet', 18) }}<span class="small">{{ t('auction.deposit_required', amount=a.deposit_amount|money(a.currency)) }}</span></div>{% endif %}
+    <a class="btn btn-primary btn-lg btn-block" href="/app/auctions/{{ a.id }}#deposit-card">{{ icon('qr', 18) }}{{ t('auction.deposit_cta', amount=a.deposit_amount|money(a.currency)) }}</a>
+    {% endif %}
   {% elif not (leader_id and leader_id == me_id) %}
   <form class="bs-form" hx-post="/app/auctions/{{ a.id }}/bid" hx-target="#bid-sheet-body" hx-swap="innerHTML" hx-disabled-elt="find button">
     <input type="hidden" name="view" value="sheet">

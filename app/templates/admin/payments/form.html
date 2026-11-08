@@ -1,0 +1,94 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/payments">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
+{% block content %}
+{#- One payment method: 1 what it is (the kind fills a usual name), 2 the QR — a picture from the payment app, or generated here
+    from a payment link / wallet address (drawn as the admin types), 3 the account to copy and instructions, 4 where it is shown. -#}
+{% if errors %}<div class="notice notice-bad mb">{{ icon('alert', 18) }}<span>{% for e in errors %}{{ t('admin.pm.err.' ~ e) }}{% if not loop.last %} · {% endif %}{% endfor %}</span></div>{% endif %}
+<div class="split pm-edit">
+<form method="post" enctype="multipart/form-data" id="pm-form" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
+  <section class="fsection"><h2 data-n="01">{{ t('admin.pm.sec_kind') }}</h2>
+    <div class="pm-kinds mt">{% for k in kinds %}<label class="pm-kind"><input type="radio" name="kind" value="{{ k.value }}" {{ 'checked' if m.kind == k }} data-name="{{ presets[k.value].name }}" data-acc="{{ t('admin.pm.acc.' ~ presets[k.value].account) }}"><span>{{ icon(presets[k.value].icon, 18) }}<b>{{ t('admin.pm.kinds.' ~ k.value) }}</b></span></label>{% endfor %}</div>
+    <div class="form-grid mt">
+      <div class="field"><label>{{ t('admin.pm.name') }} <span class="req">*</span></label><input class="input" name="name" value="{{ m.name or '' }}" maxlength="80" required data-pm-name><span class="hint">{{ t('admin.pm.name_hint') }}</span></div>
+      <div class="field"><label>{{ t('admin.pm.currency') }}</label><input class="input mono" name="currency" value="{{ m.currency or '' }}" maxlength="3" placeholder="CNY" style="text-transform:uppercase"><span class="hint">{{ t('admin.pm.currency_hint') }}</span></div>
+    </div>
+  </section>
+
+  <section class="fsection"><h2 data-n="02">{{ t('admin.pm.sec_qr') }}</h2>
+    <p class="hint">{{ t('admin.pm.qr_hint') }}</p>
+    <div class="pm-qr-edit mt" data-qr-box data-has-file="{{ '1' if m.qr_filename else '' }}">
+      <div class="pm-qr-preview"><img src="{{ m.qr_url or '' }}" alt="" data-qr-img {% if not m.has_qr %}hidden{% endif %}><span class="pm-noqr" data-qr-none {% if m.has_qr %}hidden{% endif %}>{{ icon('qr', 30) }}<small>{{ t('admin.pm.no_qr') }}</small></span></div>
+      <div class="pm-qr-side">
+        <div class="pm-qr-src"><b>{{ t('admin.pm.qr_upload') }}</b><small>{{ t('admin.pm.qr_upload_hint') }}</small>
+          <div class="row mt-sm"><button type="button" class="btn btn-secondary btn-sm" data-qr-pick>{{ icon('upload', 15) }}<span>{{ t('admin.pm.qr_pick') }}</span></button><button type="button" class="btn btn-secondary btn-sm" data-qr-drop {% if not m.qr_filename %}hidden{% endif %}>{{ icon('x', 15) }}{{ t('admin.pm.qr_remove') }}</button></div>
+          <input type="file" name="qr" accept="image/*" hidden data-qr-file><input type="hidden" name="remove_qr" value="" data-qr-remove></div>
+        <div class="pm-qr-or">{{ t('admin.pm.or') }}</div>
+        <div class="pm-qr-src"><b>{{ t('admin.pm.qr_text') }}</b><small>{{ t('admin.pm.qr_text_hint') }}</small>
+          <textarea class="textarea mono mt-sm" name="qr_text" rows="2" placeholder="https://qr.alipay.com/… / TXyz…" data-qr-text>{{ m.qr_text or '' }}</textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fsection"><h2 data-n="03">{{ t('admin.pm.sec_details') }}</h2>
+    <div class="field mt"><label data-acc-label>{{ t('admin.pm.account') }}</label><input class="input mono" name="account" value="{{ m.account or '' }}" maxlength="200" placeholder="{{ t('admin.pm.account_ph') }}"><span class="hint">{{ t('admin.pm.account_hint') }}</span></div>
+    <div class="mt">{% with name='instructions', value=m.instructions, kind='textarea', rows=3, label=t('admin.pm.instructions') %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
+  </section>
+
+  <section class="fsection"><h2 data-n="04">{{ t('admin.pm.sec_where') }}</h2>
+    <div class="pm-switches mt">
+      <label class="sw-row"><span><b>{{ t('admin.pm.for_deposits') }}</b><small>{{ t('admin.pm.for_deposits_hint') }}</small></span><input type="checkbox" name="for_deposits" value="1" {{ 'checked' if m.for_deposits }}><span class="switch{{ ' on' if m.for_deposits }}"></span></label>
+      <label class="sw-row"><span><b>{{ t('admin.pm.for_orders') }}</b><small>{{ t('admin.pm.for_orders_hint') }}</small></span><input type="checkbox" name="for_orders" value="1" {{ 'checked' if m.for_orders }}><span class="switch{{ ' on' if m.for_orders }}"></span></label>
+      <label class="sw-row"><span><b>{{ t('admin.pm.active') }}</b><small>{{ t('admin.pm.active_hint') }}</small></span><input type="checkbox" name="is_active" value="1" {{ 'checked' if m.is_active }}><span class="switch{{ ' on' if m.is_active }}"></span></label>
+    </div>
+  </section>
+</form>
+
+<aside class="stack">
+  <div class="card pm-side">
+    <h2>{{ t('admin.pm.preview') }}</h2>
+    <p class="hint">{{ t('admin.pm.preview_hint') }}</p>
+    <div class="pm-phone mt">
+      <div class="pm-phone-tab">{{ icon('scan', 15) }}<span data-pv-name>{{ m.name }}</span></div>
+      <div class="pm-phone-qr"><img src="{{ m.qr_url or '' }}" alt="" data-pv-qr {% if not m.has_qr %}hidden{% endif %}><span data-pv-noqr {% if m.has_qr %}hidden{% endif %}>{{ icon('qr', 34) }}</span></div>
+      <div class="pm-phone-acc"><small data-pv-acc-label>{{ t('admin.pm.account') }}</small><b data-pv-acc>{{ m.account or '—' }}</b>{{ icon('copy', 14) }}</div>
+    </div>
+    <button class="btn btn-primary btn-block mt" form="pm-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button>
+    {% if not is_new %}<form method="post" action="/admin/payments/{{ m.id }}/delete" class="mt-sm"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger btn-block" data-confirm="{{ t('admin.pm.delete_q') }}" data-confirm-text="{{ m.name }}" data-confirm-danger="1" data-confirm-ok="{{ t('admin.delete') }}">{{ icon('trash', 16) }}{{ t('admin.delete') }}</button></form>{% endif %}
+  </div>
+</aside>
+</div>
+<div class="savebar" data-unsaved="{{ t('admin.prod.unsaved') }}"><span class="state"><i class="dot"></i><span data-state>{{ t('admin.prod.all_saved') }}</span></span><span class="spacer"></span><kbd>{{ t('admin.prod.save_shortcut') }}</kbd><button class="btn btn-primary" form="pm-form">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div>
+<script>
+(function(){
+  var f = document.getElementById('pm-form'); if (!f) return;
+  var q = function (s) { return f.querySelector(s); }, side = document.querySelector('.pm-side');
+  var name = q('[data-pm-name]'), acc = q('[name="account"]'), kindChecked = function () { return f.querySelector('[name="kind"]:checked'); };
+  /* the kind fills a usual name while the name is still one of the presets, and names the account line */
+  var presets = [].map.call(f.querySelectorAll('[name="kind"]'), function (r) { return r.dataset.name; });
+  f.addEventListener('change', function (e) {
+    if (e.target.name !== 'kind') return;
+    var d = e.target.dataset; if (!name.value.trim() || presets.indexOf(name.value.trim()) >= 0) { name.value = d.name; name.dispatchEvent(new Event('input', { bubbles: true })); }
+    q('[data-acc-label]').textContent = d.acc; side.querySelector('[data-pv-acc-label]').textContent = d.acc;
+  });
+  var k0 = kindChecked(); if (k0) { q('[data-acc-label]').textContent = k0.dataset.acc; side.querySelector('[data-pv-acc-label]').textContent = k0.dataset.acc; }
+  name.addEventListener('input', function () { side.querySelector('[data-pv-name]').textContent = name.value || '—'; });
+  acc.addEventListener('input', function () { side.querySelector('[data-pv-acc]').textContent = acc.value || '—'; });
+  /* the QR: a picked picture previews at once; a typed link / address is drawn by the server while typing */
+  var box = q('[data-qr-box]'), img = q('[data-qr-img]'), none = q('[data-qr-none]'), file = q('[data-qr-file]'), txt = q('[data-qr-text]'), drop = q('[data-qr-drop]'), rm = q('[data-qr-remove]');
+  var pv = side.querySelector('[data-pv-qr]'), pvNone = side.querySelector('[data-pv-noqr]');
+  function show(src) { var on = !!src; img.hidden = !on; none.hidden = on; pv.hidden = !on; pvNone.hidden = on; if (on) { img.src = src; pv.src = src; } }
+  q('[data-qr-pick]').addEventListener('click', function () { file.click(); });
+  file.addEventListener('change', function () {
+    var fl = file.files && file.files[0]; if (!fl) return;
+    var r = new FileReader(); r.onload = function () { show(r.result); }; r.readAsDataURL(fl);
+    rm.value = ''; drop.hidden = false; box.dataset.hasFile = '1'; txt.value = '';
+  });
+  drop.addEventListener('click', function () { file.value = ''; rm.value = '1'; box.dataset.hasFile = ''; drop.hidden = true; show(txt.value.trim() ? '/admin/payments/qr-preview.svg?text=' + encodeURIComponent(txt.value.trim()) : ''); });
+  var tmr; txt.addEventListener('input', function () {
+    if (box.dataset.hasFile) { if (txt.value.trim()) { file.value = ''; rm.value = '1'; box.dataset.hasFile = ''; drop.hidden = true; } else return; }
+    clearTimeout(tmr); tmr = setTimeout(function () { var v = txt.value.trim(); show(v ? '/admin/payments/qr-preview.svg?text=' + encodeURIComponent(v) : ''); }, 350);
+  });
+  f.querySelectorAll('.sw-row input[type=checkbox]').forEach(function (c) { c.addEventListener('change', function () { c.nextElementSibling.classList.toggle('on', c.checked); }); });
+})();
+</script>
+{% endblock %}

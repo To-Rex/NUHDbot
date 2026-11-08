@@ -12,6 +12,9 @@
     "auction_lost": "Auksion <b>{title}</b> yakunlandi. Bu safar omad kulib boqmadi — keyingi auksionlarni kuzatib boring.",
     "support_reply": "💬 Admindan javob:\n{preview}",
     "order_awaiting_payment": "Buyurtma tasdiqlandi. To'lov summasi: <b>{amount}</b>. To'lov rekvizitlari buyurtma sahifasida. To'lagach, chekni chatga yuboring.",
-    "order_paid": "To'lov qabul qilindi. Buyurtmangiz jo'natishga tayyorlanmoqda."
+    "order_paid": "To'lov qabul qilindi. Buyurtmangiz jo'natishga tayyorlanmoqda.",
+    "deposit_confirmed": "✅ <b>{title}</b> uchun {amount} depozit tasdiqlandi. Endi stavka qo'yishingiz mumkin.",
+    "deposit_rejected": "❌ <b>{title}</b> uchun depozit cheki ({amount}) qabul qilinmadi.\nSabab: {reason}\nTekshirib, chekni qayta yuboring.",
+    "deposit_refunded": "↩️ <b>{title}</b> uchun {amount} depozit qaytarildi."
   }
 }

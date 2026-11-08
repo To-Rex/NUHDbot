@@ -56,6 +56,7 @@ NAV_GROUPS = [
     ("system", [
         ("settings", "/admin/settings", "settings", ADMIN),
         ("currencies", "/admin/currencies", "money", ADMIN),
+        ("payments", "/admin/payments", "qr", ADMIN | {Role.FINANCE}),
         ("geo", "/admin/settings/geo", "globe", ADMIN),
         ("ads", "/admin/ads", "flag", ADS_ROLES),
         ("banners", "/admin/banners", "image", ADS_ROLES),
@@ -270,8 +271,8 @@ __all__ = ["DB", "Depends", "HTTPException", "Request", "Response", "RedirectRes
 async def nav_badges(db: AsyncSession) -> dict:
     from datetime import UTC, datetime, timedelta
 
-    from app.enums import AuctionStatus, OrderStatus, ThreadStatus
-    from app.models import Auction, Order, SupportThread
+    from app.enums import AuctionStatus, DepositStatus, OrderStatus, ThreadStatus
+    from app.models import Auction, AuctionDeposit, Order, SupportThread
 
     awaiting = (await db.execute(select(func.count()).select_from(Order).where(Order.status == OrderStatus.AWAITING_ADMIN))).scalar_one()
     unread = (
@@ -279,4 +280,5 @@ async def nav_badges(db: AsyncSession) -> dict:
     ).scalar_one()
     soon = datetime.now(UTC) + timedelta(hours=1)
     ending = (await db.execute(select(func.count()).select_from(Auction).where(Auction.status == AuctionStatus.LIVE, Auction.ends_at <= soon))).scalar_one()
-    return {"orders": awaiting or None, "support": unread or None, "auctions": ending or None, "total": (awaiting + unread) or None}
+    deposits = (await db.execute(select(func.count()).select_from(AuctionDeposit).where(AuctionDeposit.status == DepositStatus.PENDING))).scalar_one()  # receipts waiting for a check
+    return {"orders": awaiting or None, "support": unread or None, "auctions": (ending + deposits) or None, "deposits": deposits or None, "total": (awaiting + unread + deposits) or None}

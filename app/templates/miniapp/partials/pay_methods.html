@@ -1,0 +1,37 @@
+{#- The shop's payment methods as the customer pays: one tab per method (Alipay, WeChat Pay, a card, USDT…), the chosen one's QR
+    code big on white (phones scan it in any theme), the account to copy and the admin's instructions. Expects: pay_methods,
+    pm_instructions(m), pm_icon(m); optional select_name — a hidden input with the chosen method's id for the form around it. -#}
+<div class="pm" data-pm>
+  {% if select_name %}<input type="hidden" name="{{ select_name }}" value="{{ pay_methods[0].id if pay_methods else '' }}" data-pm-chosen>{% endif %}
+  {% if pay_methods|length > 1 %}
+  <div class="pm-tabs" role="tablist">
+    {% for m in pay_methods %}<button type="button" class="pm-tab{{ ' active' if loop.first }}" role="tab" aria-selected="{{ 'true' if loop.first else 'false' }}" data-pm-tab="{{ m.id }}">{{ icon(pm_icon(m), 16) }}<span>{{ m.name }}</span></button>{% endfor %}
+  </div>
+  {% endif %}
+  {% for m in pay_methods %}
+  <div class="pm-panel" data-pm-panel="{{ m.id }}"{{ ' hidden' if not loop.first }}>
+    {% if pay_methods|length == 1 %}<div class="pm-one">{{ icon(pm_icon(m), 18) }}<b>{{ m.name }}</b>{% if m.currency %}<span class="chip chip-soft">{{ m.currency }}</span>{% endif %}</div>{% endif %}
+    {% if m.has_qr %}
+    <div class="qr-tile"><img src="{{ m.qr_url }}" alt="{{ m.name }} QR" data-lightbox="{{ m.qr_url }}" loading="lazy"><span class="qr-zoom">{{ icon('zoom', 13) }}{{ t('auction.pay_zoom') }}</span></div>
+    <p class="pm-scan">{{ icon('scan', 15) }}{{ t('auction.pay_scan', name=m.name) }}</p>
+    {% endif %}
+    {% if m.account %}
+    <button type="button" class="pm-account" data-copy="{{ m.account }}" data-copied-text="{{ t('common.copied') }}"><span class="pm-acc-label">{{ t('auction.pay_account') }}{% if m.currency and pay_methods|length > 1 %} · {{ m.currency }}{% endif %}</span><span class="pm-acc-value mono">{{ m.account }}</span><span class="pm-acc-copy">{{ icon('copy', 16) }}</span></button>
+    {% endif %}
+    {% set txt = pm_instructions(m) %}{% if txt %}<p class="pm-instr small">{{ txt|nl2br }}</p>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+<script>
+(function(){
+  document.querySelectorAll('[data-pm]').forEach(function (root) { if (root._pm) return; root._pm = 1;
+  root.addEventListener('click', function (e) {
+    var tab = e.target.closest('[data-pm-tab]'); if (!tab) return;
+    var id = tab.dataset.pmTab;
+    root.querySelectorAll('[data-pm-tab]').forEach(function (b) { var on = b === tab; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    root.querySelectorAll('[data-pm-panel]').forEach(function (p) { p.hidden = p.dataset.pmPanel !== id; });
+    var chosen = root.querySelector('[data-pm-chosen]'); if (chosen) chosen.value = id;
+    if (window.NUHD) NUHD.haptic.select();
+  }); });
+})();
+</script>

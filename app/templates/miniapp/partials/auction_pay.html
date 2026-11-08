@@ -1,0 +1,54 @@
+{#- The lot page's "pay the deposit" sheet: the amount (a share of the start price), step 1 — pay by QR with one of the shop's
+    methods, step 2 — send the receipt (a picture or PDF, previewed before sending). Always in the page as #pay-sheet so the live
+    channel can swap it out of band when the viewer's deposit state changes. -#}
+<div id="pay-sheet" hidden{{ ' hx-swap-oob="true"'|safe if oob }}>
+{% if deposit_to_pay %}
+<div class="sheet-backdrop" data-close-sheet="pay-sheet"></div>
+<div class="sheet pay-sheet">
+  <div class="grab"></div>
+  <div class="pay-head">
+    <div><span class="eyebrow">{{ t('auction.deposit') }} · {{ t('auction.lot') }} #{{ a.id }}</span><b class="pay-amount mono">{{ a.deposit_amount|money(a.currency) }}</b>
+      <span class="small muted">{% if dep_pct %}{{ t('auction.deposit_pct_note', pct=dep_pct) }} · {% endif %}{{ t('auction.start_price') }} {{ a.start_price_total|money(a.currency) }}</span></div>
+    <button type="button" class="icon-btn" data-close-sheet="pay-sheet" aria-label="{{ t('common.close') }}">{{ icon('x', 18) }}</button>
+  </div>
+  {% if deposit and deposit.status.value == 'rejected' %}<div class="notice notice-bad">{{ icon('x-circle', 18) }}<span class="small"><b>{{ t('auction.deposit_rejected_title') }}</b>{% if deposit.admin_note %} — {{ deposit.admin_note }}{% endif %}. {{ t('auction.deposit_resend_hint') }}</span></div>{% endif %}
+
+  <form class="pay-form" id="deposit-form" hx-post="/app/auctions/{{ a.id }}/deposit" hx-target="#deposit-card" hx-swap="outerHTML" hx-encoding="multipart/form-data" hx-disabled-elt="find button[type=submit]">
+    <section class="pay-step">
+      <header><span class="pay-num">1</span><div><b>{{ t('auction.pay_step1') }}</b><small>{{ t('auction.pay_exact', amount=a.deposit_amount|money(a.currency)) }}</small></div></header>
+      {% if pay_methods %}
+      {% with select_name='method_id' %}{% include "miniapp/partials/pay_methods.html" %}{% endwith %}
+      {% else %}
+      <div class="notice notice-warn">{{ icon('info', 18) }}<span class="small">{{ t('auction.pay_no_methods') }}</span></div>
+      <a class="btn btn-secondary btn-block mt-2" href="/app/support/new">{{ icon('message', 16) }}{{ t('nav.chat') }}</a>
+      {% endif %}
+    </section>
+
+    <section class="pay-step">
+      <header><span class="pay-num">2</span><div><b>{{ t('auction.pay_step2') }}</b><small>{{ t('auction.receipt_hint') }}</small></div></header>
+      <label class="receipt-pick" data-receipt>
+        <input type="file" name="proof" accept="image/*,.pdf,application/pdf" required>
+        <span class="rp-empty">{{ icon('camera', 26) }}<b>{{ t('auction.receipt_pick') }}</b><small>{{ t('auction.receipt_tap') }}</small></span>
+        <span class="rp-full" hidden><img alt="" class="rp-img"><span class="rp-file">{{ icon('receipt', 22) }}<span class="rp-name"></span></span><span class="rp-change">{{ icon('refresh', 13) }}{{ t('auction.receipt_change') }}</span></span>
+      </label>
+      <input class="input mt-2" name="note" maxlength="200" placeholder="{{ t('auction.receipt_note') }}" autocomplete="off">
+      <button class="btn btn-primary btn-lg btn-block mt-3" type="submit" disabled><span class="label row" style="gap:8px">{{ icon('send', 18) }}{{ t('auction.receipt_send') }}</span><span class="spinner"></span></button>
+      <p class="xs faint center mt-2">{{ t('auction.deposit_note') }}</p>
+    </section>
+  </form>
+</div>
+<script>
+(function(){
+  var sheet = document.getElementById('pay-sheet'); if (!sheet || sheet._rp) return; sheet._rp = 1;
+  var pick = sheet.querySelector('[data-receipt]'), input = pick.querySelector('input[type=file]'), btn = sheet.querySelector('#deposit-form button[type=submit]');
+  input.addEventListener('change', function () {
+    var f = input.files && input.files[0]; var full = pick.querySelector('.rp-full'), empty = pick.querySelector('.rp-empty'), img = pick.querySelector('.rp-img'), file = pick.querySelector('.rp-file');
+    if (!f) { full.hidden = true; empty.hidden = false; btn.disabled = true; return; }
+    var isImg = /^image\//.test(f.type); img.hidden = !isImg; file.hidden = isImg; pick.querySelector('.rp-name').textContent = f.name;
+    if (isImg) { var r = new FileReader(); r.onload = function () { img.src = r.result; }; r.readAsDataURL(f); }
+    empty.hidden = true; full.hidden = false; btn.disabled = false; if (window.NUHD) NUHD.haptic.light();
+  });
+})();
+</script>
+{% endif %}
+</div>

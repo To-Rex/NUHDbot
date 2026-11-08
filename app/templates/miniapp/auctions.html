@@ -80,7 +80,7 @@
   function fmt(v, cur) { var n = Number(v); if (isNaN(n)) return v; var s = n.toLocaleString('en-US', { maximumFractionDigits: 2 }); return cur === 'USD' ? '$' + s : s + ' ' + cur; }
   function setText(el, txt) { if (el && el.textContent !== txt) { el.textContent = txt; if (el.dataset.k === 'total') { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } } }
   function paint(d) {  /* one lot's event → its cards (hero and list) */
-    if (d.id === undefined) return;
+    if (d.id === undefined || d.type === 'deposit') return;  /* a deposit verdict is one viewer's business: the lot page handles it */
     if (d.version !== undefined) { if (seen[d.id] !== undefined && Number(d.version) <= seen[d.id]) return; seen[d.id] = Number(d.version); }
     var cards = document.querySelectorAll('[data-lot="' + d.id + '"]'); if (!cards.length) return;
     cards.forEach(function (card) {

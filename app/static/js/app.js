@@ -301,7 +301,7 @@
   }
   const fetchState = (id, onState) => fetch('/api/auctions/' + id + '/state', { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)).then((s) => { if (s) onState(s); }).catch(() => {});
   // one lot (its page): state / bid / ended events, plus the polled state
-  window.liveAuction = function (id, onState) { return liveStream('/api/auctions/' + id + '/stream', ['state', 'bid', 'ended'], onState, () => fetchState(id, onState)); };
+  window.liveAuction = function (id, onState) { return liveStream('/api/auctions/' + id + '/stream', ['state', 'bid', 'ended', 'deposit'], onState, () => fetchState(id, onState)); };
   // every lot (the auctions page): events carry the lot id; `poll` is the page's own refresh
   window.liveAuctions = function (onEvent, poll) { return liveStream('/api/auctions/stream', ['state', 'bid', 'ended'], onEvent, poll); };
   window.auctionState = fetchState;

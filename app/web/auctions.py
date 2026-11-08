@@ -1,16 +1,18 @@
 from decimal import Decimal, InvalidOperation
 
 from fastapi import Depends, File, Form, Request, UploadFile
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from sqlalchemy import select
 
 from app.deps import DB, CurrentUser, Lang, redirect, require_registered
 from app.enums import AuctionStatus, DepositStatus
-from app.i18n import t
+from app.i18n import pick, t
 from app.models import AuctionDeposit, Bid, User
 from app.services import auction_terms as terms_svc
 from app.services import auctions, notifications
+from app.services import payment_methods as pm_svc
 from app.services.media import MediaError, save_document
+from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.common import hx_trigger, toast
 from app.web.router import router
@@ -63,12 +65,22 @@ async def auction_terms_accept(request: Request, db: DB, lang: Lang, user: User 
     return hx_trigger(resp, toast={"msg": t(lang, "auction.terms_ok"), "type": "ok"}, haptic="success", termsAccepted=True)
 
 
+async def _deposit_ctx(db, a, user, lang) -> dict:
+    """Where the viewer stands with the lot's deposit, and — while it is still to pay — how to pay it: the shop's payment
+    methods with their QR codes, and the reply time the staff promise."""
+    dep = await auctions.user_deposit(db, a.id, user.id) if user else None
+    needs = auctions.needs_deposit(a)
+    to_pay = needs and (dep is None or dep.status in (DepositStatus.REJECTED, DepositStatus.REFUNDED)) and a.status in (AuctionStatus.LIVE, AuctionStatus.SCHEDULED)
+    return {"deposit": dep, "needs_deposit": needs, "can_bid": (not needs) or auctions.deposit_ok(dep), "deposit_to_pay": to_pay, "dep_pct": auctions.pct_label(a.deposit_percent),
+            "dep_pending": dep is not None and dep.status == DepositStatus.PENDING,
+            "pay_methods": await pm_svc.list_methods(db, purpose="deposit") if to_pay else [],
+            "pm_instructions": lambda m: pm_svc.instructions(m, lang), "pm_icon": pm_svc.icon,
+            "reply_time": pick(await get_setting(db, "reply_time", {}), lang) if needs else ""}
+
+
 async def _ctx(db, a, user, lang):
     bids = await auctions.recent_bids(db, a.id, limit=25)
     leader_id = bids[0].user_id if bids else None
-    dep = await auctions.user_deposit(db, a.id, user.id) if user else None
-    needs_deposit = a.require_deposit and Decimal(a.deposit_amount or 0) > 0
-    can_bid = (not needs_deposit) or (dep is not None and dep.status in (DepositStatus.CONFIRMED, DepositStatus.APPLIED))
     numbers = await auctions.bidder_numbers(db, a.id)  # no names on the customer side: "Participant №N"
     start, cur = Decimal(a.start_price_total or 0), Decimal(a.current_price_total or 0)
     growth = cur - start if a.bids_count else Decimal(0)
@@ -77,7 +89,7 @@ async def _ctx(db, a, user, lang):
         "last_bid_at": bids[0].created_at if bids else None,
         "extended_min": max(0, int((a.ends_at - a.original_ends_at).total_seconds() // 60)) if a.original_ends_at else 0,
     }
-    return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, "deposit": dep, "needs_deposit": needs_deposit, "can_bid": can_bid,
+    return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, **(await _deposit_ctx(db, a, user, lang)),
             "me_id": user.id if user else None, "numbers": numbers, "stats": stats, **(await _terms_ctx(db, user, lang)),
             "my_best": await auctions.best_bid(db, a.id, user.id) if user and user.id in numbers else None}
 
@@ -150,23 +162,59 @@ async def auction_bid(auction_id: int, request: Request, db: DB, lang: Lang, use
     return hx_trigger(resp, toast={"msg": t(lang, "auction.bid_ok"), "type": "ok"}, haptic="success", bidPlaced=True)
 
 
+@router.get("/pay/qr/{method_id}.svg")
+async def pay_qr(method_id: int, db: DB):
+    """The QR code generated from a payment method's link / address (methods with an uploaded picture have a file instead)."""
+    m = await pm_svc.get(db, method_id)
+    if m is None or not m.qr_text or not m.is_active:
+        return Response(status_code=404)
+    return Response(pm_svc.qr_svg(m.qr_text), media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=3600"})
+
+
+async def _deposit_state(request, db, a, user, lang, status_code: int = 200):
+    """The lot page's deposit card (and, out of band, its call to action): what the viewer sees after sending a receipt or
+    when the staff's verdict arrives."""
+    return render(request, "miniapp/partials/auction_deposit_state.html", await _ctx(db, a, user, lang), status_code=status_code)
+
+
+@router.get("/auctions/{auction_id}/deposit")
+async def auction_deposit_card(auction_id: int, request: Request, db: DB, user: CurrentUser, lang: Lang):
+    a = await auctions.get_auction(db, auction_id)
+    if a is None or a.status == AuctionStatus.DRAFT:
+        return HTMLResponse("", status_code=404)
+    return await _deposit_state(request, db, a, user, lang)
+
+
 @router.post("/auctions/{auction_id}/deposit")
-async def auction_deposit(auction_id: int, request: Request, db: DB, lang: Lang, user: User = Depends(require_registered), note: str = Form(""), proof: UploadFile | None = File(None)):
+async def auction_deposit(auction_id: int, request: Request, db: DB, lang: Lang, user: User = Depends(require_registered), note: str = Form(""), method_id: str = Form(""), proof: UploadFile | None = File(None)):
+    """The customer paid the deposit by QR and sends the receipt: a pending deposit the staff will check. Answers the lot page
+    in place (htmx) or with a redirect to it."""
     a = await auctions.get_auction(db, auction_id)
     if a is None:
         return redirect(request, "/app/auctions")
+    hx = request.headers.get("HX-Request") == "true"
+    uid = user.id
+
+    async def fail(msg: str):
+        await db.rollback()
+        fresh_a, fresh_u = await auctions.get_auction(db, auction_id), await db.get(User, uid)  # the rollback expired what was loaded
+        resp = await _deposit_state(request, db, fresh_a, fresh_u, lang) if hx else redirect(request, f"/app/auctions/{auction_id}")
+        return toast(resp, msg, "bad", "error")
+
     proof_name = None
     if proof and proof.filename:
         try:
             proof_name = await save_document(proof, prefix="dep")
         except MediaError:
-            return toast(redirect(request, f"/app/auctions/{auction_id}"), t(lang, "support.errors.file"), "bad", "error")
+            return await fail(t(lang, "support.errors.file"))
+    mid = int(method_id) if method_id.isdigit() else None
     try:
-        await auctions.claim_deposit(db, a, user, proof_name, note or None)
+        await auctions.claim_deposit(db, a, user, proof_name, note.strip() or None, mid if await pm_svc.get(db, mid) else None)
     except auctions.AuctionError as e:
-        return toast(redirect(request, f"/app/auctions/{auction_id}"), t(lang, f"auction.errors.{e.code}", **e.ctx), "bad", "error")
+        return await fail(t(lang, f"auction.errors.{e.code}", **e.ctx))
     await db.commit()
-    return hx_trigger(redirect(request, f"/app/auctions/{auction_id}"), toast={"msg": t(lang, "auction.deposit_pending"), "type": "ok"}, haptic="success")
+    resp = await _deposit_state(request, db, a, user, lang) if hx else redirect(request, f"/app/auctions/{auction_id}")
+    return hx_trigger(resp, toast={"msg": t(lang, "auction.deposit_sent"), "type": "ok"}, haptic="success", depositSent=True)
 
 
 async def user_auction_summary(db, user_id: int):
