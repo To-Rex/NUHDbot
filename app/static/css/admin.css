@@ -1903,3 +1903,72 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .tech-test{display:flex;gap:12px 14px;flex-wrap:wrap;align-items:flex-start}
 .tech-test>.field{flex:1 1 150px;min-width:0}
 .tech-test>.field:has([name=form_factor]){flex:0 0 96px}.tech-test>.field:has([name=rpm]){flex:0 0 104px}.tech-test>.field:has([name=hours_used]){flex:0 0 110px}
+
+/* ---------- lot form, compact (same manner as the product form) ---------- */
+.auc-steps{gap:12px}
+.auc-step{padding:14px 16px 16px}
+.auc-step-head{align-items:center;gap:10px;margin-bottom:12px}
+.auc-step-head>div{display:flex;align-items:baseline;gap:10px;min-width:0;flex:1}
+.auc-step-head h2{font-size:15px;white-space:nowrap}
+.auc-step-head p{margin:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:none}
+.auc-step-num{width:24px;height:24px;border-radius:7px;font-size:11px}
+.auc-step-num svg{width:13px;height:13px}
+/* the product browser: compact rows instead of tall cards */
+.ap-search .input,.ap-sort .select{height:36px}
+.ap-sort .select{min-width:170px}
+.ap-dirs{margin-top:8px}
+.ap-dir{height:30px;padding:0 11px;font-size:12px}
+.ap-filters{margin-top:8px}
+.ap-sel{height:32px;min-width:130px;font-size:12px}
+.ap-seg button{height:26px;padding:0 10px}
+.ap-grid{grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px;margin-top:10px;max-height:372px;padding:2px}
+.ap-card{flex-direction:row;align-items:center;gap:10px;padding:7px 10px 7px 7px;border-radius:12px}
+.ap-card:hover{transform:none}
+.ap-img{width:54px;height:54px;aspect-ratio:auto;border-radius:9px;flex:0 0 auto}
+.ap-img em{font-size:13px}
+.ap-dirtag{display:none}
+.ap-check{right:auto;left:38px;top:-4px;width:18px;height:18px}
+.ap-check svg{width:10px;height:10px}
+.ap-body{padding:0;gap:2px;flex:1;min-width:0}
+.ap-brand{font-size:10.5px}
+.ap-model{font-size:13px}
+.ap-chips{gap:4px}
+.ap-chips .chip{font-size:10px;padding:1px 6px}
+.ap-foot{margin-top:0;flex-direction:column;align-items:flex-end;gap:1px;flex:0 0 auto}
+.ap-foot b{font-size:13px}
+.ap-stockv{font-size:10.5px}
+.ap-empty{padding:24px}
+.ap-picked{padding:9px 10px;gap:12px;border-radius:12px}
+.ap-picked-img{width:48px;height:48px;border-radius:10px}
+.ap-picked-info b{font-size:14px}
+.ap-picked-info small{font-size:10px}
+.ap-picked-meta{font-size:12px}
+.ap-picked-side b{font-size:14px}
+/* step 2: quantity · start price · step on one row; the deposit as one line under them */
+.auc-grid{gap:12px 14px}
+.auc-grid-2{grid-template-columns:repeat(3,minmax(0,1fr))}
+.auc-qty .input{height:38px;font-size:15px}
+.auc-qty .icon-btn{width:38px;height:38px;border-radius:10px}
+.auc-money .input{height:38px;font-size:14px}
+.auc-under{min-height:24px;margin-top:4px}
+.auc-under .hint{font-size:11.5px}
+.chip-btn{height:24px;padding:0 9px;font-size:11.5px}
+.auc-dep{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-top:4px;border-top:1px solid var(--hairline);margin-top:2px;padding-top:12px}
+.auc-dep>label{margin:0;min-width:64px}
+.auc-dep .seg{flex:0 0 auto}
+.auc-dep .auc-money{margin-top:0!important;width:150px;flex:0 0 auto}
+.auc-dep .auc-under{flex:1 1 200px;min-height:0;margin:0}
+/* step 3 */
+.auc-chips{margin-top:6px;gap:5px}
+.auc-duration{margin-top:10px;padding:8px 12px;font-size:12.5px}
+.auc-rules{margin-top:12px;padding:10px 12px}
+.auc-rules-common{margin-top:8px}
+.auc-rules .rules-text{font-size:12.5px;max-height:84px;overflow:auto}
+/* the side card */
+.auc-sum{gap:12px}
+.auc-sum .lot-card .im{aspect-ratio:16/9}
+@media (max-width:1240px){.auc-grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.auc-grid-2{grid-template-columns:minmax(0,1fr)}.ap-grid{grid-template-columns:minmax(0,1fr)}}
+.auc-dep{flex-direction:row;justify-content:flex-start;align-items:center}
+.auc-dep .auc-under{flex:1 1 160px;align-self:center}
+.auc-step .auc-grid-2:has([name=starts_at]){grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
