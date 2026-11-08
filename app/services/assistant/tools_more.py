@@ -291,7 +291,7 @@ async def get_home_settings(ctx: Ctx):
     return {
         "blocks_order": bsvc.clean_order(await g("home_order")), "directions_order": bsvc.clean_order(await g("direction_order"), bsvc.DIRECTIONS),
         "direction_names": {c.value: n for c, n in COLOR_DIRECTION.items()}, "direction_images": sorted((await g("direction_images") or {}).keys()),
-        "auto_slides": bsvc.clean_auto_slides(await g("auto_slides")), "slide_seconds": await g("slider_seconds"),
+        "auto_slides": bsvc.clean_auto_slides(await g("auto_slides")), "slide_seconds": await g("slider_seconds"), "dir_slide_seconds": await g("dir_slider_seconds"),
         "banner_slider": {"look": cur_b, "shape": bsvc.clean_shape(await g("banner_slider_shape")), "hidden_looks": bsvc.clean_hidden(await g("banner_styles_hidden"), bsvc.STYLES, cur_b), "all_looks": list(bsvc.STYLES)},
         "directions_slider": {"look": cur_d, "shape": bsvc.clean_shape(await g("dir_slider_shape")), "hidden_looks": bsvc.clean_hidden(await g("dir_styles_hidden"), series_service.DIR_STYLES, cur_d), "all_looks": list(series_service.DIR_STYLES)},
         "conditions_block": bsvc.clean_conditions(await g("home_conditions")), "terms_block": bsvc.clean_terms(await g("home_terms")) | {"payment_text": await g("payment_text"), "delivery_text": await g("delivery_text")},

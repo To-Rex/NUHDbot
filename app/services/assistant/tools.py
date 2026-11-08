@@ -593,7 +593,7 @@ async def _apply_banner(ctx: Ctx, b: Banner, a: dict) -> None:
 async def list_banners(ctx: Ctx):
     rows = await bsvc.all_banners(ctx.db)
     s = await get_all_settings(ctx.db)
-    return {"banners": [banner_row(b) for b in rows], "slider": {k: s.get(k) for k in ("banner_slider_style", "banner_slider_shape", "dir_slider_style", "dir_slider_shape", "slider_seconds")}}
+    return {"banners": [banner_row(b) for b in rows], "slider": {k: s.get(k) for k in ("banner_slider_style", "banner_slider_shape", "dir_slider_style", "dir_slider_shape", "slider_seconds", "dir_slider_seconds")}}
 
 
 @tool("create_banner", "Add a home slider banner (text only; a picture is uploaded on the Banners page).", BANNER_FIELDS, required=("title",), mutating=True)
@@ -629,9 +629,9 @@ async def delete_banner(ctx: Ctx, id: int):  # noqa: A002
 
 
 @tool("set_slider", "Home slider looks: animation (coverflow orbit stack fan cylinder spiral cascade pile), card shape (tall | wide) for the banner and the Directions sliders, seconds per slide.",
-      {"banner_style": S("Banner slider animation"), "banner_shape": S("tall | wide"), "dir_style": S("Directions slider animation"), "dir_shape": S("tall | wide"), "seconds": I("Seconds a slide stays (3–30)"),
+      {"banner_style": S("Banner slider animation"), "banner_shape": S("tall | wide"), "dir_style": S("Directions slider animation"), "dir_shape": S("tall | wide"), "seconds": I("Seconds a banner slide stays (1–60)"), "dir_seconds": I("Seconds a Directions card stays in front before the slider turns (1–60)"),
        "auto_auction": B("Automatic slide for the live / next auction on or off"), "auto_new": B("Automatic 'new arrivals this month' slide on or off")}, mutating=True)
-async def set_slider(ctx: Ctx, banner_style=None, banner_shape=None, dir_style=None, dir_shape=None, seconds=None, auto_auction=None, auto_new=None):
+async def set_slider(ctx: Ctx, banner_style=None, banner_shape=None, dir_style=None, dir_shape=None, seconds=None, dir_seconds=None, auto_auction=None, auto_new=None):
     changes = {}
     if auto_auction is not None or auto_new is not None:
         row = await ctx.db.get(Setting, "auto_slides")
@@ -647,7 +647,8 @@ async def set_slider(ctx: Ctx, banner_style=None, banner_shape=None, dir_style=N
             ctx.journal.created(await ctx.db.get(Setting, "auto_slides"))
         changes["auto_slides"] = auto
     for key, v, clean in (("banner_slider_style", banner_style, bsvc.clean_style), ("banner_slider_shape", banner_shape, bsvc.clean_shape), ("dir_slider_style", dir_style, bsvc.clean_style),
-                          ("dir_slider_shape", dir_shape, bsvc.clean_shape), ("slider_seconds", seconds, lambda x: bsvc.clean_seconds(x, bsvc.SECONDS_DEFAULT))):
+                          ("dir_slider_shape", dir_shape, bsvc.clean_shape), ("slider_seconds", seconds, lambda x: bsvc.clean_seconds(x, bsvc.SECONDS_DEFAULT)),
+                          ("dir_slider_seconds", dir_seconds, lambda x: bsvc.clean_seconds(x, bsvc.DIR_SECONDS_DEFAULT))):
         if v is None:
             continue
         val = clean(v)
@@ -1204,7 +1205,7 @@ async def delete_chat_message(ctx: Ctx, thread_id: int, message_id: int):
 # ---------- settings, currencies, geo, articles, ads, reports ----------
 
 SETTING_KEYS = ("advance_percent", "working_hours", "reply_time", "delivery_text", "payment_text", "payment_methods", "auction_deposit_default", "auction_extension_seconds", "free_cities",
-                "warehouse_address", "wd_check_url", "seagate_check_url", "chat_notify_delay", "capacity_presets", "slider_seconds")
+                "warehouse_address", "wd_check_url", "seagate_check_url", "chat_notify_delay", "capacity_presets", "slider_seconds", "dir_slider_seconds")
 
 
 @tool("get_settings", "Shop settings (texts shown to customers, payment methods, auction defaults, chat delay, capacity chips).")

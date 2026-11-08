@@ -17,6 +17,7 @@ KIND_DEFAULTS = {"new": ("/app/new", "green"), "hot": (None, "red"), "sale": (No
 COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black")
 SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 1, 60, 7
 SECONDS_CHOICES = (5, 7, 10, 15)
+DIR_SECONDS_DEFAULT, DIR_SECONDS_CHOICES = 4, (3, 4, 5, 7, 10)  # the Directions slider turns faster than the banners
 # how the home slider turns (Banners page → Slider animation): the Directions slider's looks; the first is the default
 STYLES = ("coverflow", "orbit", "stack", "fan", "cylinder", "spiral", "cascade", "pile")
 

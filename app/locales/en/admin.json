@@ -1286,7 +1286,7 @@
       "n_products": "{n} products",
       "from": "from {price}",
       "seconds_default": "Slide time",
-      "seconds_default_hint": "How many seconds each slide stays — the same for every banner and for the auction and new-arrivals slides.",
+      "seconds_default_hint": "How many seconds every slide stays: one value for the banners, the auction and the new-arrivals slides; a separate one for the Directions slider.",
       "seconds_saved": "Slide time: {n} s — for every slide",
       "f_seconds_common": "The slide time is the same for every banner — {n} s.",
       "f_seconds_where": "Change it on the Banners page",
@@ -1370,7 +1370,11 @@
       "conds_saved": "“Drive conditions” block saved",
       "grp_banners": "Banners",
       "grp_slider": "Slider settings",
-      "grp_home": "Home page blocks"
+      "grp_home": "Home page blocks",
+      "seconds_banner": "Banner slider",
+      "seconds_dirs": "Directions slider",
+      "seconds_dirs_hint": "How many seconds a direction card stays in front before the slider turns by itself (a touch pauses it).",
+      "seconds_saved_both": "Slide time: banners {n} s · directions {d} s"
     },
     "shape": {
       "title": "Card shape",

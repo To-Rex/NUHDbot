@@ -1286,7 +1286,7 @@
       "n_products": "{n} 个商品",
       "from": "{price} 起",
       "seconds_default": "幻灯片时长",
-      "seconds_default_hint": "每张幻灯片停留的秒数——所有横幅以及拍卖和新品幻灯片均相同。",
+      "seconds_default_hint": "每张幻灯片停留几秒：横幅、拍卖和新品共用一个值；方向轮播单独设置。",
       "seconds_saved": "幻灯片时长：{n} 秒——适用于所有幻灯片",
       "f_seconds_common": "所有横幅的幻灯片时长相同——{n} 秒。",
       "f_seconds_where": "在“横幅”页面修改",
@@ -1370,7 +1370,11 @@
       "conds_saved": "“硬盘状态”区块已保存",
       "grp_banners": "横幅",
       "grp_slider": "轮播设置",
-      "grp_home": "首页区块"
+      "grp_home": "首页区块",
+      "seconds_banner": "横幅轮播",
+      "seconds_dirs": "方向轮播",
+      "seconds_dirs_hint": "方向卡片在前面停留几秒后轮播自动转动（触摸时暂停）。",
+      "seconds_saved_both": "停留时间：横幅 {n} 秒 · 方向 {d} 秒"
     },
     "shape": {
       "title": "卡片形状",

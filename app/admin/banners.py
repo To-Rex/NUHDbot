@@ -158,8 +158,7 @@ async def _rows_or_back(request: Request, db, staff: User, msg: str | None, kind
 async def banners_list(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
     return render(request, staff, "admin/banners/list.html", {
         "page_title": t(staff.lang, "admin.ban.title"), **(await _rows_ctx(db)),
-        "slider_seconds": svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), "seconds_choices": svc.SECONDS_CHOICES,
-        "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX,
+        **_timing_ctx(svc.clean_seconds(await get_setting(db, "slider_seconds"), svc.SECONDS_DEFAULT), svc.clean_seconds(await get_setting(db, "dir_slider_seconds"), svc.DIR_SECONDS_DEFAULT)),
         "styles": svc.STYLES, "slider_style": svc.clean_style(await get_setting(db, "banner_slider_style")),
         "shapes": svc.SHAPES, "slider_shape": svc.clean_shape(await get_setting(db, "banner_slider_shape")),
         "dir_styles": series_service.DIR_STYLES, "dir_style": series_service.clean_style(await get_setting(db, "dir_slider_style")),
@@ -278,17 +277,25 @@ async def banners_home_order(request: Request, db: DB, staff: User = Depends(sta
     return back(request, "/admin/banners#home-order", msg)
 
 
+def _timing_ctx(n: int, dn: int) -> dict:
+    """The slide-time tile: the banner slider's seconds and the Directions slider's."""
+    return {"slider_seconds": n, "dir_slider_seconds": dn, "seconds_choices": svc.SECONDS_CHOICES, "dir_seconds_choices": svc.DIR_SECONDS_CHOICES, "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX}
+
+
 @router.post("/banners/settings")
 async def banners_settings(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
     """The slide time: seconds every slide stays — one for all banners and the auction / new slides."""
-    before = await get_setting(db, "slider_seconds")
-    n = svc.clean_seconds((await request.form()).get("slider_seconds"), svc.SECONDS_DEFAULT)
+    form = await request.form()
+    before = {"slider_seconds": await get_setting(db, "slider_seconds"), "dir_slider_seconds": await get_setting(db, "dir_slider_seconds")}
+    n = svc.clean_seconds(form.get("slider_seconds"), svc.SECONDS_DEFAULT)
+    dn = svc.clean_seconds(form.get("dir_slider_seconds"), svc.DIR_SECONDS_DEFAULT)  # the Directions slider has its own pace
     await set_setting(db, "slider_seconds", n)
-    await audit.log(db, staff.id, "settings.update", "settings", None, {"slider_seconds": before}, {"slider_seconds": n})
+    await set_setting(db, "dir_slider_seconds", dn)
+    await audit.log(db, staff.id, "settings.update", "settings", None, before, {"slider_seconds": n, "dir_slider_seconds": dn})
     await db.commit()
-    msg = t(staff.lang, "admin.ban.seconds_saved", n=n)
+    msg = t(staff.lang, "admin.ban.seconds_saved_both", n=n, d=dn)
     if _hx(request):
-        return render(request, staff, "admin/banners/_timing.html", {"slider_seconds": n, "seconds_choices": svc.SECONDS_CHOICES, "seconds_min": svc.SECONDS_MIN, "seconds_max": svc.SECONDS_MAX, "tile_open": True}, headers=toast(msg))
+        return render(request, staff, "admin/banners/_timing.html", {**_timing_ctx(n, dn), "tile_open": True}, headers=toast(msg))
     return back(request, "/admin/banners", msg)
 
 

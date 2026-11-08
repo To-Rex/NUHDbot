@@ -23,7 +23,7 @@
   {% if directions %}
   <section class="home-sec">
     <div class="section-title"><h2>{{ t('home.dirs_title') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
-    <div class="cf cf-{{ dir_style }}{{ ' cf-wide' if dir_shape == 'wide' }}" data-coverflow data-style="{{ dir_style }}" data-shape="{{ dir_shape }}" aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
+    <div class="cf cf-{{ dir_style }}{{ ' cf-wide' if dir_shape == 'wide' }}" data-coverflow data-style="{{ dir_style }}" data-shape="{{ dir_shape }}" data-ms="{{ dir_seconds * 1000 }}" aria-roledescription="carousel" aria-label="{{ t('home.dirs_title') }}">
       <div class="cf-stage" data-cf-stage>
         {% for d in directions %}
         <a class="cf-card c-{{ d.color }}" href="/app/catalog?dir={{ d.color }}" draggable="false" aria-roledescription="slide" aria-label="{{ t('home.dir_open', name=d.name) }}">
@@ -326,7 +326,7 @@
   if ('IntersectionObserver' in window) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; }).observe(root);
   window.addEventListener('resize', paint);
   paint(); root.classList.add('ready');
-  if (!still && n > 1) auto = setInterval(tick, 3600);
+  if (!still && n > 1) auto = setInterval(tick, parseInt(root.dataset.ms, 10) || 4000);  /* the pace set on the Banners page */
 })();
 </script>
 {% endblock %}
