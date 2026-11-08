@@ -1,0 +1,21 @@
+{# the customer's interests: used by the card's Interests tab and the list's Interests dialog. Needs interest, int_events, int_products, int_kinds. #}
+{% if interest.events %}
+      <div class="int-wrap">
+        <div class="int-kinds">{% for k in int_kinds %}{% if interest.kinds.get(k) %}<span class="chip chip-soft">{{ t('admin.cust.int_kind.' ~ k) }} <b class="mono">{{ interest.kinds[k] }}</b></span>{% endif %}{% endfor %}<span class="faint small">{{ t('admin.cust.int_since', at=interest.first_at|dt) }}</span></div>
+        <div class="int-grid">
+          {% for key, rows in (('brands', interest.brands), ('capacities', interest.capacities), ('conditions', interest.conditions), ('purposes', interest.purposes)) %}{% if rows %}
+          <div class="int-col"><span class="lbl">{{ t('admin.cust.int_' ~ key) }}</span>
+            {% for r in rows %}<div class="int-bar"><span class="n">{% if key == 'capacities' %}{{ r.value|capacity }}{% elif key == 'conditions' or key == 'purposes' %}{{ r.value|upper }}{% else %}{{ r.value }}{% endif %}</span><span class="b"><i style="width:{{ (r.share * 100)|round|int }}%"></i></span><span class="p mono">{{ (r.share * 100)|round|int }}%</span></div>{% endfor %}
+          </div>{% endif %}{% endfor %}
+          {% if interest.price_band %}<div class="int-col"><span class="lbl">{{ t('admin.cust.int_price_band') }}</span><div class="row-main mono">{{ interest.price_band.low|money }} – {{ interest.price_band.high|money }}</div><div class="row-sub">{{ t('admin.cust.int_price_hint') }}</div></div>{% endif %}
+        </div>
+        {% set tops = interest.products|map('int')|list %}{% if tops %}<span class="lbl">{{ t('admin.cust.int_top_products') }}</span>
+        <div class="int-prods">{% for pid in interest.products %}{% set pr = int_products.get(pid) %}{% if pr %}<a class="int-prod" href="/admin/products/{{ pr.id }}"><img class="th" src="{{ (pr.cover.thumb_url if pr.cover else '') or '/static/img/placeholder.svg' }}" alt="" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'"><span><b>{{ pr.title }} {{ pr.capacity_gb|capacity }}</b><small>{{ t('admin.cust.int_score', n=interest.product_scores[pid]|round(1)) }} · {{ t('admin.prod.stock') }}: <span class="mono">{{ pr.available }}</span></small></span></a>{% endif %}{% endfor %}</div>{% endif %}
+      </div>
+      <span class="lbl" style="padding:0 14px">{{ t('admin.cust.int_recent') }}</span>
+      <div class="tbl-wrap" style="border:0;border-radius:0"><table><tbody>{% for e in int_events %}<tr{% if e.product_id and int_products.get(e.product_id) %} class="clickable" data-href="/admin/products/{{ e.product_id }}"{% endif %}>
+        <td class="small nowrap">{{ e.created_at|dt }}</td><td><span class="chip int-k-{{ e.kind }}">{{ t('admin.cust.int_kind.' ~ e.kind) }}</span></td>
+        <td>{% if e.product_id and int_products.get(e.product_id) %}<div class="row-main">{{ int_products[e.product_id].title }} {{ e.capacity_gb|capacity if e.capacity_gb }}</div>{% elif e.brand or e.model %}<div class="row-main">{{ e.brand or '' }} {{ e.model or '' }} {{ e.capacity_gb|capacity if e.capacity_gb }}</div>{% endif %}
+          {% if e.query %}<div class="row-sub">{{ icon('search', 12) }} {{ e.query }}{% if e.results is not none %} · {% if e.results %}{{ t('admin.cust.int_results', n=e.results) }}{% else %}<span class="bad-text">{{ t('admin.cust.int_none_found') }}</span>{% endif %}{% endif %}</div>{% endif %}</td>
+        <td class="num mono">{% if e.qty %}× {{ e.qty }}{% endif %}</td></tr>{% endfor %}</tbody></table></div>
+      {% else %}<div class="empty">{{ icon('sparkle', 26) }}<b>{{ t('admin.cust.int_empty') }}</b><p class="sub">{{ t('admin.cust.int_empty_text') }}</p></div>{% endif %}

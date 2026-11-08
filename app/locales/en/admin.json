@@ -623,7 +623,8 @@
         "order": "Ordered",
         "bid": "Bid",
         "subscribe": "Subscribed"
-      }
+      },
+      "open_card": "Open the card"
     },
     "staff": {
       "title": "Staff",

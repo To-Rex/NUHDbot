@@ -623,7 +623,8 @@
         "order": "下单",
         "bid": "出价",
         "subscribe": "订阅"
-      }
+      },
+      "open_card": "打开客户卡"
     },
     "staff": {
       "title": "员工",

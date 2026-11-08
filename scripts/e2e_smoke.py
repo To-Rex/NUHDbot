@@ -439,6 +439,14 @@ if cuid:
     r = adm.get("/admin/reports/demand?days=0")
     ok("the demand analysis lists the gap search and the brand", r.status_code == 200 and "zzz-nothing-" + UID in r.text and "dm-bar" in r.text, str(r.status_code))
     ok("the Mini App home has a For you rail for this customer", "data-for-you" in cust.get("/app/home").text)
+    # the list's Cart / Interests dialogs
+    html = adm.get("/admin/customers").text
+    ok("the customers list has Cart and Interests buttons", f'data-cust-dlg="/admin/customers/{cuid}/cart"' in html and f'data-cust-dlg="/admin/customers/{cuid}/interests"' in html and 'id="cust-dlg"' in html)
+    r = adm.get(f"/admin/customers/{cuid}/interests", headers={"HX-Request": "true"})
+    ok("the Interests dialog pane renders", r.status_code == 200 and "cdlg-head" in r.text and "int-bar" in r.text and "zzz-nothing-" + UID in r.text, str(r.status_code))
+    r = adm.get(f"/admin/customers/{cuid}/cart", headers={"HX-Request": "true"})
+    ok("the Cart dialog pane renders", r.status_code == 200 and "cdlg-head" in r.text and "cart_empty" not in r.text, str(r.status_code))
+    ok("an unknown customer's pane is 404", adm.get("/admin/customers/999999/cart").status_code == 404)
     ok("customer update", adm.post(f"/admin/customers/{cuid}/update", data={"country": "UZ", "city": "Samarqand", "lang": "ru"}).status_code == 303)
 ok("admin theme switch", adm.post("/admin/theme/dark").status_code in (200, 204, 303))
 ok("admin lang switch", adm.get("/admin/lang/ru?next=/admin").status_code == 303)

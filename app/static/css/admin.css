@@ -1747,3 +1747,16 @@ li.ho-row:first-child{border-color:var(--accent)}
 .int-person b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .int-person small{font-size:11.5px;color:var(--ink-3)}
 .dm-cell{min-width:140px}.dm-cell .dm-bar{display:inline-block;width:80px;vertical-align:middle;margin-right:8px}
+
+/* ---------- customers list: the Cart / Interests dialogs ---------- */
+.cust-acts .btn span{display:none}
+@media (min-width:1500px){.cust-acts .btn span{display:inline}}
+dialog.cust-dlg{width:min(860px,calc(100vw - 32px));max-height:min(86vh,900px);display:flex;flex-direction:column;overflow:hidden}
+dialog.cust-dlg:not([open]){display:none}
+.cdlg-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--hairline);flex:0 0 auto}
+.cdlg-head .avatar{width:38px;height:38px}
+.cdlg-body{overflow:auto;flex:1 1 auto;min-height:120px}
+.cdlg-body .int-wrap{border-bottom:1px solid var(--hairline)}
+.cdlg-loading{display:grid;place-items:center;min-height:160px;color:var(--ink-3)}
+.cdlg-head{flex-wrap:nowrap}.cdlg-head .row-nw{min-width:0}.cdlg-head>.row{flex:0 0 auto;flex-wrap:nowrap}
+@media (max-width:600px){.cdlg-head .btn.btn-sm{padding:0 10px}}

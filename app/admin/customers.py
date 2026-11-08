@@ -143,3 +143,20 @@ async def customer_delete(uid: int, request: Request, db: DB, staff: User = Depe
     for a in touched:
         deletion.announce_auction(a)
     return back(request, "/admin/customers", t(staff.lang, "admin.cust.deleted", name=snap["name"]))
+
+
+@router.get("/customers/{uid}/cart")
+@router.get("/customers/{uid}/interests")
+async def customer_pane(uid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*CUSTOMER_ROLES))):
+    """One pane of the customer's card on its own — the list page opens it in a dialog: the Mini App cart, or the interests."""
+    u = await db.get(User, uid)
+    if not u:
+        raise HTTPException(404)
+    pane = request.url.path.rsplit("/", 1)[-1]
+    if pane == "cart":
+        cart_lines, cart_total, cart_currency = await _cart_lines(db, u)
+        ctx = {"cart_lines": cart_lines, "cart_total": cart_total, "cart_currency": cart_currency}
+    else:
+        interest, int_events, int_products = await _interest_ctx(db, uid)
+        ctx = {"interest": interest, "int_events": int_events, "int_products": int_products, "int_kinds": interests.KINDS}
+    return render(request, staff, "admin/customers/_dialog.html", {"u": u, "pane": pane, **ctx})

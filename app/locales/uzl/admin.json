@@ -623,7 +623,8 @@
         "order": "Buyurtma",
         "bid": "Stavka",
         "subscribe": "Obuna"
-      }
+      },
+      "open_card": "Kartani ochish"
     },
     "staff": {
       "title": "Xodimlar",
