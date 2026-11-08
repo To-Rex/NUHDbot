@@ -8,6 +8,7 @@
     bad: '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM120,104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm8,88a12,12,0,1,1,12-12A12,12,0,0,1,128,192Z"/></svg>',
     warn: '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-8,56a8,8,0,0,1,16,0v56a8,8,0,0,1-16,0Zm8,104a12,12,0,1,1,12-12A12,12,0,0,1,128,184Z"/></svg>',
     info: '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm-4,48a12,12,0,1,1-12,12A12,12,0,0,1,124,72Zm12,112a16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40a8,8,0,0,1,0,16Z"/></svg>',
+    x: '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>',
   };
 
   // ---------- HTMX: CSRF + errors ----------
@@ -436,6 +437,38 @@
   }
   const say = (type, msg, href, sub) => { toast(msg, type, 6000, { href, sub }); noticed(); };
 
+  // ---------- sticky notices ----------
+  // A newcomer to a lot (accepted the terms, first bid, a deposit receipt) is worth more than a passing toast: a card waits
+  // bottom-right for STICK_MS (paused under the pointer) until opened or closed, and survives a page change meanwhile.
+  const STICK_MS = 45000, STICK_KEY = 'nuhd_sticks';
+  const ICON_PATHS = {
+    gavel: 'M232,160a8,8,0,0,1-8,8H152a8,8,0,0,1,0-16h72A8,8,0,0,1,232,160ZM52.69,104.69,80,77.37l34.34,34.35L80,146.06l-27.31-27.31A16,16,0,0,1,52.69,104.69Zm135.6,34.63L120,71.05,154.34,36.7a16,16,0,0,1,22.63,0L211.3,71a16,16,0,0,1,0,22.63ZM96.69,163.31a16,16,0,0,0,22.62,0L153.94,128.7,97.3,72.06,62.69,106.69Z',
+    qr: 'M104,40H56A16,16,0,0,0,40,56v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,104,40Zm0,64H56V56h48Zm0,32H56a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,104,136Zm0,64H56V152h48Zm96-160H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,64H152V56h48Zm-56,56v24a8,8,0,0,1-16,0V160a8,8,0,0,1,16,0Zm72,16a8,8,0,0,1-8,8H184a8,8,0,0,1-8-8V160a8,8,0,0,1,16,0v8h16A8,8,0,0,1,216,176Zm-16,32h16a8,8,0,0,1,0,16H200a8,8,0,0,1,0-16Zm-40,0a8,8,0,0,1,8-8h8a8,8,0,0,1,0,16h-8A8,8,0,0,1,160,208Z',
+  };
+  const sticks = () => { let box = document.querySelector('.sticks'); if (!box) { box = document.createElement('div'); box.className = 'sticks'; document.body.appendChild(box); } return box; };
+  const stickStore = (fn) => { let list = []; try { list = JSON.parse(sessionStorage.getItem(STICK_KEY) || '[]'); } catch (_) {} list = fn(list) || list; try { sessionStorage.setItem(STICK_KEY, JSON.stringify(list.slice(-6))); } catch (_) {} };
+  function showStick(n) {  // n: {id, kind, kicker, title, sub, href, at}
+    const left = STICK_MS - (Date.now() - n.at); if (left <= 0) return;
+    const box = sticks(); if (box.querySelector('[data-stick="' + n.id + '"]')) return;
+    const el = document.createElement('div'); el.className = 'stick k-' + n.kind; el.dataset.stick = n.id; el.style.setProperty('--stick-ms', left + 'ms');
+    el.innerHTML = '<span class="nt-ic"><svg viewBox="0 0 256 256" fill="currentColor"><path d="' + (ICON_PATHS[n.kind === 'deposit_new' ? 'qr' : 'gavel']) + '"/></svg></span>'
+      + '<div class="stick-body"><span class="stick-kicker"></span><span class="stick-title"></span><span class="stick-sub"></span><div class="stick-acts"><a class="btn btn-primary btn-sm"></a></div></div>'
+      + '<button type="button" class="stick-x" aria-label="' + T('cancel', 'Close') + '">' + ICONS.x + '</button><span class="stick-bar"></span>';
+    el.querySelector('.stick-kicker').textContent = n.kicker || ''; el.querySelector('.stick-title').textContent = n.title; el.querySelector('.stick-sub').textContent = n.sub || '';
+    const a = el.querySelector('.stick-acts a'); a.href = n.href; a.textContent = T('open', 'Open');
+    const drop = () => { el.classList.add('out'); setTimeout(() => el.remove(), 260); stickStore((l) => l.filter((x) => x.id !== n.id)); };
+    el.querySelector('.stick-x').addEventListener('click', drop); a.addEventListener('click', drop);
+    el.querySelector('.stick-bar').addEventListener('animationend', drop);
+    while (box.children.length >= 4) box.firstChild.remove();
+    box.appendChild(el);
+  }
+  function stick(kind, kicker, title, sub, href) {
+    const n = { id: Date.now() + Math.random().toString(16).slice(2, 6), kind, kicker, title, sub, href, at: Date.now() };
+    stickStore((l) => l.concat([n])); showStick(n); noticed();
+  }
+  window.stickNotice = stick;
+  if (document.querySelector('.sidebar')) stickStore((l) => { const keep = l.filter((x) => Date.now() - x.at < STICK_MS); keep.forEach(showStick); return keep; });
+
   live.on('order_new', (d) => {
     say('warn', fill(LIVE.order_new, { n: d.number }), '/admin/orders/' + d.id, (d.name || '') + ' · ' + money(d.total, d.currency));
     refreshBadges();
@@ -451,8 +484,8 @@
     refreshBadges();
     if (onPage(/^\/admin$/) || onPage(/^\/admin\/orders$/) || idIn(/^\/admin\/orders\/(\d+)$/) === d.id) refreshContent();
   });
-  live.on('deposit_new', (d) => {
-    say('warn', fill(LIVE.deposit_new, { id: d.auction_id }), '/admin/auctions/deposits', (d.name || '') + ' · ' + money(d.amount, d.currency));
+  live.on('deposit_new', (d) => {  // a receipt to check: it waits bottom-right until opened
+    stick('deposit_new', T('auctions', ''), fill(LIVE.deposit_new, { id: d.auction_id }), (d.name || '') + ' · ' + money(d.amount, d.currency), '/admin/auctions/deposits');
     refreshBadges();
     if (idIn(/^\/admin\/auctions\/(\d+)$/) === d.auction_id || onPage(/^\/admin\/auctions$/) || onPage(/^\/admin\/auctions\/deposits$/) || onPage(/^\/admin$/)) refreshContent();
   });
@@ -464,7 +497,7 @@
   live.on('auction_join', (d) => {  // someone new on a lot: accepted the terms from its page, or placed their first bid there
     const key = d.stage === 'bid' ? 'auction_first_bid' : (d.auction_id ? 'auction_join' : 'auction_join_terms');
     const href = d.auction_id ? '/admin/auctions/' + d.auction_id : '/admin/customers/' + d.user_id;
-    say('warn', fill(LIVE[key], { name: d.name, id: d.auction_id }), href, [d.title, d.amount ? money(d.amount, d.currency) : ''].filter(Boolean).join(' · '));
+    stick('auction_join', T('auctions', ''), fill(LIVE[key], { name: d.name, id: d.auction_id }), [d.title, d.amount ? money(d.amount, d.currency) : ''].filter(Boolean).join(' · '), href);
     refreshBadges();
     if (idIn(/^\/admin\/auctions\/(\d+)$/) === d.auction_id || onPage(/^\/admin\/auctions$/) || onPage(/^\/admin\/notices$/) || onPage(/^\/admin$/)) refreshContent();
   });
