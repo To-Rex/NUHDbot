@@ -587,7 +587,15 @@
       "delete_text": "其订单、付款、出价和聊天也将删除。再次打开机器人需重新注册。此操作无法撤销。",
       "deleted": "{name} 已删除",
       "auction_terms": "拍卖条款",
-      "terms_v": "v{n}"
+      "terms_v": "v{n}",
+      "tab_cart": "购物车",
+      "cart_hint": "客户在 Mini App 中的购物车——尚未下单。下单后购物车会清空。",
+      "cart_at": "更新于：{at}",
+      "cart_empty": "购物车为空",
+      "cart_total": "合计",
+      "cart_ok": "有库存",
+      "cart_short": "库存不足",
+      "cart_gone": "未在售"
     },
     "staff": {
       "title": "员工",

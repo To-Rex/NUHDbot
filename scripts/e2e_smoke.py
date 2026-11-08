@@ -421,6 +421,13 @@ cust_ids = re.findall(r'data-href="/admin/customers/(\d+)"', html)
 cuid = next((c for c in cust_ids if ">Test Buyer<" in html), cust_ids[0] if cust_ids else None)
 if cuid:
     ok("customer detail", adm.get(f"/admin/customers/{cuid}").status_code == 200)
+    # the customer's Mini App cart on their card
+    cust.post("/app/cart/add", data={"product_id": pid, "qty": qty})
+    html = adm.get(f"/admin/customers/{cuid}").text
+    ok("the customer's cart shows on their card", 'data-tabpane="cart"' in html and f'data-href="/admin/products/{pid}"' in html and f"× {qty}<" in html, html[html.find('data-tabpane="cart"'):][:300])
+    cust.post("/app/cart/clear")
+    html = adm.get(f"/admin/customers/{cuid}").text
+    ok("clearing the cart empties the card too", 'data-tabpane="cart"' in html and f'data-href="/admin/products/{pid}"' not in html)
     ok("customer update", adm.post(f"/admin/customers/{cuid}/update", data={"country": "UZ", "city": "Samarqand", "lang": "ru"}).status_code == 303)
 ok("admin theme switch", adm.post("/admin/theme/dark").status_code in (200, 204, 303))
 ok("admin lang switch", adm.get("/admin/lang/ru?next=/admin").status_code == 303)

@@ -9,7 +9,7 @@ from app.i18n import t
 from app.models import Product
 from app.services.orders import OrderError, validate_line
 from app.templating import render
-from app.web.common import current_cart, hx_trigger, save_cart, toast
+from app.web.common import current_cart, hx_trigger, store_cart, toast
 from app.web.router import router
 
 
@@ -61,7 +61,7 @@ async def cart_add(request: Request, db: DB, user: CurrentUser, lang: Lang, prod
             return toast(resp, _error_message(lang, e), "bad", "error")
     cart[product_id] = new_qty
     resp = HTMLResponse("")
-    save_cart(request, resp, cart)
+    await store_cart(request, resp, db, cart)
     count = sum(cart.values())
     return hx_trigger(resp, cartUpdated={"count": count}, toast={"msg": t(lang, "product.added"), "type": "ok"}, haptic="success")
 
@@ -81,7 +81,7 @@ async def cart_update(request: Request, db: DB, user: CurrentUser, lang: Lang, p
         cart[product_id] = qty
     lines, total, currency = await _cart_lines(db, cart)
     resp = render(request, "miniapp/partials/cart_body.html", {"lang": lang, "lines": lines, "total": total, "currency": currency})
-    save_cart(request, resp, cart)
+    await store_cart(request, resp, db, cart)
     return hx_trigger(resp, cartUpdated={"count": sum(cart.values())}, haptic="select")
 
 
@@ -91,14 +91,14 @@ async def cart_remove(request: Request, db: DB, user: CurrentUser, lang: Lang, p
     cart.pop(product_id, None)
     lines, total, currency = await _cart_lines(db, cart)
     resp = render(request, "miniapp/partials/cart_body.html", {"lang": lang, "lines": lines, "total": total, "currency": currency})
-    save_cart(request, resp, cart)
+    await store_cart(request, resp, db, cart)
     return hx_trigger(resp, cartUpdated={"count": sum(cart.values())}, toast={"msg": t(lang, "cart.removed"), "type": ""}, haptic="light")
 
 
 @router.post("/cart/clear")
 async def cart_clear(request: Request, db: DB, user: CurrentUser, lang: Lang):
     resp = render(request, "miniapp/partials/cart_body.html", {"lang": lang, "lines": [], "total": Decimal(0), "currency": "USD"})
-    save_cart(request, resp, {})
+    await store_cart(request, resp, db, {})
     return hx_trigger(resp, cartUpdated={"count": 0}, toast={"msg": t(lang, "cart.cleared"), "type": ""}, haptic="light")
 
 

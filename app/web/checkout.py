@@ -8,7 +8,7 @@ from app.services.orders import OrderError, create_order
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.cart import _cart_lines
-from app.web.common import current_cart, hx_trigger, save_cart
+from app.web.common import current_cart, hx_trigger, store_cart
 from app.web.router import router
 
 
@@ -71,7 +71,7 @@ async def checkout_submit(
         ctx = await _ctx(request, db, user, lang, form, {"general": t(lang, f"checkout.errors.{e.code}", **e.ctx)})
         return hx_trigger(render(request, "miniapp/checkout.html", ctx, status_code=422), toast={"msg": ctx["errors"]["general"], "type": "bad"}, haptic="error")
     resp = redirect(request, f"/app/orders/{order.id}/success")
-    save_cart(request, resp, {})
+    await store_cart(request, resp, db, {})
     return resp
 
 

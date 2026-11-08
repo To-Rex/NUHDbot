@@ -9,7 +9,7 @@ from markupsafe import Markup
 from app.config import APP_DIR, settings
 from app.enums import COLOR_DIRECTION, ORDER_STAGES, Condition, OrderStatus, TestStatus, order_stage
 from app.i18n import pick, t
-from app.services.cart import get_cart
+from app.services.cart import effective_cart
 
 templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
 env = templates.env
@@ -134,7 +134,7 @@ def render(request: Request, name: str, ctx: dict | None = None, *, lang: str | 
     ctx["theme_attr"] = theme_mode if theme_mode in ("light", "dark") else ""
     ctx["html_lang"] = html_lang(lang)
     session = getattr(request.state, "session", {}) or {}
-    cart = get_cart(session)
+    cart = effective_cart(session, user)
     ctx.setdefault("user", user)
     ctx.setdefault("lang", lang)
     ctx.setdefault("cart_count", sum(cart.values()))

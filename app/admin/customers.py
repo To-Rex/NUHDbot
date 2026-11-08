@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import func, or_, select
 
@@ -16,8 +18,9 @@ from app.admin.router import router
 from app.config import settings
 from app.enums import Role
 from app.i18n import normalize_lang, t
-from app.models import Auction, AuctionDeposit, Bid, Order, Subscription, SupportThread, User
+from app.models import Auction, AuctionDeposit, Bid, Order, Product, Subscription, SupportThread, User
 from app.services import audit, deletion
+from app.services import cart as cart_svc
 
 
 @router.get("/customers")
@@ -55,7 +58,27 @@ async def customer_detail(uid: int, request: Request, db: DB, staff: User = Depe
     deposits = (await db.execute(select(AuctionDeposit).where(AuctionDeposit.user_id == uid).order_by(AuctionDeposit.id.desc()))).scalars().all()
     subs = (await db.execute(select(Subscription).where(Subscription.user_id == uid))).scalars().all()
     threads = (await db.execute(select(SupportThread).where(SupportThread.user_id == uid).order_by(SupportThread.id.desc()))).scalars().unique().all()
-    return render(request, staff, "admin/customers/detail.html", {"page_title": u.full_name, "u": u, "orders": orders, "bids": bids, "deposits": deposits, "subs": subs, "threads": threads, "all_roles": list(Role), "langs": settings.langs})
+    cart_lines, cart_total, cart_currency = await _cart_lines(db, u)
+    return render(request, staff, "admin/customers/detail.html", {"page_title": u.full_name, "u": u, "orders": orders, "bids": bids, "deposits": deposits, "subs": subs, "threads": threads, "all_roles": list(Role), "langs": settings.langs,
+                                                                 "cart_lines": cart_lines, "cart_total": cart_total, "cart_currency": cart_currency})
+
+
+async def _cart_lines(db, u: User):
+    """What the customer holds in the Mini App cart right now (not an order yet): the products with quantity, price and
+    whether the stock still covers it."""
+    cart = cart_svc.user_cart(u)
+    if not cart:
+        return [], Decimal(0), "USD"
+    products = {p.id: p for p in (await db.execute(select(Product).where(Product.id.in_(list(cart))))).scalars().unique().all()}
+    lines, total, currency = [], Decimal(0), "USD"
+    for pid, qty in cart.items():
+        p = products.get(pid)
+        line_total = Decimal(p.price or 0) * qty if p else Decimal(0)
+        if p:
+            total += line_total
+            currency = p.currency
+        lines.append({"p": p, "pid": pid, "qty": qty, "total": line_total, "ok": bool(p and p.is_active and p.sale_allowed and p.available >= qty), "gone": p is None or not p.is_active or not p.sale_allowed})
+    return lines, total, currency
 
 
 # what staff may correct on a customer's card (the name and phone come from Telegram / registration)

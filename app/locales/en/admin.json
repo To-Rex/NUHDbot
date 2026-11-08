@@ -587,7 +587,15 @@
       "delete_text": "Their orders, payments, bids and chat go too. Opening the bot again starts a new registration. This cannot be undone.",
       "deleted": "{name} deleted",
       "auction_terms": "Auction terms",
-      "terms_v": "v{n}"
+      "terms_v": "v{n}",
+      "tab_cart": "Cart",
+      "cart_hint": "The customer's Mini App cart — not an order yet. Placing an order empties it.",
+      "cart_at": "Updated: {at}",
+      "cart_empty": "The cart is empty",
+      "cart_total": "Total",
+      "cart_ok": "In stock",
+      "cart_short": "Not enough in stock",
+      "cart_gone": "Not on sale"
     },
     "staff": {
       "title": "Staff",

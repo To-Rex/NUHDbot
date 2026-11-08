@@ -45,6 +45,8 @@ class User(Base, TimestampMixin):
     auction_terms_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # when the auction terms were accepted …
     auction_terms_version: Mapped[int | None] = mapped_column(Integer)  # … and which version; a new version asks again
     notices_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # staff: the panel's bell was opened then; later notices count as new
+    cart: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))  # the Mini App cart, mirrored from the session: {"<product_id>": qty}; staff see it, a new device gets it back
+    cart_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))  # when the cart last changed
 
     orders = relationship("Order", back_populates="user", lazy="noload")
 

@@ -587,7 +587,15 @@
       "delete_text": "Buyurtmalari, to'lovlari, stavkalari va chati ham o'chadi. Botni qayta ochsa, yangidan ro'yxatdan o'tadi. Bu amalni ortga qaytarib bo'lmaydi.",
       "deleted": "{name} o'chirildi",
       "auction_terms": "Auksion shartlari",
-      "terms_v": "v{n}"
+      "terms_v": "v{n}",
+      "tab_cart": "Savat",
+      "cart_hint": "Mijozning Mini App'dagi savati — hali buyurtma emas. Buyurtma berilganda savat bo'shaydi.",
+      "cart_at": "Yangilangan: {at}",
+      "cart_empty": "Savat bo'sh",
+      "cart_total": "Jami",
+      "cart_ok": "Omborda bor",
+      "cart_short": "Omborda yetarli emas",
+      "cart_gone": "Sotuvda yo'q"
     },
     "staff": {
       "title": "Xodimlar",

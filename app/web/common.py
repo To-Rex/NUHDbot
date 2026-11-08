@@ -5,7 +5,8 @@ from fastapi import Request, Response
 
 from app.config import settings
 from app.deps import is_secure
-from app.services.cart import get_cart, read_session, write_session
+from app.services.cart import effective_cart, read_session, write_session
+from app.services.cart import persist as persist_cart
 
 
 def hx_trigger(response: Response, **events) -> Response:
@@ -36,10 +37,22 @@ def save_cart(request: Request, response: Response, cart: dict[int, int]) -> Res
 
 
 def current_cart(request: Request) -> dict[int, int]:
+    """The visitor's cart: the session's, or the signed-in user's kept one when the session has none (a new device)."""
     sess = getattr(request.state, "session", None)
     if sess is None:
         sess = read_session(request)
-    return get_cart(sess)
+    return effective_cart(sess, getattr(request.state, "user", None))
+
+
+async def store_cart(request: Request, response: Response, db, cart: dict[int, int]) -> Response:
+    """Save the cart in the session cookie and mirror it on the signed-in user's row (committed)."""
+    save_cart(request, response, cart)
+    user = getattr(request.state, "user", None)
+    if user is not None:
+        persist_cart(user, cart)
+        if db.dirty:
+            await db.commit()
+    return response
 
 
 def safe_next(value: str | None, default: str = "/app/home") -> str:

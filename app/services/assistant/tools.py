@@ -996,14 +996,20 @@ async def list_customers(ctx: Ctx, query=None, country=None, registered=None, **
     return {"total": total, "customers": [user_row(u) | {"orders": counts.get(u.id, 0)} for u in rows]}
 
 
-@tool("get_customer", "A customer with their orders, bids and chat.", {"id": I("Customer id")}, required=("id",))
+@tool("get_customer", "A customer with their orders, bids, chat and what they hold in the Mini App cart right now (not an order yet).", {"id": I("Customer id")}, required=("id",))
 async def get_customer(ctx: Ctx, id: int):  # noqa: A002
+    from app.services import cart as cart_svc
+
     u = await need(ctx.db, User, int(id), "customer")
     orders = (await ctx.db.execute(select(Order).where(Order.user_id == u.id).order_by(Order.id.desc()).limit(20))).scalars().unique().all()
     bids = (await ctx.db.execute(select(func.count()).select_from(Bid).where(Bid.user_id == u.id))).scalar_one()
     th = await ssvc.user_thread(ctx.db, u.id)
+    cart = cart_svc.user_cart(u)
+    products = {p.id: p for p in (await ctx.db.execute(select(Product).where(Product.id.in_(list(cart))))).scalars().unique().all()} if cart else {}
+    cart_rows = [{"product_id": pid, "qty": qty, "title": f"{products[pid].title} {products[pid].capacity_label}" if pid in products else None,
+                  "price": str(products[pid].price) if pid in products and products[pid].price is not None else None, "available": products[pid].available if pid in products else 0} for pid, qty in cart.items()]
     return user_row(u) | {"last_address": u.last_address, "last_receiver_name": u.last_receiver_name, "last_receiver_phone": u.last_receiver_phone, "last_cargo_code": u.last_cargo_code,
-                          "orders": [order_row(o) for o in orders], "bids": bids, "chat_thread_id": th.id if th else None}
+                          "orders": [order_row(o) for o in orders], "bids": bids, "chat_thread_id": th.id if th else None, "cart": cart_rows, "cart_updated_at": u.cart_at}
 
 
 @tool("update_customer", "Correct a customer's card or block / unblock them.",
