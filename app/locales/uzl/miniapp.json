@@ -485,7 +485,9 @@
     },
     "attachment": "Fayl",
     "retry": "Qayta yuborish",
-    "failed": "Yuborilmadi"
+    "failed": "Yuborilmadi",
+    "attach_pick": "Surat yoki PDF tanlang",
+    "attach_hint": "Ixtiyoriy — muammo surati yoki chek"
   },
   "misc": {
     "error_generic": "Xatolik. Qayta urinib ko'ring.",

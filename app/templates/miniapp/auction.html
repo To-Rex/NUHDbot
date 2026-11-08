@@ -6,8 +6,8 @@
 {% set lp = a.product %}
 <div class="{{ 'tint tint-' ~ lp.color if lp and lp.color }}" data-tint>
 <div class="page stack" style="padding-bottom:{{ '150px' if a.status.value=='live' else '24px' }}">
-  <div class="gallery" style="aspect-ratio:16/10">
-    {% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" style="width:100%;height:100%;object-fit:contain;padding:16px" data-lightbox="{{ a.cover_url }}">{% else %}<div style="display:grid;place-items:center;height:100%;color:var(--ink-3)">{{ icon('drive', 48) }}</div>{% endif %}
+  <div class="gallery" style="aspect-ratio:1">
+    {% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" data-lightbox="{{ a.cover_url }}">{% else %}<div style="display:grid;place-items:center;height:100%;color:var(--ink-3)">{{ icon('drive', 48) }}</div>{% endif %}
     <div class="gallery-tag">{% with cond=a.condition, lg=True %}{% include "miniapp/partials/condition_chip.html" %}{% endwith %}</div>
   </div>
   <div class="lot-head">

@@ -485,7 +485,9 @@
     },
     "attachment": "附件",
     "retry": "重试",
-    "failed": "发送失败"
+    "failed": "发送失败",
+    "attach_pick": "选择图片或 PDF",
+    "attach_hint": "可选：问题照片或凭证"
   },
   "misc": {
     "error_generic": "出错了，请重试。",

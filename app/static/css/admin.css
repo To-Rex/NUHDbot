@@ -394,7 +394,7 @@ pre.json{font-size:11px;background:var(--sunken);border-radius:8px;padding:6px 8
 .price-bump{animation:bump var(--t-slow) var(--ease-out)}
 .lot-card{border:1px solid var(--hairline);border-radius:14px;overflow:hidden;background:var(--surface);max-width:340px}
 .lot-card .im{aspect-ratio:1;background:var(--sunken);display:grid;place-items:center;color:var(--ink-3)}
-.lot-card .im img{width:100%;height:100%;object-fit:contain}
+.lot-card .im img{width:100%;height:100%;object-fit:cover;display:block}
 .lot-card .bd{padding:12px 14px}
 .lot-card .pr{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .roles-tbl td:first-child{white-space:nowrap}
@@ -1284,7 +1284,7 @@ dialog.ser-dlg{width:min(680px,calc(100vw - 32px))}
 .ap-card:has(input:checked){border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
 .ap-card:has(input:focus-visible){box-shadow:var(--ring)}
 .ap-img{position:relative;aspect-ratio:4/3;background:var(--sunken);display:grid;place-items:center;overflow:hidden}
-.ap-img img{width:100%;height:100%;object-fit:contain}
+.ap-img img{width:100%;height:100%;object-fit:cover;display:block}
 .ap-img em{font-style:normal;font-family:var(--font-display);font-size:24px;font-weight:800;color:var(--ink-3)}
 .ap-card.is-out .ap-img>img,.ap-card.is-out .ap-img>em{opacity:.45}
 .ap-dirtag{position:absolute;left:8px;top:8px;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:999px;background:var(--surface);box-shadow:var(--shadow);font-size:10.5px;font-weight:700;color:var(--ink-2)}

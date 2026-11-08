@@ -485,7 +485,9 @@
     },
     "attachment": "File",
     "retry": "Retry",
-    "failed": "Not sent"
+    "failed": "Not sent",
+    "attach_pick": "Choose a picture or PDF",
+    "attach_hint": "Optional — a photo of the issue or a receipt"
   },
   "misc": {
     "error_generic": "Error. Please try again.",

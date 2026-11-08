@@ -211,6 +211,17 @@
     input.value = v; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true }));
   });
 
+  // ---------- file pickers (.receipt-pick): the chosen picture previews in place, a PDF shows its name ----------
+  document.addEventListener('change', (e) => {
+    const inp = e.target; if (!(inp instanceof HTMLInputElement) || inp.type !== 'file') return;
+    const pick = inp.closest('.receipt-pick'); if (!pick) return;
+    const f = inp.files && inp.files[0]; const full = pick.querySelector('.rp-full'), empty = pick.querySelector('.rp-empty'), img = pick.querySelector('.rp-img'), file = pick.querySelector('.rp-file');
+    if (!f) { if (full) full.hidden = true; if (empty) empty.hidden = false; return; }
+    const isImg = /^image\//.test(f.type); if (img) img.hidden = !isImg; if (file) file.hidden = isImg; const nm = pick.querySelector('.rp-name'); if (nm) nm.textContent = f.name;
+    if (isImg && img) { const r = new FileReader(); r.onload = () => { img.src = r.result; }; r.readAsDataURL(f); }
+    if (empty) empty.hidden = true; if (full) full.hidden = false; haptic.light();
+  });
+
   // ---------- copy to clipboard ----------
   document.addEventListener('click', (e) => {
     const c = e.target.closest('[data-copy]');

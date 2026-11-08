@@ -39,15 +39,10 @@
 </div>
 <script>
 (function(){
+  /* the picker itself (preview, "another picture") is app.js's; here only the send button follows the choice */
   var sheet = document.getElementById('pay-sheet'); if (!sheet || sheet._rp) return; sheet._rp = 1;
-  var pick = sheet.querySelector('[data-receipt]'), input = pick.querySelector('input[type=file]'), btn = sheet.querySelector('#deposit-form button[type=submit]');
-  input.addEventListener('change', function () {
-    var f = input.files && input.files[0]; var full = pick.querySelector('.rp-full'), empty = pick.querySelector('.rp-empty'), img = pick.querySelector('.rp-img'), file = pick.querySelector('.rp-file');
-    if (!f) { full.hidden = true; empty.hidden = false; btn.disabled = true; return; }
-    var isImg = /^image\//.test(f.type); img.hidden = !isImg; file.hidden = isImg; pick.querySelector('.rp-name').textContent = f.name;
-    if (isImg) { var r = new FileReader(); r.onload = function () { img.src = r.result; }; r.readAsDataURL(f); }
-    empty.hidden = true; full.hidden = false; btn.disabled = false; if (window.NUHD) NUHD.haptic.light();
-  });
+  var input = sheet.querySelector('[data-receipt] input[type=file]'), btn = sheet.querySelector('#deposit-form button[type=submit]');
+  input.addEventListener('change', function () { btn.disabled = !(input.files && input.files.length); });
 })();
 </script>
 {% endif %}
