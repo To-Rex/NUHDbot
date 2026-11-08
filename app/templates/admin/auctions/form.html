@@ -82,6 +82,12 @@
   <section class="auc-step">
     <header class="auc-step-head"><span class="auc-step-num"><i>2</i></span><div><h2>{{ t('admin.auc.step2_t') }}</h2><p>{{ t('admin.auc.help_price') }}</p></div></header>
     <div class="auc-grid auc-grid-2">
+      {% set dmode = 'percent' if a.deposit_percent else ('fixed' if a.require_deposit and a.deposit_amount else 'off') %}
+      <div class="field auc-dep" data-dep-mode="{{ dmode }}"><label>{{ t('admin.auc.deposit') }}</label>
+        <span class="seg" role="group" aria-label="{{ t('admin.auc.deposit') }}">{% for v in ('percent', 'fixed', 'off') %}<label class="seg-opt"><input type="radio" name="deposit_mode" value="{{ v }}" {{ 'checked' if dmode == v }}><span>{{ t('admin.auc.dep_mode_' ~ v) }}</span></label>{% endfor %}</span>
+        <div class="auc-money mt-sm" data-dep-pane="percent"{{ ' hidden' if dmode != 'percent' }}><input class="input mono" name="deposit_percent" value="{{ a.deposit_percent|pct or dep_default_pct }}" inputmode="decimal" min="0" max="100"><span>%</span></div>
+        <div class="auc-money mt-sm" data-dep-pane="fixed"{{ ' hidden' if dmode != 'fixed' }}><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
+        <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
       <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
         <div class="auc-qty"><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
         <div class="auc-under"><span class="hint" data-avail-hint data-tpl="{{ t('admin.auc.in_stock', n='{n}') }}" data-none="{{ t('admin.auc.out_of_stock') }}"></span><button type="button" class="chip-btn" data-qty-all hidden data-tpl="{{ t('admin.auc.qty_all', n='{n}') }}"></button></div></div>
@@ -91,12 +97,6 @@
       <div class="field"><label>{{ t('admin.auc.step_unit') }}</label>
         <div class="auc-money"><input class="input mono" name="step_per_unit" value="{{ a.step_per_unit }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
 <span class="hint" data-step-hint data-tpl="{{ t('admin.auc.lot_step', p='{p}') }}" hidden></span></div>{# the step is typed by hand; the lot step shows in the card on the right #}
-      {% set dmode = 'percent' if a.deposit_percent else ('fixed' if a.require_deposit and a.deposit_amount else 'off') %}
-      <div class="field auc-dep" data-dep-mode="{{ dmode }}"><label>{{ t('admin.auc.deposit') }}</label>
-        <span class="seg" role="group" aria-label="{{ t('admin.auc.deposit') }}">{% for v in ('percent', 'fixed', 'off') %}<label class="seg-opt"><input type="radio" name="deposit_mode" value="{{ v }}" {{ 'checked' if dmode == v }}><span>{{ t('admin.auc.dep_mode_' ~ v) }}</span></label>{% endfor %}</span>
-        <div class="auc-money mt-sm" data-dep-pane="percent"{{ ' hidden' if dmode != 'percent' }}><input class="input mono" name="deposit_percent" value="{{ a.deposit_percent|pct or dep_default_pct }}" inputmode="decimal" min="0" max="100"><span>%</span></div>
-        <div class="auc-money mt-sm" data-dep-pane="fixed"{{ ' hidden' if dmode != 'fixed' }}><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
-        <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
     </div>
   </section>
 
