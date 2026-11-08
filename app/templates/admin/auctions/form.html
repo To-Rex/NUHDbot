@@ -83,10 +83,10 @@
     <header class="auc-step-head"><span class="auc-step-num"><i>2</i></span><div><h2>{{ t('admin.auc.step2_t') }}</h2><p>{{ t('admin.auc.help_price') }}</p></div></header>
     <div class="auc-grid auc-grid-2">
       <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
-        <div class="auc-qty"><button type="button" class="icon-btn" data-qty-step="-1" aria-label="−">{{ icon('minus', 16) }}</button><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required><button type="button" class="icon-btn" data-qty-step="1" aria-label="+">{{ icon('plus', 16) }}</button></div>
+        <div class="auc-qty"><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
         <div class="auc-under"><span class="hint" data-avail-hint data-tpl="{{ t('admin.auc.in_stock', n='{n}') }}" data-none="{{ t('admin.auc.out_of_stock') }}"></span><button type="button" class="chip-btn" data-qty-all hidden data-tpl="{{ t('admin.auc.qty_all', n='{n}') }}"></button></div></div>
       <div class="field"><label>{{ t('admin.auc.start_price') }} <span class="req">*</span></label>
-        <div class="auc-money"><input class="input mono" name="start_price_total" value="{{ a.start_price_total }}" inputmode="decimal" required><span data-cur-label>{{ a.currency }}</span></div>
+        <div class="auc-money auc-money-cur"><input class="input mono" name="start_price_total" value="{{ a.start_price_total }}" inputmode="decimal" required>{% set curs = currency_list() %}<select class="select mono cur-select" name="currency" data-cur-select aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ 'disabled' if locked }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == a.currency }}>{{ c.code }}</option>{% endfor %}{% if a.currency not in curs|map(attribute='code')|list %}<option value="{{ a.currency }}" selected>{{ a.currency }}</option>{% endif %}</select>{% if locked %}<input type="hidden" name="currency" value="{{ a.currency }}">{% endif %}</div>
         <div class="auc-under"><span class="hint" data-unit-hint data-tpl="{{ t('admin.auc.unit_price', p='{p}') }}"></span><button type="button" class="chip-btn" data-price-fill data-tpl="{{ t('admin.auc.price_fill', price='{p}') }}" hidden></button></div></div>
       <div class="field"><label>{{ t('admin.auc.step_unit') }}</label>
         <div class="auc-money"><input class="input mono" name="step_per_unit" value="{{ a.step_per_unit }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
@@ -217,8 +217,11 @@
     pk('price').textContent = d.priceText || '';
     var st = pk('stock'), av = num(d.avail); st.textContent = av > 0 ? (form.querySelector('[data-avail-hint]').dataset.tpl.replace('{n}', av)) : form.querySelector('[data-avail-hint]').dataset.none; st.className = 'chip ' + (av > 0 ? 'chip-ok' : 'chip-soft');
     pk('img').innerHTML = d.thumb ? '<img src="' + d.thumb + '" alt="">' : pk('img').innerHTML;
-    form.querySelectorAll('[data-cur-label]').forEach(function (el) { el.textContent = d.cur; });
+    var cs = form.querySelector('[data-cur-select]'); if (cs && !cs.disabled && d.cur && [].some.call(cs.options, function (o) { return o.value === d.cur; })) cs.value = d.cur;  /* the product's currency is the default; the staff may pick another */
+    setCur();
   }
+  var curNow = function () { var cs = form.querySelector('[data-cur-select]'); return (cs && cs.value) || (form.querySelector('[data-cur-label]') || {}).textContent || ''; };
+  var setCur = function () { var c = curNow(); form.querySelectorAll('[data-cur-label]').forEach(function (el) { el.textContent = c; }); var pv = document.getElementById('lot-preview'); if (pv) pv.dataset.cur = c; };
   form.addEventListener('change', function (e) {
     if (e.target.name !== 'product_id') return;
     showPicked(); sync(); fire(q('qty'));
@@ -228,7 +231,7 @@
   /* ---- 2. quantity and price ---- */
   var all = form.querySelector('[data-qty-all]'), fill = form.querySelector('[data-price-fill]');
   function sync() {
-    var d = data(), av = parseInt(d.avail || '', 10), qty = parseInt(q('qty').value || '0', 10) || 0, price = num(d.price), cur = d.cur || q('qty').form.querySelector('[data-cur-label]').textContent;
+    var d = data(), av = parseInt(d.avail || '', 10), qty = parseInt(q('qty').value || '0', 10) || 0, price = num(d.price), cur = curNow();
     var hint = form.querySelector('[data-avail-hint]');
     hint.textContent = d.title ? (av > 0 ? hint.dataset.tpl.replace('{n}', av) : hint.dataset.none) : ''; hint.classList.toggle('bad', !!d.title && qty > av);
     all.hidden = !(av > 0) || qty === av; all.textContent = all.dataset.tpl.replace('{n}', av || '');
@@ -245,6 +248,7 @@
   }
   ['qty', 'start_price_total', 'step_per_unit', 'deposit_amount', 'deposit_percent'].forEach(function (n) { q(n).addEventListener('input', sync); });
   form.querySelectorAll('[name="deposit_mode"]').forEach(function (r) { r.addEventListener('change', sync); });
+  var curSel = form.querySelector('[data-cur-select]'); if (curSel) curSel.addEventListener('change', function () { setCur(); sync(); });
   form.querySelectorAll('[data-qty-step]').forEach(function (b) { b.addEventListener('click', function () { q('qty').value = Math.max(1, (parseInt(q('qty').value || '0', 10) || 0) + parseInt(b.dataset.qtyStep, 10)); fire(q('qty')); }); });
   all.addEventListener('click', function () { q('qty').value = data().avail; fire(q('qty')); });
   fill.addEventListener('click', function () { var qty = parseInt(q('qty').value || '0', 10) || 0; q('start_price_total').value = (Math.round(num(data().price) * qty * 100) / 100).toFixed(2); fire(q('start_price_total')); });

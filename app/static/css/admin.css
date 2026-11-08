@@ -1972,3 +1972,9 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .auc-dep{flex-direction:row;justify-content:flex-start;align-items:center}
 .auc-dep .auc-under{flex:1 1 160px;align-self:center}
 .auc-step .auc-grid-2:has([name=starts_at]){grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}
+
+/* lot form: the start price with its currency beside it, a plain quantity box */
+.auc-money-cur{display:flex;gap:6px;align-items:stretch}
+.auc-money-cur .input{flex:1;min-width:0;padding-right:12px}
+.auc-money-cur .cur-select{width:86px;flex:0 0 auto;height:38px;padding:0 26px 0 8px}
+.auc-qty .input{text-align:left;padding-left:12px}

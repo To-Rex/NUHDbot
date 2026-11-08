@@ -39,7 +39,7 @@ from app.models import (
     Product,
     User,
 )
-from app.services import auction_rules, auction_terms, audit, deletion, media, notifications
+from app.services import auction_rules, auction_terms, audit, currencies, deletion, media, notifications
 from app.services import auctions as asvc
 from app.services import orders as osvc
 from app.services import payment_methods as pm_svc
@@ -199,6 +199,11 @@ async def _apply(db, a: Auction, form) -> list[str]:
         _from_product(a, p)
     elif not a.brand:  # a new lot needs a product; an old hand-made lot keeps its own details
         errors.append("product")
+    cur = (form.get("currency") or "").strip().upper()
+    if cur and not a.bids_count:  # the lot may be priced in another active currency (the product's is the default); bids freeze it
+        await currencies.ensure(db)
+        if currencies.get(cur):
+            a.currency = cur
     a.qty = max(1, f_int(form, "qty", 1) or 1)
     sp = f_dec(form, "start_price_total")
     if sp is None or sp <= 0:
