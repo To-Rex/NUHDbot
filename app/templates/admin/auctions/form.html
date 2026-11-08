@@ -89,6 +89,7 @@
         <div class="auc-money mt-sm" data-dep-pane="fixed"{{ ' hidden' if dmode != 'fixed' }}><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
         <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
       <div class="field auc-loc" data-loc data-cities="{{ cities|tojson|forceescape }}" data-city-id="{{ a.location_city.id if a.location_city and a.location_city.id else '' }}" data-l-any="{{ t('admin.auc.location_city_any') }}"><label>{{ t('admin.auc.location') }}</label>
+        {% set quick = countries|selectattr('code', 'in', ('CN', 'UZ'))|list %}{% if quick %}<span class="auc-chips loc-quick">{% for code in ('CN', 'UZ') %}{% for c in countries if c.code == code %}<button type="button" class="chip-btn{{ ' on' if a.location == c.code }}" data-loc-quick="{{ c.code }}">{{ icon('map-pin', 11) }}{{ c.name|pick(lang) or c.code }}</button>{% endfor %}{% endfor %}</span>{% endif %}
         <select class="select" name="location" data-loc-country aria-label="{{ t('admin.auc.location') }}"><option value="">{{ t('admin.auc.location_none') }}</option>{% for c in countries %}<option value="{{ c.code }}" {{ 'selected' if a.location == c.code }}>{{ c.name|pick(lang) or c.code }}</option>{% endfor %}</select>
         <select class="select" name="location_city" data-loc-city aria-label="{{ t('admin.auc.location_city') }}" {% if not a.location %}hidden{% endif %} data-current="{{ (a.location_city or {})|pick(lang) }}"><option value="">{{ t('admin.auc.location_city_any') }}</option></select>
         <span class="hint">{{ t('admin.auc.location_hint') }}</span></div>
@@ -303,7 +304,9 @@
         var o = document.createElement('option'); o.value = c.id; o.textContent = name(c.name); if (keep && (String(c.id) === String(lb.dataset.cityId) || (!lb.dataset.cityId && cur && name(c.name) === cur))) o.selected = true; (grp || ci).appendChild(o); });
       ci.hidden = !code || !list.length;
     }
-    cs.addEventListener('change', function () { fillCities(false); }); fillCities(true);
+    var quick = lb.querySelectorAll('[data-loc-quick]'); function markQuick() { quick.forEach(function (b) { b.classList.toggle('on', b.dataset.locQuick === cs.value); }); }
+    quick.forEach(function (b) { b.addEventListener('click', function () { cs.value = b.dataset.locQuick === cs.value ? '' : b.dataset.locQuick; cs.dispatchEvent(new Event('change', { bubbles: true })); }); });  /* China / Uzbekistan in one tap; a second tap clears */
+    cs.addEventListener('change', function () { fillCities(false); markQuick(); }); fillCities(true); markQuick();
   }
 
   /* ---- the rules: common (shown as the admin's language reads it) or this lot's own ---- */
