@@ -11,6 +11,9 @@
     x: '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></svg>',
   };
 
+  // ---------- number inputs are typed by hand: the mouse wheel over a focused one must not change its value ----------
+  document.addEventListener('wheel', (e) => { const a = document.activeElement; if (a && a.type === 'number' && e.target === a) a.blur(); }, { passive: true });
+
   // ---------- HTMX: CSRF + errors ----------
   document.addEventListener('htmx:configRequest', (e) => { e.detail.headers['X-CSRF'] = csrf; });
   document.addEventListener('htmx:responseError', (e) => {

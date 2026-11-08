@@ -1167,3 +1167,7 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 .receipt-pick.compact .rp-empty svg{width:22px;height:22px;margin-bottom:2px}
 .receipt-pick.compact .rp-empty b{font-size:14px}
 .receipt-pick.compact .rp-img{width:56px;height:56px;border-radius:12px}
+
+/* number inputs are typed by hand: no −/+ spinner anywhere */
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;appearance:none;margin:0;display:none}

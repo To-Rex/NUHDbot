@@ -1760,3 +1760,7 @@ dialog.cust-dlg:not([open]){display:none}
 .cdlg-loading{display:grid;place-items:center;min-height:160px;color:var(--ink-3)}
 .cdlg-head{flex-wrap:nowrap}.cdlg-head .row-nw{min-width:0}.cdlg-head>.row{flex:0 0 auto;flex-wrap:nowrap}
 @media (max-width:600px){.cdlg-head .btn.btn-sm{padding:0 10px}}
+
+/* ---------- number inputs: typed by hand, no −/+ spinner ---------- */
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;appearance:none;margin:0;display:none}
