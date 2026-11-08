@@ -501,7 +501,19 @@
       "dep_done_confirm": "Deposit confirmed — the customer may bid",
       "dep_done_reject": "Receipt rejected — the customer was told",
       "dep_done_refund": "Deposit marked as refunded",
-      "dep_done_apply": "Deposit applied to the purchase"
+      "dep_done_apply": "Deposit applied to the purchase",
+      "rules_title": "Lot rules",
+      "rules_mode_common": "Common",
+      "rules_mode_own": "This lot only",
+      "rules_edit_common": "Edit the common rules",
+      "rules_common_hint": "The same on every lot; the text is edited on the Auctions page",
+      "rules_own_hint": "Shown on this lot's page only, instead of the common rules",
+      "rules_copy_common": "Start from the common text",
+      "rules_tile_sub": "{own} of {n} lots have their own rules",
+      "rules_hint": "The “Rules” text on every lot page (payment order, disputes, time extension). One text for all lots; a lot can get its own on the lot form. Empty — the standard text shows.",
+      "rules_body": "Rules text",
+      "rules_own_note": "Lots with their own rules do not show this text — change theirs on the lot form.",
+      "rules_saved": "Lot rules saved"
     },
     "sup": {
       "title": "Support",

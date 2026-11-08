@@ -25,6 +25,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "auction_deposit_default": {"v": 0, "d": "Default auction deposit amount (0 = no deposit)"},
     "auction_deposit_percent": {"v": 10, "d": "New lots ask for a deposit of this share of the start price (0 = new lots use the fixed default amount, or none)"},
     "auction_extension_seconds": {"v": 120, "d": "Anti-sniping extension"},
+    "auction_rules": {"v": {"body": {}}, "d": "Lot rules shown on every lot page (payment, disputes); text per language, empty = the standard text; a lot may have its own instead"},
     "auction_terms": {"v": {"show": True, "version": 1, "title": {}, "body": {}}, "d": "Auction terms a customer accepts before joining a lot: asked or not, version (raised to ask everyone again), title and text per language (empty = the standard text)"},
     "free_cities": {"v": ["Guangzhou", "Shenzhen", "Yiwu"], "d": "Free delivery cities"},
     "warehouse_address": {"v": "", "d": "Warehouse address (to be provided)"},

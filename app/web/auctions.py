@@ -8,6 +8,7 @@ from app.deps import DB, CurrentUser, Lang, redirect, require_registered
 from app.enums import AuctionStatus, DepositStatus
 from app.i18n import pick, t
 from app.models import AuctionDeposit, Bid, User
+from app.services import auction_rules as rules_svc
 from app.services import auction_terms as terms_svc
 from app.services import auctions, notifications
 from app.services import payment_methods as pm_svc
@@ -89,7 +90,7 @@ async def _ctx(db, a, user, lang):
         "last_bid_at": bids[0].created_at if bids else None,
         "extended_min": max(0, int((a.ends_at - a.original_ends_at).total_seconds() // 60)) if a.original_ends_at else 0,
     }
-    return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, **(await _deposit_ctx(db, a, user, lang)),
+    return {"lang": lang, "a": a, "bids": bids, "leader_id": leader_id, **(await _deposit_ctx(db, a, user, lang)), "rules_text": rules_svc.text_for(a, await rules_svc.load(db), lang),
             "me_id": user.id if user else None, "numbers": numbers, "stats": stats, **(await _terms_ctx(db, user, lang)),
             "my_best": await auctions.best_bid(db, a.id, user.id) if user and user.id in numbers else None}
 

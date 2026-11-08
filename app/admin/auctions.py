@@ -39,7 +39,7 @@ from app.models import (
     Product,
     User,
 )
-from app.services import auction_terms, audit, deletion, media, notifications
+from app.services import auction_rules, auction_terms, audit, deletion, media, notifications
 from app.services import auctions as asvc
 from app.services import orders as osvc
 from app.services import payment_methods as pm_svc
@@ -56,7 +56,27 @@ async def auctions_list(request: Request, db: DB, staff: User = Depends(staff_de
     stmt = stmt.order_by((Auction.status == AuctionStatus.LIVE).desc(), Auction.id.desc()).limit(200)
     items = (await db.execute(stmt)).scalars().unique().all()
     return render(request, staff, "admin/auctions/list.html", {"page_title": t(staff.lang, "admin.auc.title"), "items": items, "status": status, "statuses": list(AuctionStatus), "badges": await nav_badges(db),
-                                                                **(await _terms_ctx(db, staff)), **(await _deposit_tile_ctx(db, staff))})
+                                                                **(await _terms_ctx(db, staff)), **(await _deposit_tile_ctx(db, staff)), **(await _rules_ctx(db, staff))})
+
+
+async def _rules_ctx(db, staff: User) -> dict:
+    """The common lot rules tile: the saved text, the standard text per language, how many lots carry their own rules."""
+    return {"rules": await auction_rules.load(db), "rules_default": {code: t(code, "auction.rules_default") for code in settings.langs},
+            "rules_own_n": await auction_rules.own_count(db), "rules_total_n": await auction_rules.total_count(db), "can_edit": can(staff, AUCTION_EDIT_ROLES)}
+
+
+@router.post("/auctions/rules")
+async def auctions_rules(request: Request, db: DB, staff: User = Depends(staff_dep(*AUCTION_EDIT_ROLES))):
+    """The rules every lot page shows unless the lot has its own: text per language (empty = the standard text)."""
+    form = await request.form()
+    before = await auction_rules.load(db)
+    after = await auction_rules.save(db, body=f_i18n(form, "rules_body"))
+    await audit.log(db, staff.id, "settings.update", "settings", None, {"auction_rules": before}, {"auction_rules": after})
+    await db.commit()
+    msg = t(staff.lang, "admin.auc.rules_saved")
+    if request.headers.get("HX-Request") == "true":
+        return render(request, staff, "admin/auctions/_rules.html", {**(await _rules_ctx(db, staff)), "tile_open": True}, headers=toast(msg))
+    return back(request, "/admin/auctions#auction-rules", msg)
 
 
 async def _deposit_tile_ctx(db, staff: User) -> dict:
@@ -134,7 +154,9 @@ async def _form_ctx(db, a: Auction) -> dict:
         rows.insert(0, own)
     rows.sort(key=lambda p: (p.available <= 0, p.brand.lower(), p.model.lower()))
     pct = await get_setting(db, "auction_deposit_percent", 10)
-    return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None), "dep_default_pct": asvc.pct_label(Decimal(str(pct or 0))) or "10"}
+    common = await auction_rules.load(db)
+    return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None), "dep_default_pct": asvc.pct_label(Decimal(str(pct or 0))) or "10",
+            "common_rules": {code: auction_rules.common_text(common, code) for code in settings.langs}}
 
 
 def _from_product(a: Auction, p: Product) -> None:
@@ -203,7 +225,9 @@ async def _apply(db, a: Auction, form) -> list[str]:
         if a.status in (AuctionStatus.DRAFT, AuctionStatus.SCHEDULED):
             a.original_ends_at = ends
     a.timezone = settings.timezone
-    a.rules = f_i18n(form, "rules")
+    # the rules: the common text (edited on the Auctions page) unless this lot gets its own; older forms send the text alone
+    mode = form.get("rules_mode")
+    a.rules = {} if mode == "common" else f_i18n(form, "rules")
     if a.bids_count == 0:
         a.current_price_total = a.start_price_total
     return errors
@@ -237,7 +261,7 @@ async def auction_detail(aid: int, request: Request, db: DB, staff: User = Depen
     bids = await asvc.recent_bids(db, a.id, 100)
     deposits = (await db.execute(select(AuctionDeposit).where(AuctionDeposit.auction_id == a.id).order_by((AuctionDeposit.status == DepositStatus.PENDING).desc(), AuctionDeposit.id.desc()))).scalars().all()
     result_order = await db.get(Order, a.result_order_id) if a.result_order_id else None
-    return render(request, staff, "admin/auctions/detail.html", {"page_title": f"{a.title} {capacity(a.capacity_gb)}", "a": a, "bids": bids, "deposits": deposits, "result_order": result_order, "can_edit": can(staff, AUCTION_EDIT_ROLES), "can_pay": can(staff, PAYMENT_ROLES), **_ctx()})
+    return render(request, staff, "admin/auctions/detail.html", {"page_title": f"{a.title} {capacity(a.capacity_gb)}", "a": a, "bids": bids, "deposits": deposits, "result_order": result_order, "can_edit": can(staff, AUCTION_EDIT_ROLES), "can_pay": can(staff, PAYMENT_ROLES), "own_rules": auction_rules.has_own(a), **_ctx()})
 
 
 @router.get("/auctions/{aid}/bids")

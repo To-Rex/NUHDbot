@@ -1646,3 +1646,10 @@ li.ho-row:first-child{border-color:var(--accent)}
 .dep-tabs .cnt{font-family:var(--font-mono);font-size:11px;background:var(--sunken);border-radius:6px;padding:0 5px;margin-left:5px}
 .dep-settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;align-items:end}
 .dep-pct{display:flex;align-items:center;gap:8px}.dep-pct .input{width:110px}.dep-pct b{font-size:16px;color:var(--ink-2)}
+
+/* the lot form: common or own rules */
+.auc-rules{border:1px solid var(--hairline);border-radius:14px;padding:12px 14px;background:var(--sunken)}
+.auc-rules .lbl{display:inline-flex;align-items:center;gap:6px}
+.auc-rules-common{margin-top:10px}
+.rules-text{margin:0;white-space:pre-line;font-size:13px;line-height:1.5;color:var(--ink-2);padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--hairline);max-height:180px;overflow:auto}
+.auc-rules [data-rules-pane="own"]{margin-top:10px}

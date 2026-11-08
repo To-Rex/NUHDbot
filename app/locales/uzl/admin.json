@@ -501,7 +501,19 @@
       "dep_done_confirm": "Depozit tasdiqlandi — mijoz stavka qo'ya oladi",
       "dep_done_reject": "Chek rad etildi — mijozga xabar berildi",
       "dep_done_refund": "Depozit qaytarilgan deb belgilandi",
-      "dep_done_apply": "Depozit xaridga hisoblandi"
+      "dep_done_apply": "Depozit xaridga hisoblandi",
+      "rules_title": "Lot qoidalari",
+      "rules_mode_common": "Umumiy",
+      "rules_mode_own": "Shu lot uchun",
+      "rules_edit_common": "Umumiy qoidalarni tahrirlash",
+      "rules_common_hint": "Hamma lotlarda bir xil ko'rinadi; matn Auksionlar sahifasida o'zgartiriladi",
+      "rules_own_hint": "Faqat shu lot sahifasida, umumiy qoidalar o'rniga ko'rinadi",
+      "rules_copy_common": "Umumiy matndan boshlash",
+      "rules_tile_sub": "{n} ta lotdan {own} tasida alohida qoidalar",
+      "rules_hint": "Har bir lot sahifasidagi «Qoidalar» matni (to'lov tartibi, nizolar, vaqt uzaytirish). Hamma lotlar uchun bir xil; kerak bo'lsa lot formasida shu lot uchun alohida matn yoziladi. Bo'sh qoldirilsa standart matn chiqadi.",
+      "rules_body": "Qoidalar matni",
+      "rules_own_note": "Alohida qoidali lotlar bu matnni ko'rmaydi — ularni lot formasida o'zgartiring.",
+      "rules_saved": "Lot qoidalari saqlandi"
     },
     "sup": {
       "title": "Murojaatlar",

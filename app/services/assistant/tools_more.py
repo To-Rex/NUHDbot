@@ -49,7 +49,7 @@ from app.models import (
     User,
 )
 from app.models.base import utcnow
-from app.services import auction_terms, deletion, model_dict, notifications, storage
+from app.services import auction_rules, auction_terms, deletion, model_dict, notifications, storage
 from app.services import auctions as asvc
 from app.services import banners as bsvc
 from app.services import orders as osvc
@@ -387,6 +387,22 @@ async def set_auction_terms(ctx: Ctx, show=None, title=None, body=None, reaccept
 
 
 # ---------- ad posts ----------
+
+@tool("get_auction_rules", "The common lot rules shown on every lot page unless a lot has its own (payment, disputes): text per language (empty = the standard text), the standard text, how many lots carry their own rules.")
+async def get_auction_rules(ctx: Ctx):
+    rules = await auction_rules.load(ctx.db)
+    return {**rules, "standard": {code: t(code, "auction.rules_default") for code in settings.langs}, "lots_with_own_rules": await auction_rules.own_count(ctx.db)}
+
+
+@tool("set_auction_rules", "Change the common lot rules (text per language; an empty text means the standard one). A single lot's own rules are set with update_auction (rules; an empty rules object makes it use the common text).",
+      {"body": I18N}, required=("body",), mutating=True)
+async def set_auction_rules(ctx: Ctx, body):
+    current = await auction_rules.load(ctx.db)
+    await _setting_row(ctx, auction_rules.KEY, current)
+    after = await auction_rules.save(ctx.db, body=i18n(body, current["body"]))
+    ctx.summary, ctx.entity, ctx.entity_id = "Common lot rules changed", "setting", auction_rules.KEY
+    return {"ok": True, **after}
+
 
 @tool("get_ad", "One ad post in full.", {"id": I("")}, required=("id",))
 async def get_ad(ctx: Ctx, id: int):  # noqa: A002

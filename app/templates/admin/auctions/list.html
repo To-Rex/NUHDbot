@@ -1,7 +1,7 @@
 {% extends "admin/base.html" %}
 {% block topbar_actions %}{% if can(roles.AUCTION_EDIT_ROLES) %}<a class="btn btn-primary btn-sm" href="/admin/auctions/new">{{ icon('plus', 15) }}{{ t('admin.auc.new') }}</a>{% endif %}{% endblock %}
 {% block content %}
-<div class="tiles mb">{% include "admin/auctions/_deposit_settings.html" %}{% include "admin/auctions/_terms.html" %}</div>
+<div class="tiles mb">{% include "admin/auctions/_deposit_settings.html" %}{% include "admin/auctions/_rules.html" %}{% include "admin/auctions/_terms.html" %}</div>
 <div class="tabs"><a href="?status=" class="{{ 'active' if not status }}">{{ t('admin.all') }}</a>{% for s in statuses %}<a href="?status={{ s.value }}" class="{{ 'active' if status==s.value }}">{{ t('auction_status.' ~ s.value) }}</a>{% endfor %}</div>
 <div class="tbl-wrap tbl-cards"><table class="tbl-sticky"><thead><tr><th>{{ t('admin.auc.title') }}</th><th>{{ t('admin.status') }}</th><th class="right">{{ t('admin.auc.qty') }}</th><th class="right">{{ t('admin.auc.start_price') }}</th><th class="right">{{ t('admin.auc.current') }}</th><th class="right">{{ t('admin.auc.bids') }}</th><th>{{ t('admin.auc.ends_at') }}</th><th>{{ t('admin.auc.winner') }}</th></tr></thead><tbody>
 {% for a in items %}<tr class="clickable" data-href="/admin/auctions/{{ a.id }}">

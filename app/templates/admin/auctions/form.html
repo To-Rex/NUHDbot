@@ -110,9 +110,20 @@
         <div class="auc-chips">{% for h, key, n in [(1,'dur_h',1),(6,'dur_h',6),(24,'dur_d',1),(72,'dur_d',3),(168,'dur_d',7)] %}<button type="button" class="chip-btn" data-dur="{{ h }}">{{ t('admin.auc.' ~ key, n=n) }}</button>{% endfor %}</div></div>
     </div>
     <div class="auc-duration" data-dur-out data-h="{{ t('admin.auc.dur_h', n='{n}') }}" data-d="{{ t('admin.auc.dur_d', n='{n}') }}" data-m="{{ t('admin.auc.dur_m', n='{n}') }}" data-bad="{{ t('admin.auc.invalid_times') }}">{{ icon('clock', 15) }}<span>{{ t('admin.auc.duration') }}:</span><b></b></div>
-    <details class="auc-more"{% if a.rules and a.rules.values()|select|list %} open{% endif %}><summary>{{ icon('book', 15) }}{{ t('admin.auc.rules_more') }}{{ icon('chevron-down', 15, 'chev') }}</summary>
-      <div class="mt">{% with name='rules', value=a.rules, kind='textarea', label=t('admin.auc.rules'), rows=3 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}</div>
-    </details>
+    {# the rules on the lot page: the common ones (edited on the Auctions page) or this lot's own text #}
+    {% set own_rules = (a.rules or {}).values()|select|list|length > 0 %}
+    <div class="auc-rules mt" data-rules data-mode="{{ 'own' if own_rules else 'common' }}">
+      <div class="between"><span class="lbl">{{ icon('book', 15) }} {{ t('admin.auc.rules_title') }}</span>
+        <span class="seg" role="group">{% for v in ('common', 'own') %}<label class="seg-opt"><input type="radio" name="rules_mode" value="{{ v }}" {{ 'checked' if (v == 'own') == own_rules }}><span>{{ t('admin.auc.rules_mode_' ~ v) }}</span></label>{% endfor %}</span></div>
+      <div data-rules-pane="common"{{ ' hidden' if own_rules }}>
+        <div class="auc-rules-common"><p class="rules-text" data-rules-common data-texts="{{ common_rules|tojson|forceescape }}"></p>
+          <div class="row mt-sm" style="gap:8px"><a class="btn btn-secondary btn-sm" href="/admin/auctions#auction-rules" target="_blank">{{ icon('edit', 14) }}{{ t('admin.auc.rules_edit_common') }}</a><span class="hint">{{ t('admin.auc.rules_common_hint') }}</span></div></div>
+      </div>
+      <div data-rules-pane="own"{{ '' if own_rules else ' hidden' }}>
+        <div class="row mb-sm" style="gap:8px;flex-wrap:wrap"><span class="hint">{{ t('admin.auc.rules_own_hint') }}</span><button type="button" class="chip-btn" data-rules-copy>{{ icon('copy', 12) }}{{ t('admin.auc.rules_copy_common') }}</button></div>
+        {% with name='rules', value=a.rules, kind='textarea', label=t('admin.auc.rules'), rows=4 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
+      </div>
+    </div>
   </section>
 </form>
 
@@ -266,6 +277,19 @@
   form.querySelectorAll('[data-dur]').forEach(function (b) { b.addEventListener('click', function () {
     var s = st.value ? new Date(st.value) : new Date(); en.value = local(new Date(s.getTime() + parseInt(b.dataset.dur, 10) * 3600000)); fire(en);
   }); });
+
+  /* ---- the rules: common (shown as the admin's language reads it) or this lot's own ---- */
+  var rb = form.querySelector('[data-rules]');
+  if (rb) {
+    var texts = {}; try { texts = JSON.parse(rb.querySelector('[data-rules-common]').dataset.texts || '{}'); } catch (e) {}
+    var lang = document.documentElement.lang || 'ru'; var short = { 'uz-Latn': 'uzl', 'uz-Cyrl': 'uz', 'uz': 'uz', 'ru': 'ru', 'en': 'en', 'zh': 'zh' }[lang] || 'ru';
+    rb.querySelector('[data-rules-common]').textContent = texts[short] || texts.ru || texts.en || '';
+    function rulesMode() { var m = (form.querySelector('[name="rules_mode"]:checked') || {}).value || 'common'; rb.dataset.mode = m; rb.querySelectorAll('[data-rules-pane]').forEach(function (p) { p.hidden = p.dataset.rulesPane !== m; }); }
+    form.querySelectorAll('[name="rules_mode"]').forEach(function (r) { r.addEventListener('change', rulesMode); });
+    rb.querySelector('[data-rules-copy]').addEventListener('click', function () {
+      Object.keys(texts).forEach(function (l) { var ta = form.querySelector('[name="rules_' + l + '"]'); if (ta && !ta.value.trim()) { ta.value = texts[l]; ta.dispatchEvent(new Event('input', { bubbles: true })); } });
+    });
+  }
 
   showPicked(); sync(); times();
 })();

@@ -27,7 +27,7 @@
   </section>
 
   {% if pk is not defined %}{% set pk = p %}{% endif %}
-  <div class="card"><h3>{{ t('auction.rules') }}</h3><p class="small muted mt-1">{{ pk(a.rules) or t('auction.rules_default') }}</p>
+  <div class="card"><h3>{{ t('auction.rules') }}</h3><p class="small muted mt-1">{{ rules_text|nl2br }}</p>
     <button type="button" class="link small row mt-2" style="gap:4px" data-open-sheet="terms-sheet">{{ icon('book', 14) }}{{ t('auction.terms_link') }}{% if terms_ok and user and user.auction_terms_at %}<span class="chip chip-ok" style="margin-left:4px">{{ icon('check', 11) }}</span>{% endif %}</button>{% if pk(a.description) %}<div class="divider"></div><p class="small">{{ pk(a.description)|nl2br }}</p>{% endif %}
     <div class="divider"></div>
     <dl class="kv small"><dt>{{ t('auction.start_price') }}</dt><dd class="mono">{{ a.start_price_total|money(a.currency) }}</dd>

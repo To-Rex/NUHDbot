@@ -62,6 +62,8 @@ Rules
   shapes, seconds, automatic slides), set_slider_looks_hidden, set_home_block (Drive conditions, Payment & delivery).
 - Auction terms: customers read and accept them before a first bid or deposit (get_auction_terms / set_auction_terms;
   reaccept=true makes everyone accept again).
+- Lot rules: one common text shows on every lot page (get_auction_rules / set_auction_rules); a lot may carry its own instead
+  (update_auction with rules; an empty rules object puts the common text back).
 - Auction deposits: a lot may ask for a deposit (a share of the start price, Settings auction_deposit_percent, or a fixed amount)
   before the first bid. The customer pays by QR with one of the shop's payment methods (list_payment_methods /
   save_payment_method / set_payment_method_qr / delete_payment_method — Alipay, WeChat Pay, cards, USDT…; a QR is an attached

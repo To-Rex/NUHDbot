@@ -501,7 +501,19 @@
       "dep_done_confirm": "保证金已确认，客户可以出价",
       "dep_done_reject": "凭证已拒绝，已通知客户",
       "dep_done_refund": "保证金已标记为退还",
-      "dep_done_apply": "保证金已抵扣货款"
+      "dep_done_apply": "保证金已抵扣货款",
+      "rules_title": "拍品规则",
+      "rules_mode_common": "通用",
+      "rules_mode_own": "仅此拍品",
+      "rules_edit_common": "编辑通用规则",
+      "rules_common_hint": "所有拍品相同；在「拍卖」页面修改",
+      "rules_own_hint": "仅在此拍品页面显示，替代通用规则",
+      "rules_copy_common": "以通用文本为基础",
+      "rules_tile_sub": "{n} 个拍品中 {own} 个有单独规则",
+      "rules_hint": "每个拍品页面上的「规则」文本（付款顺序、争议、延时）。所有拍品共用；需要时可在拍品表单中为单个拍品填写。留空则显示标准文本。",
+      "rules_body": "规则文本",
+      "rules_own_note": "有单独规则的拍品不显示此文本，请在拍品表单中修改。",
+      "rules_saved": "拍品规则已保存"
     },
     "sup": {
       "title": "客服消息",
