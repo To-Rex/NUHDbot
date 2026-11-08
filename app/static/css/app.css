@@ -697,7 +697,7 @@ button.list-item{width:100%;text-align:left}
 .ax-hero-tag svg{width:13px;height:13px}
 .ax-hero-main{display:flex;gap:14px;align-items:center}
 .ax-hero-img{flex:0 0 42%;aspect-ratio:1;border-radius:20px;background:rgba(255,255,255,.16);display:grid;place-items:center;overflow:hidden}
-.ax-hero-img img{width:100%;height:100%;object-fit:contain;padding:8px;filter:drop-shadow(0 8px 16px rgba(0,0,0,.25))}
+.ax-hero-img img{width:100%;height:100%;object-fit:cover;display:block}
 .ax-hero-img em{font-style:normal;font-family:var(--font-display);font-size:28px;font-weight:800;opacity:.7}
 .ax-hero-info{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0}
 .ax-hero-info small{font-size:12px;font-weight:600;opacity:.82}
