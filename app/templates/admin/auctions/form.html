@@ -90,8 +90,8 @@
         <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
       <div class="field auc-loc" data-loc data-cities="{{ cities|tojson|forceescape }}" data-city-id="{{ a.location_city.id if a.location_city and a.location_city.id else '' }}" data-l-any="{{ t('admin.auc.location_city_any') }}"><label>{{ t('admin.auc.location') }}</label>
         {% set quick = countries|selectattr('code', 'in', ('CN', 'UZ'))|list %}{% if quick %}<span class="auc-chips loc-quick">{% for code in ('CN', 'UZ') %}{% for c in countries if c.code == code %}<button type="button" class="chip-btn{{ ' on' if a.location == c.code }}" data-loc-quick="{{ c.code }}">{{ icon('map-pin', 11) }}{{ c.name|pick(lang) or c.code }}</button>{% endfor %}{% endfor %}</span>{% endif %}
-        <select class="select" name="location" data-loc-country aria-label="{{ t('admin.auc.location') }}"><option value="">{{ t('admin.auc.location_none') }}</option>{% for c in countries %}<option value="{{ c.code }}" {{ 'selected' if a.location == c.code }}>{{ c.name|pick(lang) or c.code }}</option>{% endfor %}</select>
-        <select class="select" name="location_city" data-loc-city aria-label="{{ t('admin.auc.location_city') }}" {% if not a.location %}hidden{% endif %} data-current="{{ (a.location_city or {})|pick(lang) }}"><option value="">{{ t('admin.auc.location_city_any') }}</option></select>
+        <div class="nice-select loc-country" data-nice-select data-l-search="{{ t('admin.search') }}" data-l-empty="{{ t('admin.nothing_found') }}"><select class="select" name="location" data-loc-country aria-label="{{ t('admin.auc.location') }}"><option value="">{{ t('admin.auc.location_none') }}</option>{% for c in countries %}<option value="{{ c.code }}" {{ 'selected' if a.location == c.code }}>{{ c.name|pick(lang) or c.code }}</option>{% endfor %}</select></div>
+        <div class="nice-select loc-city" data-nice-select data-ns-search data-l-search="{{ t('admin.search') }}" data-l-empty="{{ t('admin.nothing_found') }}" {% if not a.location %}hidden{% endif %}><select class="select" name="location_city" data-loc-city aria-label="{{ t('admin.auc.location_city') }}" data-current="{{ (a.location_city or {})|pick(lang) }}"><option value="">{{ t('admin.auc.location_city_any') }}</option></select></div>
         <span class="hint">{{ t('admin.auc.location_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
         <div class="auc-qty"><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
@@ -298,11 +298,11 @@
     var cs = lb.querySelector('[data-loc-country]'), ci = lb.querySelector('[data-loc-city]'), ui = (document.documentElement.lang || 'ru'), short = { 'uz-Latn': 'uzl', 'uz-Cyrl': 'uz', 'uz': 'uz', 'ru': 'ru', 'en': 'en', 'zh': 'zh' }[ui] || 'ru';
     var name = function (d) { return d && (d[short] || d.ru || d.en || d.uz || d.uzl || d.zh || Object.values(d)[0]) || ''; };
     function fillCities(keep) {
-      var code = cs.value, list = cities.filter(function (c) { return c.cc === code; }), cur = lb.dataset.current || '';
+      var code = cs.value, list = cities.filter(function (c) { return c.cc === code; }), cur = ci.dataset.current || '';
       ci.innerHTML = '<option value="">' + lb.dataset.lAny + '</option>'; var grp = null, region = null;
       list.forEach(function (c) { var r = name(c.region); if (r !== region) { region = r; grp = r ? document.createElement('optgroup') : null; if (grp) { grp.label = r; ci.appendChild(grp); } }
         var o = document.createElement('option'); o.value = c.id; o.textContent = name(c.name); if (keep && (String(c.id) === String(lb.dataset.cityId) || (!lb.dataset.cityId && cur && name(c.name) === cur))) o.selected = true; (grp || ci).appendChild(o); });
-      ci.hidden = !code || !list.length;
+      (ci.closest('.nice-select') || ci).hidden = !code || !list.length; ci.dispatchEvent(new Event('ns:refresh'));
     }
     var quick = lb.querySelectorAll('[data-loc-quick]'); function markQuick() { quick.forEach(function (b) { b.classList.toggle('on', b.dataset.locQuick === cs.value); }); }
     quick.forEach(function (b) { b.addEventListener('click', function () { cs.value = b.dataset.locQuick === cs.value ? '' : b.dataset.locQuick; cs.dispatchEvent(new Event('change', { bubbles: true })); }); });  /* China / Uzbekistan in one tap; a second tap clears */

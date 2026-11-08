@@ -269,9 +269,8 @@
       const pop = document.createElement('div'); pop.className = 'ns-pop'; pop.hidden = true; pop.setAttribute('role', 'listbox');
       box.appendChild(trig); box.appendChild(pop);
       const opts = () => [...sel.options].filter((o) => !o.disabled || o.value !== '');
-      const many = opts().length > 7;
       let search = null;
-      if (many) { search = document.createElement('input'); search.type = 'search'; search.className = 'input sm ns-search'; search.placeholder = box.dataset.lSearch || 'Search'; search.autocomplete = 'off'; }
+      if (box.hasAttribute('data-ns-search') || opts().length > 7) { search = document.createElement('input'); search.type = 'search'; search.className = 'input sm ns-search'; search.placeholder = box.dataset.lSearch || 'Search'; search.autocomplete = 'off'; }
       const list = document.createElement('div'); list.className = 'ns-list';
       if (search) pop.appendChild(search); pop.appendChild(list);
       const paint = () => {
@@ -281,12 +280,17 @@
         trig.disabled = sel.disabled;
       };
       const render = (q) => {
-        list.innerHTML = ''; const needle = (q || '').trim().toLowerCase(); let n = 0;
-        opts().forEach((o) => {
+        list.innerHTML = ''; const needle = (q || '').trim().toLowerCase(); let n = 0; let grp = null;
+        [...sel.children].forEach((node) => {  // options, or optgroups whose label heads a group
+          const group = node.tagName === 'OPTGROUP' ? [...node.children] : [node]; let head = node.tagName === 'OPTGROUP' ? node.label : null;
+          group.forEach((o) => {
+          if (o.disabled && o.value === '') return;
           if (needle && !o.textContent.toLowerCase().includes(needle)) return;
+          if (head !== null && head !== grp) { grp = head; const g = document.createElement('div'); g.className = 'ns-grp'; g.textContent = head; list.appendChild(g); }
           const el = document.createElement('div'); el.className = 'ns-opt' + (o.selected ? ' chosen' : '') + (o.dataset.muted ? ' muted' : '') + (o.value === '__other__' ? ' other' : ''); el.setAttribute('role', 'option'); el.dataset.value = o.value;
           el.innerHTML = (o.dataset.logo ? '<span class="ns-logo"><img src="' + o.dataset.logo + '" alt=""></span>' : '<span class="ns-logo ns-letter">' + (o.value === '__other__' ? '…' : (o.textContent.trim()[0] || '')) + '</span>') + '<span class="ns-name"></span>' + ICONS.ok.replace('<svg', '<svg class="ns-check"');
           el.querySelector('.ns-name').textContent = o.textContent; el.addEventListener('click', () => pick(o.value)); list.appendChild(el); n += 1;
+          });
         });
         if (!n) { const e = document.createElement('div'); e.className = 'ns-empty'; e.textContent = box.dataset.lEmpty || '—'; list.appendChild(e); }
       };
@@ -304,7 +308,7 @@
       if (!search) pop.tabIndex = -1;
       search && search.addEventListener('input', () => render(search.value));
       document.addEventListener('click', (e) => { if (!pop.hidden && !box.contains(e.target)) close(false); });
-      sel.addEventListener('change', paint); paint();
+      sel.addEventListener('change', paint); sel.addEventListener('ns:refresh', () => { paint(); if (!pop.hidden) render(search ? search.value : ''); }); paint();  // ns:refresh: the options were rebuilt by a script
     });
   }
   bindNiceSelect();

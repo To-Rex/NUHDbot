@@ -266,7 +266,7 @@ async def set_location(db: AsyncSession, a: Auction, country: str | None, city_i
         if city is None:
             a.location_city = {"en": city_text.strip()[:100]}
             return
-    a.location_city = (dict(city.name or {}) | ({"region": city.region} if city.region else {})) if city else None
+    a.location_city = (dict(city.name or {}) | {"id": city.id} | ({"region": city.region} if city.region else {})) if city else None  # the id lets the form reselect it exactly
 
 
 REVIEW = {"confirm": DepositStatus.CONFIRMED, "reject": DepositStatus.REJECTED, "refund": DepositStatus.REFUNDED, "apply": DepositStatus.APPLIED}

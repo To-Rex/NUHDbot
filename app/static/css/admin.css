@@ -2040,3 +2040,11 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .loc-quick{margin-top:0;gap:6px}
 .loc-quick .chip-btn{height:30px;padding:0 11px;font-size:12.5px}
 .loc-quick .chip-btn svg{width:12px;height:12px}
+
+/* nice select: group heads (regions); the location menus */
+.ns-grp{padding:8px 10px 3px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.ns-grp:not(:first-child){margin-top:4px;border-top:1px solid var(--hairline);padding-top:8px}
+.auc-loc .nice-select{min-width:180px}
+.auc-loc .nice-select .ns-trigger{height:36px;font-size:13.5px}
+.auc-loc .nice-select .ns-pop{min-width:min(320px,calc(100vw - 32px));width:max(100%,min(320px,calc(100vw - 32px)))}
+.auc-loc .loc-city .ns-opt{min-height:36px}
