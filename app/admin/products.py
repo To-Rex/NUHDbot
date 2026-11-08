@@ -146,8 +146,10 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
     p.interface = Interface(form.get("interface") or "SATA")
     p.form_factor = FormFactor(form.get("form_factor") or "3.5")
     p.condition = Condition(form.get("condition") or "new")
-    if p.condition == Condition.REFRESH and not p.label_model:
-        errors.append("label_model")
+    if p.condition == Condition.REFRESH and not p.label_model:  # the label model is not asked on the form: a Refresh drive is labelled as its real model until the assistant / import says otherwise
+        p.label_model = p.model
+    elif p.condition != Condition.REFRESH and p.label_model == p.model:
+        p.label_model = None
     p.purposes = [x for x in form.getlist("purposes") if x in [e.value for e in Purpose]]
     p.color = form.get("color") if form.get("color") in [c.value for c in ProductColor] else None
     if p.color is None and is_new:  # the new-product form has no colour picker: the series gives it

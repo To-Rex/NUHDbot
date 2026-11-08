@@ -55,7 +55,7 @@
         </div></div>
     </div>
     <div class="form-grid mt">
-      <div class="field" id="label-model-row" {% if prod.condition.value != 'refresh' %}hidden{% endif %}><label>{{ t('admin.prod.label_model') }}</label><input class="input mono" name="label_model" value="{{ prod.label_model or '' }}" {{ dis }}><span class="hint">{{ t('admin.prod.refresh_hint') }}</span></div>
+      {% if not is_new %}<input type="hidden" name="label_model" value="{{ prod.label_model or '' }}">{% endif %}{# the label model (Refresh) is kept, not edited here #}
       <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}>{% set curs = currency_list() %}<select class="select mono" name="currency" style="width:96px;flex:0 0 auto" aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ dis }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == prod.currency }}>{{ c.code }}</option>{% endfor %}{% if prod.currency not in curs|map(attribute='code')|list %}<option value="{{ prod.currency }}" selected>{{ prod.currency }}</option>{% endif %}</select></div></div>
       <div class="field" id="stock-field"><label>{{ t('admin.prod.stock') }}</label><input class="input mono" type="number" name="stock" value="{{ prod.stock }}" min="0" {{ dis }}>{% if not is_new %}<span class="hint">{{ t('admin.prod.reserved') }}: {{ prod.reserved }} · {{ t('admin.prod.available') }}: <b>{{ prod.available }}</b></span>{% endif %}</div>
     </div>
