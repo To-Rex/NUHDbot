@@ -2,7 +2,7 @@
 {% set prod = b.product %}{% set multi = b.auto_sale or b.product_ids %}
 {% set off = (offers or {}).get(b.id) if multi else None %}{% set items = off[0] if off else [] %}
 {% set cheapest = items|selectattr('price')|sort(attribute='price')|first if items else None %}
-<div class="bn-slide c-{{ b.color }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or multi) and not b.image }}" data-bn-slide>
+<div class="bn-slide {{ b.color|bcolor }}{{ ' has-img' if b.image }}{{ ' has-product' if (prod or multi) and not b.image }}"{{ b.color|bcolor_attr }} data-bn-slide>
   {% if b.image %}<img class="bn-bg" src="{{ b.image_url }}" alt="">{% endif %}
   <div class="bn-body">
     <span class="bn-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 13) }}<span data-bn-kind>{{ t('admin.ban.kind.' ~ b.kind) }}</span></span>

@@ -460,6 +460,14 @@ if cuid:
 ok("i18n fields have a Translate button", 'data-translate data-kind="textarea"' in adm.get("/admin/products/new").text and 'data-translate' in adm.get("/admin/settings").text)
 r = adm.post("/admin/translate", json={"texts": {}, "targets": []})
 ok("translate refuses an empty request", r.status_code == 400 and r.json().get("error") == "no_source", f"{r.status_code} {r.text[:120]}")
+# a banner in a colour of one's own: saved as #rrggbb, painted on the Mini App home with a matching ink
+r = adm.post("/admin/banners/new", data={"kind": "hot", "title_ru": "Цвет E2E " + UID, "color": "custom", "color_custom": "#1a2b3c", "target": "none", "is_active": "1"})
+ok("a banner takes a custom colour", r.status_code == 303, f"{r.status_code} {r.text[:200]}")
+home = cust.get("/app/home").text
+ok("the Mini App paints the custom colour", "--bc:#1a2b3c" in home and "Цвет E2E " + UID in home, home[home.find("--bc:#1a2b3c") - 80:][:200])
+bids_html = adm.get("/admin/banners").text
+bid_ids = [int(x) for x in re.findall(r"/admin/banners/(\d+)/delete", bids_html)]
+ok("the test banner is removed", bool(bid_ids) and adm.post(f"/admin/banners/{max(bid_ids)}/delete").status_code == 303)
 ok("admin theme switch", adm.post("/admin/theme/dark").status_code in (200, 204, 303))
 ok("admin lang switch", adm.get("/admin/lang/ru?next=/admin").status_code == 303)
 ok("app lang switch", cust.get("/app/lang/ru?next=/app/home").status_code == 303)

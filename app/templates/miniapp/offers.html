@@ -3,7 +3,7 @@
 {% block title %}{{ page_title }} · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="page">
-  <section class="offer-head c-{{ b.color }}">
+  <section class="offer-head {{ b.color|bcolor }}"{{ b.color|bcolor_attr }}>
     {% if b.image %}<img class="hs-bg" src="{{ b.image_url }}" alt="">{% endif %}
     <div class="offer-body">
       <span class="hs-kicker">{{ icon(kind_icons.get(b.kind, 'fire'), 14) }}{{ t('home.slide.' ~ b.kind) }}</span>

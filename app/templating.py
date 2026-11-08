@@ -75,8 +75,26 @@ def pct(value) -> str:
     return format(d.normalize(), "f") if d > 0 else ""
 
 
+def bcolor(color: str | None) -> str:
+    """The class of a banner colour: a preset's `c-<name>`, `c-custom` for a hex colour."""
+    return "c-custom" if (color or "").startswith("#") else "c-" + (color or "red")
+
+
+def bcolor_attr(color: str | None) -> Markup:
+    """For a hex colour: the style attribute with the background and an ink that reads on it (black or white by luminance)."""
+    c = (color or "").strip().lower()
+    if not (len(c) == 7 and c.startswith("#")):
+        return Markup("")
+    try:
+        r, g, b = (int(c[i:i + 2], 16) for i in (1, 3, 5))
+    except ValueError:
+        return Markup("")
+    lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
+    return Markup(f' style="--bc:{c};--bi:{"#1C1C1E" if lum > 0.6 else "#fff"}"')
+
+
 env.filters.update(
-    money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br, pct=pct,
+    money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br, pct=pct, bcolor=bcolor, bcolor_attr=bcolor_attr,
     pick=lambda v, lang: pick(v, lang),
 )
 from app.services.storage import url as media_url  # noqa: E402

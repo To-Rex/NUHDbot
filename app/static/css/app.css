@@ -1171,3 +1171,8 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 /* number inputs are typed by hand: no −/+ spinner anywhere */
 input[type=number]{-moz-appearance:textfield;appearance:textfield}
 input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;appearance:none;margin:0;display:none}
+
+/* more banner colours; a custom one carries its own --bc/--bi inline */
+.c-pink{--bc:#D63384;--bi:#fff}.c-crimson{--bc:#B3122E;--bi:#fff}.c-indigo{--bc:#4B4ED6;--bi:#fff}.c-navy{--bc:#1F3A5F;--bi:#fff}.c-cyan{--bc:#0AA3C2;--bi:#fff}
+.c-lime{--bc:#78B81F;--bi:#14230A}.c-brown{--bc:#7A4B2A;--bi:#fff}.c-slate{--bc:#4A5568;--bi:#fff}.c-white{--bc:#F5F5F7;--bi:#1C1C1E}.c-custom{--bc:#8A93A3;--bi:#fff}
+.hs-slide.c-white,.hs-slide.c-silver{box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}

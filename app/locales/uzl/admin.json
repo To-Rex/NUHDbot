@@ -1224,7 +1224,18 @@
         "teal": "Moviy-yashil",
         "blue": "Ko'k",
         "purple": "Binafsha",
-        "black": "Qora"
+        "black": "Qora",
+        "pink": "Pushti",
+        "crimson": "To'q qizil",
+        "indigo": "Indigo",
+        "navy": "To'q ko'k",
+        "cyan": "Firuza",
+        "lime": "Och yashil",
+        "brown": "Jigarrang",
+        "slate": "Kulrang-ko'k",
+        "silver": "Kumush",
+        "white": "Oq",
+        "custom": "O'z rangingiz"
       },
       "f_image": "Rasm (ixtiyoriy)",
       "f_image_pick": "Rasm tanlash",
@@ -1374,7 +1385,8 @@
       "seconds_banner": "Banner slayderi",
       "seconds_dirs": "Yo'nalishlar slayderi",
       "seconds_dirs_hint": "Yo'nalishlar kartasi oldinda necha soniya turadi — keyin slayder o'zi aylanadi (barmoq tekkanda to'xtaydi).",
-      "seconds_saved_both": "Slayd vaqti: bannerlar {n} s · yo'nalishlar {d} s"
+      "seconds_saved_both": "Slayd vaqti: bannerlar {n} s · yo'nalishlar {d} s",
+      "f_color_hint": "Tayyor ranglardan birini tanlang yoki «+» orqali istalgan rangni oling — matn rangi o'zi moslashadi."
     },
     "shape": {
       "title": "Karta shakli",

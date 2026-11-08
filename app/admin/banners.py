@@ -51,7 +51,7 @@ async def _apply(db, b: Banner, form, upload: UploadFile | None) -> list[str]:
     if not b.title:
         errors.append("title")
     b.badge = f_str(form, "badge", maxlen=24) or None
-    b.color = form.get("color") if form.get("color") in svc.COLORS else "red"
+    b.color = svc.clean_color(form.get("color_custom") if form.get("color") == "custom" else form.get("color")) or "red"
     target = form.get("target")
     pid = f_int(form, "product_id", None) if target == "product" else None
     b.product_id = pid if pid and await db.get(Product, pid) else None

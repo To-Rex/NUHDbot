@@ -1224,7 +1224,18 @@
         "teal": "青色",
         "blue": "蓝色",
         "purple": "紫色",
-        "black": "黑色"
+        "black": "黑色",
+        "pink": "粉色",
+        "crimson": "深红",
+        "indigo": "靛蓝",
+        "navy": "藏青",
+        "cyan": "青色",
+        "lime": "黄绿",
+        "brown": "棕色",
+        "slate": "蓝灰",
+        "silver": "银色",
+        "white": "白色",
+        "custom": "自定义颜色"
       },
       "f_image": "图片（可选）",
       "f_image_pick": "选择图片",
@@ -1374,7 +1385,8 @@
       "seconds_banner": "横幅轮播",
       "seconds_dirs": "方向轮播",
       "seconds_dirs_hint": "方向卡片在前面停留几秒后轮播自动转动（触摸时暂停）。",
-      "seconds_saved_both": "停留时间：横幅 {n} 秒 · 方向 {d} 秒"
+      "seconds_saved_both": "停留时间：横幅 {n} 秒 · 方向 {d} 秒",
+      "f_color_hint": "选择预设颜色或通过「+」自定义——文字颜色会自动适配。"
     },
     "shape": {
       "title": "卡片形状",

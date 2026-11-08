@@ -1224,7 +1224,18 @@
         "teal": "Teal",
         "blue": "Blue",
         "purple": "Purple",
-        "black": "Black"
+        "black": "Black",
+        "pink": "Pink",
+        "crimson": "Crimson",
+        "indigo": "Indigo",
+        "navy": "Navy",
+        "cyan": "Cyan",
+        "lime": "Lime",
+        "brown": "Brown",
+        "slate": "Slate",
+        "silver": "Silver",
+        "white": "White",
+        "custom": "Your own colour"
       },
       "f_image": "Image (optional)",
       "f_image_pick": "Choose image",
@@ -1374,7 +1385,8 @@
       "seconds_banner": "Banner slider",
       "seconds_dirs": "Directions slider",
       "seconds_dirs_hint": "How many seconds a direction card stays in front before the slider turns by itself (a touch pauses it).",
-      "seconds_saved_both": "Slide time: banners {n} s · directions {d} s"
+      "seconds_saved_both": "Slide time: banners {n} s · directions {d} s",
+      "f_color_hint": "Pick a preset or any colour with «+» — the text colour adapts by itself."
     },
     "shape": {
       "title": "Card shape",

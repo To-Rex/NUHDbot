@@ -2016,3 +2016,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .rules-common-view .rules-text{margin:0;padding:10px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--hairline);font-size:12.5px;line-height:1.5;white-space:pre-wrap;max-height:120px;overflow:auto}
 .rules-common-view .pane .hint{display:block;margin-top:4px}
 .rules-common-view>.hint{display:block;margin-top:8px}
+
+/* banner colours: more presets, a custom swatch with the colour picker */
+.c-pink{--bc:#D63384;--bi:#fff}.c-crimson{--bc:#B3122E;--bi:#fff}.c-indigo{--bc:#4B4ED6;--bi:#fff}.c-navy{--bc:#1F3A5F;--bi:#fff}.c-cyan{--bc:#0AA3C2;--bi:#fff}
+.c-lime{--bc:#78B81F;--bi:#14230A}.c-brown{--bc:#7A4B2A;--bi:#fff}.c-slate{--bc:#4A5568;--bi:#fff}.c-silver{--bc:#D5DAE1;--bi:#1C1C1E}.c-white{--bc:#F5F5F7;--bi:#1C1C1E}.c-custom{--bc:#8A93A3;--bi:#fff}
+.bn-colors{gap:8px;align-items:center}
+.bn-color span{width:30px;height:30px}
+.bn-color.c-white span,.bn-color.c-silver span{box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.bn-color-custom span{display:grid;place-items:center;color:#fff;border:2px dashed rgba(255,255,255,.7);box-sizing:border-box}
+.bn-color-custom span svg{width:14px;height:14px;filter:drop-shadow(0 0 1px rgba(0,0,0,.5))}
+.bn-color-custom.is-set span,.bn-color-custom input[type=radio]:checked+span{border-style:solid;border-color:transparent}
+.bn-color-custom input[type=radio]:checked+span svg{display:none}
+.bn-color-custom input[type=color]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;pointer-events:auto}
+.bn-hex{font-size:12px;color:var(--ink-2);padding:0 8px;height:26px;display:inline-flex;align-items:center;border:1px solid var(--hairline);border-radius:8px}

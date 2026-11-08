@@ -1,4 +1,5 @@
 """Home slider banners: which are live now, and where a click on one goes."""
+import re
 from datetime import UTC, datetime
 from decimal import Decimal
 
@@ -14,7 +15,17 @@ KIND_ICONS = {"new": "sparkle", "hot": "fire", "sale": "percent", "auction": "ga
 # what a new banner of each kind usually points to and looks like (the form fills these in, staff can change them)
 KIND_DEFAULTS = {"new": ("/app/new", "green"), "hot": (None, "red"), "sale": (None, "purple"), "auction": ("/app/auctions", "orange"),
                  "tips": ("/app/info", "teal"), "catalog": ("/app/catalog", "blue"), "info": (None, "black")}
-COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black")
+COLORS = ("red", "orange", "gold", "green", "teal", "blue", "purple", "black", "pink", "crimson", "indigo", "navy", "cyan", "lime", "brown", "slate", "silver", "white")
+HEX_RE = re.compile(r"^#?([0-9a-fA-F]{6})$")
+
+
+def clean_color(value) -> str | None:
+    """A banner colour: one of the presets, or any colour as #rrggbb (lower-case). None when it is neither."""
+    v = (str(value or "")).strip().lower()
+    if v in COLORS:
+        return v
+    m = HEX_RE.match(v)
+    return "#" + m.group(1).lower() if m else None
 SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 1, 60, 7
 SECONDS_CHOICES = (5, 7, 10, 15)
 DIR_SECONDS_DEFAULT, DIR_SECONDS_CHOICES = 4, (3, 4, 5, 7, 10)  # the Directions slider turns faster than the banners

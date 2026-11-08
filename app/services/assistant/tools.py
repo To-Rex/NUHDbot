@@ -560,9 +560,10 @@ async def _apply_banner(ctx: Ctx, b: Banner, a: dict) -> None:
     if "badge" in a:
         b.badge = (str(a["badge"]).strip()[:24] or None) if a["badge"] else None
     if "color" in a:
-        if a["color"] not in bsvc.COLORS:
-            raise ToolError(f"color: one of {bsvc.COLORS}")
-        b.color = a["color"]
+        c = bsvc.clean_color(a["color"])
+        if not c:
+            raise ToolError(f"color: one of {bsvc.COLORS}, or any #rrggbb")
+        b.color = c
     if "product_id" in a:
         b.product_id = int(a["product_id"]) if a["product_id"] and await ctx.db.get(Product, int(a["product_id"])) else None
         if a["product_id"] and b.product_id is None:
