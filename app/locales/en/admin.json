@@ -1558,6 +1558,10 @@
       "err_too_long": "The text is too long (over 6000 characters) — translate it in parts",
       "err_bad_answer": "The model gave no readable answer — try again",
       "err_failed": "Could not translate: {err}"
+    },
+    "dp": {
+      "time": "Time",
+      "done": "Done"
     }
   }
 }

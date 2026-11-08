@@ -1558,6 +1558,10 @@
       "err_too_long": "Matn juda uzun (6000 belgidan ko'p) — bo'lib tarjima qiling",
       "err_bad_answer": "Model tushunarli javob bermadi — yana bir urinib ko'ring",
       "err_failed": "Tarjima qilib bo'lmadi: {err}"
+    },
+    "dp": {
+      "time": "Vaqt",
+      "done": "Tayyor"
     }
   }
 }

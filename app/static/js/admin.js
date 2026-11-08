@@ -309,6 +309,61 @@
   }
   bindNiceSelect();
   document.addEventListener('htmx:afterSettle', (e) => bindNiceSelect(e.target));
+
+  // ---------- date-time picker: a calendar of our own over every datetime-local input ----------
+  // The native input stays (its value, validation and keyboard entry are untouched; the form's scripts keep listening to
+  // it); its own picker button is hidden and ours opens a popover: a month grid, hour and minute, Now, Done.
+  function bindDatePick(scope) {
+    (scope || document).querySelectorAll('input[type="datetime-local"]').forEach((inp) => {
+      if (inp.dataset.dpBound || inp.closest('.dp-wrap')) return; inp.dataset.dpBound = '1';
+      const wrap = document.createElement('div'); wrap.className = 'dp-wrap'; inp.parentNode.insertBefore(wrap, inp); wrap.appendChild(inp);
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'dp-btn'; btn.setAttribute('aria-label', 'calendar'); btn.tabIndex = -1;
+      btn.innerHTML = '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Zm-96-88v64a8,8,0,0,1-16,0V133l-4.42,2.21a8,8,0,1,1-7.16-14.31l16-8A8,8,0,0,1,112,120Zm59.16,30.45L152,176h16a8,8,0,0,1,0,16H136a8,8,0,0,1-6.4-12.8l28.78-38.37A8,8,0,1,0,145.07,132a8,8,0,1,1-13.85-8A24,24,0,0,1,176,136,23.76,23.76,0,0,1,171.16,150.45Z"/></svg>';
+      wrap.appendChild(btn);
+      const pop = document.createElement('div'); pop.className = 'dp-pop'; pop.hidden = true; wrap.appendChild(pop);
+      const lang = (document.documentElement.lang || 'en');
+      const fmtMonth = new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' });
+      const fmtWd = new Intl.DateTimeFormat(lang, { weekday: 'short' });
+      const z = (n) => String(n).padStart(2, '0');
+      const parse = () => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(inp.value || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null; };
+      const write = (d) => { inp.value = d.getFullYear() + '-' + z(d.getMonth() + 1) + '-' + z(d.getDate()) + 'T' + z(d.getHours()) + ':' + z(d.getMinutes()); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); };
+      let view = null, cur = null;  // the month on show; the value being built
+      const nowShop = () => { const off = parseInt(((inp.closest('form') || {}).dataset || {}).tzOffset || '', 10); if (isNaN(off)) return new Date(); const n = new Date(Date.now() + off * 60000); return new Date(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate(), n.getUTCHours(), n.getUTCMinutes()); };  // a form may keep its times in the shop's zone
+      const T2 = (k, d) => (window.ADMIN_I18N && window.ADMIN_I18N.dp && window.ADMIN_I18N.dp[k]) || d;
+      function render() {
+        const sel = cur, now = nowShop(); const first = new Date(view.getFullYear(), view.getMonth(), 1);
+        let lead = (first.getDay() + 6) % 7;  // Monday first
+        const days = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
+        let h = '<div class="dp-head"><button type="button" class="dp-nav" data-dp-nav="-1">‹</button><b>' + fmtMonth.format(first) + '</b><button type="button" class="dp-nav" data-dp-nav="1">›</button></div><div class="dp-grid">';
+        for (let i = 0; i < 7; i++) { const d = new Date(2024, 0, 1 + i); h += '<span class="dp-wd">' + fmtWd.format(d).replace('.', '') + '</span>'; }
+        for (let i = 0; i < lead; i++) h += '<span></span>';
+        for (let d = 1; d <= days; d++) {
+          const isSel = sel && sel.getFullYear() === view.getFullYear() && sel.getMonth() === view.getMonth() && sel.getDate() === d;
+          const isToday = now.getFullYear() === view.getFullYear() && now.getMonth() === view.getMonth() && now.getDate() === d;
+          h += '<button type="button" class="dp-day' + (isSel ? ' sel' : '') + (isToday ? ' today' : '') + '" data-dp-day="' + d + '">' + d + '</button>';
+        }
+        h += '</div><div class="dp-time"><label><span>' + T2('time', 'Time') + '</span><span class="dp-hm"><select class="select sm" data-dp-h>' + Array.from({ length: 24 }, (_, i) => '<option' + (sel && sel.getHours() === i ? ' selected' : '') + '>' + z(i) + '</option>').join('') + '</select><i>:</i><select class="select sm" data-dp-m>' + Array.from({ length: 60 }, (_, i) => '<option' + (sel && sel.getMinutes() === i ? ' selected' : '') + '>' + z(i) + '</option>').join('') + '</select></span></label>'
+          + '<span class="dp-acts"><button type="button" class="chip-btn" data-dp-now>' + T2('now', 'Now') + '</button><button type="button" class="btn btn-primary btn-sm" data-dp-done>' + T2('done', 'Done') + '</button></span></div>';
+        pop.innerHTML = h;
+      }
+      const open = () => { cur = parse() || nowShop(); cur.setSeconds(0, 0); view = new Date(cur.getFullYear(), cur.getMonth(), 1); render(); pop.hidden = false; const r = wrap.getBoundingClientRect(); wrap.classList.toggle('up', r.bottom + 430 > window.innerHeight && r.top > 430); wrap.classList.add('open'); };  // opens upwards when the screen ends below
+      const close = () => { pop.hidden = true; wrap.classList.remove('open'); };
+      btn.addEventListener('click', () => (pop.hidden ? open() : close()));
+      pop.addEventListener('click', (e) => {
+        const nav = e.target.closest('[data-dp-nav]'); if (nav) { view.setMonth(view.getMonth() + parseInt(nav.dataset.dpNav, 10)); render(); return; }
+        const day = e.target.closest('[data-dp-day]'); if (day) { cur = new Date(view.getFullYear(), view.getMonth(), parseInt(day.dataset.dpDay, 10), cur.getHours(), cur.getMinutes()); write(cur); render(); return; }
+        if (e.target.closest('[data-dp-now]')) { cur = nowShop(); cur.setSeconds(0, 0); view = new Date(cur.getFullYear(), cur.getMonth(), 1); write(cur); render(); return; }
+        if (e.target.closest('[data-dp-done]')) { close(); inp.focus(); }
+      });
+      pop.addEventListener('change', (e) => {
+        if (e.target.matches('[data-dp-h],[data-dp-m]')) { cur.setHours(parseInt(pop.querySelector('[data-dp-h]').value, 10), parseInt(pop.querySelector('[data-dp-m]').value, 10)); write(cur); }
+      });
+      pop.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); inp.focus(); } });
+      document.addEventListener('click', (e) => { const inside = e.composedPath ? e.composedPath().includes(wrap) : wrap.contains(e.target); if (!pop.hidden && !inside) close(); });  // composedPath: a day button re-rendered away mid-click still counts as inside
+    });
+  }
+  bindDatePick();
+  document.addEventListener('htmx:afterSettle', (e) => bindDatePick(e.target));
   // the Translate button: the language with text (the open tab first) goes to the model, the empty languages come back filled;
   // when every language already has text it asks before rewriting the others
   const TR = (window.ADMIN_I18N && window.ADMIN_I18N.tr) || {};
