@@ -23,7 +23,7 @@ async def product_page(product_id: int, request: Request, db: DB, user: CurrentU
     delivery = await get_setting(db, "delivery_text")
     payment = await get_setting(db, "payment_text")
     step = p.box_qty if (p.full_box_only and p.box_qty) else 1
-    min_qty = p.min_order
+    min_qty = max(1, p.min_order)  # 0 = no minimum of its own
     if step > 1 and min_qty % step:
         min_qty = ((min_qty // step) + 1) * step
     return render(

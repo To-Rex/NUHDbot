@@ -270,7 +270,7 @@ async def _apply_product(ctx: Ctx, p: Product, a: dict, is_new: bool) -> None:
             p.__setattr__(k, int(a[k]) if a[k] is not None else None)
     if p.stock is None or p.stock < 0:
         p.stock = 0
-    p.min_order = max(1, p.min_order or 1)
+    p.min_order = max(0, p.min_order or 0)  # 0 = no minimum of its own
     for k in ("full_box_only", "is_active", "sale_allowed"):
         if k in a:
             p.__setattr__(k, bool(a[k]))

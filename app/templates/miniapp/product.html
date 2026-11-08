@@ -45,7 +45,7 @@
       </div>
       <div class="minbox">
         <div class="eyebrow">{{ t('common.min_order') }}</div>
-        <div class="v">{{ p.min_order }} <span class="small muted" style="font-family:var(--font-body);font-weight:500">{{ t('common.pcs') }}</span></div>
+        <div class="v">{{ min_qty }} <span class="small muted" style="font-family:var(--font-body);font-weight:500">{{ t('common.pcs') }}</span></div>
       </div>
     </div>
     {% if p.price is not none and price.choices|length > 1 %}{% include "miniapp/partials/currency_prices.html" %}{% endif %}

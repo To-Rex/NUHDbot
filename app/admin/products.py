@@ -126,7 +126,7 @@ async def product_new(request: Request, db: DB, staff: User = Depends(staff_dep(
     # model defaults only apply on insert, so spell out what the empty form should show
     await currencies.ensure(db)  # a new product is priced in the shop's main currency (the Currencies page's default, else the base) unless the staff pick another
     p = Product(brand="", model="", capacity_gb=1000, condition=Condition.NEW, interface=Interface.SATA, form_factor=FormFactor.F35, is_active=True, sale_allowed=True, currency=currencies.default_code() or currencies.base_code() or settings.default_currency,
-                seller_warranty_months=12, factory_warranty_months=36, min_order=1, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC),
+                seller_warranty_months=12, factory_warranty_months=36, min_order=0, box_qty=20, full_box_only=True, stock=0, purposes=[], specs={}, description={}, compatibility={}, test_summary={}, delivery_note={}, arrived_at=datetime.now(UTC),
                 test_status=TestStatus.TESTED, health="Good / 100%")  # most drives arrive checked; the staff change it when not
     return render(request, staff, "admin/products/form.html", {"page_title": t(staff.lang, "admin.prod.new"), "prod": p, "is_new": True, "history": [], **(await _form_ctx(db, p))})
 
@@ -162,7 +162,7 @@ async def _apply_form(db, p: Product, form, staff: User, is_new: bool) -> list[s
     if can(staff, FINANCE_VIEW):
         p.cost_price = f_dec(form, "cost_price")
     p.stock = max(0, f_int(form, "stock", 0) or 0)
-    p.min_order = max(1, f_int(form, "min_order", 1) or 1)
+    p.min_order = max(0, f_int(form, "min_order", 0) or 0)  # 0 = no minimum of its own (a full-box rule still applies)
     p.box_qty = f_int(form, "box_qty", None)
     p.full_box_only = f_bool(form, "full_box_only")
     sw, fw = WARRANTY_DEFAULTS[p.condition]

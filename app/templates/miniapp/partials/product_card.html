@@ -1,7 +1,7 @@
 {# expects: p (Product), i (index for stagger). Same card everywhere: catalogue, home rails, similar items.
    The whole card opens the product through a stretched link; the + button adds the minimum quantity to the cart. #}
 {% set step = p.box_qty if (p.full_box_only and p.box_qty) else 1 %}
-{% set min_qty = p.min_order if (step == 1 or p.min_order % step == 0) else ((p.min_order // step) + 1) * step %}
+{% set base_min = [p.min_order, 1]|max %}{% set min_qty = base_min if (step == 1 or base_min % step == 0) else ((base_min // step) + 1) * step %}
 {% set can_add = p.price is not none and p.sale_allowed and p.available >= min_qty %}
 <div class="pcard" style="--i:{{ i or 0 }}">
   <a class="pcard-link" href="/app/products/{{ p.id }}" aria-label="{{ p.title }}"></a>
