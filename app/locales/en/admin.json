@@ -519,7 +519,12 @@
       "rules_body": "Rules text",
       "rules_own_note": "Lots with their own rules do not show this text — change theirs on the lot form.",
       "rules_saved": "Lot rules saved",
-      "rules_standard_note": "No text in this language yet — the standard one is shown"
+      "rules_standard_note": "No text in this language yet — the standard one is shown",
+      "location": "Location",
+      "location_cn": "In China",
+      "location_uz": "In Uzbekistan",
+      "location_none": "Not said",
+      "location_hint": "Where the drives are now — shown on the lot (delivery time depends on it)."
     },
     "sup": {
       "title": "Support",

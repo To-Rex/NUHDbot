@@ -519,7 +519,12 @@
       "rules_body": "Qoidalar matni",
       "rules_own_note": "Alohida qoidali lotlar bu matnni ko'rmaydi — ularni lot formasida o'zgartiring.",
       "rules_saved": "Lot qoidalari saqlandi",
-      "rules_standard_note": "Bu tilda matn yozilmagan — standart matn ko'rsatiladi"
+      "rules_standard_note": "Bu tilda matn yozilmagan — standart matn ko'rsatiladi",
+      "location": "Joylashuv",
+      "location_cn": "Xitoyda",
+      "location_uz": "O'zbekistonda",
+      "location_none": "Ko'rsatilmagan",
+      "location_hint": "Disklar hozir qayerda — mijoz lotda ko'radi (yetkazish muddati shunga bog'liq)."
     },
     "sup": {
       "title": "Murojaatlar",

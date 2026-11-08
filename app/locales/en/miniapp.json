@@ -411,7 +411,10 @@
     "deposit_cta": "Pay the deposit · {amount}",
     "sent_at": "Sent",
     "dep_step3": "Bid after the check",
-    "pay_paid_with": "I paid with this one"
+    "pay_paid_with": "I paid with this one",
+    "location_cn": "In China",
+    "location_uz": "In Uzbekistan",
+    "location": "Location"
   },
   "info": {
     "title": "Useful info",

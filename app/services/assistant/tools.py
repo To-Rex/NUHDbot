@@ -831,7 +831,7 @@ async def delete_order(ctx: Ctx, order):
 def auction_row(a: Auction) -> dict:
     return {"id": a.id, "title": a.title, "capacity_gb": a.capacity_gb, "status": a.status.value, "qty": a.qty, "start_price_total": str(a.start_price_total), "current_price_total": str(a.current_price_total),
             "step_per_unit": str(a.step_per_unit), "bids": a.bids_count, "currency": a.currency, "starts_at": local(a.starts_at), "ends_at": local(a.ends_at), "product_id": a.product_id,
-            "deposit_amount": str(a.deposit_amount), "require_deposit": a.require_deposit, "winner_user_id": a.winner_user_id}
+            "deposit_amount": str(a.deposit_amount), "require_deposit": a.require_deposit, "winner_user_id": a.winner_user_id, "location": a.location}
 
 
 @tool("list_auctions", "Auction lots. Statuses: draft, scheduled, live, ended, cancelled.", {"status": S("Filter"), "limit": I("Max rows")})
@@ -852,9 +852,9 @@ async def get_auction(ctx: Ctx, id: int):  # noqa: A002
 
 @tool("create_auction", "Create a lot from a catalogue product. Times are in the shop's time zone. publish=true makes it scheduled/live at once, otherwise it is a draft.",
       {"product_id": I("Catalogue product"), "qty": I("Units in the lot"), "start_price_total": N("Start price for the whole lot"), "step_per_unit": N("Bid step per unit (default 1)"),
-       "starts_at": S("YYYY-MM-DD HH:MM"), "ends_at": S("YYYY-MM-DD HH:MM"), "deposit_amount": N("Deposit required to bid (0 = none)"), "rules": I18N, "publish": B("Publish right away")},
+       "starts_at": S("YYYY-MM-DD HH:MM"), "ends_at": S("YYYY-MM-DD HH:MM"), "deposit_amount": N("Deposit required to bid (0 = none)"), "rules": I18N, "location": S("Where the drives are: cn (China) | uz (Uzbekistan); empty = not said"), "publish": B("Publish right away")},
       required=("product_id", "qty", "start_price_total", "starts_at", "ends_at"), mutating=True)
-async def create_auction(ctx: Ctx, product_id: int, qty: int, start_price_total, starts_at, ends_at, step_per_unit=None, deposit_amount=None, rules=None, publish=False):
+async def create_auction(ctx: Ctx, product_id: int, qty: int, start_price_total, starts_at, ends_at, step_per_unit=None, deposit_amount=None, rules=None, location=None, publish=False):
     from app.admin.auctions import _from_product
 
     p = await need(ctx.db, Product, int(product_id), "product")
@@ -873,6 +873,7 @@ async def create_auction(ctx: Ctx, product_id: int, qty: int, start_price_total,
         raise ToolError("ends_at must be after starts_at")
     a.original_ends_at = a.ends_at
     a.rules = i18n(rules)
+    a.location = asvc.clean_location(location)
     if publish:
         if a.ends_at <= datetime.now(UTC):
             raise ToolError("ends_at is in the past")
@@ -884,8 +885,8 @@ async def create_auction(ctx: Ctx, product_id: int, qty: int, start_price_total,
     return {"ok": True, "auction": auction_row(a), "admin_url": f"/admin/auctions/{a.id}"}
 
 
-@tool("update_auction", "Change a lot's quantity, prices, times, deposit or rules.",
-      {"id": I("Auction id"), "qty": I(""), "start_price_total": N(""), "step_per_unit": N(""), "starts_at": S("YYYY-MM-DD HH:MM"), "ends_at": S("YYYY-MM-DD HH:MM"), "deposit_amount": N(""), "rules": I18N}, required=("id",), mutating=True)
+@tool("update_auction", "Change a lot's quantity, prices, times, deposit, rules or location.",
+      {"id": I("Auction id"), "qty": I(""), "start_price_total": N(""), "step_per_unit": N(""), "starts_at": S("YYYY-MM-DD HH:MM"), "ends_at": S("YYYY-MM-DD HH:MM"), "deposit_amount": N(""), "rules": I18N, "location": S("cn | uz | empty = not said")}, required=("id",), mutating=True)
 async def update_auction(ctx: Ctx, id: int, **a):  # noqa: A002
     au = await need(ctx.db, Auction, int(id), "auction")
     ctx.journal.track(au)
@@ -911,6 +912,8 @@ async def update_auction(ctx: Ctx, id: int, **a):  # noqa: A002
         au.require_deposit = au.deposit_amount > 0
     if "rules" in changes:
         au.rules = i18n(changes["rules"], au.rules)
+    if "location" in a:  # an empty string clears it
+        au.location = asvc.clean_location(a["location"])
     if not changes:
         raise ToolError("nothing to change")
     au.version += 1

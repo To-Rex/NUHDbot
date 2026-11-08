@@ -35,6 +35,7 @@ class Auction(Base, TimestampMixin):
     deposit_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     deposit_percent: Mapped[Decimal | None] = mapped_column(Numeric(5, 2))  # set = the amount is this share of the start price
     require_deposit: Mapped[bool] = mapped_column(Boolean, default=False)
+    location: Mapped[str | None] = mapped_column(String(2))  # where the drives are: cn (China) or uz (Uzbekistan); None = not said
 
     starts_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     ends_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

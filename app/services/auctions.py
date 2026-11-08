@@ -243,6 +243,14 @@ async def claim_deposit(db: AsyncSession, a: Auction, user: User, proof: str | N
     return dep
 
 
+LOCATIONS = ("cn", "uz")  # where a lot's drives are: China or Uzbekistan
+
+
+def clean_location(value) -> str | None:
+    v = (str(value or "")).strip().lower()
+    return v if v in LOCATIONS else None
+
+
 REVIEW = {"confirm": DepositStatus.CONFIRMED, "reject": DepositStatus.REJECTED, "refund": DepositStatus.REFUNDED, "apply": DepositStatus.APPLIED}
 
 

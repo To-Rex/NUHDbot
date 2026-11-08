@@ -231,6 +231,7 @@ async def _apply(db, a: Auction, form) -> list[str]:
             a.original_ends_at = ends
     a.timezone = settings.timezone
     # the rules: the common text (edited on the Auctions page) unless this lot gets its own; older forms send the text alone
+    a.location = asvc.clean_location(form.get("location"))
     mode = form.get("rules_mode")
     a.rules = {} if mode == "common" else f_i18n(form, "rules")
     if a.bids_count == 0:

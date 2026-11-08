@@ -88,6 +88,9 @@
         <div class="auc-money mt-sm" data-dep-pane="percent"{{ ' hidden' if dmode != 'percent' }}><input class="input mono" name="deposit_percent" value="{{ a.deposit_percent|pct or dep_default_pct }}" inputmode="decimal" min="0" max="100"><span>%</span></div>
         <div class="auc-money mt-sm" data-dep-pane="fixed"{{ ' hidden' if dmode != 'fixed' }}><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
         <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
+      <div class="field auc-loc"><label>{{ t('admin.auc.location') }}</label>
+        <span class="seg" role="group" aria-label="{{ t('admin.auc.location') }}">{% for v in ('cn', 'uz') %}<label class="seg-opt"><input type="radio" name="location" value="{{ v }}" {{ 'checked' if a.location == v }}><span>{{ icon('map-pin', 12) }}{{ t('admin.auc.location_' ~ v) }}</span></label>{% endfor %}<label class="seg-opt"><input type="radio" name="location" value="" {{ 'checked' if not a.location }}><span>{{ t('admin.auc.location_none') }}</span></label></span>
+        <span class="hint">{{ t('admin.auc.location_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
         <div class="auc-qty"><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
         <div class="auc-under"><span class="hint" data-avail-hint data-tpl="{{ t('admin.auc.in_stock', n='{n}') }}" data-none="{{ t('admin.auc.out_of_stock') }}"></span><button type="button" class="chip-btn" data-qty-all hidden data-tpl="{{ t('admin.auc.qty_all', n='{n}') }}"></button></div></div>

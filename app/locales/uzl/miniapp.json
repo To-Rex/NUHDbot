@@ -411,7 +411,10 @@
     "deposit_cta": "Depozit to'lash · {amount}",
     "sent_at": "Yuborildi",
     "dep_step3": "Tekshiruvdan so'ng stavka qo'ying",
-    "pay_paid_with": "To'lovni shu usulda qildim"
+    "pay_paid_with": "To'lovni shu usulda qildim",
+    "location_cn": "Xitoyda",
+    "location_uz": "O'zbekistonda",
+    "location": "Joylashuv"
   },
   "info": {
     "title": "Foydali ma'lumotlar",

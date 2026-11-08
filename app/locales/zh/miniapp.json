@@ -411,7 +411,10 @@
     "deposit_cta": "支付保证金 · {amount}",
     "sent_at": "已发送",
     "dep_step3": "审核通过后出价",
-    "pay_paid_with": "我用此方式付款"
+    "pay_paid_with": "我用此方式付款",
+    "location_cn": "在中国",
+    "location_uz": "在乌兹别克斯坦",
+    "location": "所在地"
   },
   "info": {
     "title": "实用资讯",
