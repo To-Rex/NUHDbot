@@ -35,8 +35,8 @@
         </div>
 </div>
     </div>
-    <div class="form-grid mt">
-      <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.model') }} <span class="req">*</span></span>{% if not tester %}<button type="button" class="lbl-link" id="models-open">{{ icon('layers', 12) }}{{ t('admin.models.manage') }}</button>{% endif %}</label>
+    <div class="form-grid basic-row2 mt">
+      <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.model') }} <span class="req">*</span></span>{% if not tester %}<button type="button" class="lbl-link" id="models-open" title="{{ t('admin.models.manage') }}">{{ icon('layers', 12) }}<span>{{ t('admin.models.manage') }}</span></button>{% endif %}</label>
         <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-series="{{ t('admin.prod.model_in_series') }}" data-l-series-empty="{{ t('admin.prod.model_series_empty') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
           <input class="input mono" name="model" id="model-input" value="{{ prod.model }}" placeholder="{{ t('admin.prod.model_placeholder') }}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="model-pop" required {{ dis }}>
           <button type="button" class="combo-toggle" id="model-toggle" tabindex="-1" aria-label="▾" {{ dis }}>{{ icon('chevron-down', 16) }}</button>
@@ -53,12 +53,10 @@
           </div>
           <datalist id="caps"></datalist>
         </div></div>
-    </div>
-    <div class="form-grid mt">
-      {% if not is_new %}<input type="hidden" name="label_model" value="{{ prod.label_model or '' }}">{% endif %}{# the label model (Refresh) is kept, not edited here #}
-      <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}>{% set curs = currency_list() %}<select class="select mono" name="currency" style="width:96px;flex:0 0 auto" aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ dis }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == prod.currency }}>{{ c.code }}</option>{% endfor %}{% if prod.currency not in curs|map(attribute='code')|list %}<option value="{{ prod.currency }}" selected>{{ prod.currency }}</option>{% endif %}</select></div></div>
+      <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}>{% set curs = currency_list() %}<select class="select mono cur-select" name="currency" aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ dis }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == prod.currency }}>{{ c.code }}</option>{% endfor %}{% if prod.currency not in curs|map(attribute='code')|list %}<option value="{{ prod.currency }}" selected>{{ prod.currency }}</option>{% endif %}</select></div></div>
       <div class="field" id="stock-field"><label>{{ t('admin.prod.stock') }}</label><input class="input mono" type="number" name="stock" value="{{ prod.stock }}" min="0" {{ dis }}>{% if not is_new %}<span class="hint">{{ t('admin.prod.reserved') }}: {{ prod.reserved }} · {{ t('admin.prod.available') }}: <b>{{ prod.available }}</b></span>{% endif %}</div>
     </div>
+      {% if not is_new %}<input type="hidden" name="label_model" value="{{ prod.label_model or '' }}">{% endif %}{# the label model (Refresh) is kept, not edited here #}
     {% if not is_new %}
     <details class="color-more mt" {{ 'open' if errors }}>
       <summary><span class="color-more-lbl">{{ t('admin.prod.color') }}</span><span class="color-now" data-color-now data-none="{{ t('admin.prod.color_none') }}"><span class="series-dot sw sw-{{ prod.color or 'none' }}"></span>{{ color_dir[prod.color] if prod.color else t('admin.prod.color_none') }}</span><span class="color-more-act">{{ t('admin.prod.color_change') }}{{ icon('chevron-down', 14) }}</span></summary>
