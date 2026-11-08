@@ -84,13 +84,17 @@
     {% for k, v in p.specs.items() %}{% if k not in ('RPM','Cache') %}<div class="spec"><div class="k">{{ k }}</div><div class="v">{{ v }}</div></div>{% endif %}{% endfor %}
   </div>
 
+  {# the warranty: only the kinds the drive has (a zero is not shown); nothing at all when it has none #}
+  {% set sw, fw = p.seller_warranty_months or 0, p.factory_warranty_months or 0 %}
+  {% if sw or fw %}
   <div class="section-title"><h2>{{ t('product.warranty') }}</h2></div>
   <div class="warranty-cards">
-    <div class="warranty-card {{ 'none' if not p.seller_warranty_months }}"><div class="eyebrow">{{ t('common.seller_warranty') }}</div><div class="big">{{ p.seller_warranty_months }} <small>{{ t('common.months') }}</small></div>{% if not p.seller_warranty_months %}<div class="xs faint mt-1">{{ t('common.no_warranty') }}</div>{% endif %}</div>
-    <div class="warranty-card {{ 'none' if not p.factory_warranty_months }}"><div class="eyebrow">{{ t('common.factory_warranty') }}</div><div class="big">{{ p.factory_warranty_months }} <small>{{ t('common.months') }}</small></div>{% if not p.factory_warranty_months %}<div class="xs faint mt-1">{{ t('common.no_warranty') }}</div>{% endif %}</div>
+    {% if sw %}<div class="warranty-card"><div class="eyebrow">{{ t('common.seller_warranty') }}</div><div class="big">{{ sw }} <small>{{ t('common.months') }}</small></div></div>{% endif %}
+    {% if fw %}<div class="warranty-card"><div class="eyebrow">{{ t('common.factory_warranty') }}</div><div class="big">{{ fw }} <small>{{ t('common.months') }}</small></div></div>{% endif %}
   </div>
-  {% if p.brand_ref and p.brand_ref.warranty_url %}
+  {% if fw and p.brand_ref and p.brand_ref.warranty_url %}
   <a class="card card-sm row mt-2" href="{{ p.brand_ref.warranty_url }}" target="_blank" rel="noopener" style="gap:10px"><span class="list-icon">{{ icon('shield', 18) }}</span><span class="flex-1"><span class="semibold" style="display:block">{{ t('product.warranty_check') }} · {{ p.brand_ref.name }}</span><span class="xs faint">{{ t('product.warranty_check_note') }}</span></span>{{ icon('external', 16) }}</a>
+  {% endif %}
   {% endif %}
 
   <div class="section-title"><h2>{{ t('product.test_results') }}</h2><span class="chip {{ TEST_CLASS[p.test_status] }}">{{ t('test.' ~ p.test_status.value) }}</span></div>

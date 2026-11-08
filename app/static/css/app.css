@@ -909,7 +909,7 @@ details.acc .acc-body{padding:0 0 16px;color:var(--ink-2);font-size:14.5px;line-
 .spec .v{font-size:15.5px;font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .spec.hl{background:var(--refresh-bg);color:var(--refresh-fg)}
 .spec.hl .k{color:inherit;opacity:.8}
-.warranty-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.warranty-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:10px}
 .warranty-card{padding:14px 16px;border-radius:var(--r-card);background:var(--surface);border:1px solid var(--card-border);box-shadow:var(--shadow-card)}
 .warranty-card .eyebrow{text-transform:none;letter-spacing:0;font-size:12.5px;font-weight:500;color:var(--ink-2)}
 .warranty-card .big{font-family:var(--font-display);font-size:28px;font-weight:750;letter-spacing:-.03em;margin-top:4px;font-variant-numeric:tabular-nums}
