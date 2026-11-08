@@ -13,14 +13,14 @@
   <section class="fsection" id="s-basic"><h2 data-n="01">{{ t('admin.prod.sec_basic') }}</h2>
     <div class="form-grid mt">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
-      <div class="field"><label>{{ t('admin.prod.brand') }} <span class="req">*</span></label>
+      <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.brand') }} <span class="req">*</span></span><a class="lbl-link" href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></label>
         <select class="select" name="brand_id" id="brand-select" required {{ dis }}>
           <option value="" disabled {{ 'selected' if not prod.brand }}>{{ t('admin.brands.select_brand') }}</option>
           {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if prod.brand_id==b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
           <option value="__other__" {{ 'selected' if prod.brand and not brand_known }}>{{ t('admin.brands.other') }}</option>
         </select>
         <input class="input mt-sm" name="brand_other" id="brand-other" value="{{ prod.brand if (prod.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not prod.brand %}hidden{% endif %} {{ dis }}>
-        <span class="hint"><a href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></span></div>
+</div>
       <div class="field series-field"><label>{{ t('admin.prod.series') }}</label>
         {% with series_value=prod.series %}{% include "admin/partials/series_select.html" %}{% endwith %}
         <span class="hint series-out" data-series-out data-t-series="{{ t('admin.prod.dir_from_series') }}" data-t-guess="{{ t('admin.prod.dir_guess') }}" data-t-own="{{ t('admin.prod.dir_own') }}" data-t-none="{{ t('admin.prod.dir_none') }}" data-t-diff="{{ t('admin.prod.series_color_diff') }}" data-apply="{{ t('admin.prod.series_apply') }}">{{ t('admin.prod.dir_none') }}</span>
@@ -33,28 +33,31 @@
             {% for c in conditions %}<label class="cond-opt{{ ' chosen' if prod.condition==c }}" role="option" aria-selected="{{ 'true' if prod.condition==c else 'false' }}"><input type="radio" name="condition" value="{{ c.value }}" {{ 'checked' if prod.condition==c }} {{ dis }}><span class="cond-dot cond-{{ c.value }}"></span><span class="cond-txt"><b>{{ t('condition.' ~ c.value) }}</b><small>{{ t('condition.' ~ c.value ~ '_desc') }}</small></span>{{ icon('check', 15, 'so-check') }}</label>{% endfor %}
           </div>
         </div>
-        <span class="hint">{{ t('admin.prod.condition_hint') }}</span></div>
+</div>
     </div>
     <div class="form-grid mt">
-      <div class="field"><label>{{ t('admin.prod.model') }} <span class="req">*</span></label>
+      <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.model') }} <span class="req">*</span></span>{% if not tester %}<button type="button" class="lbl-link" id="models-open">{{ icon('layers', 12) }}{{ t('admin.models.manage') }}</button>{% endif %}</label>
         <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-series="{{ t('admin.prod.model_in_series') }}" data-l-series-empty="{{ t('admin.prod.model_series_empty') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
           <input class="input mono" name="model" id="model-input" value="{{ prod.model }}" placeholder="{{ t('admin.prod.model_placeholder') }}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="model-pop" required {{ dis }}>
           <button type="button" class="combo-toggle" id="model-toggle" tabindex="-1" aria-label="▾" {{ dis }}>{{ icon('chevron-down', 16) }}</button>
           <div class="combo-pop" id="model-pop" role="listbox" hidden></div>
         </div>
-        <span class="hint" id="model-hint">{{ t('admin.prod.model_hint') }}</span>
-        {% if not tester %}<button type="button" class="link-btn" id="models-open">{{ icon('layers', 13) }}{{ t('admin.models.manage') }}</button>{% endif %}</div>
+        <span class="hint" id="model-hint">{{ t('admin.prod.model_hint') }}</span></div>
       {% set cap_tb = prod.capacity_gb >= 1000 and prod.capacity_gb % 100 == 0 %}
       <div class="field"><label>{{ t('admin.prod.capacity') }} <span class="req">*</span></label>
         <div class="unit-input" id="cap-wrap" data-presets='{{ capacities|tojson }}'>
-          <input class="input mono" type="number" name="capacity_value" id="cap-value" value="{{ (prod.capacity_gb / 1000)|round(2)|string|replace('.0','') if cap_tb else prod.capacity_gb }}" min="0.01" step="any" inputmode="decimal" list="caps" required {{ dis }}>
+          <input class="input mono" type="number" name="capacity_value" id="cap-value" title="{{ t('admin.prod.capacity_hint') }}" value="{{ (prod.capacity_gb / 1000)|round(2)|string|replace('.0','') if cap_tb else prod.capacity_gb }}" min="0.01" step="any" inputmode="decimal" list="caps" required {{ dis }}>
           <div class="seg" role="radiogroup">
             <label class="seg-opt"><input type="radio" name="capacity_unit" value="tb" {{ 'checked' if cap_tb }} {{ dis }}><span>TB</span></label>
             <label class="seg-opt"><input type="radio" name="capacity_unit" value="gb" {{ 'checked' if not cap_tb }} {{ dis }}><span>GB</span></label>
           </div>
           <datalist id="caps"></datalist>
-        </div>
-        <span class="hint">{{ t('admin.prod.capacity_hint') }}</span></div>
+        </div></div>
+      <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}>{% set curs = currency_list() %}<select class="select mono" name="currency" style="width:96px;flex:0 0 auto" aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ dis }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == prod.currency }}>{{ c.code }}</option>{% endfor %}{% if prod.currency not in curs|map(attribute='code')|list %}<option value="{{ prod.currency }}" selected>{{ prod.currency }}</option>{% endif %}</select></div></div>
+    </div>
+    <div class="form-grid mt">
+      <div class="field" id="label-model-row" {% if prod.condition.value != 'refresh' %}hidden{% endif %}><label>{{ t('admin.prod.label_model') }}</label><input class="input mono" name="label_model" value="{{ prod.label_model or '' }}" {{ dis }}><span class="hint">{{ t('admin.prod.refresh_hint') }}</span></div>
+      <div class="field" id="stock-field"><label>{{ t('admin.prod.stock') }}</label><input class="input mono" type="number" name="stock" value="{{ prod.stock }}" min="0" {{ dis }}>{% if not is_new %}<span class="hint">{{ t('admin.prod.reserved') }}: {{ prod.reserved }} · {{ t('admin.prod.available') }}: <b>{{ prod.available }}</b></span>{% endif %}</div>
     </div>
     {% if not is_new %}
     <details class="color-more mt" {{ 'open' if errors }}>
@@ -66,11 +69,6 @@
       <span class="hint">{{ t('admin.prod.color_hint') }}</span>
     </details>
     {% endif %}
-    <div class="form-grid mt">
-      <div class="field" id="label-model-row" {% if prod.condition.value != 'refresh' %}hidden{% endif %}><label>{{ t('admin.prod.label_model') }}</label><input class="input mono" name="label_model" value="{{ prod.label_model or '' }}" {{ dis }}><span class="hint">{{ t('admin.prod.refresh_hint') }}</span></div>
-      <div class="field"><label>{{ t('admin.prod.price') }} <span class="hint">({{ t('admin.prod.price_per_pc') }})</span></label><div class="unit-input"><input class="input mono" name="price" inputmode="decimal" value="{{ prod.price if prod.price is not none else '' }}" {{ dis }}>{% set curs = currency_list() %}<select class="select mono" name="currency" style="width:96px;flex:0 0 auto" aria-label="{{ t('admin.prod.currency') }}" title="{{ t('admin.prod.currency') }}" {{ dis }}>{% for c in curs %}<option value="{{ c.code }}" {{ 'selected' if c.code == prod.currency }}>{{ c.code }}</option>{% endfor %}{% if prod.currency not in curs|map(attribute='code')|list %}<option value="{{ prod.currency }}" selected>{{ prod.currency }}</option>{% endif %}</select></div></div>
-      <div class="field"><label>{{ t('admin.prod.stock') }}</label><input class="input mono" type="number" name="stock" value="{{ prod.stock }}" min="0" {{ dis }}>{% if not is_new %}<span class="hint">{{ t('admin.prod.reserved') }}: {{ prod.reserved }} · {{ t('admin.prod.available') }}: <b>{{ prod.available }}</b></span>{% endif %}</div>
-    </div>
     {% if history %}<details class="acc mt"><summary>{{ t('admin.prod.price_history') }} ({{ history|length }})</summary><div class="tbl-wrap mt-sm"><table><tbody>{% for h in history %}<tr><td class="faint small">{{ h.created_at|dt }}</td><td class="num mono">{{ h.old_price|money(h.currency) }}</td><td class="faint">→</td><td class="num bold mono">{{ h.new_price|money(h.currency) }}</td><td class="faint small">{{ h.note or '' }}</td></tr>{% endfor %}</tbody></table></div></details>{% endif %}
   </section>
 
@@ -106,7 +104,7 @@
       {% if is_new %}<input type="hidden" name="form_factor" value="{{ prod.form_factor.value if prod.form_factor else '3.5' }}"><input type="hidden" name="rpm" value="{{ prod.rpm or '' }}"><input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% else %}
       <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.cache') }}</label><input class="input mono" type="number" name="cache_mb" value="{{ prod.cache_mb or '' }}" {{ dis }}></div>{% endif %}
+<input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% endif %}
     </div>
     <div class="field mt"><label>{{ t('admin.prod.purposes') }}</label><div class="row">{% for u in purposes %}<label class="fchip {{ 'active' if u.value in prod.purposes }}"><input type="checkbox" name="purposes" value="{{ u.value }}" {{ 'checked' if u.value in prod.purposes }} {{ dis }} hidden onchange="this.parentElement.classList.toggle('active', this.checked)">{{ t('purpose.' ~ u.value) }}</label>{% endfor %}</div></div>
     <div class="divider"></div>

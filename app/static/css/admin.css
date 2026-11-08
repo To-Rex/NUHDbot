@@ -1837,3 +1837,16 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .img-add:hover,.img-add.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .img-add .spinner{position:absolute;inset:0;margin:auto;width:16px;height:16px}
 .img-add.htmx-request svg,.img-add.htmx-request span{visibility:hidden}
+
+/* product form, Basic: tighter rows, the small links in the label row instead of hint lines */
+.lbl-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.lbl-link{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--accent);white-space:nowrap;padding:0;background:none;border:0;cursor:pointer}
+.lbl-link:hover{text-decoration:underline}
+.lbl-link svg{width:12px;height:12px}
+#s-basic .form-grid{gap:12px 14px}
+#s-basic .form-grid+.form-grid{margin-top:12px}
+#s-basic .field{gap:4px}
+#s-basic .hint{line-height:1.35}
+#s-basic .color-more{margin-top:12px}
+#s-basic #stock-field,#s-basic #label-model-row{max-width:220px}
+#s-basic #label-model-row:not([hidden])~#stock-field{max-width:none}
