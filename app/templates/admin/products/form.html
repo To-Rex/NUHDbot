@@ -98,17 +98,16 @@
   </details>
 
   <details class="fsection" id="s-tech" {{ 'open' if errors or tester }}><summary data-n="{{ n_tech }}"><span class="ttl">{{ t('admin.prod.sec_tech') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_tech_hint') }}{% else %}{{ prod.interface.value }} · {{ prod.form_factor.value }}″{% if prod.rpm %} · {{ prod.rpm }} rpm{% endif %}{% if prod.series %} · {{ prod.series }}{% endif %} · {{ t('test.' ~ prod.test_status.value) }}{% endif %}</span></summary>
-    <div class="form-grid mt">
+    <div class="tech-row mt">
       <div class="field"><label>{{ t('admin.prod.interface') }}</label><select class="select" name="interface" {{ dis }}>{% for i in interfaces %}<option value="{{ i.value }}" {{ 'selected' if prod.interface==i }}>{{ i.value }}</option>{% endfor %}</select></div>
       {% if is_new %}<input type="hidden" name="form_factor" value="{{ prod.form_factor.value if prod.form_factor else '3.5' }}"><input type="hidden" name="rpm" value="{{ prod.rpm or '' }}"><input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% else %}
-      <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
-      <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
 <input type="hidden" name="cache_mb" value="{{ prod.cache_mb or '' }}">{% endif %}
+          <div class="field tech-purposes"><label>{{ t('admin.prod.purposes') }}</label><div class="row chips-row">{% for u in purposes %}<label class="fchip {{ 'active' if u.value in prod.purposes }}"><input type="checkbox" name="purposes" value="{{ u.value }}" {{ 'checked' if u.value in prod.purposes }} {{ dis }} hidden onchange="this.parentElement.classList.toggle('active', this.checked)">{{ t('purpose.' ~ u.value) }}</label>{% endfor %}</div></div>
     </div>
-    <div class="field mt"><label>{{ t('admin.prod.purposes') }}</label><div class="row">{% for u in purposes %}<label class="fchip {{ 'active' if u.value in prod.purposes }}"><input type="checkbox" name="purposes" value="{{ u.value }}" {{ 'checked' if u.value in prod.purposes }} {{ dis }} hidden onchange="this.parentElement.classList.toggle('active', this.checked)">{{ t('purpose.' ~ u.value) }}</label>{% endfor %}</div></div>
-    <div class="divider"></div>
-    <div class="form-grid">
-      <div class="field"><label>{{ t('admin.prod.test_status') }}</label><select class="select" name="test_status">{% for s in tests %}<option value="{{ s.value }}" {{ 'selected' if prod.test_status==s }}>{{ t('test.' ~ s.value) }}</option>{% endfor %}</select></div>
+    <div class="tech-test mt">
+{% if not is_new %}      <div class="field"><label>{{ t('admin.prod.form_factor') }}</label><select class="select" name="form_factor" {{ dis }}>{% for f in form_factors %}<option value="{{ f.value }}" {{ 'selected' if prod.form_factor==f }}>{{ f.value }}"</option>{% endfor %}</select></div>
+      <div class="field"><label>{{ t('admin.prod.rpm') }}</label><input class="input mono" type="number" name="rpm" value="{{ prod.rpm or '' }}" placeholder="5400 / 7200" {{ dis }}></div>
+{% endif %}      <div class="field"><label>{{ t('admin.prod.test_status') }}</label><select class="select" name="test_status">{% for s in tests %}<option value="{{ s.value }}" {{ 'selected' if prod.test_status==s }}>{{ t('test.' ~ s.value) }}</option>{% endfor %}</select></div>
       <div class="field"><label>{{ t('admin.prod.hours') }}</label><input class="input mono" type="number" name="hours_used" value="{{ prod.hours_used if prod.hours_used is not none else '' }}"></div>
       <div class="field"><label>{{ t('admin.prod.health') }}</label><input class="input" name="health" value="{{ prod.health or '' }}" placeholder="Good / 100%" list="health-options"><datalist id="health-options"><option value="Good / 100%"><option value="Good / 99%"><option value="Good / 98%"><option value="Good / 95%"><option value="Caution / 90%"></datalist></div>
     </div>

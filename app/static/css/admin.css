@@ -1892,3 +1892,14 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .cond-opt{min-height:44px}
 .cond-opt b{font-size:14px}.cond-opt small{font-size:12px}
 #s-basic .basic-row1 .sv-dir{display:none}
+
+/* product form, Specs & test: the drive's facts and the purposes on one row, the test on the next */
+.tech-row{display:flex;gap:12px 14px;flex-wrap:wrap;align-items:flex-start}
+.tech-row>.field{flex:0 0 auto}
+.tech-row>.field:first-child .select{width:136px}
+.tech-row>.field.tech-purposes{flex:1 1 280px;min-width:0}
+.tech-row .chips-row{display:flex;flex-wrap:wrap;gap:6px;min-height:40px;align-items:center}
+.tech-row .fchip{height:34px;padding:0 10px;font-size:12.5px}
+.tech-test{display:flex;gap:12px 14px;flex-wrap:wrap;align-items:flex-start}
+.tech-test>.field{flex:1 1 150px;min-width:0}
+.tech-test>.field:has([name=form_factor]){flex:0 0 96px}.tech-test>.field:has([name=rpm]){flex:0 0 104px}.tech-test>.field:has([name=hours_used]){flex:0 0 110px}
