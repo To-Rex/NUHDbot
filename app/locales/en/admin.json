@@ -1542,6 +1542,21 @@
       "empty": "No notifications yet",
       "empty_text": "A new order, payment, deposit receipt or a customer joining an auction will show up here.",
       "older": "Older"
+    },
+    "i18n": {
+      "translate": "Translate",
+      "translate_title": "The assistant (AI) translates the filled language into the others",
+      "done": "Translated into {n} languages — please review",
+      "overwrite_q": "Rewrite the other languages?",
+      "overwrite_text": "Every language has text. The open tab is taken as the source; the others will be translated again.",
+      "overwrite_ok": "Translate again",
+      "err_no_source": "Type the text in one language first",
+      "err_no_model": "The assistant is not set up — add a provider and API key on /admin/assistant",
+      "err_no_balance": "The assistant's provider has run out of balance",
+      "err_rate_limited": "The provider is rate-limiting — wait a moment and try again",
+      "err_too_long": "The text is too long (over 6000 characters) — translate it in parts",
+      "err_bad_answer": "The model gave no readable answer — try again",
+      "err_failed": "Could not translate: {err}"
     }
   }
 }

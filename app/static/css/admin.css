@@ -1803,3 +1803,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .terms-row .sw-cell input:checked+.switch::after{transform:translateX(16px)}
 .terms-row .sw-cell input:focus-visible+.switch{box-shadow:0 0 0 3px var(--accent-soft)}
 .terms-row .sw-cell input:disabled+.switch{opacity:.55;cursor:default}
+
+/* ---------- i18n fields: the Translate button beside the language tabs ---------- */
+.lang-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.lang-row .lang-tabs{margin-bottom:0}
+.i18n-tr{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:8px;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-soft);border:1px solid transparent;transition:background var(--t-fast),color var(--t-fast)}
+.i18n-tr:hover{background:var(--accent);color:var(--accent-ink,#fff)}
+.i18n-tr svg{width:14px;height:14px}
+.i18n-tr .spinner{width:12px;height:12px;border-width:2px}
+.i18n-tr.busy{pointer-events:none;opacity:.8}
+.i18n-tr.busy .spinner{display:inline-block!important}
+.i18n-tr.busy svg{display:none}
+.i18n-tr:disabled{opacity:.6}

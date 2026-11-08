@@ -25,4 +25,5 @@ from app.admin import (  # noqa: E402,F401
     settings_pages,
     staff,
     support,
+    translate,
 )

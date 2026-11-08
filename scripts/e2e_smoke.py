@@ -448,6 +448,10 @@ if cuid:
     ok("the Cart dialog pane renders", r.status_code == 200 and "cdlg-head" in r.text and "cart_empty" not in r.text, str(r.status_code))
     ok("an unknown customer's pane is 404", adm.get("/admin/customers/999999/cart").status_code == 404)
     ok("customer update", adm.post(f"/admin/customers/{cuid}/update", data={"country": "UZ", "city": "Samarqand", "lang": "ru"}).status_code == 303)
+# every multilingual field carries a Translate button; the endpoint refuses an empty request
+ok("i18n fields have a Translate button", 'data-translate data-kind="textarea"' in adm.get("/admin/products/new").text and 'data-translate' in adm.get("/admin/settings").text)
+r = adm.post("/admin/translate", json={"texts": {}, "targets": []})
+ok("translate refuses an empty request", r.status_code == 400 and r.json().get("error") == "no_source", f"{r.status_code} {r.text[:120]}")
 ok("admin theme switch", adm.post("/admin/theme/dark").status_code in (200, 204, 303))
 ok("admin lang switch", adm.get("/admin/lang/ru?next=/admin").status_code == 303)
 ok("app lang switch", cust.get("/app/lang/ru?next=/app/home").status_code == 303)

@@ -255,6 +255,31 @@
   }
   bindI18n();
   document.addEventListener('htmx:afterSettle', (e) => bindI18n(e.target));
+  // the Translate button: the language with text (the open tab first) goes to the model, the empty languages come back filled;
+  // when every language already has text it asks before rewriting the others
+  const TR = (window.ADMIN_I18N && window.ADMIN_I18N.tr) || {};
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-translate]'); if (!btn || btn.disabled) return;
+    e.preventDefault();
+    const box = btn.closest('[data-i18n]'); const fields = {}; box.querySelectorAll('.pane').forEach((p) => { const f = p.querySelector('input,textarea'); if (f) fields[p.dataset.lang] = f; });
+    const texts = {}; Object.keys(fields).forEach((l) => { texts[l] = fields[l].value; });
+    const active = box.querySelector('.lang-tabs button.active'); const pref = active && texts[active.dataset.lang] && texts[active.dataset.lang].trim() ? active.dataset.lang : null;
+    const source = pref || Object.keys(texts).find((l) => texts[l].trim());
+    if (!source) { toast(TR.no_source || 'Type the text in one language first', 'warn'); fields[Object.keys(fields)[0]] && fields[Object.keys(fields)[0]].focus(); return; }
+    let targets = Object.keys(texts).filter((l) => l !== source && !texts[l].trim());
+    if (!targets.length) {
+      const r = await askConfirm({ title: TR.overwrite_q || 'Rewrite the other languages?', text: TR.overwrite_text || '', okText: TR.overwrite_ok || 'Rewrite' }); if (!r.ok) return;
+      targets = Object.keys(texts).filter((l) => l !== source);
+    }
+    btn.disabled = true; btn.classList.add('busy');
+    try {
+      const res = await fetch('/admin/translate', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-CSRF': csrf }, body: JSON.stringify({ texts, targets, source, kind: btn.dataset.kind || 'input' }) });
+      const d = await res.json().catch(() => ({}));
+      if (!res.ok || d.error) { toast(d.message || TR.failed || 'Translation failed', 'bad', 6000); return; }
+      let n = 0; Object.keys(d.translations || {}).forEach((l) => { if (fields[l]) { fields[l].value = d.translations[l]; fields[l].dispatchEvent(new Event('input', { bubbles: true })); n += 1; } });
+      toast((TR.done || 'Translated into {n} languages').replace('{n}', n), 'ok');
+    } catch (_) { toast(TR.failed || 'Translation failed', 'bad'); } finally { btn.disabled = false; btn.classList.remove('busy'); }
+  });
   document.addEventListener('click', (e) => {
     const add = e.target.closest('[data-add-row]'); if (add) { e.preventDefault(); const box = document.getElementById(add.dataset.addRow); const tpl = box.querySelector('template'); box.insertBefore(tpl.content.cloneNode(true), tpl); markDirty(); }
     const rm = e.target.closest('[data-remove-row]'); if (rm) { e.preventDefault(); rm.closest('.rrow').remove(); markDirty(); }

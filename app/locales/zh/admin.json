@@ -1542,6 +1542,21 @@
       "empty": "暂无通知",
       "empty_text": "新订单、付款、押金凭证或想参与拍卖的客户会显示在这里。",
       "older": "更早"
+    },
+    "i18n": {
+      "translate": "翻译",
+      "translate_title": "助手（AI）将已填写的语言翻译成其他语言",
+      "done": "已翻译成 {n} 种语言——请检查",
+      "overwrite_q": "重写其他语言？",
+      "overwrite_text": "所有语言都已有文本。以当前打开的标签为源，其余将重新翻译。",
+      "overwrite_ok": "重新翻译",
+      "err_no_source": "请先用一种语言输入文本",
+      "err_no_model": "助手未配置——请在 /admin/assistant 填写提供商和 API 密钥",
+      "err_no_balance": "助手提供商余额不足",
+      "err_rate_limited": "提供商限制了请求——请稍后再试",
+      "err_too_long": "文本过长（超过 6000 字符）——请分段翻译",
+      "err_bad_answer": "模型没有给出可读的回答——请重试",
+      "err_failed": "翻译失败：{err}"
     }
   }
 }

@@ -1542,6 +1542,21 @@
       "empty": "Hozircha xabarnoma yo'q",
       "empty_text": "Yangi buyurtma, to'lov, depozit cheki yoki auksionga qo'shilmoqchi bo'lgan mijoz shu yerda ko'rinadi.",
       "older": "Oldingilari"
+    },
+    "i18n": {
+      "translate": "Tarjima",
+      "translate_title": "Kiritilgan tildan qolgan tillarga yordamchi (AI) tarjima qiladi",
+      "done": "{n} tilga tarjima qilindi — tekshirib chiqing",
+      "overwrite_q": "Boshqa tillar qayta yozilsinmi?",
+      "overwrite_text": "Hamma tilda matn bor. Ochiq turgan tildagi matn asos qilib olinadi, qolganlari qayta tarjima qilinadi.",
+      "overwrite_ok": "Qayta tarjima qilish",
+      "err_no_source": "Avval bironta tilda matn kiriting",
+      "err_no_model": "Yordamchi sozlanmagan — /admin/assistant sahifasida provayder va API kalitini kiriting",
+      "err_no_balance": "Yordamchi provayderida balans tugagan",
+      "err_rate_limited": "Provayder so'rovlarni cheklamoqda — biroz kutib qayta urinib ko'ring",
+      "err_too_long": "Matn juda uzun (6000 belgidan ko'p) — bo'lib tarjima qiling",
+      "err_bad_answer": "Model tushunarli javob bermadi — yana bir urinib ko'ring",
+      "err_failed": "Tarjima qilib bo'lmadi: {err}"
     }
   }
 }
