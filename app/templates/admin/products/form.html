@@ -85,14 +85,13 @@
 
   <details class="fsection" id="s-terms" {{ 'open' if errors }}><summary data-n="{{ n_terms }}"><span class="ttl">{{ t('admin.prod.sec_terms') }}</span><span class="sub">{% if is_new %}{{ t('admin.prod.sec_terms_hint') }}{% else %}{{ t('admin.prod.min_short') }} {{ prod.min_order }}{% if prod.box_qty %} · {{ t('admin.prod.box_short') }} {{ prod.box_qty }}{% endif %} · {{ t('admin.prod.warranty_short') }} {{ prod.seller_warranty_months }} / {{ prod.factory_warranty_months }} {{ t('common.months') }}{% endif %}</span></summary>
     {# compact: small numbers (up to three digits) in small boxes, all on one line where the width allows #}
-    <div class="terms-grid mt">
-      <div class="field"><label>{{ t('admin.prod.min_order') }}</label><input class="input mono num3" type="number" name="min_order" value="{{ prod.min_order }}" min="1" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.box_qty') }}</label><input class="input mono num3" type="number" name="box_qty" value="{{ prod.box_qty or '' }}" min="1" placeholder="—" {{ dis }}></div>
-      <div class="field terms-check"><label>&nbsp;</label><label class="check"><input type="checkbox" name="full_box_only" {{ 'checked' if prod.full_box_only }} {{ dis }}>{{ t('admin.prod.full_box_only') }}</label></div>
-    </div>
-    <div class="terms-grid mt-sm">
-      <div class="field"><label>{{ t('admin.prod.seller_warranty') }}</label><div class="unit-input num-unit"><input class="input mono num3" type="number" name="seller_warranty_months" value="{{ prod.seller_warranty_months }}" min="0" {{ dis }}><span class="unit">{{ t('common.months') }}</span></div></div>
-      <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><div class="unit-input num-unit"><input class="input mono num3" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="unit">{{ t('common.months') }}</span></div></div>
+    {# one row: small numbers in small boxes, the full-box rule as a switch; wraps on narrow screens #}
+    <div class="terms-row mt">
+      <div class="field"><label>{{ t('admin.prod.min_order') }}</label><input class="input mono" type="number" name="min_order" value="{{ prod.min_order }}" min="1" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.box_qty') }}</label><input class="input mono" type="number" name="box_qty" value="{{ prod.box_qty or '' }}" min="1" placeholder="—" {{ dis }}></div>
+      <div class="field"><label>{{ t('admin.prod.seller_warranty') }}</label><div class="num-unit"><input class="input mono" type="number" name="seller_warranty_months" value="{{ prod.seller_warranty_months }}" min="0" {{ dis }}><span class="unit">{{ t('common.months') }}</span></div></div>
+      <div class="field"><label>{{ t('admin.prod.factory_warranty') }}</label><div class="num-unit"><input class="input mono" type="number" name="factory_warranty_months" value="{{ prod.factory_warranty_months }}" min="0" {{ dis }}><span class="unit">{{ t('common.months') }}</span></div></div>
+      <div class="field terms-switch"><label>{{ t('admin.prod.full_box_only') }}</label><label class="sw-cell"><input type="checkbox" name="full_box_only" {{ 'checked' if prod.full_box_only }} {{ dis }}><span class="switch" aria-hidden="true"></span></label></div>
     </div>
     <span class="hint mt-sm" style="display:block">{{ t('admin.prod.warranty_hint') }}</span>
     <div class="notice notice-info mt" id="warranty-autofill" hidden>{{ icon('info', 18) }}<span>{{ t('admin.prod.warranty_autofill') }}</span></div>
