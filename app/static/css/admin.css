@@ -1849,12 +1849,15 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-basic .hint{line-height:1.35}
 #s-basic .color-more{margin-top:12px}
 /* Basic, row 2: model · capacity · price · stock on one line where the width allows */
-#s-basic .basic-row2{grid-template-columns:minmax(0,1.5fr) minmax(0,1.15fr) minmax(0,1.35fr) minmax(0,.7fr)}
+#s-basic .basic-row1{grid-template-columns:minmax(0,1.05fr) minmax(0,1.05fr) minmax(0,1.2fr) minmax(0,1.2fr)}
+#s-basic .basic-row2{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,.8fr)}
 #s-basic .basic-row2 .seg-opt span{min-width:34px;padding:0 7px}
 #s-basic .basic-row2 .cur-select{width:74px;flex:0 0 auto;padding:0 6px}
 #s-basic .basic-row2 .unit-input{gap:6px}
-#s-basic .basic-row2 .combo .input{padding-right:34px}
-@media (max-width:1240px){#s-basic .basic-row2{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){#s-basic .basic-row2{grid-template-columns:minmax(0,1fr)}}
-#s-basic .basic-row2 .lbl-row{flex-wrap:nowrap}#s-basic .basic-row2 .lbl-row>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#s-basic .basic-row2 .lbl-link span{display:none}#s-basic .basic-row2 .lbl-link svg{width:14px;height:14px}
+#s-basic .basic-row1 .combo .input{padding-right:34px}
+#s-basic .basic-row1 .cond-sub{display:none}
+@media (max-width:1240px){#s-basic .basic-row1{grid-template-columns:repeat(2,minmax(0,1fr))}#s-basic .basic-row2{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){#s-basic .basic-row1,#s-basic .basic-row2{grid-template-columns:minmax(0,1fr)}}
+#s-basic .basic-row1 .lbl-row{flex-wrap:nowrap}#s-basic .basic-row1 .lbl-row>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#s-basic .basic-row1 .lbl-link span{display:none}#s-basic .basic-row1 .lbl-link svg{width:14px;height:14px}
+#s-basic .basic-row1 .hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}

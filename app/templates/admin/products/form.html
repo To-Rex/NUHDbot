@@ -11,7 +11,7 @@
 <div class="prod-main">
 <form method="post" id="product-form" class="prod-form" data-track data-colour-form enctype="multipart/form-data"><input type="hidden" name="_csrf" value="{{ csrf }}">
   <section class="fsection" id="s-basic"><h2 data-n="01">{{ t('admin.prod.sec_basic') }}</h2>
-    <div class="form-grid mt">
+    <div class="form-grid basic-row1 mt">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
       <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.brand') }} <span class="req">*</span></span><a class="lbl-link" href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></label>
         <select class="select" name="brand_id" id="brand-select" required {{ dis }}>
@@ -34,8 +34,6 @@
           </div>
         </div>
 </div>
-    </div>
-    <div class="form-grid basic-row2 mt">
       <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.model') }} <span class="req">*</span></span>{% if not tester %}<button type="button" class="lbl-link" id="models-open" title="{{ t('admin.models.manage') }}">{{ icon('layers', 12) }}<span>{{ t('admin.models.manage') }}</span></button>{% endif %}</label>
         <div class="combo" id="model-combo" data-models='{{ models|tojson }}' data-prefill="{{ 'on' if is_new else 'off' }}" data-l-same="{{ t('admin.prod.model_same_brand') }}" data-l-series="{{ t('admin.prod.model_in_series') }}" data-l-series-empty="{{ t('admin.prod.model_series_empty') }}" data-l-none="{{ t('admin.prod.model_none') }}" data-l-new="{{ t('admin.prod.model_new') }}">
           <input class="input mono" name="model" id="model-input" value="{{ prod.model }}" placeholder="{{ t('admin.prod.model_placeholder') }}" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="model-pop" required {{ dis }}>
@@ -43,6 +41,8 @@
           <div class="combo-pop" id="model-pop" role="listbox" hidden></div>
         </div>
         <span class="hint" id="model-hint">{{ t('admin.prod.model_hint') }}</span></div>
+    </div>
+    <div class="form-grid basic-row2 mt">
       {% set cap_tb = prod.capacity_gb >= 1000 and prod.capacity_gb % 100 == 0 %}
       <div class="field"><label>{{ t('admin.prod.capacity') }} <span class="req">*</span></label>
         <div class="unit-input" id="cap-wrap" data-presets='{{ capacities|tojson }}'>
