@@ -75,6 +75,18 @@ def pct(value) -> str:
     return format(d.normalize(), "f") if d > 0 else ""
 
 
+def lot_place(a, lang: str) -> str:
+    """Where a lot's drives are, as one line: the country and, when set, the city (older lots knew only cn / uz)."""
+    code = (getattr(a, "location", None) or "").upper()
+    if not code:
+        return ""
+    country = pick(getattr(a, "location_name", None), lang) or t(lang, f"country.{code}")
+    if country == f"country.{code}":
+        country = t(lang, f"auction.location_{code.lower()}") if code in ("CN", "UZ") else code
+    city = pick({k: v for k, v in (getattr(a, "location_city", None) or {}).items() if k != "region"}, lang)
+    return f"{country} · {city}" if city else country
+
+
 def bcolor(color: str | None) -> str:
     """The class of a banner colour: a preset's `c-<name>`, `c-custom` for a hex colour."""
     return "c-custom" if (color or "").startswith("#") else "c-" + (color or "red")
@@ -94,7 +106,7 @@ def bcolor_attr(color: str | None) -> Markup:
 
 
 env.filters.update(
-    money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br, pct=pct, bcolor=bcolor, bcolor_attr=bcolor_attr,
+    money=money, capacity=capacity, dt=fmt_dt, date=fmt_date, iso=iso, nl2br=nl2br, pct=pct, bcolor=bcolor, bcolor_attr=bcolor_attr, lot_place=lot_place,
     pick=lambda v, lang: pick(v, lang),
 )
 from app.services.storage import url as media_url  # noqa: E402

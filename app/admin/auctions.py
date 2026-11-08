@@ -33,6 +33,8 @@ from app.models import (
     AuctionDeposit,
     AuctionImage,
     Bid,
+    City,
+    Country,
     Order,
     OrderItem,
     OrderStatusHistory,
@@ -156,7 +158,9 @@ async def _form_ctx(db, a: Auction) -> dict:
     pct = await get_setting(db, "auction_deposit_percent", 10)
     common = await auction_rules.load(db)
     return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None), "dep_default_pct": asvc.pct_label(Decimal(str(pct or 0))) or "10",
-            "common_rules": {code: auction_rules.common_text(common, code) for code in settings.langs}, "common_rules_body": common.get("body") or {}}
+            "common_rules": {code: auction_rules.common_text(common, code) for code in settings.langs}, "common_rules_body": common.get("body") or {},
+            "countries": list((await db.execute(select(Country).where(Country.is_active.is_(True)).order_by(Country.sort))).scalars().all()),
+            "cities": [{"id": c.id, "cc": c.country_code, "name": c.name, "region": c.region} for c in (await db.execute(select(City).where(City.is_active.is_(True)).order_by(City.country_code, City.sort, City.id))).scalars().all()]}
 
 
 def _from_product(a: Auction, p: Product) -> None:
@@ -231,7 +235,7 @@ async def _apply(db, a: Auction, form) -> list[str]:
             a.original_ends_at = ends
     a.timezone = settings.timezone
     # the rules: the common text (edited on the Auctions page) unless this lot gets its own; older forms send the text alone
-    a.location = asvc.clean_location(form.get("location"))
+    await asvc.set_location(db, a, form.get("location"), f_int(form, "location_city", None))
     mode = form.get("rules_mode")
     a.rules = {} if mode == "common" else f_i18n(form, "rules")
     if a.bids_count == 0:

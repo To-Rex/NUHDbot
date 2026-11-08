@@ -2036,3 +2036,4 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .auc-loc .seg-opt span{display:inline-flex;align-items:center;gap:5px}
 .auc-loc .seg-opt svg{width:12px;height:12px}
 .auc-loc .hint{flex:1 1 200px}
+.auc-loc .select{width:auto;min-width:160px;max-width:240px;height:36px}

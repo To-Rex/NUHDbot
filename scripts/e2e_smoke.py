@@ -331,11 +331,16 @@ aid_cny = int(re.search(r"created=(\d+)", r.headers.get("location", "created=0")
 ok("a new lot can be priced in another currency", r.status_code == 303 and aid_cny and "CNY" in adm.get(f"/admin/auctions/{aid_cny}").text, f"{r.status_code} {r.headers.get('location')}")
 r = adm.post(f"/admin/auctions/{aid_cny}/edit", data={"product_id": str(pid), "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_mode": "off", "currency": "USD", **lot_times})
 ok("and back to USD while it has no bids", r.status_code == 303 and "CNY" not in adm.get(f"/admin/auctions/{aid_cny}").text, str(r.status_code))
-r = adm.post("/admin/auctions/new", data={"product_id": str(pid), "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_mode": "off", "location": "uz", **lot_times})
+form_html = adm.get("/admin/auctions/new").text
+m_city = re.search(r'&#34;id&#34;: (\d+), &#34;cc&#34;: &#34;UZ&#34;', form_html) or re.search(r'"id": (\d+), "cc": "UZ"', form_html.replace("&#34;", '"'))
+uz_city = m_city.group(1) if m_city else ""
+r = adm.post("/admin/auctions/new", data={"product_id": str(pid), "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_mode": "off", "location": "UZ", "location_city": uz_city, **lot_times})
 aid_uz = int(re.search(r"created=(\d+)", r.headers.get("location", "created=0")).group(1))
-ok("a lot says its drives are in Uzbekistan", r.status_code == 303 and 'data-location="uz"' in adm.get(f"/admin/auctions/{aid_uz}").text, str(r.status_code))
+detail = adm.get(f"/admin/auctions/{aid_uz}").text
+ok("a lot says its drives are in Uzbekistan (a Geo country, with a city)", r.status_code == 303 and 'data-location="UZ"' in detail, f"{r.status_code} city={uz_city}")
 adm.post(f"/admin/auctions/{aid_uz}/action/start")
-ok("the Mini App lot page shows the location", 'data-location="uz"' in cust.get(f"/app/auctions/{aid_uz}").text)
+lot_html = cust.get(f"/app/auctions/{aid_uz}").text
+ok("the Mini App lot page shows the place", 'data-location="UZ"' in lot_html and (" · " in lot_html[lot_html.find('data-location="UZ"'):][:200] if uz_city else True))
 ok("the location can be cleared", adm.post(f"/admin/auctions/{aid_uz}/edit", data={"product_id": str(pid), "qty": "2", "start_price_total": "100", "step_per_unit": "1", "deposit_mode": "off", "location": "", **lot_times}).status_code == 303 and 'data-location=' not in adm.get(f"/admin/auctions/{aid_uz}").text)
 adm.post(f"/admin/auctions/{aid_uz}/action/end")
 ok("the location test lot is removed", adm.post(f"/admin/auctions/{aid_uz}/delete").status_code == 303)

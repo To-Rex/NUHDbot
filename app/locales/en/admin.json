@@ -524,7 +524,9 @@
       "location_cn": "In China",
       "location_uz": "In Uzbekistan",
       "location_none": "Not said",
-      "location_hint": "Where the drives are now — shown on the lot (delivery time depends on it)."
+      "location_hint": "Where the drives are now: a country from the Geo settings and, if wanted, a city — shown on the lot.",
+      "location_city": "City / region",
+      "location_city_any": "— no city —"
     },
     "sup": {
       "title": "Support",

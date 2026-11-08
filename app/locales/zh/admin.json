@@ -524,7 +524,9 @@
       "location_cn": "在中国",
       "location_uz": "在乌兹别克斯坦",
       "location_none": "未注明",
-      "location_hint": "硬盘目前所在地——客户在拍品页可见（影响交付时间）。"
+      "location_hint": "硬盘目前所在地：地理设置中的国家，可选城市——客户在拍品页可见。",
+      "location_city": "城市 / 地区",
+      "location_city_any": "— 未指定城市 —"
     },
     "sup": {
       "title": "客服消息",

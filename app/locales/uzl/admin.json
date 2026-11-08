@@ -524,7 +524,9 @@
       "location_cn": "Xitoyda",
       "location_uz": "O'zbekistonda",
       "location_none": "Ko'rsatilmagan",
-      "location_hint": "Disklar hozir qayerda — mijoz lotda ko'radi (yetkazish muddati shunga bog'liq)."
+      "location_hint": "Disklar hozir qayerda: Geo sozlamalaridagi davlat va, xohlasangiz, shahar — mijoz lotda ko'radi.",
+      "location_city": "Shahar / viloyat",
+      "location_city_any": "— shahar ko'rsatilmagan —"
     },
     "sup": {
       "title": "Murojaatlar",

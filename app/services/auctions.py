@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.enums import AuctionStatus, DepositStatus
-from app.models import Auction, AuctionDeposit, Bid, User
+from app.models import Auction, AuctionDeposit, Bid, City, Country, User
 from app.services import admin_events, auction_terms, audit, interests, pubsub
 
 
@@ -243,12 +243,30 @@ async def claim_deposit(db: AsyncSession, a: Auction, user: User, proof: str | N
     return dep
 
 
-LOCATIONS = ("cn", "uz")  # where a lot's drives are: China or Uzbekistan
-
-
-def clean_location(value) -> str | None:
-    v = (str(value or "")).strip().lower()
-    return v if v in LOCATIONS else None
+async def set_location(db: AsyncSession, a: Auction, country: str | None, city_id: int | None = None, city_text: str | None = None) -> None:
+    """Where the lot's drives are: a country from the Geo settings and, if wanted, one of its cities (or a typed place).
+    The names are copied onto the lot so it reads the same if the Geo settings change later. Empty country = not said."""
+    code = (str(country or "")).strip().upper()[:2]
+    c = await db.get(Country, code) if code else None
+    if c is None:
+        a.location = a.location_name = a.location_city = None
+        return
+    a.location, a.location_name = c.code, dict(c.name or {}) or {"en": c.code}
+    city = None
+    if city_id:
+        city = await db.get(City, int(city_id))
+        if city is not None and city.country_code != c.code:
+            city = None
+    elif city_text and city_text.strip():
+        txt = city_text.strip().lower()
+        for row in (await db.execute(select(City).where(City.country_code == c.code))).scalars():
+            if txt in {str(v).strip().lower() for v in (row.name or {}).values() if v}:
+                city = row
+                break
+        if city is None:
+            a.location_city = {"en": city_text.strip()[:100]}
+            return
+    a.location_city = (dict(city.name or {}) | ({"region": city.region} if city.region else {})) if city else None
 
 
 REVIEW = {"confirm": DepositStatus.CONFIRMED, "reject": DepositStatus.REJECTED, "refund": DepositStatus.REFUNDED, "apply": DepositStatus.APPLIED}

@@ -88,8 +88,9 @@
         <div class="auc-money mt-sm" data-dep-pane="percent"{{ ' hidden' if dmode != 'percent' }}><input class="input mono" name="deposit_percent" value="{{ a.deposit_percent|pct or dep_default_pct }}" inputmode="decimal" min="0" max="100"><span>%</span></div>
         <div class="auc-money mt-sm" data-dep-pane="fixed"{{ ' hidden' if dmode != 'fixed' }}><input class="input mono" name="deposit_amount" value="{{ a.deposit_amount }}" inputmode="decimal"><span data-cur-label>{{ a.currency }}</span></div>
         <div class="auc-under"><span class="hint" data-dep-hint data-tpl="{{ t('admin.auc.dep_hint_pct', amount='{a}') }}" data-off="{{ t('admin.auc.dep_hint_off') }}" data-fixed="{{ t('admin.auc.dep_hint_fixed') }}"></span></div></div>
-      <div class="field auc-loc"><label>{{ t('admin.auc.location') }}</label>
-        <span class="seg" role="group" aria-label="{{ t('admin.auc.location') }}">{% for v in ('cn', 'uz') %}<label class="seg-opt"><input type="radio" name="location" value="{{ v }}" {{ 'checked' if a.location == v }}><span>{{ icon('map-pin', 12) }}{{ t('admin.auc.location_' ~ v) }}</span></label>{% endfor %}<label class="seg-opt"><input type="radio" name="location" value="" {{ 'checked' if not a.location }}><span>{{ t('admin.auc.location_none') }}</span></label></span>
+      <div class="field auc-loc" data-loc data-cities="{{ cities|tojson|forceescape }}" data-city-id="{{ a.location_city.id if a.location_city and a.location_city.id else '' }}" data-l-any="{{ t('admin.auc.location_city_any') }}"><label>{{ t('admin.auc.location') }}</label>
+        <select class="select" name="location" data-loc-country aria-label="{{ t('admin.auc.location') }}"><option value="">{{ t('admin.auc.location_none') }}</option>{% for c in countries %}<option value="{{ c.code }}" {{ 'selected' if a.location == c.code }}>{{ c.name|pick(lang) or c.code }}</option>{% endfor %}</select>
+        <select class="select" name="location_city" data-loc-city aria-label="{{ t('admin.auc.location_city') }}" {% if not a.location %}hidden{% endif %} data-current="{{ (a.location_city or {})|pick(lang) }}"><option value="">{{ t('admin.auc.location_city_any') }}</option></select>
         <span class="hint">{{ t('admin.auc.location_hint') }}</span></div>
       <div class="field"><label>{{ t('admin.auc.qty') }} <span class="req">*</span></label>
         <div class="auc-qty"><input class="input mono" type="number" name="qty" value="{{ a.qty }}" min="1" required></div>
@@ -288,6 +289,22 @@
   form.querySelectorAll('[data-dur]').forEach(function (b) { b.addEventListener('click', function () {
     var s = st.value ? new Date(st.value) : new Date(); en.value = local(new Date(s.getTime() + parseInt(b.dataset.dur, 10) * 3600000)); fire(en);
   }); });
+
+  /* ---- the place: a country from the Geo settings, then one of its cities ---- */
+  var lb = form.querySelector('[data-loc]');
+  if (lb) {
+    var cities = []; try { cities = JSON.parse(lb.dataset.cities || '[]'); } catch (e) {}
+    var cs = lb.querySelector('[data-loc-country]'), ci = lb.querySelector('[data-loc-city]'), ui = (document.documentElement.lang || 'ru'), short = { 'uz-Latn': 'uzl', 'uz-Cyrl': 'uz', 'uz': 'uz', 'ru': 'ru', 'en': 'en', 'zh': 'zh' }[ui] || 'ru';
+    var name = function (d) { return d && (d[short] || d.ru || d.en || d.uz || d.uzl || d.zh || Object.values(d)[0]) || ''; };
+    function fillCities(keep) {
+      var code = cs.value, list = cities.filter(function (c) { return c.cc === code; }), cur = lb.dataset.current || '';
+      ci.innerHTML = '<option value="">' + lb.dataset.lAny + '</option>'; var grp = null, region = null;
+      list.forEach(function (c) { var r = name(c.region); if (r !== region) { region = r; grp = r ? document.createElement('optgroup') : null; if (grp) { grp.label = r; ci.appendChild(grp); } }
+        var o = document.createElement('option'); o.value = c.id; o.textContent = name(c.name); if (keep && (String(c.id) === String(lb.dataset.cityId) || (!lb.dataset.cityId && cur && name(c.name) === cur))) o.selected = true; (grp || ci).appendChild(o); });
+      ci.hidden = !code || !list.length;
+    }
+    cs.addEventListener('change', function () { fillCities(false); }); fillCities(true);
+  }
 
   /* ---- the rules: common (shown as the admin's language reads it) or this lot's own ---- */
   var rb = form.querySelector('[data-rules]');

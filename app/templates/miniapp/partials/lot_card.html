@@ -5,7 +5,7 @@
   <span class="hl-media">
     {% if a.cover_url %}<img src="{{ a.cover_url }}" alt="" loading="lazy" decoding="async">{% else %}<em>{{ a.capacity_gb|capacity }}</em>{% endif %}
     <span class="hl-status">{% if st == 'live' %}<span class="chip chip-live">{{ t('auction.live') }}</span>{% elif st == 'scheduled' %}<span class="chip hl-soon">{{ icon('clock', 11) }}{{ t('auction.scheduled') }}</span>{% else %}<span class="chip chip-soft">{{ t('auction.ended') }}</span>{% endif %}</span>
-    <span class="hl-qty">× {{ a.qty }}</span>{% if a.location %}<span class="chip chip-loc hl-loc">{{ icon('map-pin', 10) }}{{ t('auction.location_' ~ a.location) }}</span>{% endif %}
+    <span class="hl-qty">× {{ a.qty }}</span>{% if a.location %}<span class="chip chip-loc hl-loc">{{ icon('map-pin', 10) }}{{ a|lot_place(lang) }}</span>{% endif %}
   </span>
   <span class="hl-body">
     <small class="hl-brand">{% if pc %}<i class="hl-dot"></i>{{ COLOR_DIRECTION[pc] }} · {% endif %}{{ a.brand }}</small>
