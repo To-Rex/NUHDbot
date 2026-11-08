@@ -245,7 +245,7 @@ async def auction_create(request: Request, db: DB, staff: User = Depends(staff_d
     await db.flush()
     await audit.log(db, staff.id, "auction.create", "auction", a.id, None, {"title": a.title, "qty": a.qty, "start": str(a.start_price_total)})
     await db.commit()
-    return back(request, f"/admin/auctions/{a.id}", t(staff.lang, "admin.flash.saved"))
+    return back(request, f"/admin/auctions?created={a.id}", t(staff.lang, "admin.flash.saved"))  # back to the list, the row lit up
 
 
 async def _get(db, aid: int) -> Auction:
@@ -289,7 +289,7 @@ async def auction_update(aid: int, request: Request, db: DB, staff: User = Depen
     await audit.log(db, staff.id, "auction.update", "auction", a.id, before, {"start": str(a.start_price_total), "ends_at": a.ends_at.isoformat(), "qty": a.qty})
     await db.commit()
     asvc.publish(a.id, {"type": "state", **asvc.snapshot(a)})
-    return back(request, f"/admin/auctions/{aid}", t(staff.lang, "admin.flash.saved"))
+    return back(request, f"/admin/auctions?created={aid}", t(staff.lang, "admin.flash.saved"))  # back to the list, the row lit up
 
 
 @router.post("/auctions/{aid}/images")

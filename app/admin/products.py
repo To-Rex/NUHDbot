@@ -240,7 +240,7 @@ async def product_update(pid: int, request: Request, db: DB, staff: User = Depen
         return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "errors": errors, "history": history, **(await _form_ctx(db, p))}, status_code=400)
     await audit.log(db, staff.id, "product.update", "product", p.id, before, snapshot(p, PRODUCT_FIELDS))
     await db.commit()
-    return back(request, f"/admin/products/{p.id}", t(staff.lang, "admin.flash.saved"))
+    return back(request, f"/admin/products?created={p.id}", t(staff.lang, "admin.flash.saved"))  # back to the list, the row lit up
 
 
 @router.post("/products/{pid}/delete")

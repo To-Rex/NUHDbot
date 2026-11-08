@@ -4,13 +4,18 @@
 <div class="tiles mb">{% include "admin/auctions/_deposit_settings.html" %}{% include "admin/auctions/_rules.html" %}{% include "admin/auctions/_terms.html" %}</div>
 <div class="tabs"><a href="?status=" class="{{ 'active' if not status }}">{{ t('admin.all') }}</a>{% for s in statuses %}<a href="?status={{ s.value }}" class="{{ 'active' if status==s.value }}">{{ t('auction_status.' ~ s.value) }}</a>{% endfor %}</div>
 <div class="tbl-wrap tbl-cards"><table class="tbl-sticky"><thead><tr><th>{{ t('admin.auc.title') }}</th><th>{{ t('admin.status') }}</th><th class="right">{{ t('admin.auc.qty') }}</th><th class="right">{{ t('admin.auc.start_price') }}</th><th class="right">{{ t('admin.auc.current') }}</th><th class="right">{{ t('admin.auc.bids') }}</th><th>{{ t('admin.auc.ends_at') }}</th><th>{{ t('admin.auc.winner') }}</th></tr></thead><tbody>
-{% for a in items %}<tr class="clickable" data-href="/admin/auctions/{{ a.id }}">
+{% for a in items %}<tr class="clickable" id="arow-{{ a.id }}" data-href="/admin/auctions/{{ a.id }}">
 <td data-th="#{{ a.id }}" class="span"><div class="row-nw"><img class="th" src="{{ a.cover_url or '/static/img/placeholder.svg' }}" alt="" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'"><div><div class="row-main">{{ a.title }} {{ a.capacity_gb|capacity }}</div><div class="row-sub"><span class="chip cond-{{ a.condition.value }}">{{ a.condition.value|upper }}</span> <span class="chip test-{{ a.test_status.value }}">{{ t('test.' ~ a.test_status.value) }}</span></div></div></div></td>
 <td data-th="{{ t('admin.status') }}"><span class="chip {{ 'chip-live chip-bad' if a.status.value=='live' else ('chip-info' if a.status.value=='scheduled' else ('chip-ok' if a.status.value=='ended' else 'chip-soft')) }}">{{ t('auction_status.' ~ a.status.value) }}</span></td>
 <td data-th="{{ t('admin.auc.qty') }}" class="num mono">{{ a.qty }}</td><td data-th="{{ t('admin.auc.start_price') }}" class="num mono">{{ a.start_price_total|money(a.currency) }}</td><td data-th="{{ t('admin.auc.current') }}" class="num bold mono">{{ a.current_price_total|money(a.currency) }}</td><td data-th="{{ t('admin.auc.bids') }}" class="num mono">{{ a.bids_count }}</td>
 <td data-th="{{ t('admin.auc.ends_at') }}" class="small nowrap">{{ a.ends_at|dt }}{% if a.status.value=='live' %}<div class="mono xs" style="color:var(--bad)" data-countdown="{{ a.ends_at|iso }}"></div>{% elif a.status.value=='scheduled' %}<div class="mono xs faint" data-countdown="{{ a.starts_at|iso }}"></div>{% endif %}</td><td data-th="{{ t('admin.auc.winner') }}" class="small">{{ a.winner.full_name if a.winner else '—' }}</td></tr>
 {% else %}<tr><td colspan="8" class="empty">{{ icon('gavel', 28) }}<b>{{ t('admin.nothing_found') }}</b></td></tr>{% endfor %}</tbody></table></div>
 <script>
+(function(){ /* back from the lot form: the saved row comes into view and lights up once */
+  var id=new URL(location.href).searchParams.get('created'); if(!id) return; var row=document.getElementById('arow-'+id);
+  if(row){ row.classList.add('prow-hl'); row.scrollIntoView({block:'center'}); }
+  var u=new URL(location.href); u.searchParams.delete('created'); history.replaceState({},'',u.pathname+(u.search||'')+u.hash);
+})();
 (function(){ /* an address like #deposit-settings opens that tile and brings it into view */
   var h = location.hash.slice(1); if (!h) return; var d = document.getElementById(h);
   if (d && d.matches('details.tile')) { d.open = true; setTimeout(function(){ d.scrollIntoView({block: 'start'}); }, 50); }
