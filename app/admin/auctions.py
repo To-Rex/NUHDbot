@@ -156,7 +156,7 @@ async def _form_ctx(db, a: Auction) -> dict:
     pct = await get_setting(db, "auction_deposit_percent", 10)
     common = await auction_rules.load(db)
     return {"products": rows, "picked": next((p for p in rows if p.id == a.product_id), None), "dep_default_pct": asvc.pct_label(Decimal(str(pct or 0))) or "10",
-            "common_rules": {code: auction_rules.common_text(common, code) for code in settings.langs}}
+            "common_rules": {code: auction_rules.common_text(common, code) for code in settings.langs}, "common_rules_body": common.get("body") or {}}
 
 
 def _from_product(a: Auction, p: Product) -> None:

@@ -116,8 +116,12 @@
       <div class="between"><span class="lbl">{{ icon('book', 15) }} {{ t('admin.auc.rules_title') }}</span>
         <span class="seg" role="group">{% for v in ('common', 'own') %}<label class="seg-opt"><input type="radio" name="rules_mode" value="{{ v }}" {{ 'checked' if (v == 'own') == own_rules }}><span>{{ t('admin.auc.rules_mode_' ~ v) }}</span></label>{% endfor %}</span></div>
       <div data-rules-pane="common"{{ ' hidden' if own_rules }}>
-        <div class="auc-rules-common"><p class="rules-text" data-rules-common data-texts="{{ common_rules|tojson|forceescape }}"></p>
-          <div class="row mt-sm" style="gap:8px"><a class="btn btn-secondary btn-sm" href="/admin/auctions#auction-rules" target="_blank">{{ icon('edit', 14) }}{{ t('admin.auc.rules_edit_common') }}</a><span class="hint">{{ t('admin.auc.rules_common_hint') }}</span></div></div>
+        {# the common text in every language, read here, edited on the Auctions page (where the Translate button fills the other languages) #}
+        <div class="auc-rules-common rules-common-view" data-i18n data-rules-common data-texts="{{ common_rules|tojson|forceescape }}">
+          <div class="lang-row"><div class="lang-tabs">{% for l in langs %}<button type="button" data-lang="{{ l }}" class="{{ 'active' if l == lang }}" title="{{ t('lang.' ~ l) }}">{{ lang_meta[l].short }}{% if lang_meta[l].suffix %}<small>{{ lang_meta[l].suffix }}</small>{% endif %}{% if (common_rules_body or {}).get(l) %}<i class="dot" aria-hidden="true"></i>{% endif %}</button>{% endfor %}</div>
+            <a class="lbl-link" href="/admin/auctions#auction-rules" target="_blank">{{ icon('edit', 12) }}<span>{{ t('admin.auc.rules_edit_common') }}</span></a></div>
+          {% for l in langs %}<div class="pane" data-lang="{{ l }}" {% if l != lang %}hidden{% endif %}><p class="rules-text" lang="{{ bcp47(l) }}">{{ common_rules[l] }}</p>{% if not (common_rules_body or {}).get(l) %}<span class="hint">{{ t('admin.auc.rules_standard_note') }}</span>{% endif %}</div>{% endfor %}
+          <span class="hint">{{ t('admin.auc.rules_common_hint') }}</span></div>
       </div>
       <div data-rules-pane="own"{{ '' if own_rules else ' hidden' }}>
         <div class="row mb-sm" style="gap:8px;flex-wrap:wrap"><span class="hint">{{ t('admin.auc.rules_own_hint') }}</span><button type="button" class="chip-btn" data-rules-copy>{{ icon('copy', 12) }}{{ t('admin.auc.rules_copy_common') }}</button></div>
@@ -287,7 +291,6 @@
   if (rb) {
     var texts = {}; try { texts = JSON.parse(rb.querySelector('[data-rules-common]').dataset.texts || '{}'); } catch (e) {}
     var lang = document.documentElement.lang || 'ru'; var short = { 'uz-Latn': 'uzl', 'uz-Cyrl': 'uz', 'uz': 'uz', 'ru': 'ru', 'en': 'en', 'zh': 'zh' }[lang] || 'ru';
-    rb.querySelector('[data-rules-common]').textContent = texts[short] || texts.ru || texts.en || '';
     function rulesMode() { var m = (form.querySelector('[name="rules_mode"]:checked') || {}).value || 'common'; rb.dataset.mode = m; rb.querySelectorAll('[data-rules-pane]').forEach(function (p) { p.hidden = p.dataset.rulesPane !== m; }); }
     form.querySelectorAll('[name="rules_mode"]').forEach(function (r) { r.addEventListener('change', rulesMode); });
     rb.querySelector('[data-rules-copy]').addEventListener('click', function () {

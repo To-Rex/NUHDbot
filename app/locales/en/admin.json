@@ -518,7 +518,8 @@
       "rules_hint": "The “Rules” text on every lot page (payment order, disputes, time extension). One text for all lots; a lot can get its own on the lot form. Empty — the standard text shows.",
       "rules_body": "Rules text",
       "rules_own_note": "Lots with their own rules do not show this text — change theirs on the lot form.",
-      "rules_saved": "Lot rules saved"
+      "rules_saved": "Lot rules saved",
+      "rules_standard_note": "No text in this language yet — the standard one is shown"
     },
     "sup": {
       "title": "Support",
