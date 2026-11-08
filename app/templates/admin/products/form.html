@@ -14,11 +14,12 @@
     <div class="form-grid basic-row1 mt">
       {% set brand_known = prod.brand_id and (brands|selectattr('id','equalto',prod.brand_id)|list|length > 0) %}
       <div class="field"><label class="lbl-row"><span>{{ t('admin.prod.brand') }} <span class="req">*</span></span><a class="lbl-link" href="/admin/brands" target="_blank">{{ t('admin.brands.title') }} →</a></label>
+        <div class="nice-select" data-nice-select data-l-search="{{ t('admin.search') }}" data-l-empty="{{ t('admin.nothing_found') }}">{# the native select stays (every script listens to it); the menu on top is the readable one #}
         <select class="select" name="brand_id" id="brand-select" required {{ dis }}>
           <option value="" disabled {{ 'selected' if not prod.brand }}>{{ t('admin.brands.select_brand') }}</option>
-          {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if prod.brand_id==b.id }}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
-          <option value="__other__" {{ 'selected' if prod.brand and not brand_known }}>{{ t('admin.brands.other') }}</option>
-        </select>
+          {% for b in brands %}<option value="{{ b.id }}" {{ 'selected' if prod.brand_id==b.id }}{% if b.logo_thumb %} data-logo="{{ media_url(b.logo_thumb) }}"{% endif %}{% if not b.is_active %} data-muted="1"{% endif %}>{{ b.name }}{% if not b.is_active %} · {{ t('admin.brands.hidden') }}{% endif %}</option>{% endfor %}
+          <option value="__other__" {{ 'selected' if prod.brand and not brand_known }} data-icon="edit">{{ t('admin.brands.other') }}</option>
+        </select></div>
         <input class="input mt-sm" name="brand_other" id="brand-other" value="{{ prod.brand if (prod.brand and not brand_known) else '' }}" placeholder="{{ t('admin.brands.other_name') }}" {% if brand_known or not prod.brand %}hidden{% endif %} {{ dis }}>
 </div>
       <div class="field series-field"><label>{{ t('admin.prod.series') }}</label>

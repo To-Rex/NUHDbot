@@ -1861,3 +1861,34 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-basic .basic-row1 .lbl-row{flex-wrap:nowrap}#s-basic .basic-row1 .lbl-row>span:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #s-basic .basic-row1 .lbl-link span{display:none}#s-basic .basic-row1 .lbl-link svg{width:14px;height:14px}
 #s-basic .basic-row1 .hint{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+
+/* ---------- nice select (brand) + larger, wider menus for series and condition ---------- */
+.nice-select{position:relative}
+.ns-native{position:absolute!important;left:10px;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none;margin:0;padding:0;border:0}
+.ns-trigger{display:flex;align-items:center;gap:9px;width:100%;text-align:left;cursor:pointer;color:var(--ink);font-size:14px;font-weight:600;padding-right:34px}
+.ns-trigger.ns-ph{color:var(--ink-3);font-weight:500}
+.ns-trigger:disabled{cursor:default;opacity:.65}
+.nice-select.open .ns-trigger{border-color:var(--accent);box-shadow:var(--ring)}
+.ns-trigger .ns-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ns-logo{width:22px;height:22px;border-radius:6px;background:var(--sunken);display:inline-grid;place-items:center;overflow:hidden;flex:0 0 auto;font-size:11px;font-weight:700;color:var(--ink-2)}
+.ns-logo img{width:100%;height:100%;object-fit:contain;background:#fff}
+.ns-pop{position:absolute;left:0;top:calc(100% + 6px);z-index:40;min-width:min(340px,calc(100vw - 32px));width:max(100%,min(340px,calc(100vw - 32px)));background:var(--surface);border:1px solid var(--hairline);border-radius:12px;box-shadow:var(--shadow-pop);padding:6px;animation:pop-in var(--t-med) var(--ease-out)}
+.ns-search{margin:2px 2px 6px;width:calc(100% - 4px);height:34px;font-size:13px}
+.ns-list{max-height:min(360px,56vh);overflow:auto;scroll-margin:80px 0 110px}
+.ns-opt{display:flex;align-items:center;gap:10px;min-height:40px;padding:7px 10px;border-radius:9px;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.ns-opt .ns-logo{width:26px;height:26px;border-radius:7px;font-size:12px}
+.ns-opt .ns-name{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.ns-opt:hover,.ns-opt.active{background:var(--sunken)}
+.ns-opt.chosen{background:var(--accent-soft)}
+.ns-opt.muted .ns-name{color:var(--ink-3);font-weight:500}
+.ns-opt.other{border-top:1px solid var(--hairline);border-radius:0 0 9px 9px;margin-top:4px;padding-top:10px;color:var(--ink-2)}.ns-opt.other .ns-name{font-weight:500}
+.ns-check{width:16px;height:16px;color:var(--accent);flex:0 0 auto;opacity:0}.ns-opt.chosen .ns-check{opacity:1}
+.ns-empty{padding:16px;text-align:center;color:var(--ink-3);font-size:13px}
+.series-pop{right:auto;min-width:min(360px,calc(100vw - 32px));width:max(100%,min(360px,calc(100vw - 32px)))}
+.series-opt{min-height:40px;font-size:13.5px}
+.series-trigger,.cond-trigger{font-size:14px}
+.series-value .sv-name{font-weight:600}
+.cond-pop{left:auto;right:0;min-width:min(380px,calc(100vw - 32px));width:max(100%,min(380px,calc(100vw - 32px)))}
+.cond-opt{min-height:44px}
+.cond-opt b{font-size:14px}.cond-opt small{font-size:12px}
+#s-basic .basic-row1 .sv-dir{display:none}

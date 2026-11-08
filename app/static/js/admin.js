@@ -255,6 +255,60 @@
   }
   bindI18n();
   document.addEventListener('htmx:afterSettle', (e) => bindI18n(e.target));
+
+  // ---------- nice select: a readable menu over a native <select> ----------
+  // The native select keeps its name, value, validation and change events (the page's scripts listen to it); the menu on
+  // top shows the options large, with logos, a check on the chosen one and a search box when there are many.
+  function bindNiceSelect(scope) {
+    (scope || document).querySelectorAll('[data-nice-select]').forEach((box) => {
+      if (box.dataset.bound) return; box.dataset.bound = '1';
+      const sel = box.querySelector('select'); if (!sel) return;
+      sel.classList.add('ns-native'); sel.tabIndex = -1;
+      const trig = document.createElement('button'); trig.type = 'button'; trig.className = 'select ns-trigger'; trig.setAttribute('aria-haspopup', 'listbox'); trig.setAttribute('aria-expanded', 'false');
+      trig.innerHTML = '<span class="ns-logo" hidden></span><span class="ns-text"></span>';
+      const pop = document.createElement('div'); pop.className = 'ns-pop'; pop.hidden = true; pop.setAttribute('role', 'listbox');
+      box.appendChild(trig); box.appendChild(pop);
+      const opts = () => [...sel.options].filter((o) => !o.disabled || o.value !== '');
+      const many = opts().length > 7;
+      let search = null;
+      if (many) { search = document.createElement('input'); search.type = 'search'; search.className = 'input sm ns-search'; search.placeholder = box.dataset.lSearch || 'Search'; search.autocomplete = 'off'; }
+      const list = document.createElement('div'); list.className = 'ns-list';
+      if (search) pop.appendChild(search); pop.appendChild(list);
+      const paint = () => {
+        const o = sel.options[sel.selectedIndex]; const ph = !o || (o.disabled && o.value === '');
+        trig.querySelector('.ns-text').textContent = o ? o.textContent : ''; trig.classList.toggle('ns-ph', !!ph);
+        const lg = trig.querySelector('.ns-logo'); if (o && o.dataset.logo) { lg.hidden = false; lg.innerHTML = '<img src="' + o.dataset.logo + '" alt="">'; } else { lg.hidden = true; lg.innerHTML = ''; }
+        trig.disabled = sel.disabled;
+      };
+      const render = (q) => {
+        list.innerHTML = ''; const needle = (q || '').trim().toLowerCase(); let n = 0;
+        opts().forEach((o) => {
+          if (needle && !o.textContent.toLowerCase().includes(needle)) return;
+          const el = document.createElement('div'); el.className = 'ns-opt' + (o.selected ? ' chosen' : '') + (o.dataset.muted ? ' muted' : '') + (o.value === '__other__' ? ' other' : ''); el.setAttribute('role', 'option'); el.dataset.value = o.value;
+          el.innerHTML = (o.dataset.logo ? '<span class="ns-logo"><img src="' + o.dataset.logo + '" alt=""></span>' : '<span class="ns-logo ns-letter">' + (o.value === '__other__' ? '…' : (o.textContent.trim()[0] || '')) + '</span>') + '<span class="ns-name"></span>' + ICONS.ok.replace('<svg', '<svg class="ns-check"');
+          el.querySelector('.ns-name').textContent = o.textContent; el.addEventListener('click', () => pick(o.value)); list.appendChild(el); n += 1;
+        });
+        if (!n) { const e = document.createElement('div'); e.className = 'ns-empty'; e.textContent = box.dataset.lEmpty || '—'; list.appendChild(e); }
+      };
+      const open = () => { if (trig.disabled) return; render(''); pop.hidden = false; box.classList.add('open'); trig.setAttribute('aria-expanded', 'true'); if (search) { search.value = ''; search.focus(); } const c = list.querySelector('.chosen'); c && c.scrollIntoView({ block: 'nearest' }); };
+      const close = (focus) => { pop.hidden = true; box.classList.remove('open'); trig.setAttribute('aria-expanded', 'false'); if (focus) trig.focus(); };
+      const pick = (v) => { if (sel.value !== v) { sel.value = v; sel.dispatchEvent(new Event('change', { bubbles: true })); sel.dispatchEvent(new Event('input', { bubbles: true })); } paint(); close(true); };
+      const move = (d) => { const items = [...list.querySelectorAll('.ns-opt')]; if (!items.length) return; let i = items.findIndex((x) => x.classList.contains('active')); if (i < 0) i = items.findIndex((x) => x.classList.contains('chosen')); i = Math.max(0, Math.min(items.length - 1, i + d)); items.forEach((x, k) => x.classList.toggle('active', k === i)); items[i].scrollIntoView({ block: 'nearest' }); };
+      trig.addEventListener('click', () => (pop.hidden ? open() : close()));
+      trig.addEventListener('keydown', (e) => { if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); open(); if (!search) move(0); } });
+      pop.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); close(true); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); move(1); } else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+        else if (e.key === 'Enter') { e.preventDefault(); const a = list.querySelector('.ns-opt.active') || list.querySelector('.ns-opt'); a && pick(a.dataset.value); }
+      });
+      if (!search) pop.tabIndex = -1;
+      search && search.addEventListener('input', () => render(search.value));
+      document.addEventListener('click', (e) => { if (!pop.hidden && !box.contains(e.target)) close(false); });
+      sel.addEventListener('change', paint); paint();
+    });
+  }
+  bindNiceSelect();
+  document.addEventListener('htmx:afterSettle', (e) => bindNiceSelect(e.target));
   // the Translate button: the language with text (the open tab first) goes to the model, the empty languages come back filled;
   // when every language already has text it asks before rewriting the others
   const TR = (window.ADMIN_I18N && window.ADMIN_I18N.tr) || {};
