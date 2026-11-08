@@ -5,6 +5,7 @@ from app.models.base import Base
 from app.models.brand import Brand
 from app.models.brand_model import BrandModel
 from app.models.currency import Currency
+from app.models.interest import InterestEvent
 from app.models.misc import (
     AdminNotice,
     AdPost,
@@ -57,4 +58,5 @@ __all__ = [
     "NotificationLog",
     "AdPost",
     "AdminNotice",
+    "InterestEvent",
 ]

@@ -3,7 +3,7 @@ from sqlalchemy import update
 
 from app.deps import DB, CurrentUser, Lang
 from app.models import Product
-from app.services import banners, catalog
+from app.services import banners, catalog, interests
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.router import router
@@ -15,8 +15,11 @@ async def product_page(product_id: int, request: Request, db: DB, user: CurrentU
     if p is None:
         return render(request, "miniapp/not_found.html", {"lang": lang, "message_key": "product.not_found", "back_url": "/app/catalog"}, status_code=404)
     await db.execute(update(Product).where(Product.id == p.id).values(views=Product.views + 1))
+    await interests.track(db, user, "view", product=p)  # a sign of interest (signed-in customers, once per half hour)
     await db.commit()
-    similar = await catalog.similar_products(db, p, limit=8)
+    prof = await interests.profile(db, user.id) if interests.counts_as(user) else None
+    similar = interests.rerank(await catalog.similar_products(db, p, limit=8), prof)  # the better fits for this customer first
+    for_you = await interests.recommend(db, user, limit=6, exclude={p.id, *(s.id for s in similar)}, prof=prof) if prof else []
     delivery = await get_setting(db, "delivery_text")
     payment = await get_setting(db, "payment_text")
     step = p.box_qty if (p.full_box_only and p.box_qty) else 1
@@ -30,6 +33,7 @@ async def product_page(product_id: int, request: Request, db: DB, user: CurrentU
             "lang": lang,
             "p_": p,
             "similar": similar,
+            "for_you": for_you,
             "delivery": delivery,
             "cond_texts": banners.clean_conditions(await get_setting(db, "home_conditions"))["desc"],  # the Banners page descriptions
             "payment": payment,

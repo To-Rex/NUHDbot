@@ -170,6 +170,16 @@
       <dt>{{ t('admin.updated') }}</dt><dd class="small">{{ prod.updated_at|dt }}</dd>
     </dl>{% endif %}
   </div>
+  {% if not is_new and interest is defined %}
+  <div class="card" data-interest>{# who is interested in this product: signs per kind and the customers behind them #}
+    <h2>{{ t('admin.prod.interest') }} <span class="sub">{{ t('admin.prod.int_customers_n', n=interest.customers) }}</span></h2>
+    {% if interest.events %}
+    <div class="int-kinds">{% for k in ('view', 'search', 'filter', 'cart', 'order', 'bid', 'subscribe') %}{% if interest.kinds.get(k) %}<span class="chip chip-soft">{{ t('admin.cust.int_kind.' ~ k) }} <b class="mono">{{ interest.kinds[k] }}</b></span>{% endif %}{% endfor %}</div>
+    {% if interest.top %}<span class="lbl mt">{{ t('admin.prod.int_top') }}</span>
+    <div class="int-people">{% for r in interest.top %}<a class="int-person" href="/admin/customers/{{ r.user.id }}"><span class="avatar">{{ (r.user.full_name or '?')[:1]|upper }}</span><span class="flex1"><b>{{ r.user.full_name }}</b><small>{% for k, n in r.kinds.items() %}{{ t('admin.cust.int_kind.' ~ k) }} {{ n }}{{ ', ' if not loop.last }}{% endfor %}</small></span><span class="small faint nowrap">{{ r.last_at|dt }}</span></a>{% endfor %}</div>{% endif %}
+    {% else %}<p class="faint small">{{ t('admin.prod.int_none') }}</p>{% endif %}
+  </div>
+  {% endif %}
 </aside>
 </div>
 

@@ -13,7 +13,7 @@ from app.enums import (
     PaymentStatus,
 )
 from app.models import Order, OrderItem, OrderStatusHistory, Payment, Product, User
-from app.services import admin_events, audit
+from app.services import admin_events, audit, interests
 
 
 class OrderError(Exception):
@@ -92,6 +92,7 @@ async def create_order(
             raise OrderError("not_enough_stock", available=p.available, product=p.title)
         unit = Decimal(p.price or 0)
         currency = currency or p.currency
+        await interests.track(db, user, "order", product=p, qty=qty)  # the strongest sign of interest
         order.items.append(
             OrderItem(
                 product_id=p.id,

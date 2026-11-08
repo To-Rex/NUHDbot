@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/reports">{{ icon('chevron-left', 15) }}{{ t('admin.rep.title') }}</a>
+<div class="segmented">{% for n in (30, 90, 365, 0) %}<a class="{{ 'active' if n == days }}" href="?days={{ n }}">{% if n %}{{ n }} {{ t('admin.days') }}{% else %}{{ t('admin.rep.demand_all') }}{% endif %}</a>{% endfor %}</div>{% endblock %}
+{% block content %}
+{% if not d.events %}<div class="card empty">{{ icon('chart', 30) }}<b>{{ t('admin.rep.demand_empty') }}</b></div>{% else %}
+<div class="kpis mb">
+  <div class="kpi" style="--i:0"><span class="l">{{ icon('sparkle', 16) }}{{ t('admin.rep.demand_signs') }}</span><span class="v">{{ d.events }}</span><span class="s">{% for k in ('view', 'search', 'cart', 'order', 'bid') %}{% if d.kinds.get(k) %}{{ t('admin.cust.int_kind.' ~ k) }} {{ d.kinds[k] }}{{ ' · ' if not loop.last }}{% endif %}{% endfor %}</span></div>
+  <div class="kpi" style="--i:1"><span class="l">{{ icon('users', 16) }}{{ t('admin.rep.demand_customers') }}</span><span class="v">{{ d.customers }}</span></div>
+  <div class="kpi" style="--i:2"><span class="l">{{ icon('search', 16) }}{{ t('admin.rep.demand_searches') }}</span><span class="v">{{ d.kinds.get('search', 0) }}</span></div>
+  <div class="kpi {{ 'bad' if d.misses else '' }}" style="--i:3"><span class="l">{{ icon('alert', 16) }}{{ t('admin.rep.demand_misses') }}</span><span class="v">{{ d.misses|sum(attribute='n') }}</span><span class="s">{{ t('admin.rep.demand_misses_hint') }}</span></div>
+</div>
+{% macro bar(share) %}<span class="dm-bar"><i style="width:{{ (share * 100)|round|int }}%"></i></span>{% endmacro %}
+{% macro stock_chip(stock, score) %}{% if stock is not none %}{% if stock <= 0 %}<span class="chip chip-bad">{{ t('admin.rep.demand_gap') }}</span>{% elif stock < 10 %}<span class="chip chip-warn">{{ stock }} · {{ t('admin.rep.demand_low') }}</span>{% else %}<span class="chip chip-ok">{{ stock }}</span>{% endif %}{% endif %}{% endmacro %}
+<div class="grid g2" style="align-items:start">
+  <div class="card flush"><h2>{{ t('admin.rep.demand_combo') }} <span class="sub">{{ t('admin.rep.demand_hint_gap') }}</span></h2>
+    <div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>{{ t('admin.prod.brand') }} + {{ t('admin.prod.capacity') }}</th><th>{{ t('admin.rep.demand_share') }}</th><th class="right">{{ t('admin.rep.demand_customers') }}</th><th class="right">{{ t('admin.rep.demand_models') }}</th><th class="right">{{ t('admin.rep.demand_stock') }}</th></tr></thead><tbody>
+    {% for r in d.combos %}<tr class="clickable" data-href="/admin/products?q={{ r.value[0]|urlencode }}"><td><div class="row-main">{{ r.value[0] }} {{ r.value[1]|capacity }}</div></td><td class="dm-cell">{{ bar(r.share) }}<span class="mono small">{{ (r.share * 100)|round|int }}%</span></td><td class="num mono">{{ r.customers }}</td><td class="num mono">{{ r.models or 0 }}</td><td class="right">{{ stock_chip(r.stock if r.stock is not none else 0, r.score) }}</td></tr>{% endfor %}
+    </tbody></table></div></div>
+  <div class="stack">
+    <div class="card flush"><h2>{{ t('admin.rep.demand_brand') }}</h2>
+      <div class="tbl-wrap" style="border:0;border-radius:0"><table><tbody>{% for r in d.brands %}<tr><td class="row-main">{{ r.value }}</td><td class="dm-cell">{{ bar(r.share) }}<span class="mono small">{{ (r.share * 100)|round|int }}%</span></td><td class="num mono">{{ r.customers }} {{ icon('user', 12) }}</td><td class="right">{{ stock_chip(r.stock if r.stock is not none else 0, r.score) }}</td></tr>{% endfor %}</tbody></table></div></div>
+    <div class="card flush"><h2>{{ t('admin.rep.demand_capacity') }}</h2>
+      <div class="tbl-wrap" style="border:0;border-radius:0"><table><tbody>{% for r in d.capacities %}<tr><td class="row-main">{{ r.value|capacity }}</td><td class="dm-cell">{{ bar(r.share) }}<span class="mono small">{{ (r.share * 100)|round|int }}%</span></td><td class="num mono">{{ r.customers }} {{ icon('user', 12) }}</td><td class="right">{{ stock_chip(r.stock if r.stock is not none else 0, r.score) }}</td></tr>{% endfor %}</tbody></table></div></div>
+    <div class="card"><div class="grid g2">
+      <div><span class="lbl">{{ t('admin.rep.demand_conditions') }}</span>{% for r in d.conditions %}<div class="int-bar"><span class="n"><span class="chip cond-{{ r.value }}">{{ r.value|upper }}</span></span>{{ bar(r.share) }}<span class="p mono">{{ (r.share * 100)|round|int }}%</span></div>{% endfor %}</div>
+      <div><span class="lbl">{{ t('admin.rep.demand_purposes') }}</span>{% for r in d.purposes %}<div class="int-bar"><span class="n">{{ r.value|upper }}</span>{{ bar(r.share) }}<span class="p mono">{{ (r.share * 100)|round|int }}%</span></div>{% endfor %}</div>
+    </div></div>
+  </div>
+</div>
+<div class="grid g2 mt-lg" style="align-items:start">
+  <div class="card flush"><h2>{{ t('admin.rep.demand_products') }}</h2>
+    <div class="tbl-wrap" style="border:0;border-radius:0"><table><tbody>{% for r in d.products %}{% set pr = r.product %}<tr class="clickable" data-href="/admin/products/{{ pr.id }}">
+      <td class="span"><div class="row-nw"><img class="th" src="{{ (pr.cover.thumb_url if pr.cover else '') or '/static/img/placeholder.svg' }}" alt="" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'"><div><div class="row-main">{{ pr.title }} {{ pr.capacity_gb|capacity }}</div><div class="row-sub"><span class="chip cond-{{ pr.condition.value }}">{{ pr.condition.value|upper }}</span> {{ pr.price|money(pr.currency) }}</div></div></div></td>
+      <td class="num mono" title="{{ t('admin.rep.demand_signs') }}">{{ r.score }}</td><td class="num mono">{{ r.customers }} {{ icon('user', 12) }}</td><td class="right">{{ stock_chip(pr.available, r.score) }}</td></tr>{% endfor %}</tbody></table></div></div>
+  <div class="card flush"><h2>{{ t('admin.rep.demand_searches') }} <span class="sub">{{ t('admin.rep.demand_searches_hint') }}</span></h2>
+    <div class="tbl-wrap" style="border:0;border-radius:0"><table><thead><tr><th>{{ t('admin.rep.demand_query') }}</th><th class="right">{{ t('admin.rep.demand_times') }}</th><th class="right">{{ t('admin.rep.demand_zero') }}</th></tr></thead><tbody>
+    {% for r in d.searches %}<tr class="clickable" data-href="/admin/products?q={{ r.query|urlencode }}"><td class="row-main">{{ r.query }}</td><td class="num mono">{{ r.n }}</td><td class="num mono {{ 'bad-text' if r.misses }}">{{ r.misses or '' }}</td></tr>{% endfor %}
+    </tbody></table></div></div>
+</div>
+{% endif %}
+{% endblock %}

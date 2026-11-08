@@ -65,7 +65,8 @@
       "silver": "Ma'lumotlar markazlari uchun",
       "black": "O'yin kompyuterlari uchun"
     },
-    "auctions_title": "Auksionlar"
+    "auctions_title": "Auksionlar",
+    "for_you": "Sizga mos"
   },
   "catalog": {
     "title": "Katalog",
@@ -132,7 +133,8 @@
     "warranty_check": "Rasmiy kafolat tekshiruvi",
     "warranty_check_note": "Rasmiy saytdagi tekshirish originallikni 100% isbotlamaydi; natija chiqmasligi disk soxta degani emas.",
     "prices_in": "Narxi valyutalarda",
-    "rate": "Kurs"
+    "rate": "Kurs",
+    "for_you": "Sizga yoqishi mumkin"
   },
   "cart": {
     "title": "Savat",
@@ -149,7 +151,8 @@
     "removed": "O'chirildi",
     "cleared": "Savat tozalandi",
     "unavailable": "Tovar mavjud emas",
-    "login_first": "Avval Telegram orqali kiring"
+    "login_first": "Avval Telegram orqali kiring",
+    "for_you": "Qo'shib oling"
   },
   "register": {
     "title": "Ro'yxatdan o'tish",

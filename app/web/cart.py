@@ -7,6 +7,7 @@ from sqlalchemy import select
 from app.deps import DB, CurrentUser, Lang
 from app.i18n import t
 from app.models import Product
+from app.services import interests
 from app.services.orders import OrderError, validate_line
 from app.templating import render
 from app.web.common import current_cart, hx_trigger, store_cart, toast
@@ -38,7 +39,8 @@ def _error_message(lang: str, e: OrderError) -> str:
 async def cart_page(request: Request, db: DB, user: CurrentUser, lang: Lang):
     cart = current_cart(request)
     lines, total, currency = await _cart_lines(db, cart)
-    return render(request, "miniapp/cart.html", {"lang": lang, "lines": lines, "total": total, "currency": currency, "page_title": t(lang, "cart.title"), "back_url": "/app/catalog"})
+    for_you = await interests.recommend(db, user, limit=6, exclude=set(cart)) if lines else []  # what else fits this customer
+    return render(request, "miniapp/cart.html", {"lang": lang, "lines": lines, "total": total, "currency": currency, "for_you": for_you, "page_title": t(lang, "cart.title"), "back_url": "/app/catalog"})
 
 
 @router.post("/cart/add")
@@ -60,6 +62,7 @@ async def cart_add(request: Request, db: DB, user: CurrentUser, lang: Lang, prod
             resp = HTMLResponse("", status_code=200)
             return toast(resp, _error_message(lang, e), "bad", "error")
     cart[product_id] = new_qty
+    await interests.track(db, user, "cart", product=await db.get(Product, product_id), qty=new_qty)  # a strong sign of interest
     resp = HTMLResponse("")
     await store_cart(request, resp, db, cart)
     count = sum(cart.values())

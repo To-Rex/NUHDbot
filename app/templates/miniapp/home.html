@@ -56,6 +56,14 @@
   {% endif %}
   {% endfor %}
 
+  {# for you: products that fit what this customer has looked at, searched, carted and ordered (nothing until there is enough to go on) #}
+  {% if for_you %}
+  <section class="home-sec" data-for-you>
+    <div class="section-title"><h2>{{ t('home.for_you') }}</h2><a href="/app/catalog">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
+    <div class="scroller" style="padding-bottom:4px">{% for sp in for_you %}<div class="rail-item">{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
+  </section>
+  {% endif %}
+
   {% if home_conditions.show %}
   <section class="home-sec">
     <div class="section-title"><h2>{{ p(home_conditions.title) or t('home.conditions_title') }}</h2><a href="/app/info/new-used-refresh">{{ t('common.details') }}{{ icon('chevron-right', 15) }}</a></div>

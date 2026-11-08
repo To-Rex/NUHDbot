@@ -5,6 +5,7 @@ from app.deps import DB, CurrentUser, Lang, redirect, require_user
 from app.enums import SubscriptionType
 from app.i18n import normalize_lang, t
 from app.models import Country, Order, Product, Subscription, User
+from app.services import interests
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.common import hx_trigger
@@ -88,9 +89,11 @@ async def subscriptions_save(request: Request, db: DB, lang: Lang, user: User = 
         db.add(Subscription(user_id=user.id, type=SubscriptionType.AUCTION, value={}))
     for b in form.getlist("brand"):
         db.add(Subscription(user_id=user.id, type=SubscriptionType.BRAND, value={"brand": b[:60]}))
+        await interests.track(db, user, "subscribe", brand=b[:60], query=f"brand {b[:60]}")
     for g in form.getlist("gb"):
         try:
             db.add(Subscription(user_id=user.id, type=SubscriptionType.CAPACITY, value={"gb": int(g)}))
+            await interests.track(db, user, "subscribe", capacity_gb=int(g), query=f"capacity {int(g)}")
         except ValueError:
             pass
     await db.commit()

@@ -65,7 +65,8 @@
       "silver": "适用于数据中心",
       "black": "适用于游戏电脑"
     },
-    "auctions_title": "拍卖"
+    "auctions_title": "拍卖",
+    "for_you": "为你推荐"
   },
   "catalog": {
     "title": "商品目录",
@@ -132,7 +133,8 @@
     "warranty_check": "官方保修查询",
     "warranty_check_note": "官方网站查询不能 100% 证明正品；查询无结果也不代表硬盘是假货。",
     "prices_in": "各币种价格",
-    "rate": "汇率"
+    "rate": "汇率",
+    "for_you": "你可能也喜欢"
   },
   "cart": {
     "title": "购物车",
@@ -149,7 +151,8 @@
     "removed": "已删除",
     "cleared": "购物车已清空",
     "unavailable": "商品暂不可售",
-    "login_first": "请先通过 Telegram 登录"
+    "login_first": "请先通过 Telegram 登录",
+    "for_you": "顺便加购"
   },
   "register": {
     "title": "注册",

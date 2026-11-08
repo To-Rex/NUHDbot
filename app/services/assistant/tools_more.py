@@ -49,7 +49,7 @@ from app.models import (
     User,
 )
 from app.models.base import utcnow
-from app.services import auction_rules, auction_terms, deletion, model_dict, notifications, storage
+from app.services import auction_rules, auction_terms, deletion, interests, model_dict, notifications, storage
 from app.services import auctions as asvc
 from app.services import banners as bsvc
 from app.services import orders as osvc
@@ -72,7 +72,9 @@ from app.services.assistant.tools import (
     money,
     need,
     order_full,
+    product_row,
     tool,
+    user_row,
 )
 from app.services.settings_service import get_setting, set_setting
 
@@ -861,3 +863,51 @@ def upload_note(items: list[dict]) -> str:
 
 def upload_view(u: AssistantUpload) -> dict:
     return {"id": u.id, "name": u.name, "size": f"{u.width}x{u.height}", "thumb": storage.url(u.thumb), "url": storage.url(u.filename)}
+
+
+# ---------- customer interests: what they look at, search, cart, order and bid on ----------
+def _interest_event(e, products: dict) -> dict:
+    p = products.get(e.product_id)
+    return {"at": local(e.created_at), "kind": e.kind, "product_id": e.product_id, "product": f"{p.title} {p.capacity_label}" if p else None,
+            "brand": e.brand, "model": e.model, "capacity_gb": e.capacity_gb, "condition": e.condition, "qty": e.qty, "query": e.query, "results": e.results}
+
+
+@tool("customer_interests", "What a customer is interested in, from their own actions in the Mini App: weighted shares of brands, capacities, conditions and purposes (recent signs count more, nothing is forgotten), the price band, the products they keep opening, and their last signs (opened, searched, filtered, carted, ordered, bid, subscribed).",
+      {"id": I("Customer id"), "limit": I("Recent signs to list (default 20)")}, required=("id",))
+async def customer_interests(ctx: Ctx, id: int, limit: int = 20):  # noqa: A002
+    u = await need(ctx.db, User, int(id), "customer")
+    events = await interests.events_for(ctx.db, u.id)
+    prof = interests.build_profile(events)
+    recent = events[: max(1, min(int(limit or 20), 100))]
+    ids = set(prof["products"]) | {e.product_id for e in recent if e.product_id}
+    products = {p.id: p for p in (await ctx.db.execute(select(Product).where(Product.id.in_(list(ids))))).scalars().unique().all()} if ids else {}
+    out = interests.to_json(prof)
+    out["products"] = [{"id": pid, "title": f"{products[pid].title} {products[pid].capacity_label}", "score": round(prof["product_scores"][pid], 1), "available": products[pid].available} for pid in prof["products"] if pid in products]
+    return {"customer": user_row(u), "profile": out, "recent": [_interest_event(e, products) for e in recent]}
+
+
+@tool("product_interest", "Who is interested in a product: signs per kind (opened, searched, carted, ordered, bid), distinct customers, and the top customers with their signs.",
+      {"id": I("Product id"), "days": I("Only the last N days (default: all time)")}, required=("id",))
+async def product_interest(ctx: Ctx, id: int, days: int | None = None):  # noqa: A002
+    p = await need(ctx.db, Product, int(id), "product")
+    d = await interests.product_interest(ctx.db, p.id, days=int(days) if days else None)
+    return {"product": product_row(p), "events": d["events"], "customers": d["customers"], "kinds": d["kinds"],
+            "top": [{"customer": user_row(r["user"]), "kinds": r["kinds"], "last_at": local(r["last_at"])} for r in d["top"]]}
+
+
+@tool("demand_report", "Demand analysis from customers' signs of interest (weighted: opened 1, searched 2, filtered 1.5, carted 5, bid 5, ordered 10): per brand, capacity and brand+capacity with the stock and models behind each (stock 0 with demand = a gap worth filling), per condition and purpose; the most wanted products; the most frequent searches and the ones that found nothing.",
+      {"days": I("30 | 90 | 365 | 0 = all time (default 90)")})
+async def demand_report(ctx: Ctx, days: int | None = 90):
+    d = await interests.demand(ctx.db, days=int(days) if days else None)
+    return {"days": d["days"] or "all", "events": d["events"], "customers": d["customers"], "kinds": d["kinds"],
+            "brands": d["brands"], "capacities": d["capacities"],
+            "brand_capacity": [{"brand": r["value"][0], "capacity_gb": r["value"][1], "score": r["score"], "share": r["share"], "customers": r["customers"], "stock": r["stock"], "models": r["models"]} for r in d["combos"]],
+            "conditions": d["conditions"], "purposes": d["purposes"],
+            "products": [{"id": r["product"].id, "title": f"{r['product'].title} {r['product'].capacity_label}", "score": r["score"], "customers": r["customers"], "available": r["product"].available} for r in d["products"]],
+            "searches": d["searches"], "searches_with_no_result": d["misses"]}
+
+
+@tool("recommendations_for", "The products the Mini App recommends to a customer right now (the 'For you' rail), best fit first; empty until the customer has shown enough interest.", {"id": I("Customer id")}, required=("id",))
+async def recommendations_for(ctx: Ctx, id: int):  # noqa: A002
+    u = await need(ctx.db, User, int(id), "customer")
+    return [product_row(p) for p in await interests.recommend(ctx.db, u, limit=10)]

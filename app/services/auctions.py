@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.enums import AuctionStatus, DepositStatus
 from app.models import Auction, AuctionDeposit, Bid, User
-from app.services import admin_events, auction_terms, audit, pubsub
+from app.services import admin_events, auction_terms, audit, interests, pubsub
 
 
 class AuctionError(Exception):
@@ -147,6 +147,7 @@ async def place_bid(db: AsyncSession, auction_id: int, user: User, amount_total:
     db.add(bid)
     if first:
         announce_join(db, a, user, stage="bid", amount=amount)
+        await interests.track(db, user, "bid", product=a.product, brand=a.brand, model=a.model, capacity_gb=a.capacity_gb, condition=a.condition.value)  # a sign of interest in this kind of drive
     a.current_price_total = amount
     a.bids_count += 1
     a.version += 1

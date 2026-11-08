@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% block topbar_actions %}<div class="segmented">{% for n in (7,30,90,365) %}<a class="{{ 'active' if n==days }}" href="?days={{ n }}">{{ n }} {{ t('admin.days') }}</a>{% endfor %}</div>
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/reports/demand">{{ icon('chart', 15) }}{{ t('admin.rep.demand') }}</a><div class="segmented">{% for n in (7,30,90,365) %}<a class="{{ 'active' if n==days }}" href="?days={{ n }}">{{ n }} {{ t('admin.days') }}</a>{% endfor %}</div>
 <div class="dd"><button type="button" class="btn btn-secondary btn-sm" data-dd="export-menu">{{ icon('download', 15) }}{{ t('admin.rep.export') }}</button><div id="export-menu" class="dd-menu" hidden><a href="/admin/reports/orders.csv">{{ icon('package', 18) }}{{ t('admin.rep.export_orders') }}</a><a href="/admin/reports/customers.csv">{{ icon('users', 18) }}{{ t('admin.rep.export_customers') }}</a></div></div>{% endblock %}
 {% block content %}
 <p class="hint mb">{{ t('admin.rep.period_hint') }}</p>

@@ -167,7 +167,7 @@ r = adm.post("/admin/login", data={"login": ADMIN_LOGIN, "password": ADMIN_PASSW
 ok("admin login", r.status_code == 303 and "nuhd_admin" in adm.cookies, str(r.status_code))
 csrf = re.search(r'name="csrf" content="([^"]+)"', adm.get("/admin").text).group(1)
 adm.headers["X-CSRF"] = csrf
-admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new", "/admin/payments", "/admin/payments/new", "/admin/auctions/deposits", "/admin/notices"]
+admin_pages = ["/admin", "/admin/orders", "/admin/orders?status=active", "/admin/orders?status=awaiting_payment", "/admin/auctions", "/admin/support", "/admin/products", "/admin/products?q=wd&cond=new", "/admin/products/new", "/admin/brands", "/admin/brands/new", "/admin/models", "/admin/articles", "/admin/articles/new", "/admin/customers", "/admin/staff", "/admin/settings", "/admin/settings/geo", "/admin/ads", "/admin/ads/new", "/admin/reports", "/admin/reports?days=7", "/admin/audit", "/admin/search?q=NU", "/admin/reports/orders.csv", "/admin/reports/customers.csv", "/admin/auctions/new", "/admin/payments", "/admin/payments/new", "/admin/auctions/deposits", "/admin/notices", "/admin/reports/demand", "/admin/reports/demand?days=30"]
 for p in admin_pages:
     r = adm.get(p, headers={"HX-Request": "true"} if "search" in p else {})
     ok(f"GET {p}", r.status_code == 200 and clean(r.text), str(r.status_code))
@@ -423,11 +423,22 @@ if cuid:
     ok("customer detail", adm.get(f"/admin/customers/{cuid}").status_code == 200)
     # the customer's Mini App cart on their card
     cust.post("/app/cart/add", data={"product_id": pid, "qty": qty})
+    cart_pane = lambda h: h[h.find('data-tabpane="cart"'):h.find('data-tabpane="interests"')]  # noqa: E731 — the Cart tab's own markup
     html = adm.get(f"/admin/customers/{cuid}").text
-    ok("the customer's cart shows on their card", 'data-tabpane="cart"' in html and f'data-href="/admin/products/{pid}"' in html and f"× {qty}<" in html, html[html.find('data-tabpane="cart"'):][:300])
+    ok("the customer's cart shows on their card", f'data-href="/admin/products/{pid}"' in cart_pane(html) and f"× {qty}<" in cart_pane(html), cart_pane(html)[:300])
     cust.post("/app/cart/clear")
     html = adm.get(f"/admin/customers/{cuid}").text
-    ok("clearing the cart empties the card too", 'data-tabpane="cart"' in html and f'data-href="/admin/products/{pid}"' not in html)
+    ok("clearing the cart empties the card too", 'data-tabpane="cart"' in html and f'data-href="/admin/products/{pid}"' not in cart_pane(html))
+    # interests: what the customer opened, searched, carted and ordered shows on the card, on the product, and in the demand analysis
+    cust.get(f"/app/products/{pid}")
+    r = cust.get("/app/catalog?q=zzz-nothing-" + UID)
+    ok("a search that finds nothing still renders", r.status_code == 200)
+    html = adm.get(f"/admin/customers/{cuid}").text
+    ok("the customer's interests show on their card", 'data-tabpane="interests"' in html and "int-bar" in html and "zzz-nothing-" + UID in html, html[html.find('data-tabpane="interests"'):][:300])
+    ok("the product page shows who is interested", "data-interest" in adm.get(f"/admin/products/{pid}").text)
+    r = adm.get("/admin/reports/demand?days=0")
+    ok("the demand analysis lists the gap search and the brand", r.status_code == 200 and "zzz-nothing-" + UID in r.text and "dm-bar" in r.text, str(r.status_code))
+    ok("the Mini App home has a For you rail for this customer", "data-for-you" in cust.get("/app/home").text)
     ok("customer update", adm.post(f"/admin/customers/{cuid}/update", data={"country": "UZ", "city": "Samarqand", "lang": "ru"}).status_code == 303)
 ok("admin theme switch", adm.post("/admin/theme/dark").status_code in (200, 204, 303))
 ok("admin lang switch", adm.get("/admin/lang/ru?next=/admin").status_code == 303)

@@ -4,7 +4,7 @@ from fastapi import Request
 
 from app.deps import DB, CurrentUser, Lang
 from app.enums import Condition, FormFactor, Interface, ProductColor, Purpose, TestStatus
-from app.services import banners, catalog, currencies
+from app.services import banners, catalog, currencies, interests
 from app.services.settings_service import get_setting
 from app.templating import render
 from app.web.router import router
@@ -36,6 +36,9 @@ async def catalog_page(request: Request, db: DB, user: CurrentUser, lang: Lang):
         ctx["f"] = f
         tpl = "miniapp/partials/product_grid.html" if request.headers.get("HX-Target") != "grid-more" and partial != "more" else "miniapp/partials/product_grid_more.html"
         return render(request, tpl, ctx)
+    if f.page == 1 and (f.q.strip() or f.active_count):  # a search or a filter set is a sign of interest (and its result count, a gap when zero)
+        await interests.track_catalog(db, user, f, total)
+        await db.commit()
     facets = await catalog.facets(db)
     directions = [ProductColor(v) for v in banners.clean_order(await get_setting(db, "direction_order"), banners.DIRECTIONS)]  # the Banners page order
     ctx.update(_filter_ctx(f, facets, await catalog.capacity_presets(db), directions))

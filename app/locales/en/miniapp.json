@@ -65,7 +65,8 @@
       "silver": "For data centres",
       "black": "For gaming PCs"
     },
-    "auctions_title": "Auctions"
+    "auctions_title": "Auctions",
+    "for_you": "For you"
   },
   "catalog": {
     "title": "Catalog",
@@ -132,7 +133,8 @@
     "warranty_check": "Official warranty check",
     "warranty_check_note": "An official lookup does not prove authenticity 100%; a missing result does not mean the drive is fake.",
     "prices_in": "Price in currencies",
-    "rate": "Rate"
+    "rate": "Rate",
+    "for_you": "You may also like"
   },
   "cart": {
     "title": "Cart",
@@ -149,7 +151,8 @@
     "removed": "Removed",
     "cleared": "Cart cleared",
     "unavailable": "Product unavailable",
-    "login_first": "Sign in via Telegram first"
+    "login_first": "Sign in via Telegram first",
+    "for_you": "Add to your order"
   },
   "register": {
     "title": "Registration",

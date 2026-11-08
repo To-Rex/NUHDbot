@@ -2,5 +2,11 @@
 {% block title %}{{ t('cart.title') }} · {{ app_name }}{% endblock %}
 {% block topbar_actions %}{% endblock %}
 {% block content %}
-<div class="page">{% include "miniapp/partials/cart_body.html" %}</div>
+<div class="page">{% include "miniapp/partials/cart_body.html" %}
+{# what else fits this customer, from what they have looked at, searched and bought #}
+{% if for_you %}
+<div class="section-title mt-6" data-for-you><h2>{{ t('cart.for_you') }}</h2></div>
+<div class="scroller" style="padding-bottom:10px">{% for sp in for_you %}<div class="rail-item">{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
+{% endif %}
+</div>
 {% endblock %}

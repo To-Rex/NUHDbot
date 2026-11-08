@@ -6,7 +6,7 @@ from sqlalchemy import func, select
 from app.deps import DB, CurrentUser, Lang, redirect
 from app.enums import COLOR_DIRECTION, AuctionStatus, ProductColor
 from app.models import Auction, Banner, Product
-from app.services import auctions, discounts, storage
+from app.services import auctions, discounts, interests, storage
 from app.services import banners as banner_service
 from app.services import series as series_service
 from app.services.settings_service import get_setting
@@ -28,11 +28,12 @@ async def home(request: Request, db: DB, user: CurrentUser, lang: Lang):
     month_ago = datetime.now(UTC) - timedelta(days=30)
     new_count = (await db.execute(select(func.count()).select_from(Product).where(Product.is_active.is_(True), Product.arrived_at >= month_ago))).scalar_one()
     auto = banner_service.clean_auto_slides(await get_setting(db, "auto_slides"))  # Banners page: automatic slides on/off
+    for_you = await interests.recommend(db, user, limit=8)  # what fits this customer (empty until they have shown enough interest)
     return render(
         request,
         "miniapp/home.html",
         {
-            "lang": lang, "lots": lots if auto["auction"] else [], "home_lots": home_lots, "lot_people": await auctions.participant_counts(db, [x.id for x in home_lots]),
+            "lang": lang, "for_you": for_you, "lots": lots if auto["auction"] else [], "home_lots": home_lots, "lot_people": await auctions.participant_counts(db, [x.id for x in home_lots]),
             "delivery": delivery, "payment": payment,
             "in_stock_models": in_stock_models, "live_auctions": live_auctions, "new_count": new_count if auto["new"] else 0,
             "kind_icons": banner_service.KIND_ICONS, "directions": await _directions(db),

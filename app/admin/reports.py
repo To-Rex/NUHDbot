@@ -7,7 +7,7 @@ from app.admin.router import router
 from app.enums import AuctionStatus
 from app.i18n import t
 from app.models import Auction, AuditLog, User
-from app.services import reports
+from app.services import interests, reports
 
 
 @router.get("/reports")
@@ -55,3 +55,15 @@ async def audit_page(request: Request, db: DB, staff: User = Depends(staff_dep(*
     actors = {u.id: u for u in (await db.execute(select(User).where(User.id.in_(ids)))).scalars().all()} if ids else {}
     entities = [e for (e,) in (await db.execute(select(AuditLog.entity).distinct())).all()]
     return render(request, staff, "admin/reports/audit.html", {"page_title": t(staff.lang, "admin.aud.title"), "rows": rows, "total": total, "pages": pages, "page": qpage(request), "actors": actors, "entities": entities})
+
+
+@router.get("/reports/demand")
+async def demand_page(request: Request, db: DB, staff: User = Depends(staff_dep(*REPORT_ROLES))):
+    """What customers want against what is in stock — from their signs of interest (opened, searched, carted, ordered, bid)."""
+    raw = request.query_params.get("days", "90")
+    days = int(raw) if raw.isdigit() else 90
+    days = days if days in (30, 90, 365, 0) else 90
+    d = await interests.demand(db, days=days or None)
+    lang = staff.lang
+    return render(request, staff, "admin/reports/demand.html", {"page_title": t(lang, "admin.rep.demand"), "page_sub": t(lang, "admin.rep.demand_sub"), "d": d, "days": days,
+                                                                "crumbs": [(t(lang, "admin.rep.title"), "/admin/reports"), (t(lang, "admin.rep.demand"), None)]})

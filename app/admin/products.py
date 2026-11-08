@@ -44,7 +44,7 @@ from app.enums import (
 )
 from app.i18n import t
 from app.models import PriceHistory, Product, ProductImage, User
-from app.services import audit, deletion, media, model_dict
+from app.services import audit, deletion, interests, media, model_dict
 from app.services import brands as brand_service
 from app.services import series as series_service
 from app.services.catalog import capacity_presets
@@ -210,7 +210,8 @@ async def product_edit(pid: int, request: Request, db: DB, staff: User = Depends
     if not p:
         raise HTTPException(404)
     history = (await db.execute(select(PriceHistory).where(PriceHistory.product_id == pid).order_by(PriceHistory.id.desc()).limit(20))).scalars().all()
-    return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "history": history, "readonly": not can(staff, PRODUCT_EDIT_ROLES | {Role.TESTER}), **(await _form_ctx(db, p))})
+    return render(request, staff, "admin/products/form.html", {"page_title": f"{p.brand} {p.model}", "prod": p, "is_new": False, "history": history, "readonly": not can(staff, PRODUCT_EDIT_ROLES | {Role.TESTER}),
+                                                               "interest": await interests.product_interest(db, pid), **(await _form_ctx(db, p))})
 
 
 @router.post("/products/{pid}")

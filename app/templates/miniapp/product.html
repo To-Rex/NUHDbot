@@ -119,6 +119,10 @@
   <div class="section-title"><h2>{{ t('product.similar') }}</h2></div>
   <div class="scroller" style="padding-bottom:10px">{% for sp in similar %}<div class="rail-item">{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
   {% endif %}
+  {% if for_you %}
+  <div class="section-title" data-for-you><h2>{{ t('product.for_you') }}</h2></div>
+  <div class="scroller" style="padding-bottom:10px">{% for sp in for_you %}<div class="rail-item">{% with p=sp, i=loop.index0 %}{% include "miniapp/partials/product_card.html" %}{% endwith %}</div>{% endfor %}</div>
+  {% endif %}
   <div class="xs faint center mt-4 row" style="justify-content:center;gap:4px">{{ icon('eye', 12) }}{{ p.views }} {{ t('product.views') }}</div>
 </div>
 

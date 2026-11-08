@@ -19,7 +19,7 @@ from app.config import settings
 from app.enums import Role
 from app.i18n import normalize_lang, t
 from app.models import Auction, AuctionDeposit, Bid, Order, Product, Subscription, SupportThread, User
-from app.services import audit, deletion
+from app.services import audit, deletion, interests
 from app.services import cart as cart_svc
 
 
@@ -59,8 +59,20 @@ async def customer_detail(uid: int, request: Request, db: DB, staff: User = Depe
     subs = (await db.execute(select(Subscription).where(Subscription.user_id == uid))).scalars().all()
     threads = (await db.execute(select(SupportThread).where(SupportThread.user_id == uid).order_by(SupportThread.id.desc()))).scalars().unique().all()
     cart_lines, cart_total, cart_currency = await _cart_lines(db, u)
+    interest, int_events, int_products = await _interest_ctx(db, uid)
     return render(request, staff, "admin/customers/detail.html", {"page_title": u.full_name, "u": u, "orders": orders, "bids": bids, "deposits": deposits, "subs": subs, "threads": threads, "all_roles": list(Role), "langs": settings.langs,
-                                                                 "cart_lines": cart_lines, "cart_total": cart_total, "cart_currency": cart_currency})
+                                                                 "cart_lines": cart_lines, "cart_total": cart_total, "cart_currency": cart_currency,
+                                                                 "interest": interest, "int_events": int_events, "int_products": int_products, "int_kinds": interests.KINDS})
+
+
+async def _interest_ctx(db, uid: int):
+    """What the customer has shown interest in: the weighted profile, the last signs, and the products those point at."""
+    events = await interests.events_for(db, uid)
+    prof = interests.build_profile(events)
+    recent = events[:40]
+    ids = set(prof["products"]) | {e.product_id for e in recent if e.product_id}
+    products = {p.id: p for p in (await db.execute(select(Product).where(Product.id.in_(list(ids))))).scalars().unique().all()} if ids else {}
+    return prof, recent, products
 
 
 async def _cart_lines(db, u: User):
