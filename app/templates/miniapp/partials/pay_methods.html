@@ -1,37 +1,39 @@
-{#- The shop's payment methods as the customer pays — all of them at once (there are two to four), each a card: the name, the
-    QR code big on white (phones scan it in any theme), the account to copy and the admin's instructions. Expects: pay_methods,
-    pm_instructions(m), pm_icon(m); optional select_name — then each card carries a radio: "I paid with this one", the first
-    picked by default, for the receipt form around it. -#}
-<div class="pm{{ ' pm-pick' if select_name }}" data-pm>
+{#- The shop's payment methods as the customer pays — all at once (two to four), side by side as compact cards: the name and the
+    QR code on white (tap to zoom). The chosen card's details follow below: the account to copy, how to scan, the admin's
+    instructions. Expects: pay_methods, pm_instructions(m), pm_icon(m); optional select_name — then the chosen card is also the
+    form's answer ("I paid with this one"), the first by default. -#}
+<div class="pm" data-pm>
+  <div class="pm-grid{{ ' one' if pay_methods|length == 1 }}">
   {% for m in pay_methods %}
-  <section class="pm-card{{ ' is-on' if select_name and loop.first }}" data-pm-card="{{ m.id }}">
-    <header class="pm-head">
-      <span class="pm-ic">{{ icon(pm_icon(m), 18) }}</span>
-      <b>{{ m.name }}</b>{% if m.currency %}<span class="chip chip-soft">{{ m.currency }}</span>{% endif %}
-      {% if select_name %}<label class="pm-radio" title="{{ t('auction.pay_paid_with') }}"><input type="radio" name="{{ select_name }}" value="{{ m.id }}" {{ 'checked' if loop.first }}><span class="pm-radio-box">{{ icon('check', 13) }}</span></label>{% endif %}
-    </header>
-    {% if m.has_qr %}
-    <div class="qr-tile"><img src="{{ m.qr_url }}" alt="{{ m.name }} QR" data-lightbox="{{ m.qr_url }}" loading="lazy"><span class="qr-zoom">{{ icon('zoom', 13) }}{{ t('auction.pay_zoom') }}</span></div>
-    <p class="pm-scan">{{ icon('scan', 15) }}{{ t('auction.pay_scan', name=m.name) }}</p>
-    {% endif %}
-    {% if m.account %}
-    <button type="button" class="pm-account" data-copy="{{ m.account }}" data-copied-text="{{ t('common.copied') }}"><span class="pm-acc-label">{{ t('auction.pay_account') }}</span><span class="pm-acc-value mono">{{ m.account }}</span><span class="pm-acc-copy">{{ icon('copy', 16) }}</span></button>
-    {% endif %}
+    <label class="pm-card{{ ' is-on' if loop.first }}" data-pm-card="{{ m.id }}">
+      {% if select_name %}<input type="radio" name="{{ select_name }}" value="{{ m.id }}" {{ 'checked' if loop.first }}>{% else %}<input type="radio" name="pm_view" value="{{ m.id }}" {{ 'checked' if loop.first }}>{% endif %}
+      <span class="pm-head"><span class="pm-ic">{{ icon(pm_icon(m), 15) }}</span><b>{{ m.name }}</b><span class="pm-radio-box">{{ icon('check', 12) }}</span></span>
+      {% if m.has_qr %}<span class="qr-tile"><img src="{{ m.qr_url }}" alt="{{ m.name }} QR" data-lightbox="{{ m.qr_url }}" loading="lazy"><span class="qr-zoom">{{ icon('zoom', 12) }}</span></span>
+      {% else %}<span class="qr-tile qr-none">{{ icon('qr', 26) }}</span>{% endif %}
+      {% if m.currency %}<small class="pm-cur">{{ m.currency }}</small>{% endif %}
+    </label>
+  {% endfor %}
+  </div>
+  {% for m in pay_methods %}
+  <div class="pm-detail" data-pm-detail="{{ m.id }}"{{ ' hidden' if not loop.first }}>
+    {% if m.has_qr %}<p class="pm-scan">{{ icon('scan', 15) }}{{ t('auction.pay_scan', name=m.name) }}</p>{% endif %}
+    {% if m.account %}<button type="button" class="pm-account" data-copy="{{ m.account }}" data-copied-text="{{ t('common.copied') }}"><span class="pm-acc-label">{{ t('auction.pay_account') }} · {{ m.name }}{% if m.currency %} · {{ m.currency }}{% endif %}</span><span class="pm-acc-value mono">{{ m.account }}</span><span class="pm-acc-copy">{{ icon('copy', 16) }}</span></button>{% endif %}
     {% set txt = pm_instructions(m) %}{% if txt %}<p class="pm-instr small">{{ txt|nl2br }}</p>{% endif %}
-    {% if select_name %}<span class="pm-paid">{{ icon('check-circle', 15) }}{{ t('auction.pay_paid_with') }}</span>{% endif %}
-  </section>
+    {% if select_name %}<span class="pm-paid">{{ icon('check-circle', 15) }}{{ t('auction.pay_paid_with') }}: <b>{{ m.name }}</b></span>{% endif %}
+  </div>
   {% endfor %}
 </div>
 <script>
 (function(){
-  /* with a receipt form around: tapping a card marks it as the method the customer paid with (its radio) */
-  document.querySelectorAll('[data-pm].pm-pick').forEach(function (root) { if (root._pm) return; root._pm = 1;
-    function pick(card) { root.querySelectorAll('[data-pm-card]').forEach(function (c) { c.classList.toggle('is-on', c === card); }); var r = card.querySelector('input[type=radio]'); if (r && !r.checked) { r.checked = true; } if (window.NUHD) NUHD.haptic.select(); }
-    root.addEventListener('click', function (e) {
-      if (e.target.closest('[data-copy], img, .qr-tile')) return;
-      var card = e.target.closest('[data-pm-card]'); if (card) pick(card);
+  /* the tapped card is the chosen method: its details show below (and, with a receipt form around, its radio answers the form) */
+  document.querySelectorAll('[data-pm]').forEach(function (root) { if (root._pm) return; root._pm = 1;
+    root.addEventListener('change', function (e) {
+      if (e.target.type !== 'radio') return;
+      var id = e.target.value;
+      root.querySelectorAll('[data-pm-card]').forEach(function (c) { c.classList.toggle('is-on', c.dataset.pmCard === id); });
+      root.querySelectorAll('[data-pm-detail]').forEach(function (d) { d.hidden = d.dataset.pmDetail !== id; });
+      if (window.NUHD) NUHD.haptic.select();
     });
-    root.addEventListener('change', function (e) { if (e.target.type === 'radio') pick(e.target.closest('[data-pm-card]')); });
   });
 })();
 </script>
