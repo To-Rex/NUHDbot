@@ -1815,3 +1815,25 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .i18n-tr.busy .spinner{display:inline-block!important}
 .i18n-tr.busy svg{display:none}
 .i18n-tr:disabled{opacity:.6}
+
+/* pictures, compact: small tiles + an add tile; the kind of the next upload in the header */
+.imgs-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12px;color:var(--ink-3);flex-wrap:wrap}
+.imgs-head .mono{font-weight:600;color:var(--ink-2)}
+.imgs-head .drop-kind{margin-left:auto}
+.imgs-head .drop-kind .select{min-width:0;width:auto}
+.imgs.imgs-xs{grid-template-columns:repeat(auto-fill,76px);gap:6px}
+.imgs-xs .img-card{border-radius:9px}
+.imgs-xs .img-card .ops{position:absolute;left:0;right:0;bottom:0;padding:3px;gap:2px;background:rgba(10,10,12,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transform:translateY(4px);transition:opacity var(--t-fast),transform var(--t-fast);justify-content:center;display:flex}
+.imgs-xs .img-card:hover .ops,.imgs-xs .img-card:focus-within .ops{opacity:1;transform:none}
+@media (hover:none){.imgs-xs .img-card .ops{opacity:1;transform:none}}
+.imgs-xs .img-card .ops .icon-btn{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.14);border-color:transparent;color:#fff}
+.imgs-xs .img-card .ops .icon-btn svg{width:12px;height:12px}
+.imgs-xs .img-card .ops .icon-btn:hover{background:rgba(255,255,255,.28)}
+.imgs-xs .img-card .ops .icon-btn.danger:hover{background:var(--bad);color:#fff}
+.imgs-xs .img-card .cov{top:4px;left:4px;padding:0 4px;height:16px;min-width:16px;justify-content:center}
+.imgs-xs .img-card .kd{right:4px;top:4px;bottom:auto;height:16px;font-size:9px;padding:0 5px}
+.img-add{aspect-ratio:1;border:1.5px dashed var(--hairline-strong);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-weight:600;color:var(--ink-3);cursor:pointer;padding:0;text-align:center;background:transparent;transition:border-color var(--t-fast),background var(--t-fast),color var(--t-fast);position:relative}
+.img-add svg{width:18px;height:18px;color:inherit}
+.img-add:hover,.img-add.over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.img-add .spinner{position:absolute;inset:0;margin:auto;width:16px;height:16px}
+.img-add.htmx-request svg,.img-add.htmx-request span{visibility:hidden}

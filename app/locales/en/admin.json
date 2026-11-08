@@ -254,7 +254,8 @@
       "interest": "Interest",
       "int_customers_n": "{n} customers",
       "int_top": "Most interested",
-      "int_none": "No one yet — it shows up when customers open, search or cart this product."
+      "int_none": "No one yet — it shows up when customers open, search or cart this product.",
+      "add_photo": "Add"
     },
     "ord": {
       "title": "Orders",

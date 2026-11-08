@@ -1,5 +1,9 @@
+{# the product's pictures, compact: a row of small tiles (drag to reorder, actions on hover) ending with an "add" tile that
+   takes a click or a drop; the kind of the next upload sits in the header #}
 <div id="images">
-  <div class="imgs imgs-sm sortable mb-sm" data-reorder-url="/admin/products/{{ prod.id }}/images-reorder" data-saved-text="{{ t('admin.saved') }}">
+  <div class="imgs-head"><span class="mono">{{ prod.images|length }} / {{ settings.max_images_per_product }}</span><span class="hint">{{ t('admin.prod.cover_first') }} · JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</span>
+    <label class="drop-kind"><span class="lbl">{{ t('admin.prod.kind') }}</span><select class="select sm" name="kind" form="img-form"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select></label></div>
+  <div class="imgs imgs-xs sortable" data-reorder-url="/admin/products/{{ prod.id }}/images-reorder" data-saved-text="{{ t('admin.saved') }}">
   {% for img in prod.images %}
     <div class="img-card {{ 'is-cover' if img.is_cover }}" data-id="{{ img.id }}" title="{{ t('admin.prod.cover_first') if img.is_cover else '' }}">
       <a href="#" data-lightbox="{{ img.url }}"><img src="{{ img.thumb_url }}" alt=""></a>
@@ -12,10 +16,7 @@
       </div>
     </div>
   {% endfor %}
+    <form id="img-form" class="img-add drop" data-for="img-files" data-no-sort hx-post="/admin/products/{{ prod.id }}/images" hx-target="#images" hx-swap="outerHTML" hx-encoding="multipart/form-data" title="{{ t('admin.prod.drop_here') }}">
+      {{ icon('plus', 18) }}<span>{{ t('admin.prod.add_photo') }}</span><input id="img-files" type="file" name="files" accept="image/*" multiple hidden><span class="htmx-indicator spinner"></span></form>
   </div>
-  <form hx-post="/admin/products/{{ prod.id }}/images" hx-target="#images" hx-swap="outerHTML" hx-encoding="multipart/form-data" class="drop-row">
-    <div class="drop slim" data-for="img-files">{{ icon('upload', 20) }}<span class="drop-txt"><b>{{ t('admin.prod.drop_here') }}</b><small>{{ prod.images|length }} / {{ settings.max_images_per_product }} · JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</small></span><span class="htmx-indicator spinner"></span></div>
-    <input id="img-files" type="file" name="files" accept="image/*" multiple hidden>
-    <label class="drop-kind"><span class="lbl">{{ t('admin.prod.kind') }}</span><select class="select sm" name="kind"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select></label>
-  </form>
 </div>

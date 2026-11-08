@@ -76,10 +76,9 @@
 
   {% if is_new and not tester %}
   <section class="fsection" id="s-media"><h2 data-n="{{ n_media }}">{{ t('admin.prod.sec_media') }} <span class="sub">{{ t('admin.prod.images_new_hint') }}</span></h2>
-    <div class="imgs imgs-sm mt" id="new-previews" hidden></div>
-    <div class="drop-row mt-sm"><div class="drop slim" data-for="new-images" data-no-submit>{{ icon('upload', 20) }}<span class="drop-txt"><b>{{ t('admin.prod.drop_here') }}</b><small>JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</small></span><span class="hint" id="new-images-count"></span></div>
-      <input id="new-images" type="file" name="images" accept="image/*" multiple hidden>
+    <div class="imgs-head mt-sm"><span class="mono" id="new-images-count">0 / {{ settings.max_images_per_product }}</span><span class="hint">JPG · PNG · WEBP · HEIC · ≤ {{ settings.max_image_mb }} MB</span>
       <label class="drop-kind"><span class="lbl">{{ t('admin.prod.kind') }}</span><select class="select sm" name="images_kind"><option value="sample">{{ t('admin.prod.kind_sample') }}</option><option value="real">{{ t('admin.prod.kind_real') }}</option></select></label></div>
+    <div class="imgs imgs-xs" id="new-previews"><div class="img-add drop" data-for="new-images" data-no-submit title="{{ t('admin.prod.drop_here') }}" role="button" tabindex="0">{{ icon('plus', 18) }}<span>{{ t('admin.prod.add_photo') }}</span><input id="new-images" type="file" name="images" accept="image/*" multiple hidden></div></div>
   </section>
   {% endif %}
 
@@ -95,13 +94,9 @@
     </div>
     <span class="hint mt-sm" style="display:block">{{ t('admin.prod.warranty_hint') }}</span>
     <div class="notice notice-info mt" id="warranty-autofill" hidden>{{ icon('info', 18) }}<span>{{ t('admin.prod.warranty_autofill') }}</span></div>
-    {% if not is_new %}{# cost price, arrival date (defaults to today) and sort order: edit page only #}
-    <div class="divider"></div>
-    <div class="form-grid tight">
-      {% if can_finance %}<div class="field"><label>{{ t('admin.prod.cost_price') }}</label><input class="input mono" name="cost_price" inputmode="decimal" value="{{ prod.cost_price if prod.cost_price is not none else '' }}" {{ dis }}></div>{% endif %}
-      <div class="field"><label>{{ t('admin.prod.arrived_at') }}</label><input class="input" type="date" name="arrived_at" value="{{ prod.arrived_at.strftime('%Y-%m-%d') if prod.arrived_at else '' }}" {{ dis }}></div>
-      <div class="field"><label>{{ t('admin.prod.sort') }}</label><input class="input mono" type="number" name="sort" value="{{ prod.sort }}" {{ dis }}></div>
-    </div>
+    {% if not is_new %}{# cost price, arrival date and sort order are not edited here any more (the assistant / imports set them); the saved values ride along unchanged #}
+    {% if can_finance %}<input type="hidden" name="cost_price" value="{{ prod.cost_price if prod.cost_price is not none else '' }}">{% endif %}
+    <input type="hidden" name="arrived_at" value="{{ prod.arrived_at.strftime('%Y-%m-%d') if prod.arrived_at else '' }}"><input type="hidden" name="sort" value="{{ prod.sort }}">
     {% endif %}
   </details>
 
@@ -284,10 +279,10 @@
   /* new product: pick images before the first save — previews, remove, kept in the form as files */
   var inp=document.getElementById('new-images'), grid=document.getElementById('new-previews'), cnt=document.getElementById('new-images-count'); if(!inp) return;
   var files=[], max={{ settings.max_images_per_product }};
-  function sync(){ var dt=new DataTransfer(); files.forEach(function(f){dt.items.add(f);}); inp.files=dt.files; grid.hidden=!files.length; cnt.textContent=files.length?files.length+' / '+max:''; }
-  function draw(){ grid.innerHTML=''; files.forEach(function(f,i){ var c=document.createElement('div'); c.className='img-card'+(i===0?' is-cover':''); var im=document.createElement('img'); im.src=URL.createObjectURL(f); im.onload=function(){URL.revokeObjectURL(im.src);}; c.appendChild(im);
+  var tile=grid.querySelector('.img-add'); function sync(){ var dt=new DataTransfer(); files.forEach(function(f){dt.items.add(f);}); inp.files=dt.files; cnt.textContent=files.length+' / '+max; tile.hidden=files.length>=max; }
+  function draw(){ grid.querySelectorAll('.img-card').forEach(function(c){ c.remove(); }); files.forEach(function(f,i){ var c=document.createElement('div'); c.className='img-card'+(i===0?' is-cover':''); var im=document.createElement('img'); im.src=URL.createObjectURL(f); im.onload=function(){URL.revokeObjectURL(im.src);}; c.appendChild(im);
       if(i===0){ var cv=document.createElement('span'); cv.className='chip chip-accent cov'; cv.textContent={{ t('admin.prod.cover_first')|tojson }}; c.appendChild(cv); }
-      var ops=document.createElement('div'); ops.className='ops'; var x=document.createElement('button'); x.type='button'; x.className='icon-btn sm danger'; x.innerHTML='&times;'; x.title={{ t('admin.prod.remove')|tojson }}; x.addEventListener('click',function(){ files.splice(i,1); draw(); sync(); }); ops.appendChild(x); c.appendChild(ops); grid.appendChild(c); }); }
+      var ops=document.createElement('div'); ops.className='ops'; var x=document.createElement('button'); x.type='button'; x.className='icon-btn sm danger'; x.innerHTML='&times;'; x.title={{ t('admin.prod.remove')|tojson }}; x.addEventListener('click',function(){ files.splice(i,1); draw(); sync(); }); ops.appendChild(x); c.appendChild(ops); grid.insertBefore(c, tile); }); }
   inp.addEventListener('change',function(){ Array.prototype.forEach.call(inp.files,function(f){ if(files.length<max && /^image\//.test(f.type) && !files.some(function(g){return g.name===f.name&&g.size===f.size;})) files.push(f); }); draw(); sync(); });
 })();
 (function(){

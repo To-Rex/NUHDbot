@@ -254,7 +254,8 @@
       "interest": "关注度",
       "int_customers_n": "{n} 位客户",
       "int_top": "最感兴趣的客户",
-      "int_none": "暂无——客户浏览、搜索或加购后会显示在这里。"
+      "int_none": "暂无——客户浏览、搜索或加购后会显示在这里。",
+      "add_photo": "添加"
     },
     "ord": {
       "title": "订单",

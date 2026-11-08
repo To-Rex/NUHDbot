@@ -254,7 +254,8 @@
       "interest": "Qiziqish",
       "int_customers_n": "{n} mijoz",
       "int_top": "Eng ko'p qiziqqanlar",
-      "int_none": "Hali hech kim qiziqmagan — mijozlar ochsa, qidirsa yoki savatga solsa shu yerda ko'rinadi."
+      "int_none": "Hali hech kim qiziqmagan — mijozlar ochsa, qidirsa yoki savatga solsa shu yerda ko'rinadi.",
+      "add_photo": "Qo'shish"
     },
     "ord": {
       "title": "Buyurtmalar",
