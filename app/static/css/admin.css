@@ -1848,5 +1848,3 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 #s-basic .field{gap:4px}
 #s-basic .hint{line-height:1.35}
 #s-basic .color-more{margin-top:12px}
-#s-basic #stock-field,#s-basic #label-model-row{max-width:220px}
-#s-basic #label-model-row:not([hidden])~#stock-field{max-width:none}
