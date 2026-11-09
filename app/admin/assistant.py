@@ -11,11 +11,11 @@ from app.admin.common import ADMIN, DB, back, f_str, render, staff_dep
 from app.admin.router import router
 from app.db import session_scope
 from app.i18n import t
-from app.models import AssistantAction, AssistantChat, AssistantUpload, User
+from app.models import AssistantAction, AssistantChat, AssistantPlan, AssistantUpload, User
 from app.models.assistant import UNDO_DAYS
 from app.models.base import utcnow
 from app.services import audit, media
-from app.services.assistant import engine, providers
+from app.services.assistant import engine, plans, providers
 from app.services.assistant.tools import TOOLS
 from app.services.assistant.tools_more import upload_view
 from app.services.settings_service import set_setting
@@ -23,11 +23,15 @@ from app.services.settings_service import set_setting
 EXAMPLES = 6
 MAX_UPLOADS = 10  # pictures per message
 ERROR_KEYS = {"no_api_key": "error_no_key", "bad_api_key": "error_bad_key", "no_balance": "error_balance", "rate_limited": "error_rate", "too_many_steps": "error_steps",
-              "empty_response": "error_generic", "no_model": "error_no_model"}
+              "empty_response": "error_generic", "no_model": "error_no_model", "plan_closed": "plan_closed"}
 
 
 def _html(request: Request, staff: User, name: str, ctx: dict) -> str:
     return render(request, staff, name, ctx).body.decode()
+
+
+def _plan_html(request: Request, staff: User, plan: AssistantPlan) -> str:
+    return _html(request, staff, "admin/assistant/_plan.html", {"plan": plan, "plan_items": plans.view, "undo_days": UNDO_DAYS})
 
 
 async def _chats(db, staff: User) -> list[AssistantChat]:
@@ -39,11 +43,12 @@ async def _journal(db) -> list[AssistantAction]:
     return list((await db.execute(select(AssistantAction).where(AssistantAction.created_at >= since).order_by(AssistantAction.id.desc()).limit(60))).scalars().all())
 
 
-def _timeline(chat: AssistantChat, actions: list[AssistantAction]) -> list[tuple[str, object]]:
-    """Messages people read (user, assistant with text) and action cards, in time order."""
+def _timeline(chat: AssistantChat, actions: list[AssistantAction], chat_plans: list[AssistantPlan]) -> list[tuple[str, object]]:
+    """Messages people read (user, assistant with text), plan cards and the action cards not inside a plan, in time order."""
     items: list[tuple[str, object]] = [("msg", m) for m in chat.messages if m.role == "user" or (m.role == "assistant" and (m.content or "").strip() and m.content != "…")]
-    items += [("action", a) for a in actions if a.chat_id == chat.id]
-    return sorted(items, key=lambda x: (x[1].created_at, 0 if x[0] == "action" else 1))
+    items += [("action", a) for a in actions if a.chat_id == chat.id and a.plan_id is None]
+    items += [("plan", p) for p in chat_plans]
+    return sorted(items, key=lambda x: (x[1].created_at, 0 if x[0] in ("action", "plan") else 1))
 
 
 def _groups(chats: list[AssistantChat], lang: str) -> list[tuple[str, list[AssistantChat]]]:
@@ -63,11 +68,13 @@ async def _ctx(db, request: Request, staff: User, chat: AssistantChat) -> dict:
         chat.provider, chat.model = await providers.default_model(db, cfgs)
     cfg = cfgs[chat.provider]
     chat_actions = list((await db.execute(select(AssistantAction).where(AssistantAction.chat_id == chat.id).order_by(AssistantAction.id))).scalars().all())
+    chat_plans = list((await db.execute(select(AssistantPlan).where(AssistantPlan.chat_id == chat.id).order_by(AssistantPlan.id))).scalars().all())
     journal = await _journal(db)
     chats = await _chats(db, staff)
     default = await providers.default_model(db, cfgs)
     return {
-        "page_title": t(staff.lang, "admin.asst.title"), "chats": chats, "groups": _groups(chats, staff.lang), "chat": chat, "timeline": _timeline(chat, chat_actions),
+        "page_title": t(staff.lang, "admin.asst.title"), "chats": chats, "groups": _groups(chats, staff.lang), "chat": chat, "timeline": _timeline(chat, chat_actions, chat_plans),
+        "plan_items": plans.view, "confirm_mode": await engine.confirm_mode(db),
         "journal": journal, "undoable": sum(1 for a in journal if a.can_undo), "undo_days": UNDO_DAYS, "tool_count": len(TOOLS),
         "providers": list(providers.PROVIDERS.values()), "cfgs": cfgs, "ready": [c.provider.id for c in cfgs.values() if c.ready], "cfg": cfg, "key_set": cfg.ready,
         "default_model": f"{default[0]}:{default[1]}", "examples": [t(staff.lang, f"admin.asst.ex{i}") for i in range(1, EXAMPLES + 1)], "first_name": staff.first_name or staff.full_name,
@@ -172,6 +179,18 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
     if not text and not upload_ids:
         raise HTTPException(400)
     await _own_chat(db, staff, cid)
+
+    async def events(s):
+        ch = await s.get(AssistantChat, cid)
+        st = await s.get(User, staff.id)
+        async for ev in engine.run_turn(s, ch, st, text, upload_ids):
+            yield ev
+
+    return _stream(request, staff, events)
+
+
+def _stream(request: Request, staff: User, events) -> StreamingResponse:
+    """Engine events → NDJSON lines the page renders. `events(session)` is an async generator run in its own session."""
     lang = staff.lang
 
     async def gen():
@@ -180,15 +199,15 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
 
         try:
             async with session_scope() as s:
-                ch = await s.get(AssistantChat, cid)
-                st = await s.get(User, staff.id)
-                async for ev in engine.run_turn(s, ch, st, text, upload_ids):
+                async for ev in events(s):
                     if ev["type"] == "status":
                         yield line({"t": "status", "text": t(lang, "admin.asst.running", tool=ev["tool"] or "")})
                     elif ev["type"] == "delta":
                         yield line({"t": "delta", "text": ev["text"]})
                     elif ev["type"] == "action":
                         yield line({"t": "action", "id": ev["action"].id, "html": _html(request, staff, "admin/assistant/_action.html", {"a": ev["action"]})})
+                    elif ev["type"] == "plan":
+                        yield line({"t": "plan", "id": ev["plan"].id, "status": ev["plan"].status, "html": _plan_html(request, staff, ev["plan"])})
                     elif ev["type"] == "message":
                         yield line({"t": "message", "html": _html(request, staff, "admin/assistant/_msg.html", {"m": ev["message"]})})
                     elif ev["type"] == "title":
@@ -203,6 +222,53 @@ async def assistant_send(cid: int, request: Request, db: DB, staff: User = Depen
         yield line({"t": "done"})
 
     return StreamingResponse(gen(), media_type="application/x-ndjson", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+async def _own_plan(db, staff: User, cid: int, pid: int) -> AssistantPlan:
+    await _own_chat(db, staff, cid)
+    plan = await db.get(AssistantPlan, pid)
+    if plan is None or plan.chat_id != cid:
+        raise HTTPException(404)
+    return plan
+
+
+@router.post("/assistant/{cid}/plans/{pid}/undo")
+async def assistant_plan_undo(cid: int, pid: int, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Put every change of an approved plan back, last first."""
+    plan = await _own_plan(db, staff, cid, pid)
+    n, notes = await engine.undo_plan(db, plan, staff)
+    await db.refresh(plan, ["actions"])
+    msg = t(staff.lang, "admin.asst.undo_all_done", n=n) if n else t(staff.lang, "admin.asst.undo_failed", e="; ".join(notes) or "—")
+    return JSONResponse({"ok": n > 0, "undone": n, "notes": notes, "html": _plan_html(request, staff, plan), "msg": msg})
+
+
+@router.post("/assistant/{cid}/plans/{pid}/{verdict}")
+async def assistant_plan_verdict(cid: int, pid: int, verdict: str, request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Approve runs the held changes (journaled under the plan) and the model reports; decline tells the model and it asks
+    what should be different. The same NDJSON stream as a message."""
+    if verdict not in ("approve", "decline"):
+        raise HTTPException(404)
+    await _own_plan(db, staff, cid, pid)
+
+    async def events(s):
+        ch = await s.get(AssistantChat, cid)
+        st = await s.get(User, staff.id)
+        plan = await s.get(AssistantPlan, pid)
+        async for ev in engine.resume_plan(s, ch, st, plan, verdict == "approve"):
+            yield ev
+
+    return _stream(request, staff, events)
+
+
+@router.post("/assistant/confirm")
+async def assistant_confirm(request: Request, db: DB, staff: User = Depends(staff_dep(*ADMIN))):
+    """Confirmation mode on / off: whether the assistant's changes wait for an OK (on) or run at once (off)."""
+    data = await request.json()
+    on = bool(data.get("on"))
+    await set_setting(db, "assistant_confirm", on)
+    await audit.log(db, staff.id, "assistant.confirm", "setting", "assistant_confirm", None, {"on": on})
+    await db.commit()
+    return JSONResponse({"ok": True, "on": on})
 
 
 @router.post("/assistant/{cid}/upload")

@@ -1,0 +1,30 @@
+{#- Changes the assistant wants to make: the held tool calls, Approve / Decline while pending, each outcome once run, Undo all after. -#}
+{% set items = plan_items(plan) %}
+<div class="aplan {{ plan.status }}" data-plan-id="{{ plan.id }}">
+  <div class="aplan-h">
+    <span class="aplan-ic">{{ icon('shield' if plan.status == 'pending' else ('refresh' if plan.status == 'running' else ('check' if plan.status == 'approved' else 'x')), 15) }}</span>
+    <div class="aplan-ht">
+      <b>{% if plan.status == 'pending' %}{{ t('admin.asst.plan_title') }}{% elif plan.status == 'running' %}{{ t('admin.asst.plan_running') }}{% elif plan.status == 'approved' %}{{ t('admin.asst.plan_approved') }}{% elif plan.note == 'superseded' %}{{ t('admin.asst.plan_superseded') }}{% else %}{{ t('admin.asst.plan_declined') }}{% endif %}</b>
+      <small>{{ t('admin.asst.n_changes', n=items|length) }} · {{ plan.created_at|dt('%d.%m %H:%M') }}{% if plan.status == 'pending' %} · {{ t('admin.asst.plan_text', d=undo_days) }}{% endif %}</small>
+    </div>
+    {% if plan.status == 'approved' and plan.undoable > 1 %}<button type="button" class="btn btn-xs btn-secondary aplan-undo-all" data-plan-undo="{{ plan.id }}" data-confirm="{{ t('admin.asst.undo_all_q') }}" data-confirm-text="{{ t('admin.asst.n_changes', n=plan.undoable) }}">{{ icon('refresh', 12) }}{{ t('admin.asst.undo_all') }}</button>{% endif %}
+  </div>
+  <ol class="aplan-list">
+    {% for it in items %}
+    <li class="aplan-item{{ ' is-done' if it.action }}{{ ' is-err' if it.error }}{{ ' is-off' if plan.status == 'declined' }}">
+      <div class="aplan-tool"><span class="aplan-n">{{ loop.index }}</span><div class="aplan-tt"><b>{{ it.title }}</b><span class="mono">{{ it.name }}</span></div></div>
+      {% if it.rows %}<dl class="aplan-args">{% for r in it.rows %}<dt>{{ r.key }}</dt><dd>{% if r.lines %}{% for lang, v in r.lines %}<span class="aplan-lang"><em>{{ lang }}</em>{{ v }}</span>{% endfor %}{% else %}{{ r.value }}{% endif %}</dd>{% endfor %}</dl>{% endif %}
+      {% if it.action %}{% with a=it.action, compact=True %}{% include "admin/assistant/_action.html" %}{% endwith %}
+      {% elif it.error %}<div class="aplan-err">{{ icon('alert', 13) }}<span>{{ t('admin.asst.plan_error') }}: {{ it.error }}</span></div>
+      {% elif plan.status == 'running' %}<div class="aplan-wait"><span class="spinner"></span></div>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  {% if plan.status == 'pending' %}
+  <div class="aplan-acts">
+    <span class="hint">{{ t('admin.asst.decline_hint') }}</span>
+    <button type="button" class="btn btn-sm btn-secondary" data-plan-decline="{{ plan.id }}">{{ icon('x', 14) }}{{ t('admin.asst.decline') }}</button>
+    <button type="button" class="btn btn-sm btn-primary" data-plan-approve="{{ plan.id }}">{{ icon('check', 14) }}{{ t('admin.asst.approve') }}</button>
+  </div>
+  {% endif %}
+</div>

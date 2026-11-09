@@ -49,6 +49,7 @@
         </div>
       </div>
       <div class="flex1"></div>
+      <button type="button" class="asst-topbtn asst-confirm{{ ' on' if confirm_mode }}" id="asst-confirm" role="switch" aria-checked="{{ 'true' if confirm_mode else 'false' }}" data-on="{{ t('admin.asst.confirm_mode_on') }}" data-off="{{ t('admin.asst.confirm_mode_off') }}" title="{{ t('admin.asst.confirm_mode_on' if confirm_mode else 'admin.asst.confirm_mode_off') }}">{{ icon('shield', 15) }}<span>{{ t('admin.asst.confirm_mode') }}</span><i class="switch{{ ' on' if confirm_mode }}"></i></button>
       <button type="button" class="asst-topbtn" id="asst-rename" title="{{ t('admin.asst.rename') }}">{{ icon('edit', 15) }}</button>
       <button type="button" class="asst-topbtn asst-journal-btn" id="asst-journal-btn" title="{{ t('admin.asst.journal') }}">{{ icon('list', 16) }}<span>{{ t('admin.asst.journal') }}</span><b class="asst-badge" data-undo-badge {{ 'hidden' if not undoable }}>{{ undoable }}</b></button>
     </header>
@@ -61,14 +62,15 @@
         <div class="asst-welcome">
           <div class="asst-welcome-ic">{{ icon('sparkle', 26) }}</div>
           <h2>{{ t('admin.asst.hello', name=first_name) }}</h2>
-          <p>{{ t('admin.asst.welcome_text', d=undo_days) }}</p>
+          <p>{{ t('admin.asst.welcome_text', d=undo_days) }} {{ t('admin.asst.welcome_confirm') }}</p>
           <div class="asst-ex">{% for e in examples %}<button type="button" class="asst-ex-btn" data-example>{{ icon(['drive','plus','image','package','users','chart'][loop.index0], 16) }}<span>{{ e }}</span></button>{% endfor %}</div>
         </div>
         {% endif %}
-        {% for kind, it in timeline %}{% if kind == 'msg' %}{% with m=it %}{% include "admin/assistant/_msg.html" %}{% endwith %}{% else %}{% with a=it %}{% include "admin/assistant/_action.html" %}{% endwith %}{% endif %}{% endfor %}
+        {% for kind, it in timeline %}{% if kind == 'msg' %}{% with m=it %}{% include "admin/assistant/_msg.html" %}{% endwith %}{% elif kind == 'plan' %}{% with plan=it %}{% include "admin/assistant/_plan.html" %}{% endwith %}{% else %}{% with a=it %}{% include "admin/assistant/_action.html" %}{% endwith %}{% endif %}{% endfor %}
       </div>
     </div>
 
+    <template id="asst-av">{{ icon('sparkle', 15) }}</template>
     <div class="asst-composer-wrap">
       <form class="asst-composer" id="asst-form">
         <div class="asst-files" id="asst-files" hidden></div>
@@ -183,24 +185,24 @@
   ta.addEventListener('paste',function(e){ var fs=(e.clipboardData||{}).files; if(fs&&fs.length){ e.preventDefault(); upload(fs); } });
   var comp=form; ['dragenter','dragover'].forEach(function(ev){ comp.addEventListener(ev,function(e){ if(e.dataTransfer&&[].indexOf.call(e.dataTransfer.types||[],'Files')>=0){ e.preventDefault(); comp.classList.add('is-drop'); } }); });
   ['dragleave','drop'].forEach(function(ev){ comp.addEventListener(ev,function(e){ comp.classList.remove('is-drop'); if(ev==='drop'&&e.dataTransfer&&e.dataTransfer.files.length){ e.preventDefault(); upload(e.dataTransfer.files); } }); });
-  function liveBubble(){ return el('<div class="amsg assistant live"><div class="amsg-av">'+document.querySelector('.asst-welcome-ic, .amsg-av, .asst-model-btn').innerHTML.replace(/<small.*$/,'')+'</div><div class="amsg-wrap"><div class="amsg-status"><span class="dots"><i></i><i></i><i></i></span><span class="asst-status-text">'+esc(root.dataset.lThinking)+'</span></div><div class="amsg-body" hidden></div></div></div>'); }
+  var AV=document.getElementById('asst-av').innerHTML;
+  function liveBubble(){ return el('<div class="amsg assistant live"><div class="amsg-av">'+AV+'</div><div class="amsg-wrap"><div class="amsg-status"><span class="dots"><i></i><i></i><i></i></span><span class="asst-status-text">'+esc(root.dataset.lThinking)+'</span></div><div class="amsg-body" hidden></div></div></div>'); }
   function setBusy(v){ busy=v; root.classList.toggle('is-busy',v); sendBtn.hidden=v; stopBtn.hidden=!v; ta.disabled=v; }
   function refreshJournal(){ fetch('/admin/assistant/actions',{credentials:'same-origin'}).then(function(r){ return r.ok?r.text():''; }).then(function(h){ var j=document.getElementById('asst-journal'); if(h&&j){ j.outerHTML=h; var n=Number(document.getElementById('asst-journal').dataset.undoable||0), b=document.querySelector('[data-undo-badge]'); if(b){ b.textContent=n; b.hidden=!n; } } }).catch(function(){}); }
   stopBtn.addEventListener('click',function(){ if(ctrl) ctrl.abort(); });
-  form.addEventListener('submit',function(e){
-    e.preventDefault(); var text=ta.value.trim(); if((!text&&!pending.length)||busy||uploading) return;
-    var files=pending.slice(); pending=[]; drawTray();
-    var w=msgs.querySelector('.asst-welcome'); if(w) w.remove();
-    ta.value=''; grow(); setBusy(true);
-    msgs.appendChild(userBubble(text,files)); var live=liveBubble(); msgs.appendChild(live); toEnd(true);
+  /* one streamed turn: a message sent, or the answer to a plan (approve / decline) — the same NDJSON events */
+  function runStream(url,payload){
+    setBusy(true); var live=liveBubble(); msgs.appendChild(live); toEnd(true);
     var status=live.querySelector('.amsg-status'), body=live.querySelector('.amsg-body'), acc='';
+    function flushText(before){ if(!acc) return; var done=el('<div class="amsg assistant"><div class="amsg-av">'+live.querySelector('.amsg-av').innerHTML+'</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); done.querySelector('.amsg-body').innerHTML=md(acc); msgs.insertBefore(done,before||live); acc=''; body.innerHTML=''; body.hidden=true; status.hidden=false; }
     ctrl=new AbortController();
-    fetch('/admin/assistant/'+chatId+'/send',{method:'POST',credentials:'same-origin',signal:ctrl.signal,headers:H,body:JSON.stringify({text:text,uploads:files.map(function(a){ return a.id; })})})
+    return fetch(url,{method:'POST',credentials:'same-origin',signal:ctrl.signal,headers:H,body:JSON.stringify(payload||{})})
       .then(function(r){ if(!r.ok) throw new Error(r.status); var rd=r.body.getReader(), dec=new TextDecoder(), buf='';
         function handle(ev){
-          if(ev.t==='status'){ status.hidden=false; status.querySelector('.asst-status-text').textContent=ev.text; if(acc){ body.insertAdjacentHTML('beforebegin',''); } }
+          if(ev.t==='status'){ status.hidden=false; status.querySelector('.asst-status-text').textContent=ev.text; }
           else if(ev.t==='delta'){ acc+=ev.text; body.hidden=false; status.hidden=true; body.innerHTML=md(acc); }
-          else if(ev.t==='action'){ var card=el(ev.html); msgs.insertBefore(card,live); if(acc){ /* text so far stays above the card as its own bubble */ var done=el('<div class="amsg assistant"><div class="amsg-av">'+live.querySelector('.amsg-av').innerHTML+'</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); done.querySelector('.amsg-body').innerHTML=md(acc); msgs.insertBefore(done,card); acc=''; body.innerHTML=''; body.hidden=true; status.hidden=false; } }
+          else if(ev.t==='action'){ var card=el(ev.html); msgs.insertBefore(card,live); flushText(card); }
+          else if(ev.t==='plan'){ var pc=el(ev.html), old=msgs.querySelector('.aplan[data-plan-id="'+ev.id+'"]'); if(old){ old.replaceWith(pc); } else { msgs.insertBefore(pc,live); flushText(pc); } if(ev.status==='pending'){ pc.classList.add('is-new'); } }
           else if(ev.t==='message'){ var m=el(ev.html); msgs.insertBefore(m,live); renderAll(m); acc=''; body.hidden=true; }
           else if(ev.t==='error'){ var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=ev.text; msgs.insertBefore(er,live); }
           else if(ev.t==='title'){ setTitle(ev.text); }
@@ -211,7 +213,36 @@
       .catch(function(err){ if(err&&err.name==='AbortError'){ if(acc){ var kept=el('<div class="amsg assistant"><div class="amsg-av">'+live.querySelector('.amsg-av').innerHTML+'</div><div class="amsg-wrap"><div class="amsg-body"></div><div class="amsg-foot"><time></time></div></div></div>'); kept.querySelector('.amsg-body').innerHTML=md(acc); kept.querySelector('time').textContent=root.dataset.lStopped; msgs.insertBefore(kept,live); } return; }
         var er=el('<div class="amsg assistant error"><div class="amsg-av">!</div><div class="amsg-wrap"><div class="amsg-body"></div></div></div>'); er.querySelector('.amsg-body').textContent=root.dataset.lError; msgs.insertBefore(er,live); })
       .finally(function(){ live.remove(); ctrl=null; setBusy(false); ta.focus(); toEnd(); refreshJournal(); });
+  }
+  form.addEventListener('submit',function(e){
+    e.preventDefault(); var text=ta.value.trim(); if((!text&&!pending.length)||busy||uploading) return;
+    var files=pending.slice(); pending=[]; drawTray();
+    var w=msgs.querySelector('.asst-welcome'); if(w) w.remove();
+    ta.value=''; grow();
+    msgs.appendChild(userBubble(text,files));
+    runStream('/admin/assistant/'+chatId+'/send',{text:text,uploads:files.map(function(a){ return a.id; })});
   });
+
+  /* ---- plans: approve runs the changes, decline tells the model; undo all puts the whole batch back ---- */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-plan-approve],[data-plan-decline]'); if(!b||busy) return;
+    var pid=b.dataset.planApprove||b.dataset.planDecline, card=b.closest('.aplan'); card.querySelectorAll('.aplan-acts button').forEach(function(x){ x.disabled=true; });
+    runStream('/admin/assistant/'+chatId+'/plans/'+pid+'/'+(b.dataset.planApprove?'approve':'decline'),{});
+  });
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-plan-undo]'); if(!b) return; e.preventDefault(); var pid=b.dataset.planUndo;
+    window.askConfirm({title:b.dataset.confirm,text:b.dataset.confirmText,danger:false}).then(function(r){ if(!r.ok) return; b.disabled=true;
+      fetch('/admin/assistant/'+chatId+'/plans/'+pid+'/undo',{method:'POST',credentials:'same-origin',headers:H}).then(function(res){ return res.json(); })
+        .then(function(d){ var c=msgs.querySelector('.aplan[data-plan-id="'+pid+'"]'); if(c&&d.html) c.replaceWith(el(d.html)); if(window.toast) toast(d.msg,d.ok?'ok':'bad'); refreshJournal(); })
+        .catch(function(){ b.disabled=false; });
+    });
+  });
+  /* ---- confirmation mode: with it every change waits for Approve; without, the assistant acts at once ---- */
+  var cf=document.getElementById('asst-confirm');
+  cf.addEventListener('click',function(){ var on=cf.getAttribute('aria-checked')!=='true'; cf.disabled=true;
+    fetch('/admin/assistant/confirm',{method:'POST',credentials:'same-origin',headers:H,body:JSON.stringify({on:on})}).then(function(r){ return r.json(); })
+      .then(function(d){ cf.setAttribute('aria-checked',d.on?'true':'false'); cf.classList.toggle('on',d.on); cf.querySelector('.switch').classList.toggle('on',d.on); cf.title=d.on?cf.dataset.on:cf.dataset.off; if(window.toast) toast(cf.title,'ok'); })
+      .catch(function(){}).finally(function(){ cf.disabled=false; }); });
 
   /* ---- title: set by the first message, editable ---- */
   function setTitle(tt){ var a=document.querySelector('[data-chat-link="'+chatId+'"] .asst-chat-t'); if(a) a.textContent=tt; document.title=tt+' · '+document.title.split(' · ').slice(-1)[0]; }

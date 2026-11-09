@@ -2048,3 +2048,36 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .auc-loc .nice-select .ns-trigger{height:36px;font-size:13.5px}
 .auc-loc .nice-select .ns-pop{min-width:min(320px,calc(100vw - 32px));width:max(100%,min(320px,calc(100vw - 32px)))}
 .auc-loc .loc-city .ns-opt{min-height:36px}
+
+/* Assistant: a plan — the changes waiting for the staff member's OK, then each outcome and Undo all */
+.aplan{margin-left:42px;border:1px solid var(--hairline);border-radius:16px;background:var(--surface);overflow:hidden;animation:msg-in var(--t-med) var(--ease-out)}
+.aplan.pending{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.aplan.is-new{animation:aplan-pulse 1.4s var(--ease-out) 1}
+@keyframes aplan-pulse{0%{box-shadow:0 0 0 0 var(--accent-soft)}50%{box-shadow:0 0 0 8px var(--accent-soft)}100%{box-shadow:0 0 0 3px var(--accent-soft)}}
+.aplan-h{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--hairline);background:var(--sunken)}
+.aplan-ic{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);flex:0 0 auto}
+.aplan.approved .aplan-ic{background:var(--ok-bg);color:var(--ok)}.aplan.declined .aplan-ic{background:var(--sunken);color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--hairline)}
+.aplan.running .aplan-ic svg{animation:aplan-spin 1.2s linear infinite}@keyframes aplan-spin{to{transform:rotate(360deg)}}
+.aplan-ht{flex:1;min-width:0}.aplan-ht b{display:block;font-size:13.5px;letter-spacing:-.01em}.aplan-ht small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:1px;line-height:1.4}
+.aplan-undo-all{flex:0 0 auto}
+.aplan-list{list-style:none;margin:0;padding:6px 12px;display:flex;flex-direction:column}
+.aplan-item{padding:9px 0;border-bottom:1px solid var(--hairline);display:flex;flex-direction:column;gap:7px}
+.aplan-item:last-child{border-bottom:0}
+.aplan-item.is-off .aplan-tool,.aplan-item.is-off .aplan-args{opacity:.5}
+.aplan-tool{display:flex;align-items:flex-start;gap:9px}
+.aplan-n{width:20px;height:20px;border-radius:7px;background:var(--accent-soft);color:var(--accent);font-family:var(--font-mono);font-size:11px;font-weight:700;display:grid;place-items:center;flex:0 0 auto;margin-top:1px}
+.aplan.approved .aplan-item.is-done .aplan-n{background:var(--ok-bg);color:var(--ok)}.aplan-item.is-err .aplan-n{background:var(--bad-bg);color:var(--bad)}
+.aplan-tt{display:flex;flex-direction:column;gap:1px;min-width:0}.aplan-tt b{font-size:13px;line-height:1.35}.aplan-tt .mono{font-size:11px;color:var(--ink-3)}
+.aplan-args{display:grid;grid-template-columns:minmax(90px,max-content) 1fr;gap:3px 12px;margin:0 0 0 29px;font-size:12.5px}
+.aplan-args dt{color:var(--ink-3);font-family:var(--font-mono);font-size:11.5px;padding-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.aplan-args dd{margin:0;min-width:0;word-break:break-word;white-space:pre-wrap;line-height:1.4}
+.aplan-lang{display:block}.aplan-lang em{font-style:normal;font-family:var(--font-mono);font-size:10.5px;color:var(--ink-3);text-transform:uppercase;margin-right:6px}
+.aplan-item .aact{margin-left:29px}
+.aplan-err{margin-left:29px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--bad);background:var(--bad-bg);border-radius:10px;padding:7px 10px}
+.aplan-wait{margin-left:29px;display:flex;align-items:center;min-height:22px}
+.aplan-acts{display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--hairline);background:var(--sunken)}
+.aplan-acts .hint{flex:1;font-size:11.5px;line-height:1.35}
+.aplan-acts .btn:disabled{opacity:.5}
+.asst-confirm .switch{width:30px;height:18px;margin-left:2px}.asst-confirm .switch::after{width:14px;height:14px}.asst-confirm .switch.on::after{transform:translateX(12px)}
+.asst-confirm.on{color:var(--ink)}.asst-confirm span{white-space:nowrap}
+@media (max-width:980px){.aplan{margin-left:0}.aplan-args{grid-template-columns:1fr;gap:1px}.aplan-args dt{padding-top:4px}.asst-confirm span{display:none}.aplan-acts{flex-wrap:wrap}.aplan-acts .hint{flex-basis:100%;order:3}}

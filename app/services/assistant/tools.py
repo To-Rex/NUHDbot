@@ -84,6 +84,7 @@ class Ctx:
     summary: str = ""
     entity: str | None = None
     entity_id: str | None = None
+    approved: bool = False  # running under a plan the staff member approved: tools that ask for an OK have it
 
 
 @dataclass

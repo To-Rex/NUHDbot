@@ -57,6 +57,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "assistant_base_url": {"v": "https://api.deepseek.com", "d": "Admin assistant: OpenAI-compatible API base URL"},
     "assistant_providers": {"v": {}, "d": "Admin assistant: API keys and base URLs per provider {id: {key, base_url}}"},
     "assistant_default_model": {"v": "deepseek:deepseek-chat", "d": "Admin assistant: model new chats start with (provider:model)"},
+    "assistant_confirm": {"v": True, "d": "Admin assistant: every change is shown as a plan and waits for the staff member's OK before it is made"},
     "capacity_presets": {"v": [500, 1000, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 14000, 16000, 18000, 20000], "d": "Capacity chips (GB) shown in catalogue filters and product form"},
 }
 

@@ -992,7 +992,7 @@ async def set_theme(ctx: Ctx, target: str, accent=None, radius=None, font=None, 
 async def set_custom_css(ctx: Ctx, target: str, css: str, mode: str = "append", confirm: bool = False):
     if target not in ui_settings.TARGETS:
         raise ToolError("target: miniapp | admin")
-    if not confirm:
+    if not confirm and not ctx.approved:
         raise ToolError("ask the staff member first and call again with confirm=true")
     cur = dict((await get_setting(ctx.db, "custom_css", {})) or {})
     new = ui_settings.clean_css(css) if mode == "replace" else ui_settings.clean_css((cur.get(target) or "") + "\n" + (css or ""))
@@ -1028,7 +1028,7 @@ async def list_texts(ctx: Ctx, query: str, lang=None, limit=30):
       "Ask the staff member first and call with confirm=true; an empty text puts the original back. Keep placeholders like {n} that the original has.",
       {"key": S("Dotted key from list_texts"), "lang": S("uz | uzl | ru | en | zh"), "text": S("The new text; empty = back to the original"), "confirm": B("The staff member agreed in this chat")}, required=("key", "lang", "text", "confirm"), mutating=True)
 async def set_text(ctx: Ctx, key: str, lang: str, text: str, confirm: bool = False):
-    if not confirm:
+    if not confirm and not ctx.approved:
         raise ToolError("ask the staff member first and call again with confirm=true")
     if lang not in settings.langs:
         raise ToolError(f"lang: one of {settings.langs}")

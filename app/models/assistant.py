@@ -66,10 +66,43 @@ class AssistantAction(Base):
     undo_until: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     undone_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     step: Mapped[int] = mapped_column(Integer, default=0)  # order inside one assistant turn
+    plan_id: Mapped[int | None] = mapped_column(ForeignKey("assistant_plans.id", ondelete="SET NULL"), index=True)  # the approved plan this was part of
 
     @property
     def can_undo(self) -> bool:
         return self.status == "done" and bool(self.journal) and self.undo_until > utcnow()
+
+
+class AssistantPlan(Base):
+    """Changes the assistant wants to make, waiting for the staff member's OK.
+
+    When the chat runs "with confirmation" (the default), every mutating tool call the model makes is held here instead
+    of running: the card in the chat lists the calls with Approve / Decline. Approve runs them (each becomes an
+    AssistantAction with this plan id, so the whole batch can be undone together); Decline — or a new message from the
+    staff member — tells the model the plan was not approved."""
+
+    __tablename__ = "assistant_plans"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chat_id: Mapped[int | None] = mapped_column(ForeignKey("assistant_chats.id", ondelete="SET NULL"), index=True)
+    staff_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    message_id: Mapped[int | None] = mapped_column(ForeignKey("assistant_messages.id", ondelete="SET NULL"))  # the assistant message whose tool calls are held
+    calls: Mapped[list] = mapped_column(JSON, default=list)  # [{id, type, function: {name, arguments}}]
+    results: Mapped[list] = mapped_column(JSON, default=list)  # [{call_id, action_id | None, error | None}] once run
+    status: Mapped[str] = mapped_column(String(12), default="pending")  # pending | running | approved | declined
+    note: Mapped[str | None] = mapped_column(String(40))  # declined: "staff" | "superseded"
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    actions: Mapped[list[AssistantAction]] = relationship(order_by="AssistantAction.id", lazy="selectin")
+
+    @property
+    def pending(self) -> bool:
+        return self.status == "pending"
+
+    @property
+    def undoable(self) -> int:
+        return sum(1 for a in self.actions if a.can_undo)
 
 
 class AssistantUpload(Base):
