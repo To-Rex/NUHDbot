@@ -19,6 +19,7 @@
     "staff_join_terms": "🙋 <b>{name}</b> wants to join lot #{id} ({title}) — accepted the auction terms.",
     "staff_join_new": "🙋 <b>{name}</b> accepted the auction terms — a new participant.",
     "staff_join_bid": "🔨 <b>{name}</b> joined lot #{id} ({title}) — first bid: <b>{amount}</b>.",
-    "staff_deposit": "🧾 <b>{name}</b> sent a deposit receipt for lot #{id} ({title}): <b>{amount}</b>. Check it in the admin panel."
+    "staff_deposit": "🧾 <b>{name}</b> sent a deposit receipt for lot #{id} ({title}): <b>{amount}</b>. Check it in the admin panel.",
+    "ad_open_shop": "🛒 Open the shop"
   }
 }

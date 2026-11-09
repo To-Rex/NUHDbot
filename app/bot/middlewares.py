@@ -20,7 +20,8 @@ class DbUserMiddleware(BaseMiddleware):
         async with SessionLocal() as db:
             data["db"] = db
             data["user"] = None
-            if tg_user is not None and not tg_user.is_bot:
+            membership = isinstance(event, Update) and event.my_chat_member is not None  # the bot added to a chat: not a customer
+            if tg_user is not None and not tg_user.is_bot and not membership:
                 payload = {"id": tg_user.id, "first_name": tg_user.first_name, "last_name": tg_user.last_name, "username": tg_user.username, "language_code": tg_user.language_code}
                 data["user"] = await get_or_create_tg_user(db, payload, source=_start_source(event))
             try:

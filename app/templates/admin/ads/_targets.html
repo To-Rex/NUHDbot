@@ -1,0 +1,28 @@
+{#- Where the post goes: the chats the bot knows (added to by the staff, or written down when the bot joined), each a tick tile;
+    a row to add one by id / @username / link (the bot checks it); hand-typed ids for anything else. Swapped in place by htmx.
+    Expects: targets, checked, extra_ids, target_icons, bot_on, staff_chat. -#}
+<div class="tgt" id="ad-targets">
+  {% if targets %}
+  <div class="tgt-grid">
+    {% for r in targets %}
+    <label class="tgt-tile{{ ' is-on' if r.id in checked }}{{ ' is-left' if r.left }}{{ ' no-post' if not r.can_post }}" title="{{ r.id }}">
+      <input type="checkbox" name="target_ids" value="{{ r.id }}" {{ 'checked' if r.id in checked }}>
+      <span class="tgt-ic">{{ icon(target_icons.get(r.type, 'users'), 16) }}</span>
+      <span class="tgt-main"><b>{{ r.title or r.id }}</b><small>{{ t('admin.ads.type_' ~ r.type) }}{% if r.username %} · @{{ r.username }}{% endif %}{% if r.members %} · {{ t('admin.ads.members', n=r.members) }}{% endif %}</small>
+        {% if r.left %}<em class="tgt-flag bad">{{ t('admin.ads.bot_left') }}</em>{% elif not r.can_post %}<em class="tgt-flag warn">{{ t('admin.ads.cannot_post') }}</em>{% endif %}</span>
+      <span class="tgt-tick">{{ icon('check', 13) }}</span>
+      <button type="button" class="tgt-del" hx-post="/admin/ads/targets/{{ r.id }}/delete" hx-include="#ad-targets input[name=target_ids]" hx-target="#ad-targets" hx-swap="outerHTML" hx-confirm="{{ t('admin.ads.target_remove_q', title=r.title or r.id) }}" title="{{ t('admin.delete') }}" aria-label="{{ t('admin.delete') }}">{{ icon('x', 12) }}</button>
+    </label>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="tgt-empty">{{ icon('send', 20) }}<div><b>{{ t('admin.ads.targets_empty') }}</b><small>{{ t('admin.ads.targets_empty_hint') }}</small></div></div>
+  {% endif %}
+  <div class="tgt-add">
+    <label class="tgt-add-in">{{ icon('plus', 15) }}<input class="input" name="target_ref" placeholder="{{ t('admin.ads.target_ref_ph') }}" autocomplete="off" {{ '' if bot_on else 'disabled' }}></label>
+    <button type="button" class="btn btn-secondary btn-sm" hx-post="/admin/ads/targets" hx-include="#ad-targets input" hx-target="#ad-targets" hx-swap="outerHTML" {{ '' if bot_on else 'disabled' }}>{{ icon('search', 14) }}{{ t('admin.ads.target_check') }}</button>
+  </div>
+  <p class="hint tgt-hint">{{ icon('info', 13) }}<span>{{ t('admin.ads.targets_how', bot=settings.bot_username) }}{% if not bot_on %} {{ t('admin.ads.bot_off') }}{% endif %}</span></p>
+  <details class="tgt-more"{{ ' open' if extra_ids }}><summary>{{ t('admin.ads.targets_manual') }}</summary>
+    <input class="input mono" name="targets" value="{{ extra_ids|join(', ') }}" placeholder="-1001234567890, -1009876543210"><span class="hint">{{ t('admin.ads.targets_hint') }}</span></details>
+</div>

@@ -19,6 +19,7 @@
     "staff_join_terms": "🙋 <b>{name}</b> lot #{id} ({title}) ga qo'shilmoqchi — auksion shartlarini qabul qildi.",
     "staff_join_new": "🙋 <b>{name}</b> auksion shartlarini qabul qildi — yangi ishtirokchi.",
     "staff_join_bid": "🔨 <b>{name}</b> lot #{id} ({title}) ga qo'shildi — birinchi stavka: <b>{amount}</b>.",
-    "staff_deposit": "🧾 <b>{name}</b> lot #{id} ({title}) uchun depozit chekini yubordi: <b>{amount}</b>. Admin panelda tekshiring."
+    "staff_deposit": "🧾 <b>{name}</b> lot #{id} ({title}) uchun depozit chekini yubordi: <b>{amount}</b>. Admin panelda tekshiring.",
+    "ad_open_shop": "🛒 Do'konni ochish"
   }
 }

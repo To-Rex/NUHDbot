@@ -907,13 +907,32 @@
         if (count) { count.textContent = (count.dataset.tpl || '{n} / 5').replace('{n}', n); count.classList.toggle('ok', n >= 3 && n <= 5); }
         if (!preview) return;
         const body = ((text && text.value) || '').trim();
-        if (!body && !n) { preview.innerHTML = '<span class="faint">' + esc(preview.dataset.empty || '') + '</span>'; return; }
-        // same shape as the message the bot sends (app/admin/ads.py: render_post)
+        const wrap = preview.closest('.tgwrap');
+        if (!body && !n) { preview.innerHTML = '<span class="faint">' + esc(preview.dataset.empty || '') + '</span>'; if (wrap) { const ph = wrap.querySelector('.tgphoto'); if (ph) ph.hidden = true; } return; }
+        // same shape as the message the bot sends (app/services/ads.py: render_post) — the first product's picture above, the button below
         const lines = [esc(body), ''];
         on.forEach((b) => lines.push('• <b>' + esc(b.dataset.lineName) + '</b> ' + esc(b.dataset.lineRest)));
         lines.push('', '🛒 <a>' + esc(preview.dataset.app || '') + '</a>');
         preview.innerHTML = lines.join('\n');
+        if (wrap) {
+          const thumb = (on.find((b) => b.dataset.thumb) || {}).dataset?.thumb || '';
+          let ph = wrap.querySelector('.tgphoto');
+          if (thumb) { if (!ph) { ph = document.createElement('img'); ph.className = 'tgphoto'; ph.alt = ''; wrap.prepend(ph); } ph.src = thumb; ph.hidden = false; } else if (ph) ph.hidden = true;
+          if (!wrap.querySelector('.tg-btn') && preview.dataset.btn) { const b = document.createElement('span'); b.className = 'tg-btn'; b.textContent = preview.dataset.btn; wrap.appendChild(b); }
+        }
       }
+      // where it goes: the tick tiles and their counter (the block is swapped by htmx when a chat is added or removed)
+      function refreshTargets() {
+        const tiles = form.querySelectorAll('.tgt-tile'); let m = 0;
+        tiles.forEach((l) => { const on = l.querySelector('input').checked; l.classList.toggle('is-on', on); if (on) m++; });
+        const extra = form.querySelector('#ad-targets input[name=targets]'); if (extra) m += (extra.value.match(/-?\d{5,}/g) || []).length;
+        const tc = form.querySelector('[data-tgt-count]'); if (tc) { tc.textContent = (tc.dataset.tpl || '{n}').replace('{n}', m); tc.classList.toggle('ok', m > 0); }
+      }
+      form.addEventListener('change', (e) => { if (e.target.closest('#ad-targets')) refreshTargets(); });
+      form.addEventListener('input', (e) => { if (e.target.name === 'targets') refreshTargets(); });
+      form.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.name === 'target_ref') { e.preventDefault(); const b = form.querySelector('#ad-targets .tgt-add button'); b && b.click(); } });
+      form.addEventListener('htmx:afterSettle', (e) => { if (e.target.id === 'ad-targets') { refreshTargets(); const inp = e.target.querySelector('[name=target_ref]'); inp && inp.focus(); } });
+      refreshTargets();
       picks.addEventListener('change', refresh);
       text && text.addEventListener('input', refresh);
       if (search) {

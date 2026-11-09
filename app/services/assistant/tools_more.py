@@ -421,7 +421,7 @@ async def get_ad(ctx: Ctx, id: int):  # noqa: A002
     return {"id": p.id, "title": p.title, "text": p.text, "product_ids": p.product_ids, "target_chat_ids": p.target_chat_ids, "campaign": p.campaign, "status": p.status.value, "clicks": p.clicks, "sent_at": local(p.sent_at)}
 
 
-@tool("update_ad", "Edit an ad post (an approved one goes back to draft). target_chat_ids are the Telegram chats / channels it is sent to.",
+@tool("update_ad", "Edit an ad post (an approved one goes back to draft; a sent one cannot change). target_chat_ids are the Telegram chats / channels it is sent to — list_ad_targets shows the ones the bot knows.",
       {"id": I(""), "title": S(""), "text": S(""), "product_ids": ARR("3 to 5 product ids"), "campaign": S(""), "target_chat_ids": ARR("Telegram chat ids")}, required=("id",), mutating=True)
 async def update_ad(ctx: Ctx, id: int, title=None, text=None, product_ids=None, campaign=None, target_chat_ids=None):  # noqa: A002
     p = await need(ctx.db, AdPost, int(id), "ad")
@@ -448,10 +448,11 @@ async def update_ad(ctx: Ctx, id: int, title=None, text=None, product_ids=None, 
     return {"ok": True, "status": p.status.value}
 
 
-@tool("ad_action", "approve an ad post, or send an approved one to its Telegram chats (sending cannot be undone).", {"id": I(""), "action": S("approve | send")}, required=("id", "action"), mutating=True)
+@tool("ad_action", "approve an ad post, send an approved one to its Telegram chats (with the first product's picture and an Open-the-shop button; cannot be undone), test = a trial copy to the staff member's own Telegram (or the staff group), or back_to_draft.",
+      {"id": I(""), "action": S("approve | send | test | back_to_draft")}, required=("id", "action"), mutating=True)
 async def ad_action(ctx: Ctx, id: int, action: str):  # noqa: A002
-    from app.admin.ads import _products, render_post
     from app.bot.instance import get_bot
+    from app.services import ads
 
     p = await need(ctx.db, AdPost, int(id), "ad")
     ctx.journal.track(p)
@@ -459,31 +460,79 @@ async def ad_action(ctx: Ctx, id: int, action: str):  # noqa: A002
         p.status, p.approved_by = AdPostStatus.APPROVED, ctx.staff.id
         ctx.summary = f"Ad approved: {p.title}"
         result = {"ok": True, "status": "approved"}
+    elif action == "back_to_draft":
+        if p.status == AdPostStatus.SENT:
+            raise ToolError("a sent post stays sent; duplicate it with create_ad")
+        p.status = AdPostStatus.DRAFT
+        ctx.summary = f"Ad back to draft: {p.title}"
+        result = {"ok": True, "status": "draft"}
+    elif action == "test":
+        bot = get_bot()
+        if bot is None:
+            raise ToolError("the Telegram bot is off")
+        chat = ctx.staff.tg_id or settings.admin_chat_id
+        if not chat:
+            raise ToolError("the staff member has no Telegram id and there is no staff group")
+        r = await ads.send_test(ctx.db, bot, p, int(chat))
+        ctx.summary = f"Ad trial copy: {p.title} → {chat} ({'ok' if r['ok'] else 'failed'})"
+        result = {"ok": r["ok"], "chat_id": chat, "error": r["error"]}
     elif action == "send":
         if p.status != AdPostStatus.APPROVED:
             raise ToolError("approve the post first")
         if not p.target_chat_ids:
-            raise ToolError("the post has no target chats; set target_chat_ids with update_ad")
+            raise ToolError("the post has no target chats; set target_chat_ids with update_ad (list_ad_targets shows the known chats)")
         bot = get_bot()
         if bot is None:
             raise ToolError("the Telegram bot is off")
-        text = render_post(p, await _products(ctx.db, p.product_ids))
-        ok, errors = 0, []
-        for chat in p.target_chat_ids:
-            try:
-                await bot.send_message(chat, text, disable_web_page_preview=True)
-                ok += 1
-            except Exception as e:  # noqa: BLE001
-                errors.append(f"{chat}: {str(e)[:120]}")
-        if ok:
-            p.status, p.sent_at = AdPostStatus.SENT, datetime.now(UTC)
+        results = await ads.send_post(ctx.db, bot, p)
+        ok = sum(1 for r in results if r["ok"])
+        errors = [f"{r['chat_id']}: {r['error']}" for r in results if not r["ok"]]
         ctx.summary = f"Ad sent: {p.title} — {ok} ok, {len(errors)} failed"
         result = {"ok": bool(ok), "sent": ok, "errors": errors}
     else:
-        raise ToolError("action: approve | send")
+        raise ToolError("action: approve | send | test | back_to_draft")
     await ctx.db.flush()
     ctx.entity, ctx.entity_id = "ad_post", str(p.id)
     return result
+
+
+@tool("list_ad_targets", "The chats ad posts can go to: the address book the bot fills when it is added to a group or channel, plus the ones the staff added (id, title, type, username, members, can_post, left).")
+async def list_ad_targets(ctx: Ctx):
+    from app.services import ads
+
+    return {"targets": await ads.targets(ctx.db)}
+
+
+@tool("add_ad_target", "Add a Telegram chat to the ad posts' address book: the bot looks it up (an id like -100…, a @username or a t.me link) and records title, type and whether it may post there.",
+      {"ref": S("Chat id, @username or t.me link")}, required=("ref",), mutating=True)
+async def add_ad_target(ctx: Ctx, ref: str):
+    from app.bot.instance import get_bot
+    from app.services import ads
+
+    setting_row = await ctx.db.get(Setting, "ad_targets")
+    if setting_row is not None:
+        ctx.journal.track(setting_row)
+    try:
+        row = await ads.check_target(ctx.db, get_bot(), str(ref))
+    except ads.TargetError as e:
+        raise ToolError({"bad_ref": "give a chat id (-100…), a @username or a t.me link", "bot_off": "the Telegram bot is off", "not_found": "chat not found — the bot must be a member there first"}.get(str(e), str(e))) from e
+    if setting_row is None:
+        ctx.journal.created(await ctx.db.get(Setting, "ad_targets"))
+    ctx.summary, ctx.entity, ctx.entity_id = f"Ad target added: {row['title'] or row['id']}", "setting", "ad_targets"
+    return {"ok": True, "target": row}
+
+
+@tool("remove_ad_target", "Take a chat out of the ad posts' address book (the chat itself is untouched).", {"chat_id": I("")}, required=("chat_id",), mutating=True)
+async def remove_ad_target(ctx: Ctx, chat_id: int):
+    from app.services import ads
+
+    row = await ctx.db.get(Setting, "ad_targets")
+    if row is not None:
+        ctx.journal.track(row)
+    if not await ads.remove_target(ctx.db, int(chat_id)):
+        raise ToolError("no such chat in the list")
+    ctx.summary, ctx.entity, ctx.entity_id = f"Ad target removed: {chat_id}", "setting", "ad_targets"
+    return {"ok": True}
 
 
 # ---------- auctions: deposits, the winner's order ----------

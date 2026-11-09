@@ -118,3 +118,4 @@ class AdPost(Base, TimestampMixin):
     sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     clicks: Mapped[int] = mapped_column(Integer, default=0)
     created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    deliveries: Mapped[list] = mapped_column(JSON, default=list)  # [{chat_id, title, ok, message_id, error, at, test}] — every send, trial ones included

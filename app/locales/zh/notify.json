@@ -19,6 +19,7 @@
     "staff_join_terms": "🙋 <b>{name}</b> 想参与拍品 #{id}（{title}）— 已接受拍卖条款。",
     "staff_join_new": "🙋 <b>{name}</b> 已接受拍卖条款 — 新参与者。",
     "staff_join_bid": "🔨 <b>{name}</b> 已加入拍品 #{id}（{title}）— 首次出价：<b>{amount}</b>。",
-    "staff_deposit": "🧾 <b>{name}</b> 已提交拍品 #{id}（{title}）的押金凭证：<b>{amount}</b>。请在管理后台查看。"
+    "staff_deposit": "🧾 <b>{name}</b> 已提交拍品 #{id}（{title}）的押金凭证：<b>{amount}</b>。请在管理后台查看。",
+    "ad_open_shop": "🛒 打开商店"
   }
 }

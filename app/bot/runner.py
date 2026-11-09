@@ -17,11 +17,12 @@ _dp: Dispatcher | None = None
 
 
 def setup_dispatcher() -> Dispatcher:
-    from app.bot.handlers import commands, fallback, start, support
+    from app.bot.handlers import chats, commands, fallback, start, support
 
     dp = Dispatcher(storage=MemoryStorage())
     dp.update.outer_middleware(ErrorMiddleware())
     dp.update.outer_middleware(DbUserMiddleware())
+    dp.include_router(chats.router)
     dp.include_router(start.router)
     dp.include_router(support.router)
     dp.include_router(commands.router)

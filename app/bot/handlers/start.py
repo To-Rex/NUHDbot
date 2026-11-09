@@ -10,6 +10,7 @@ from app.bot import keyboards as kb
 from app.config import settings
 from app.i18n import normalize_lang, t
 from app.models import Order, User
+from app.services import ads
 from app.services.notifications import esc
 from app.services.users import set_phone_from_contact
 
@@ -33,6 +34,8 @@ async def send_menu(message: Message, user: User, *, first_time: bool = False) -
 async def cmd_start(message: Message, user: User, db: AsyncSession, state: FSMContext, command: CommandObject | None = None) -> None:
     await state.clear()
     payload = (command.args if command else "") or ""
+    if payload.startswith("src_"):  # came through an ad post's link
+        await ads.count_click(db, payload)
     if payload.startswith("order_"):
         try:
             order = await db.get(Order, int(payload.removeprefix("order_")))

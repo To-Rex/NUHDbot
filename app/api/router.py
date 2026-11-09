@@ -12,7 +12,7 @@ from app.config import settings
 from app.deps import DB, is_secure
 from app.models import Auction
 from app.security import verify_telegram_init_data
-from app.services import auctions
+from app.services import ads, auctions
 from app.services.cart import read_session, write_session
 from app.services.users import get_or_create_tg_user
 
@@ -31,8 +31,11 @@ async def auth_telegram(payload: TelegramAuth, request: Request, db: DB):
         raise HTTPException(401, "invalid init data")
     source = (payload.start_param or data.get("start_param") or "")[:64] or None
     user = await get_or_create_tg_user(db, data["user"], source=source)
-    await db.commit()
     sess = read_session(request)
+    if source and source.startswith("src_") and sess.get("src") != source:  # opened through an ad post's link: one click, once per session
+        await ads.count_click(db, source)
+        sess["src"] = source
+    await db.commit()
     sess["uid"] = user.id
     resp = JSONResponse({"ok": True, "registered": user.is_registered, "lang": user.lang})
     write_session(resp, sess, secure=is_secure(), max_age=settings.session_max_age)

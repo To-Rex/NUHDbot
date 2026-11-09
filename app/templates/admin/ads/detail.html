@@ -1,20 +1,49 @@
 {% extends "admin/base.html" %}
-{% block heading %}{{ post.title }} <span class="chip {{ 'chip-ok' if post.status.value=='sent' else ('chip-info' if post.status.value=='approved' else 'chip-soft') }}">{{ post.status.value }}</span>{% endblock %}
-{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
+{% set st = post.status.value %}
+{% block heading %}{{ post.title }} <span class="chip {{ 'chip-ok' if st=='sent' else ('chip-info' if st=='approved' else 'chip-soft') }}">{{ t('admin.ads.st_' ~ st) }}</span>{% endblock %}
+{% block topbar_actions %}<a class="btn btn-secondary btn-sm" href="/admin/ads/new?copy={{ post.id }}">{{ icon('copy', 15) }}{{ t('admin.ads.copy') }}</a><a class="btn btn-secondary btn-sm" href="/admin/ads">{{ icon('chevron-left', 15) }}{{ t('admin.back') }}</a>{% endblock %}
 {% block content %}
-<div class="split-eq">
+<div class="split-eq ad-detail">
 <div class="stack">
-  <div class="card"><h2>{{ t('admin.ads.preview') }}</h2><div class="tgpost" data-ad-preview data-app="{{ app_name }}" data-empty="{{ t('admin.ads.preview_empty') }}">{{ preview|safe }}</div>
-    <dl class="kv mt"><dt>{{ t('admin.ads.deep_link') }}</dt><dd><span class="copyable" data-copy="{{ links.app }}">{{ links.app }}{{ icon('copy', 12) }}</span><br><span class="copyable mt-sm" data-copy="{{ links.start }}">{{ links.start }}{{ icon('copy', 12) }}</span></dd></dl>
-    <div class="row mt">
-      {% if post.status.value=='draft' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok" name="action" value="approve">{{ icon('check', 16) }}{{ t('admin.ads.approve') }}</button></form>{% endif %}
-      {% if post.status.value=='approved' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary" name="action" value="send" {{ '' if bot_on else 'disabled' }} data-confirm="{{ t('admin.ads.send') }}" data-confirm-text="{{ post.target_chat_ids|length }} chat(s)">{{ icon('send', 16) }}{{ t('admin.ads.send') }} ({{ post.target_chat_ids|length }})</button></form>{% endif %}
-      <form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-danger" name="action" value="delete" data-confirm="{{ t('admin.delete') }}" data-confirm-danger="1">{{ icon('trash', 16) }}{{ t('admin.delete') }}</button></form>
+  {# the post as Telegram shows it, and the steps: approve → send (a trial copy any time) #}
+  <div class="card ad-prev-card"><h2>{{ t('admin.ads.preview') }}</h2>
+    <div class="tgwrap">{% if preview_photo %}<img class="tgphoto" src="{{ preview_photo }}" alt="">{% endif %}<div class="tgpost" data-ad-preview data-app="{{ app_name }}" data-empty="{{ t('admin.ads.preview_empty') }}" data-btn="{{ button_text }}">{{ preview|safe }}</div><span class="tg-btn">{{ button_text }}</span></div>
+    <div class="ad-steps mt">
+      <div class="ad-step{{ ' done' if st != 'draft' }}"><span class="ad-step-n">{% if st != 'draft' %}{{ icon('check', 12) }}{% else %}1{% endif %}</span><div class="ad-step-t"><b>{{ t('admin.ads.step_approve') }}</b><small>{{ t('admin.ads.step_approve_hint') }}</small></div>
+        {% if st == 'draft' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ok btn-sm" name="action" value="approve">{{ icon('check', 15) }}{{ t('admin.ads.approve') }}</button></form>
+        {% elif st == 'approved' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-ghost btn-sm" name="action" value="unapprove">{{ t('admin.ads.unapprove') }}</button></form>{% endif %}</div>
+      <div class="ad-step{{ ' done' if st == 'sent' }}{{ ' is-next' if st == 'approved' }}"><span class="ad-step-n">{% if st == 'sent' %}{{ icon('check', 12) }}{% else %}2{% endif %}</span><div class="ad-step-t"><b>{{ t('admin.ads.step_send') }}</b><small>{% if post.target_chat_ids %}{{ t('admin.ads.step_send_hint', n=post.target_chat_ids|length) }}{% else %}{{ t('admin.ads.no_targets') }}{% endif %}</small></div>
+        {% if st == 'approved' %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><button class="btn btn-primary btn-sm" name="action" value="send" {{ '' if bot_on and post.target_chat_ids else 'disabled' }} data-confirm="{{ t('admin.ads.send_q') }}" data-confirm-text="{{ t('admin.ads.step_send_hint', n=post.target_chat_ids|length) }}" data-confirm-ok="{{ t('admin.ads.send') }}">{{ icon('send', 15) }}{{ t('admin.ads.send') }}</button></form>
+        {% elif st == 'sent' %}<span class="chip chip-ok">{{ t('admin.ads.sent') }} · {{ post.sent_at|dt('%d.%m %H:%M') }}</span>{% endif %}</div>
+    </div>
+    <div class="ad-test mt">
+      <span class="small muted">{{ t('admin.ads.test_hint') }}</span>
+      <form method="post" class="row"><input type="hidden" name="_csrf" value="{{ csrf }}">
+        <input type="hidden" name="to" value="me"><button class="btn btn-secondary btn-sm" name="action" value="test" {{ '' if bot_on and staff_tg else 'disabled' }} title="{{ '' if staff_tg else t('admin.ads.test_no_tg') }}">{{ icon('user', 14) }}{{ t('admin.ads.test_me') }}</button>
+      </form>
+      {% if staff_chat %}<form method="post"><input type="hidden" name="_csrf" value="{{ csrf }}"><input type="hidden" name="to" value="staff"><button class="btn btn-secondary btn-sm" name="action" value="test" {{ '' if bot_on else 'disabled' }}>{{ icon('users', 14) }}{{ t('admin.ads.test_staff') }}</button></form>{% endif %}
     </div>
     {% if not bot_on %}<div class="notice notice-warn mt">{{ icon('alert', 18) }}<span>{{ t('admin.ads.bot_off') }}</span></div>{% endif %}
   </div>
-  <div class="card"><h2>{{ t('admin.ads.stats') }}</h2><div class="grid g3"><div class="kpi"><span class="l">{{ t('admin.ads.clicks') }}</span><span class="v">{{ post.clicks }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.users') }}</span><span class="v">{{ users_n }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.orders') }}</span><span class="v">{{ orders_n }}</span></div></div><div class="hint mt">source = <span class="mono">src_{{ post.campaign }}</span> · {{ t('admin.ads.sent') }}: {{ post.sent_at|dt }}</div></div>
+
+  {# what came back: clicks on the link, customers and orders with this campaign, every send per chat #}
+  <div class="card"><h2>{{ t('admin.ads.stats') }}</h2>
+    <div class="grid g3 mt"><div class="kpi"><span class="l">{{ t('admin.ads.clicks') }}</span><span class="v">{{ post.clicks }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.users') }}</span><span class="v">{{ users_n }}</span></div><div class="kpi"><span class="l">{{ t('admin.ads.orders') }}</span><span class="v">{{ orders_n }}</span></div></div>
+    <dl class="kv mt"><dt>{{ t('admin.ads.deep_link') }}</dt><dd><span class="copyable" data-copy="{{ links.app }}">{{ links.app }}{{ icon('copy', 12) }}</span><br><span class="copyable mt-sm" data-copy="{{ links.start }}">{{ links.start }}{{ icon('copy', 12) }}</span></dd></dl>
+    <div class="hint mt">{{ t('admin.ads.stats_hint', src='src_' ~ post.campaign) }}</div>
+    {% if deliveries %}
+    <h3 class="ad-h3">{{ t('admin.ads.deliveries') }} <span class="faint">· {{ t('admin.ads.deliv_sum', ok=sum.ok, bad=sum.bad) }}{% if sum.tests %} · {{ t('admin.ads.deliv_tests', n=sum.tests) }}{% endif %}</span></h3>
+    <div class="tbl-wrap"><table class="ad-deliv"><tbody>
+      {% for d in deliveries %}<tr class="{{ 'ok' if d.ok else 'bad' }}"><td class="ic">{{ icon('check' if d.ok else 'x', 13) }}</td><td><b>{{ d.title }}</b>{% if d.test %} <span class="chip chip-soft">{{ t('admin.ads.test') }}</span>{% endif %}<div class="xs faint mono">{{ d.chat_id }}{% if d.message_id %} · msg {{ d.message_id }}{% endif %}</div>{% if d.error %}<div class="xs bad-text">{{ d.error }}</div>{% endif %}</td><td class="faint small nowrap">{{ d.at[:16]|replace('T', ' ') }}</td></tr>{% endfor %}
+    </tbody></table></div>
+    {% endif %}
+  </div>
 </div>
-<form method="post" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">{% with products=all_products %}{% include "admin/ads/_form_fields.html" %}{% endwith %}<div class="row" style="justify-content:flex-end"><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button></div></form>
+
+<form method="post" class="stack" data-track><input type="hidden" name="_csrf" value="{{ csrf }}">
+  {% if st == 'sent' %}<div class="notice notice-info">{{ icon('info', 16) }}<span>{{ t('admin.ads.sent_locked') }}</span></div>{% endif %}
+  {% include "admin/ads/_form_fields.html" %}
+  <div class="row" style="justify-content:flex-end">{% if st != 'sent' %}<button class="btn btn-danger btn-ghost" name="action" value="delete" data-confirm="{{ t('admin.delete') }}" data-confirm-danger="1" formnovalidate>{{ icon('trash', 15) }}{{ t('admin.delete') }}</button><span class="flex1"></span><button class="btn btn-primary">{{ icon('check', 16) }}{{ t('admin.save') }}</button>{% else %}<button class="btn btn-danger btn-ghost" name="action" value="delete" data-confirm="{{ t('admin.delete') }}" data-confirm-danger="1" formnovalidate>{{ icon('trash', 15) }}{{ t('admin.delete') }}</button>{% endif %}</div>
+</form>
 </div>
 {% endblock %}

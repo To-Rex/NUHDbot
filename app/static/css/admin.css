@@ -2086,3 +2086,53 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 .asst-confirm .switch{width:30px;height:18px;margin-left:2px}.asst-confirm .switch::after{width:14px;height:14px}.asst-confirm .switch.on::after{transform:translateX(12px)}
 .asst-confirm.on{color:var(--ink)}.asst-confirm span{white-space:nowrap}
 @media (max-width:980px){.aplan{margin-left:0}.aplan-args{grid-template-columns:1fr;gap:1px}.aplan-args dt{padding-top:4px}.asst-confirm span{display:none}.aplan-acts{flex-wrap:wrap}.aplan-acts .hint{flex-basis:100%;order:3}}
+
+/* Ad posts: compact form, the address book of chats, the Telegram-like preview with its button, the steps, the sends */
+.ad-post-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px 14px}
+.ad-post-grid .ad-text{grid-column:1/-1}
+.ad-picks{max-height:300px}
+.tgt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px}
+.tgt-tile{position:relative;display:flex;align-items:center;gap:10px;padding:9px 34px 9px 10px;border-radius:12px;border:1px solid var(--hairline);background:var(--surface);cursor:pointer;transition:border-color var(--t-fast),background var(--t-fast)}
+.tgt-tile:hover{border-color:var(--hairline-strong);background:var(--sunken)}
+.tgt-tile input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.tgt-tile.is-on{border-color:var(--accent);background:var(--accent-soft)}
+.tgt-tile.is-left{opacity:.6}
+.tgt-ic{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;background:var(--sunken);color:var(--ink-2);flex:0 0 auto}
+.tgt-tile.is-on .tgt-ic{background:var(--accent);color:var(--accent-ink)}
+.tgt-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tgt-main b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tgt-main small{font-size:11.5px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tgt-flag{font-style:normal;font-size:11px;font-weight:600}.tgt-flag.bad{color:var(--bad)}.tgt-flag.warn{color:var(--warn)}
+.tgt-tick{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--hairline-strong);display:grid;place-items:center;color:transparent;flex:0 0 auto;transition:background var(--t-fast),border-color var(--t-fast),color var(--t-fast)}
+.tgt-tile.is-on .tgt-tick{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.tgt-del{position:absolute;right:6px;top:6px;width:22px;height:22px;border:0;border-radius:7px;background:transparent;color:var(--ink-3);display:grid;place-items:center;cursor:pointer;opacity:0;transition:opacity var(--t-fast),background var(--t-fast)}
+.tgt-tile:hover .tgt-del,.tgt-del:focus-visible{opacity:1}.tgt-del:hover{background:var(--bad-bg);color:var(--bad)}
+.tgt-empty{display:flex;align-items:center;gap:12px;padding:14px;border:1px dashed var(--hairline-strong);border-radius:12px;color:var(--ink-3);margin-top:10px}
+.tgt-empty b{display:block;font-size:13px;color:var(--ink-2)}.tgt-empty small{font-size:12px;line-height:1.45}
+.tgt-add{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.tgt-add-in{position:relative;flex:1 1 240px;display:block}.tgt-add-in svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--ink-3);pointer-events:none}.tgt-add-in .input{padding-left:32px}
+.tgt-hint{display:flex;gap:6px;align-items:flex-start;margin-top:8px;line-height:1.45}.tgt-hint svg{flex:0 0 auto;margin-top:2px}
+.tgt-more{margin-top:8px}.tgt-more summary{font-size:12.5px;color:var(--ink-3);cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px}
+.tgt-more summary::-webkit-details-marker{display:none}.tgt-more summary::before{content:"›";display:inline-block;transition:transform var(--t-fast)}.tgt-more[open] summary::before{transform:rotate(90deg)}
+.tgt-more .input{margin-top:6px}
+.tgt-chip{gap:4px;margin:1px 3px 1px 0;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tgwrap{max-width:420px;background:var(--sunken);border-radius:14px;overflow:hidden;border-left:3px solid var(--accent)}
+.tgwrap .tgpost{border-left:0;border-radius:0;background:transparent;max-width:none}
+.tgphoto{display:block;width:100%;max-height:220px;object-fit:cover}
+.tg-btn{display:flex;align-items:center;justify-content:center;margin:0 10px 10px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600}
+.ad-prev-card h2{margin-bottom:10px}
+.ad-steps{display:flex;flex-direction:column;gap:8px}
+.ad-step{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--hairline);border-radius:12px}
+.ad-step.is-next{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.ad-step-n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font:700 12px var(--font-mono);background:var(--sunken);color:var(--ink-3);flex:0 0 auto}
+.ad-step.done .ad-step-n{background:var(--ok-bg);color:var(--ok)}.ad-step.is-next .ad-step-n{background:var(--accent);color:var(--accent-ink)}
+.ad-step-t{flex:1;min-width:0}.ad-step-t b{display:block;font-size:13px}.ad-step-t small{font-size:12px;color:var(--ink-3)}
+.ad-step form{margin:0}
+.ad-test{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ad-test .small{flex:1 1 100%}.ad-test form{margin:0}
+.ad-h3{font-size:13px;margin:16px 0 8px;display:flex;align-items:center;gap:6px}
+.ad-deliv{width:100%;border-collapse:collapse;font-size:13px}
+.ad-deliv td{padding:7px 8px;border-bottom:1px solid var(--hairline);vertical-align:top}.ad-deliv tr:last-child td{border-bottom:0}
+.ad-deliv td.ic{width:26px}.ad-deliv tr.ok td.ic{color:var(--ok)}.ad-deliv tr.bad td.ic{color:var(--bad)}
+.bad-text{color:var(--bad)}
+.ad-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.btn-danger.btn-ghost{background:transparent;color:var(--bad);border-color:transparent}.btn-danger.btn-ghost:hover{background:var(--bad-bg)}
+@media (max-width:900px){.ad-post-grid{grid-template-columns:1fr}.ad-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tgt-del{opacity:1}}
