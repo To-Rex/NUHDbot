@@ -51,6 +51,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "dir_slider_style": {"v": "coverflow", "d": "Mini App home: how the directions slider moves (coverflow | orbit | stack | fan | cylinder | spiral | cascade | pile)"},
     "slider_seconds": {"v": 7, "d": "Mini App home slider: seconds a slide stays (banners can set their own)"},
     "dir_slider_seconds": {"v": 4, "d": "Mini App home: seconds every Directions card stays in front before the slider turns"},
+    "lot_slider_seconds": {"v": 5, "d": "Mini App home: seconds every lot card of the Auctions row stays before the row slides to the next"},
     "banner_slider_style": {"v": "coverflow", "d": "Mini App home slider: how the banners turn, like the Directions slider (coverflow | orbit | stack | fan | cylinder | spiral | cascade | pile)"},
     "assistant_api_key": {"v": "", "d": "Admin assistant: DeepSeek API key (empty = assistant off)"},
     "assistant_model": {"v": "deepseek-chat", "d": "Admin assistant: model (deepseek-chat | deepseek-reasoner)"},

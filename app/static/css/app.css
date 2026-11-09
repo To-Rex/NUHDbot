@@ -655,6 +655,9 @@ button.list-item{width:100%;text-align:left}
    direction colour (--bc from .c-<colour>) */
 .hl-track{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory;margin:0 calc(-1 * var(--sp-4));padding:4px var(--sp-4) 14px;scroll-padding:0 var(--sp-4)}
 .hl-track::-webkit-scrollbar{display:none}
+.hl-dots{display:flex;justify-content:center;gap:6px;margin:-6px 0 4px}
+.hl-dots i{width:6px;height:6px;border-radius:3px;background:var(--fill-2);transition:width var(--t-med) var(--spring),background var(--t-med)}
+.hl-dots i.on{width:20px;background:var(--accent)}
 .hl-card{position:relative;flex:0 0 min(86vw,350px);scroll-snap-align:start;display:flex;align-items:stretch;min-height:172px;border-radius:22px;background:var(--surface);box-shadow:var(--shadow-card);border:1px solid var(--card-border);overflow:hidden;color:var(--ink);transition:transform var(--t-fast) var(--ease)}
 .hl-card:only-child{flex-basis:100%}
 .hl-card:active{transform:scale(.98)}

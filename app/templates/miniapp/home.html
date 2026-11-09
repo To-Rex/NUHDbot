@@ -47,9 +47,10 @@
   {% if home_lots %}
   <section class="home-sec">
     <div class="section-title"><h2 class="row" style="gap:8px">{{ t('home.auctions_title') }}{% set live_n = home_lots|selectattr('status.value', 'equalto', 'live')|list|length %}{% if live_n %}<span class="chip chip-live">{{ live_n }}</span>{% endif %}</h2><a href="/app/auctions">{{ t('home.see_all') }}{{ icon('chevron-right', 15) }}</a></div>
-    <div class="hl-track">
+    <div class="hl-track" data-hl-auto data-ms="{{ lot_seconds * 1000 }}" aria-roledescription="carousel" aria-label="{{ t('home.auctions_title') }}">
       {% for a in home_lots %}{% include "miniapp/partials/lot_card.html" %}{% endfor %}
     </div>
+    {% if home_lots|length > 1 %}<div class="hl-dots" data-hl-dots aria-hidden="true">{% for a in home_lots %}<i class="{{ 'on' if loop.first }}"></i>{% endfor %}</div>{% endif %}
   </section>
   {% endif %}
 
@@ -327,6 +328,36 @@
   window.addEventListener('resize', paint);
   paint(); root.classList.add('ready');
   if (!still && n > 1) auto = setInterval(tick, parseInt(root.dataset.ms, 10) || 4000);  /* the pace set on the Banners page */
+})();
+(function(){
+  /* auctions row: the lot cards slide to the next one by themselves every few seconds (Banners page → Slide time), back to
+     the first at the end. A finger on the row, a hand scroll or a hidden tab pauses it; reduced motion keeps it still. */
+  var track = document.querySelector('[data-hl-auto]'); if (!track || track._hl) return; track._hl = true;  /* a property: a page restored from history starts fresh */
+  var cards = [].slice.call(track.children), n = cards.length; if (n < 2) return;
+  var ms = parseInt(track.dataset.ms, 10) || 5000, dots = [].slice.call(document.querySelectorAll('[data-hl-dots] i'));
+  var still = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var timer = null, idle = null, hold = false, mine = 0;
+  function pad() { return parseFloat(getComputedStyle(track).scrollPaddingLeft) || 0; }
+  function at() {  /* the card nearest the left edge */
+    var x = track.scrollLeft + pad(), best = 0, bd = 1e9;
+    cards.forEach(function (c, k) { var d = Math.abs(c.offsetLeft - x); if (d < bd) { bd = d; best = k; } });
+    return best;
+  }
+  function mark(i) { dots.forEach(function (d, k) { d.classList.toggle('on', k === i); }); }
+  function go(i) { mine = Date.now(); track.scrollTo({ left: Math.max(0, cards[i].offsetLeft - pad()), behavior: still ? 'auto' : 'smooth' }); mark(i); }
+  function next() {
+    var atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 2, i = at() + 1;
+    go(atEnd || i >= n ? 0 : i);
+  }
+  function schedule() { clearTimeout(timer); if (still || hold || document.hidden || !document.body.contains(track)) return; timer = setTimeout(function () { next(); schedule(); }, ms); }
+  function later(fn, t) { clearTimeout(idle); idle = setTimeout(fn, t); }
+  track.addEventListener('scroll', function () { mark(at()); if (Date.now() - mine < 900) return; clearTimeout(timer); later(function () { if (!hold) schedule(); }, 2500); }, { passive: true });  /* scrolled by hand: wait, then go on from there */
+  ['pointerdown', 'touchstart'].forEach(function (ev) { track.addEventListener(ev, function () { hold = true; clearTimeout(timer); }, { passive: true }); });
+  ['pointerup', 'pointercancel', 'touchend', 'touchcancel'].forEach(function (ev) { track.addEventListener(ev, function () { hold = false; later(schedule, 2000); }, { passive: true }); });
+  track.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') { hold = true; clearTimeout(timer); } });
+  track.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') { hold = false; schedule(); } });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) clearTimeout(timer); else schedule(); });
+  mark(at()); schedule();
 })();
 </script>
 {% endblock %}

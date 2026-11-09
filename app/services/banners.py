@@ -29,6 +29,7 @@ def clean_color(value) -> str | None:
 SECONDS_MIN, SECONDS_MAX, SECONDS_DEFAULT = 1, 60, 7
 SECONDS_CHOICES = (5, 7, 10, 15)
 DIR_SECONDS_DEFAULT, DIR_SECONDS_CHOICES = 4, (3, 4, 5, 7, 10)  # the Directions slider turns faster than the banners
+LOT_SECONDS_DEFAULT, LOT_SECONDS_CHOICES = 5, (3, 4, 5, 7, 10)  # the Auctions row slides to the next lot card by itself
 # how the home slider turns (Banners page → Slider animation): the Directions slider's looks; the first is the default
 STYLES = ("coverflow", "orbit", "stack", "fan", "cylinder", "spiral", "cascade", "pile")
 

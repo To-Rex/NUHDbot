@@ -1304,7 +1304,7 @@
       "n_products": "{n} ta mahsulot",
       "from": "{price} dan",
       "seconds_default": "Slayd vaqti",
-      "seconds_default_hint": "Har bir slayd necha soniya turadi: bannerlar, auksion va yangi kelganlar slaydlari uchun bitta; Yo'nalishlar slayderi uchun alohida.",
+      "seconds_default_hint": "Har bir slayd necha soniya turadi: bannerlar slayderi, Yo'nalishlar slayderi va Auksionlar qatori uchun alohida-alohida.",
       "seconds_saved": "Slayd vaqti: {n} soniya — barcha slaydlar uchun",
       "f_seconds_common": "Slayd vaqti barcha bannerlar uchun bir xil — {n} soniya.",
       "f_seconds_where": "Bannerlar sahifasida o'zgartiriladi",
@@ -1393,7 +1393,10 @@
       "seconds_dirs": "Yo'nalishlar slayderi",
       "seconds_dirs_hint": "Yo'nalishlar kartasi oldinda necha soniya turadi — keyin slayder o'zi aylanadi (barmoq tekkanda to'xtaydi).",
       "seconds_saved_both": "Slayd vaqti: bannerlar {n} s · yo'nalishlar {d} s",
-      "f_color_hint": "Tayyor ranglardan birini tanlang yoki «+» orqali istalgan rangni oling — matn rangi o'zi moslashadi."
+      "f_color_hint": "Tayyor ranglardan birini tanlang yoki «+» orqali istalgan rangni oling — matn rangi o'zi moslashadi.",
+      "seconds_lots": "Auksionlar qatori",
+      "seconds_lots_hint": "Har bir lot kartasi necha soniya turadi — keyin qator o'zi keyingi lotga suriladi, oxirida boshiga qaytadi (barmoq tekkanda to'xtaydi).",
+      "seconds_saved_all": "Slayd vaqti: bannerlar {n} s · yo'nalishlar {d} s · auksionlar {l} s"
     },
     "shape": {
       "title": "Karta shakli",

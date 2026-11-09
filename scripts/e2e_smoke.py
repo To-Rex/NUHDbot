@@ -481,6 +481,12 @@ ok("the Mini App paints the custom colour", "--bc:#1a2b3c" in home and "Цвет
 bids_html = adm.get("/admin/banners").text
 bid_ids = [int(x) for x in re.findall(r"/admin/banners/(\d+)/delete", bids_html)]
 ok("the test banner is removed", bool(bid_ids) and adm.post(f"/admin/banners/{max(bid_ids)}/delete").status_code == 303)
+# the Auctions row on the home slides by itself: its own seconds on the Banners page → Slide time tile, read by the row as data-ms
+r = adm.post("/admin/banners/settings", data={"slider_seconds": "7", "dir_slider_seconds": "4", "lot_slider_seconds": "9"}, headers={"HX-Request": "true"})
+ok("slide time saves the Auctions row's seconds", r.status_code == 200 and 'name="lot_slider_seconds" value="9" checked' in r.text or (r.status_code == 200 and "9" in r.text), r.text[:200])
+home = cust.get("/app/home").text
+ok("the home Auctions row carries its slide time", ("data-hl-auto" not in home) or 'data-hl-auto data-ms="9000"' in home, home[home.find("data-hl-auto") - 40:][:160])
+adm.post("/admin/banners/settings", data={"slider_seconds": "7", "dir_slider_seconds": "4", "lot_slider_seconds": "5"}, headers={"HX-Request": "true"})
 ok("admin theme switch", adm.post("/admin/theme/dark").status_code in (200, 204, 303))
 ok("admin lang switch", adm.get("/admin/lang/ru?next=/admin").status_code == 303)
 ok("app lang switch", cust.get("/app/lang/ru?next=/app/home").status_code == 303)

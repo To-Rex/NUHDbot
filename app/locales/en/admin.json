@@ -1304,7 +1304,7 @@
       "n_products": "{n} products",
       "from": "from {price}",
       "seconds_default": "Slide time",
-      "seconds_default_hint": "How many seconds every slide stays: one value for the banners, the auction and the new-arrivals slides; a separate one for the Directions slider.",
+      "seconds_default_hint": "How many seconds every slide stays: one value each for the banner slider, the Directions slider and the Auctions row.",
       "seconds_saved": "Slide time: {n} s — for every slide",
       "f_seconds_common": "The slide time is the same for every banner — {n} s.",
       "f_seconds_where": "Change it on the Banners page",
@@ -1393,7 +1393,10 @@
       "seconds_dirs": "Directions slider",
       "seconds_dirs_hint": "How many seconds a direction card stays in front before the slider turns by itself (a touch pauses it).",
       "seconds_saved_both": "Slide time: banners {n} s · directions {d} s",
-      "f_color_hint": "Pick a preset or any colour with «+» — the text colour adapts by itself."
+      "f_color_hint": "Pick a preset or any colour with «+» — the text colour adapts by itself.",
+      "seconds_lots": "Auctions row",
+      "seconds_lots_hint": "How many seconds a lot card stays before the row slides to the next lot by itself, back to the start at the end (a touch pauses it).",
+      "seconds_saved_all": "Slide time: banners {n} s · directions {d} s · auctions {l} s"
     },
     "shape": {
       "title": "Card shape",
