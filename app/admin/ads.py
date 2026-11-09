@@ -1,7 +1,6 @@
-"""Admin → Ad posts: a post (text + 3–5 products) goes to Telegram groups and channels from an address book of chats the
+"""Admin → Ad posts: a post (text + 1–10 products) goes to Telegram groups and channels from an address book of chats the
 bot knows; each send is kept per chat, and the post's link counts clicks, customers and orders back to the campaign."""
 import re
-from datetime import UTC, datetime
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import func, select
@@ -14,7 +13,7 @@ from app.enums import AdPostStatus
 from app.i18n import t
 from app.models import AdPost, Order, Product, User
 from app.services import ads, audit
-from app.services.ads import deep_links, render_post  # noqa: F401  (the assistant's tools import them from here)
+from app.services.ads import deep_links, new_campaign, render_post  # noqa: F401  (the assistant's tools import them from here)
 
 TARGET_ICONS = {"channel": "bell", "supergroup": "users", "group": "users", "private": "user"}
 
@@ -63,7 +62,7 @@ async def ads_list(request: Request, db: DB, staff: User = Depends(staff_dep(*AD
 # ---------- new ----------
 
 def _blank() -> AdPost:
-    return AdPost(title="", text="", product_ids=[], target_chat_ids=[], campaign=f"c{datetime.now(UTC):%y%m%d}", deliveries=[])
+    return AdPost(title="", text="", product_ids=[], target_chat_ids=[], campaign=new_campaign(), deliveries=[])
 
 
 @router.get("/ads/new")
@@ -81,9 +80,8 @@ def _apply(post: AdPost, form) -> list[str]:
     errors = []
     post.title = f_str(form, "title", maxlen=120)
     post.text = (form.get("text") or "").strip()
-    post.campaign = re.sub(r"[^a-zA-Z0-9_-]", "", f_str(form, "campaign", maxlen=64)) or "camp"
-    ids = [int(x) for x in form.getlist("product_ids") if x.isdigit()]
-    if not (3 <= len(ids) <= 5):
+    ids = list(dict.fromkeys(int(x) for x in form.getlist("product_ids") if x.isdigit()))
+    if not (1 <= len(ids) <= 10):
         errors.append("products")
     post.product_ids = ids
     picked = [int(x) for x in form.getlist("target_ids") if re.fullmatch(r"-?\d+", x)]
@@ -97,7 +95,7 @@ def _apply(post: AdPost, form) -> list[str]:
 @router.post("/ads/new")
 async def ad_create(request: Request, db: DB, staff: User = Depends(staff_dep(*ADS_ROLES))):
     form = await request.form()
-    post = AdPost(created_by=staff.id, deliveries=[])
+    post = AdPost(created_by=staff.id, deliveries=[], campaign=new_campaign())  # the link code is made here, nobody has to think one up
     errors = _apply(post, form)
     if errors:
         return render(request, staff, "admin/ads/form.html", {"page_title": t(staff.lang, "admin.ads.new"), "is_new": True, "errors": errors, **(await _form_ctx(db, post))}, status_code=400)

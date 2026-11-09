@@ -892,7 +892,7 @@
   bindTokens(document);
   document.addEventListener('htmx:afterSettle', (e) => bindTokens(e.target));
 
-  // ---------- ad post form: pick 3–5 products (search, counter) + live Telegram preview ----------
+  // ---------- ad post form: pick 1–10 products (search, counter) + live Telegram preview ----------
   function bindAdForm(scope) {
     (scope.querySelectorAll ? scope : document).querySelectorAll('form:not([data-ad-bound])').forEach((form) => {
       const picks = form.querySelector('[data-ad-picks]'); if (!picks) return;
@@ -903,8 +903,8 @@
       const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       function refresh() {
         const on = boxes().filter((b) => b.checked), n = on.length;
-        boxes().forEach((b) => { b.disabled = !b.checked && n >= 5; b.closest('.ad-pick').classList.toggle('is-on', b.checked); });
-        if (count) { count.textContent = (count.dataset.tpl || '{n} / 5').replace('{n}', n); count.classList.toggle('ok', n >= 3 && n <= 5); }
+        boxes().forEach((b) => { b.disabled = !b.checked && n >= 10; b.closest('.ad-pick').classList.toggle('is-on', b.checked); });
+        if (count) { count.textContent = (count.dataset.tpl || '{n} / 10').replace('{n}', n); count.classList.toggle('ok', n >= 1 && n <= 10); }
         if (!preview) return;
         const body = ((text && text.value) || '').trim();
         const wrap = preview.closest('.tgwrap');
@@ -940,7 +940,7 @@
         search.addEventListener('input', () => { const q = search.value.trim().toLowerCase(); picks.querySelectorAll('.ad-pick').forEach((l) => { l.hidden = !!q && !l.dataset.name.includes(q) && !l.querySelector('input').checked; }); });
       }
       form.addEventListener('submit', (e) => {
-        const n = boxes().filter((b) => b.checked).length; if (n >= 3 && n <= 5) return;
+        const n = boxes().filter((b) => b.checked).length; if (n >= 1 && n <= 10) return;
         e.preventDefault(); e.stopImmediatePropagation();
         const sec = form.querySelector('#s-products'); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
         if (count) { count.classList.add('bad'); setTimeout(() => count.classList.remove('bad'), 1600); }

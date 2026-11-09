@@ -9,6 +9,7 @@ import asyncio
 import html
 import logging
 import re
+import secrets
 from datetime import UTC, datetime
 
 from sqlalchemy import select, update
@@ -26,6 +27,12 @@ log = logging.getLogger("nuhd.ads")
 CAPTION_MAX = 1024  # Telegram: a photo caption
 TYPES = ("channel", "supergroup", "group", "private")
 RATE_SLEEP = 0.06  # between chats
+
+
+def new_campaign() -> str:
+    """The code a post's link carries (start parameter src_<code>): today's date and four random characters — unique
+    enough to count clicks per post, short enough for Telegram's 64-character start parameter."""
+    return f"c{datetime.now(UTC):%y%m%d}{secrets.token_hex(2)}"
 
 
 def deep_links(campaign: str) -> dict:

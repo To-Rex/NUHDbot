@@ -2088,7 +2088,7 @@ input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-
 @media (max-width:980px){.aplan{margin-left:0}.aplan-args{grid-template-columns:1fr;gap:1px}.aplan-args dt{padding-top:4px}.asst-confirm span{display:none}.aplan-acts{flex-wrap:wrap}.aplan-acts .hint{flex-basis:100%;order:3}}
 
 /* Ad posts: compact form, the address book of chats, the Telegram-like preview with its button, the steps, the sends */
-.ad-post-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px 14px}
+.ad-post-grid{display:grid;grid-template-columns:1fr;gap:10px 14px}
 .ad-post-grid .ad-text{grid-column:1/-1}
 .ad-picks{max-height:300px}
 .tgt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:10px}

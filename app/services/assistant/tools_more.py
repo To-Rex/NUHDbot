@@ -422,7 +422,7 @@ async def get_ad(ctx: Ctx, id: int):  # noqa: A002
 
 
 @tool("update_ad", "Edit an ad post (an approved one goes back to draft; a sent one cannot change). target_chat_ids are the Telegram chats / channels it is sent to — list_ad_targets shows the ones the bot knows.",
-      {"id": I(""), "title": S(""), "text": S(""), "product_ids": ARR("3 to 5 product ids"), "campaign": S(""), "target_chat_ids": ARR("Telegram chat ids")}, required=("id",), mutating=True)
+      {"id": I(""), "title": S(""), "text": S(""), "product_ids": ARR("1 to 10 product ids"), "campaign": S(""), "target_chat_ids": ARR("Telegram chat ids")}, required=("id",), mutating=True)
 async def update_ad(ctx: Ctx, id: int, title=None, text=None, product_ids=None, campaign=None, target_chat_ids=None):  # noqa: A002
     p = await need(ctx.db, AdPost, int(id), "ad")
     if p.status == AdPostStatus.SENT:
@@ -434,8 +434,8 @@ async def update_ad(ctx: Ctx, id: int, title=None, text=None, product_ids=None, 
         p.text = str(text).strip()
     if product_ids is not None:
         ids = [int(i) for i in product_ids]
-        if not 3 <= len(ids) <= 5:
-            raise ToolError("3 to 5 products")
+        if not 1 <= len(ids) <= 10:
+            raise ToolError("1 to 10 products")
         p.product_ids = ids
     if campaign is not None:
         p.campaign = re.sub(r"[^a-zA-Z0-9_-]", "", str(campaign)) or p.campaign

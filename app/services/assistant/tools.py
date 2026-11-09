@@ -56,10 +56,10 @@ from app.models import (
 )
 from app.models.base import utcnow
 from app.security import hash_password
+from app.services import ads, deletion, model_dict, notifications, reports
 from app.services import auctions as asvc
 from app.services import banners as bsvc
 from app.services import brands as brand_service
-from app.services import deletion, model_dict, notifications, reports
 from app.services import orders as osvc
 from app.services import series as series_service
 from app.services import support as ssvc
@@ -1414,14 +1414,14 @@ async def list_ads(ctx: Ctx):
     return {"ads": [{"id": p.id, "title": p.title, "campaign": p.campaign, "status": p.status.value, "product_ids": p.product_ids, "clicks": p.clicks, "sent_at": local(p.sent_at)} for p in rows]}
 
 
-@tool("create_ad", "Draft a Telegram ad post with 3–5 products (sending is done on the Ads page).", {"title": S(""), "text": S("Post text"), "product_ids": ARR("3 to 5 product ids"), "campaign": S("Campaign tag, latin letters/digits")}, required=("title", "text", "product_ids"), mutating=True)
+@tool("create_ad", "Draft a Telegram ad post with 1–10 products (sending is done on the Ads page). The link code (campaign) is made automatically when omitted.", {"title": S(""), "text": S("Post text"), "product_ids": ARR("1 to 10 product ids"), "campaign": S("Link code, latin letters/digits (optional)")}, required=("title", "text", "product_ids"), mutating=True)
 async def create_ad(ctx: Ctx, title: str, text: str, product_ids: list, campaign=None):
     from app.enums import AdPostStatus
 
     ids = [int(i) for i in product_ids]
-    if not 3 <= len(ids) <= 5:
-        raise ToolError("3 to 5 products")
-    p = AdPost(title=title.strip()[:120], text=text.strip(), product_ids=ids, target_chat_ids=[], campaign=re.sub(r"[^a-zA-Z0-9_-]", "", campaign or "") or f"camp{int(datetime.now(UTC).timestamp())}",
+    if not 1 <= len(ids) <= 10:
+        raise ToolError("1 to 10 products")
+    p = AdPost(title=title.strip()[:120], text=text.strip(), product_ids=ids, target_chat_ids=[], campaign=re.sub(r"[^a-zA-Z0-9_-]", "", campaign or "") or ads.new_campaign(),
                status=AdPostStatus.DRAFT, clicks=0, created_by=ctx.staff.id)
     ctx.db.add(p)
     await ctx.db.flush()

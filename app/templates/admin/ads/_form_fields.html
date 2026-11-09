@@ -1,9 +1,8 @@
 {# Ad post fields, shared by "new" and the edit form on the post page. Expects: post, products and the targets block context.
-   admin.js wires the product picker (3–5, search, counter) and the live preview ([data-ad-preview]). #}
+   admin.js wires the product picker (1–10, search, counter) and the live preview ([data-ad-preview]). #}
 <section class="fsection" id="s-post"><h2>{{ t('admin.ads.sec_post') }}</h2>
   <div class="ad-post-grid mt">
     <div class="field"><label>{{ t('admin.ads.name_label') }} <span class="req">*</span></label><input class="input" name="title" value="{{ post.title }}" maxlength="120" required data-ad-title placeholder="{{ t('admin.ads.name_hint') }}"></div>
-    <div class="field"><label>{{ t('admin.ads.campaign') }}</label><input class="input mono" name="campaign" value="{{ post.campaign }}" pattern="[A-Za-z0-9_-]+" data-ad-campaign title="{{ t('admin.ads.campaign_hint') }}"></div>
     <div class="field ad-text"><label>{{ t('admin.ads.text') }} <span class="req">*</span></label><textarea class="textarea" name="text" rows="5" required data-ad-text placeholder="{{ t('admin.ads.text_hint') }}">{{ post.text }}</textarea></div>
   </div>
 </section>
