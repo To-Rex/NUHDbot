@@ -71,8 +71,8 @@ async def auctions_list(request: Request, db: DB, staff: User = Depends(staff_de
 
 
 async def _rules_ctx(db, staff: User) -> dict:
-    """The common lot rules tile: the saved text, the standard text per language, how many lots carry their own rules."""
-    return {"rules": await auction_rules.load(db), "rules_default": {code: t(code, "auction.rules_default") for code in settings.langs},
+    """The common lot rules tile: the saved text and how many lots carry their own rules."""
+    return {"rules": await auction_rules.load(db),
             "rules_own_n": await auction_rules.own_count(db), "rules_total_n": await auction_rules.total_count(db), "can_edit": can(staff, AUCTION_EDIT_ROLES)}
 
 

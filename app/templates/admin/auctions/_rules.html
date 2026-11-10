@@ -1,5 +1,5 @@
-{# the common lot rules (shown on every lot page unless a lot has its own): text per language, the standard text as a fallback,
-   how many lots carry their own. expects: rules {body}, rules_default (lang: text), rules_own_n, rules_total_n, can_edit #}
+{# the common lot rules (shown on every lot page unless a lot has its own): text per language (a language left empty shows
+   the standard text on the lot page), how many lots carry their own. expects: rules {body}, rules_own_n, rules_total_n, can_edit #}
 <details class="tile" id="auction-rules"{{ ' open' if tile_open }}>
   <summary class="tile-sum"><span class="tile-ic">{{ icon('list', 18) }}</span><span class="tile-txt"><b>{{ t('admin.auc.rules_title') }}</b><small>{{ t('admin.auc.rules_tile_sub', own=rules_own_n, n=rules_total_n) }}{% if not rules.body %} · {{ t('admin.auc.terms_default_note') }}{% endif %}</small></span><span class="tile-state">{{ icon('check', 12) }}{{ t('admin.auc.rules_mode_common') }}</span>{{ icon('chevron-down', 16, 'tile-chev') }}</summary>
   <div class="tile-body">
@@ -7,17 +7,8 @@
   <p class="tile-hint">{{ t('admin.auc.rules_hint') }}</p>
   <div class="stack mt-3" style="gap:12px">
     {% with name='rules_body', value=rules.body, kind='textarea', label=t('admin.auc.rules_body'), rows=5 %}{% include "admin/partials/i18n_field.html" %}{% endwith %}
-    <details class="acc" data-ar-default><summary>{{ icon('eye', 14) }} {{ t('admin.auc.terms_default_note') }}</summary><div class="at-default small muted mt-sm" data-ar-default-text data-texts="{{ rules_default|tojson|forceescape }}"></div></details>
   </div>
   <div class="tm-foot"><span class="hint">{{ t('admin.auc.rules_own_note') }}</span>{% if can_edit %}<button class="btn btn-primary btn-sm" type="submit">{{ icon('check', 15) }}{{ t('admin.save') }}</button>{% endif %}</div>
   </form>
-  <script>
-  (function(){
-    var f=document.querySelector('#auction-rules form[data-ar]'); if(!f||f._ar) return; f._ar=1;
-    var box=f.querySelector('[data-ar-default-text]'), texts={}; try{ texts=JSON.parse(box.dataset.texts||'{}'); }catch(e){}
-    function draw(){ var act=f.querySelector('[data-i18n] .lang-tabs button.active'); var l=act?act.dataset.lang:'{{ lang }}'; box.textContent=texts[l]||texts['{{ lang }}']||''; }
-    f.addEventListener('click',function(e){ if(e.target.closest('.lang-tabs button')) setTimeout(draw,0); }); draw();
-  })();
-  </script>
 </div>
 </details>
