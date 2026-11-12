@@ -337,6 +337,7 @@
       "proof_required": "Choose the receipt picture"
     },
     "days": "d",
+    "cd_days": "day|days",
     "hours": "hrs",
     "mins": "min",
     "secs": "sec",

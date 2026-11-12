@@ -260,6 +260,14 @@
   document.addEventListener('click', (e) => { const o = e.target.closest('[data-open-sheet]'); if (o) openSheet(o.dataset.openSheet); const c = e.target.closest('[data-close-sheet]'); if (c) closeSheet(c.dataset.closeSheet); });
 
   // ---------- countdowns ----------
+  // Two shapes: a clock of cells ([data-u] children, the lot page) and a compact line — "18:34:13", and with a day or more
+  // left "1 kun 18:34:13": the days as a number and the word in the page's language (<html data-cd-days>: one form, "day|days",
+  // or the three Slavic forms "день|дня|дней"), kept in its own span so the two parts can be styled and never break apart.
+  const cdForms = (document.documentElement.dataset.cdDays || 'd').split('|');
+  function cdDayWord(n) {
+    if (cdForms.length >= 3) { const a = n % 10, b = n % 100; return cdForms[a === 1 && b !== 11 ? 0 : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 1 : 2]; }
+    return cdForms[cdForms.length === 2 && n !== 1 ? 1 : 0];
+  }
   function tickCountdowns() {
     document.querySelectorAll('[data-countdown]').forEach((el) => {
       const end = new Date(el.dataset.countdown).getTime(); let s = Math.max(0, Math.floor((end - Date.now()) / 1000));
@@ -268,7 +276,13 @@
       const cells = el.querySelectorAll('[data-u]');
       if (cells.length) {
         cells.forEach((c) => { const u = c.dataset.u; const v = u === 'd' ? d : u === 'h' ? h : u === 'm' ? m : s; const t = c.firstChild; if (t && t.nodeValue !== pad(v)) t.nodeValue = pad(v); });
-      } else el.textContent = (d ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+      } else {
+        const days = d ? d + '\u00a0' + cdDayWord(d) : '', time = pad(h) + ':' + pad(m) + ':' + pad(s);
+        let dn = el.querySelector('.cd-d'), tn = el.querySelector('.cd-t');
+        if (!tn) { el.textContent = ''; dn = document.createElement('span'); dn.className = 'cd-d'; tn = document.createElement('span'); tn.className = 'cd-t'; el.append(dn, tn); }
+        if (dn.textContent !== days) { dn.textContent = days; dn.hidden = !days; }
+        if (tn.textContent !== time) tn.textContent = time;
+      }
       el.classList.toggle('urgent', end - Date.now() < 120000 && end > Date.now());
       if (end <= Date.now() && !el.dataset.ended) { el.dataset.ended = '1'; document.dispatchEvent(new CustomEvent('countdown:ended', { detail: { el } })); }
     });

@@ -337,6 +337,7 @@
       "proof_required": "Chek suratini tanlang"
     },
     "days": "kun",
+    "cd_days": "kun",
     "hours": "soat",
     "mins": "daq",
     "secs": "son",

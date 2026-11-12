@@ -108,6 +108,9 @@ dl{margin:0}
 /* numbers and codes use the system face with tabular figures — calmer than a monospace */
 .mono{font-family:var(--font-body);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:0}
 .num{font-variant-numeric:tabular-nums}
+/* a compact countdown (app.js): "1 kun" then the clock — the days in the text font, a touch lighter, a clear step away from the digits */
+.cd-d{margin-right:.5em;font-family:var(--font-body);font-weight:600;letter-spacing:0;white-space:nowrap;opacity:.86}
+.cd-t{white-space:nowrap;font-variant-numeric:tabular-nums}
 .eyebrow,.pcard-brand,.filter-label{font-family:var(--font-body);font-size:12px;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-3)}
 .muted{color:var(--ink-2)}
 .faint{color:var(--ink-3)}

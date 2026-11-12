@@ -337,6 +337,7 @@
       "proof_required": "请选择凭证截图"
     },
     "days": "天",
+    "cd_days": "天",
     "hours": "时",
     "mins": "分",
     "secs": "秒",

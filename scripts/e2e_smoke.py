@@ -122,6 +122,7 @@ r = cust.get(f"/app/home?dev_tg={TG}")
 ok("customer dev session", r.status_code in (200, 302, 303), str(r.status_code))
 r = cust.get("/app/home")
 ok("home", r.status_code == 200 and clean(r.text))
+ok("page carries the day word for compact countdowns (\"1 kun 18:34:13\")", re.search(r'<html[^>]* data-cd-days="[^"]+"', r.text) is not None)
 # register (fresh user may already be registered from a previous run)
 r = cust.get("/app/register")
 if r.status_code == 200:
