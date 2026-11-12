@@ -1,5 +1,7 @@
 {# Home auto slider. Staff banners first (System → Banners), then the live / next auction and new arrivals.
-   Drag, tap a side banner or a dot, or let it run: every slide stays the same time, set on the Banners page (paused while touched). #}
+   Drag, tap a side banner or a dot, or let it run: every slide stays the same time, set on the Banners page (paused while touched).
+   A title never leaves its card: it wraps (a long model code breaks too), and home.html gives it one more line or sets it
+   smaller when it still does not fit; the countdown pill stays one line and drops its label on a card too narrow for both. #}
 {% set lot = lots[0] if lots else None %}
 {% set n = banners|length + (1 if lot else 0) + (1 if new_count else 0) %}{% set first = namespace(on=True) %}
 {# two or more banners turn like the Directions slider below, in the look and card shape picked on the Banners page, as tall as the
@@ -27,9 +29,9 @@
     <a class="hs-slide c-orange{{ ' is-active' if first.on }}"{% set first.on = False %} href="/app/auctions/{{ lot.id }}" data-ms="{{ slider_seconds * 1000 }}" aria-roledescription="slide">
       <div class="hs-body">
         <span class="hs-kicker">{% if lot.status.value == 'live' %}<i class="live-dot"></i>{{ t('home.auction_live') }}{% else %}{{ icon('clock', 14) }}{{ t('home.auction_soon') }}{% endif %}</span>
-        <h2 class="truncate">{{ lot.brand }} {{ lot.model }}</h2>
+        <h2>{{ lot.brand }} {{ lot.model }}</h2>
         <p class="hs-sub">{{ lot.capacity_gb|capacity }} × {{ lot.qty }} · {{ t('auction.current') }} <b class="num">{{ lot.current_price_total|money(lot.currency) }}</b></p>
-        <span class="hs-cta">{% if lot.status.value == 'live' %}{{ t('auction.ends_in') }}{% else %}{{ t('auction.starts_in') }}{% endif %} <span class="num" data-countdown="{{ (lot.ends_at if lot.status.value=='live' else lot.starts_at)|iso }}"></span></span>
+        <span class="hs-cta"><span class="hs-cta-lbl">{% if lot.status.value == 'live' %}{{ t('auction.ends_in') }}{% else %}{{ t('auction.starts_in') }}{% endif %}</span> <span class="num" data-countdown="{{ (lot.ends_at if lot.status.value=='live' else lot.starts_at)|iso }}"></span></span>
       </div>
       <span class="hs-art">{{ icon('gavel', 64) }}</span>
     </a>

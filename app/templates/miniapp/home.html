@@ -103,6 +103,41 @@
   var c = document.querySelector('.cf-card'); if (c && window.ResizeObserver) new ResizeObserver(fit).observe(c);  /* fonts arriving late, a turned phone */
 })();
 (function(){
+  /* a banner title always fits its card. It wraps to the lines the card gives it; one that is still cut (a long brand and
+     model, a long headline) first gets one more line when the card has the room, then is set smaller, half a pixel at a
+     time, down to 70% — only past that does the ellipsis show. Then the card as a whole: if the text column came out
+     taller than the card, the subtitle gives way, the extra line is taken back and the title goes on shrinking, so the
+     countdown / the button at the bottom is never cut off. The countdown pill keeps to one line: on a card too narrow
+     for "Ends in" and the time, the label goes and the time stays. */
+  var hs = document.querySelector('[data-slider]'); if (!hs || hs._ft) return; hs._ft = true;
+  var slides = [].slice.call(hs.querySelectorAll('.hs-slide')), seen = -1, raf = 0;
+  function cut(h) { return h.scrollHeight > h.clientHeight + 1 || h.scrollWidth > h.clientWidth + 1; }
+  function pill(s) { var c = s.querySelector('.hs-cta'); if (c && c.querySelector('[data-countdown]') && c.scrollWidth > c.clientWidth + 1) s.classList.add('cta-tight'); }
+  function one(s) {
+    var h = s.querySelector('h2'), body = s.querySelector('.hs-body'), sub = s.querySelector('.hs-sub'); if (!h || !body) return;
+    h.style.fontSize = ''; h.style.webkitLineClamp = ''; if (sub) sub.style.display = ''; s.classList.remove('cta-tight'); pill(s);
+    var base = parseFloat(getComputedStyle(h).fontSize) || 18, min = Math.max(12.5, base * 0.7), size = base;
+    var lines = parseInt(getComputedStyle(h).webkitLineClamp, 10) || 2, more = false;
+    function over() { return body.scrollHeight > body.clientHeight + 1; }
+    function shrink(test, to) { while (size > to && test()) { size -= 0.5; h.style.fontSize = size + 'px'; } }
+    function cutNow() { return cut(h); }
+    shrink(cutNow, base * 0.88);  /* a little smaller is nicer than a third line */
+    if (cutNow() && lines < 3) { h.style.webkitLineClamp = String(lines + 1); more = true; if (over()) { if (sub) sub.style.display = 'none'; if (over()) { h.style.webkitLineClamp = ''; more = false; if (sub) sub.style.display = ''; } } }
+    shrink(cutNow, min);
+    if (over() && sub) sub.style.display = 'none';
+    if (over() && more) { h.style.webkitLineClamp = ''; shrink(cutNow, min); }
+    shrink(over, min);
+  }
+  function run() { raf = 0; if (!document.body.contains(hs)) return; seen = slides[0].offsetWidth; hs._sz = hs.classList.contains('sized'); slides.forEach(one); }
+  function later() { if (!raf) raf = requestAnimationFrame(run); }
+  run(); window.addEventListener('resize', later);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(later);  /* the real font is wider or narrower than the fallback */
+  if (window.ResizeObserver) new ResizeObserver(function () { if (slides[0].offsetWidth !== seen || hs.classList.contains('sized') !== hs._sz) later(); }).observe(slides[0]);  /* the card got its final width or height */
+  if (window.MutationObserver) slides.forEach(function (s) {  /* the time is written in after load and grows a "1d" — the pill is checked again, the title is not touched */
+    var c = s.querySelector('.hs-cta [data-countdown]'); if (c) new MutationObserver(function () { pill(s); }).observe(c, { childList: true, characterData: true, subtree: true });
+  });
+})();
+(function(){
   /* home slider: the banners turn like the Directions slider below — a ring of compact cards; pos is the (fractional)
      index of the one in front and each card is placed by its distance d from it, in the look picked on the Banners page
      (data-style: cover flow, orbit, card stack, fan, drum, spiral, cascade, pile). Each banner stays its own seconds (data-ms); a touch pauses it,
